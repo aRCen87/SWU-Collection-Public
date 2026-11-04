@@ -68,7 +68,7 @@ def verify(apk_path):
     if visual_payload != gzip.decompress(Path("app/src/main/assets/scan-visual-index.json.gz").read_bytes()):
         raise ValueError("Packaged visual index differs from source")
     visual=json.loads(visual_payload)
-    if visual.get("format")!="SWU_VISUAL_INDEX" or visual.get("version")!=1 or not visual.get("entries"):
+    if visual.get("format")!="SWU_VISUAL_INDEX" or visual.get("version")!=1 or visual.get("sampling")!="area-v1" or not visual.get("entries"):
         raise ValueError("Invalid visual recognition index")
     identities=set(art["cards"])
     for entry in visual["entries"]:

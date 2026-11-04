@@ -320,6 +320,7 @@ fun CardScannerDialog(
                         Column(Modifier.weight(1f)) {
                             Text(match.name, fontWeight = FontWeight.Bold)
                             Text("${match.reference.set} · ${match.reference.number}", fontSize = 12.sp)
+                            CardLanguages.imageLanguage(match.imageUrl)?.let { Text("Visuel $it", fontSize = 10.sp) }
                         }
                     }
                 }

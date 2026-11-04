@@ -22,7 +22,7 @@ internal class ScanVisualMatcher(private val context: Context) {
                 buffered.mark(2); val compressed = buffered.read() == 0x1f && buffered.read() == 0x8b; buffered.reset()
                 val decoded = if (compressed) GZIPInputStream(buffered) else buffered
                 val json = decoded.bufferedReader().use { JSONObject(it.readText()) }
-                require(json.getString("format") == "SWU_VISUAL_INDEX" && json.getInt("version") == 1)
+                require(json.getString("format") == "SWU_VISUAL_INDEX" && json.getInt("version") == 1 && json.getString("sampling") == "area-v1")
                 val rows = json.getJSONArray("entries")
                 (0 until rows.length()).map { i ->
                     val row = rows.getJSONArray(i)
@@ -52,13 +52,13 @@ internal class ScanVisualMatcher(private val context: Context) {
                 val width = w.roundToInt(); val height = h.roundToInt()
                 if (width < 8 || height < 12 || left < 0 || top < 0 || left+width > upright.width || top+height > upright.height) continue
                 val crop = Bitmap.createBitmap(upright,left,top,width,height)
-                val small = Bitmap.createScaledBitmap(crop,ScanVisualRecognition.WIDTH,ScanVisualRecognition.HEIGHT,true)
                 try {
-                    val pixels=IntArray(ScanVisualRecognition.WIDTH*ScanVisualRecognition.HEIGHT)
-                    small.getPixels(pixels,0,ScanVisualRecognition.WIDTH,0,0,ScanVisualRecognition.WIDTH,ScanVisualRecognition.HEIGHT)
-                    signatures.add(ScanVisualRecognition.signature(pixels))
-                    signatures.add(ScanVisualRecognition.signature(pixels.reversedArray()))
-                } finally { if(small !== crop) small.recycle(); if(crop !== upright) crop.recycle() }
+                    val pixels=IntArray(width*height)
+                    crop.getPixels(pixels,0,width,0,0,width,height)
+                    val sampled=ScanVisualRecognition.downsample(pixels,width,height)
+                    signatures.add(ScanVisualRecognition.signature(sampled))
+                    signatures.add(ScanVisualRecognition.signature(sampled.reversedArray()))
+                } finally { if(crop !== upright) crop.recycle() }
             }
             return ScanVisualRecognition.candidates(signatures,entries,viewport.landscape)
         } finally { if (upright !== frame) upright.recycle() }

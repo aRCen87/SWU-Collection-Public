@@ -35,4 +35,10 @@ class ScanVisualRecognitionTest {
         val entry = VisualIndexEntry(ScanReference("SOR","001"),"Carte","front",false,signature)
         assertEquals(1,ScanVisualRecognition.candidates(listOf(signature),listOf(entry,entry.copy(imageUrl="back")),false).size)
     }
+    @Test fun cameraDownsamplingAveragesFinePrintInsteadOfAliasingIt() {
+        val width=80;val height=120
+        val fine=IntArray(width*height) { i -> if ((i%width+i/width)%2==0) 0xff000000.toInt() else 0xffffffff.toInt() }
+        val sampled=ScanVisualRecognition.downsample(fine,width,height)
+        assertTrue(sampled.all { (it and 255) in 127..128 })
+    }
 }

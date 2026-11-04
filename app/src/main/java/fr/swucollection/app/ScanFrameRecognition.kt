@@ -10,6 +10,7 @@ internal data class ScanOcrWord(val text: String, val left: Int, val top: Int, v
 }
 
 internal object ScanFrameRecognition {
+    private val numericFragment = Regex("[0-9OIL]+")
     fun text(raw: String, words: List<ScanOcrWord>): String {
         val rows = mutableListOf<MutableList<ScanOcrWord>>()
         words.filter { it.height > 0 && it.right > it.left && it.text.isNotBlank() }
@@ -35,7 +36,7 @@ internal object ScanFrameRecognition {
                     // Correct only this exact spatially verified sequence; keep
                     // unrelated references elsewhere in the frame as conflicts.
                     val splitDigits = segment.zipWithNext().any { (a, b) ->
-                        a.matches(Regex("[0-9OIL]+")) && b.matches(Regex("[0-9OIL]+"))
+                        a.matches(numericFragment) && b.matches(numericFragment)
                     }
                     if (splitDigits && compactReferences.size == 1) {
                         val sequence = Regex("(?<![A-Za-z0-9])" +

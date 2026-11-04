@@ -16,6 +16,26 @@ internal object ScanVisualRecognition {
     const val HEIGHT = 12
     const val LENGTH = WIDTH * HEIGHT * 3
 
+    /** Area averages avoid aliasing fine card text when shrinking camera frames. */
+    fun downsample(pixels: IntArray, width: Int, height: Int): IntArray {
+        require(width >= WIDTH && height >= HEIGHT && pixels.size == width * height)
+        return IntArray(WIDTH * HEIGHT) { cell ->
+            val x = cell % WIDTH; val y = cell / WIDTH
+            val left = kotlin.math.round(x * width.toDouble() / WIDTH).toInt()
+            val right = kotlin.math.round((x+1) * width.toDouble() / WIDTH).toInt()
+            val top = kotlin.math.round(y * height.toDouble() / HEIGHT).toInt()
+            val bottom = kotlin.math.round((y+1) * height.toDouble() / HEIGHT).toInt()
+            var r=0L;var g=0L;var b=0L
+            for (row in top until bottom) for (column in left until right) {
+                val pixel=pixels[row*width+column]
+                r+=pixel shr 16 and 255;g+=pixel shr 8 and 255;b+=pixel and 255
+            }
+            val count=(right-left)*(bottom-top)
+            (255 shl 24) or (kotlin.math.round(r.toDouble()/count).toInt() shl 16) or
+                (kotlin.math.round(g.toDouble()/count).toInt() shl 8) or kotlin.math.round(b.toDouble()/count).toInt()
+        }
+    }
+
     fun signature(pixels: IntArray): ByteArray {
         require(pixels.size == WIDTH * HEIGHT)
         val gray = pixels.map { p -> .299 * (p shr 16 and 255) + .587 * (p shr 8 and 255) + .114 * (p and 255) }

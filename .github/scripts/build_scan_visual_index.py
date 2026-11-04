@@ -7,7 +7,7 @@ from PIL import Image, ImageOps, ImageStat
 def signature(image):
     image = image.convert('RGB')
     w,h=image.size
-    image=image.crop((w*.06,h*.06,w*.94,h*.94)).resize((8,12),Image.Resampling.BILINEAR)
+    image=image.crop((w*.06,h*.06,w*.94,h*.94)).resize((8,12),Image.Resampling.BOX)
     pixels=list(image.getdata())
     gray=[.299*r+.587*g+.114*b for r,g,b in pixels]
     mean=sum(gray)/len(gray)
@@ -26,11 +26,13 @@ def main():
     p.add_argument('--output',default='app/src/main/assets/scan-visual-index.json.gz')
     p.add_argument('--cache',default='/tmp/swu-visual-images')
     p.add_argument('--workers',type=int,default=12)
+    p.add_argument('--thumbnails',help='Exact publisher thumbnail URL mapping, keyed by original URL')
     p.add_argument('--cached-only',action='store_true',help='Build a development index from already cached images')
     a=p.parse_args()
     cards=json.loads(pathlib.Path(a.catalog).read_text())['cards']
     art=json.loads(gzip.decompress(pathlib.Path(a.art).read_bytes()))
     cache=pathlib.Path(a.cache);cache.mkdir(parents=True,exist_ok=True)
+    thumbnails=json.loads(pathlib.Path(a.thumbnails).read_text()) if a.thumbnails else {}
     work=[]
     for c in cards:
         key=c['s']+':'+c['n']
@@ -44,12 +46,14 @@ def main():
         try:
             if not file.exists():
                 if a.cached_only:raise FileNotFoundError('not cached')
-                req=urllib.request.Request(url,headers={'User-Agent':'SWU-Collection/1.0'})
+                download_url=thumbnails.get(url.replace('com//','com/'),url)
+                if not download_url.startswith('https://cdn.starwarsunlimited.com/'):raise ValueError('untrusted image host')
+                req=urllib.request.Request(download_url,headers={'User-Agent':'SWU-Collection/1.0'})
                 for attempt in range(3):
                     try:
                         with urllib.request.urlopen(req,timeout=30) as response:data=response.read(5_000_001)
                         if len(data)>5_000_000:raise ValueError('oversized image')
-                        file.write_bytes(data);break
+                        temporary=file.with_suffix('.tmp');temporary.write_bytes(data);temporary.replace(file);break
                     except Exception:
                         if attempt==2:raise
                         time.sleep(attempt+1)
@@ -62,7 +66,7 @@ def main():
         for i,row in enumerate(pool.map(build,work),1):
             (missing if isinstance(row,dict) else entries).append(row)
             if i%500==0:print(f'{i}/{len(work)} images, {len(missing)} unavailable',flush=True)
-    result={'format':'SWU_VISUAL_INDEX','version':1,'width':8,'height':12,'entries':entries}
+    result={'format':'SWU_VISUAL_INDEX','version':1,'width':8,'height':12,'sampling':'area-v1','entries':entries}
     if not a.cached_only and len(set((v[0],v[1]) for v in entries)) < len(cards)*.98:
         raise RuntimeError('Incomplete visual index; refusing to replace the shipped index')
     pathlib.Path(a.output).write_bytes(gzip.compress(json.dumps(result,separators=(',',':'),ensure_ascii=False).encode(),mtime=0))

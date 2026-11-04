@@ -69,11 +69,12 @@ internal object CardLanguageArtwork {
     fun localized(context: Context, card: CatalogCard, language: String, variant: String? = null): CatalogCard {
         require(CardLanguages.valid(language))
         if (language == CardLanguages.UNKNOWN) return card.copy(language = language)
-        val faces = runCatching {
+        val selection = runCatching {
             val data = load(context); val key = MarketPricing.key(card.setCode,card.number)
-            variant?.let { data.prints[key]?.get(it) } ?: data.cards[key]
+            val specific = variant?.let { data.prints[key]?.get(it) }
+            (specific ?: data.cards[key]) to (specific == null)
         }.getOrNull()
-        return select(card,language,faces)
+        return select(card,language,selection?.first,selection?.second ?: true)
     }
     /** Display fallback is explicit and never changes the stored language or finish. */
     fun displayFace(context: Context, card: CatalogCard, language: String, variant: String? = null, reverse: Boolean = false): Pair<String,String?> {
@@ -93,7 +94,7 @@ internal object CardLanguageArtwork {
             CardLanguages.supported.map { language -> select(card,language,faces) }
         }
     }.getOrElse { listOf(card) }
-    internal fun select(card: CatalogCard, language: String, faces: Map<String, List<String>>?): CatalogCard {
+    internal fun select(card: CatalogCard, language: String, faces: Map<String, List<String>>?, allowEmptyFallback: Boolean = true): CatalogCard {
         require(CardLanguages.valid(language))
         if (language == CardLanguages.UNKNOWN) return card.copy(language = language)
         fun checked(url: String): String = url.takeIf { CardLanguages.imageLanguage(it).let { code -> code == null || code == language } }.orEmpty()
@@ -101,8 +102,8 @@ internal object CardLanguageArtwork {
             val code=CardLanguages.imageLanguage(it)
             code == language || (code == null && card.language == language)
         }.orEmpty()
-        val front = faces?.get(language)?.getOrNull(0)?.let(::checked) ?: fallback(card.imageUrl)
-        val back = faces?.get(language)?.getOrNull(1)?.let(::checked) ?: fallback(card.backImageUrl)
+        val front = faces?.get(language)?.getOrNull(0)?.let(::checked)?.takeIf { it.isNotBlank() } ?: if (allowEmptyFallback) fallback(card.imageUrl) else ""
+        val back = faces?.get(language)?.getOrNull(1)?.let(::checked)?.takeIf { it.isNotBlank() } ?: if (allowEmptyFallback) fallback(card.backImageUrl) else ""
         return card.copy(imageUrl = front, backImageUrl = back, language = language)
     }
 }
