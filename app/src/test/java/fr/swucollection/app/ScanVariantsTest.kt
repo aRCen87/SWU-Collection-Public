@@ -16,6 +16,26 @@ class ScanVariantsTest {
     }
     private fun card(set: String, number: String) = catalog.single { it.setCode == set && it.number == number }
 
+    @Test fun reconstructedFootersResolveRealLeadersBasesAndExactVariantNumbers() {
+        val samples = listOf(
+            Triple("SOR", "001", "Normale"), Triple("SOR", "019", "Normale"),
+            Triple("SOR", "317", "Hyperspace"), Triple("SOR", "253", "Showcase"),
+            Triple("JTL", "788", "Hyperspace Foil"), Triple("JTL", "1093", "Serialized"),
+            Triple("ASH", "614", "Hyperspace Foil"))
+        for ((set, number, finish) in samples) for (language in listOf("FR", "EN")) {
+            val text = ScanFrameRecognition.text("$set $language\nTEXTE\n$number", listOf(
+                ScanOcrWord(set, 0, 200, 30, 216), ScanOcrWord(language, 50, 200, 80, 216),
+                ScanOcrWord("R", 100, 200, 120, 216), ScanOcrWord(number, 150, 200, 190, 216)))
+            val reference = requireNotNull(ScanRecognition.extract(text))
+            val resolved = card(reference.set, reference.number)
+            assertEquals(number, resolved.number)
+            assertTrue("$set $number", finish in ScanVariants.detect(resolved).choices)
+            assertEquals(language, ScanRecognition.language(text))
+        }
+        assertEquals("Leader", card("SOR", "001").type)
+        assertEquals("Base", card("SOR", "019").type)
+    }
+
     @Test fun goldLeaderTreatmentsUseTheExactPrintedNumberIncludingFourDigits() {
         // Official JTL Gold Leader variantTypes / serialCode records.
         val expected = mapOf("054" to "Normale", "316" to "Hyperspace", "552" to "Foil",

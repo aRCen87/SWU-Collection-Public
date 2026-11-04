@@ -103,6 +103,7 @@ fun CardScannerDialog(
     var torch by remember { mutableStateOf(false) }
     var userPaused by remember { mutableStateOf(false) }
     var manualEntry by remember { mutableStateOf(false) }
+    var landscapeCard by remember { mutableStateOf(false) }
     var optionsOpen by remember { mutableStateOf(false) }
     var restart by remember { mutableIntStateOf(0) }
     var message by remember { mutableStateOf("Initialisation de la caméra…") }
@@ -143,8 +144,10 @@ fun CardScannerDialog(
             val preview = Preview.Builder().setTargetRotation(rotation).build().also { it.surfaceProvider = previewView.surfaceProvider }
             val analysis = ImageAnalysis.Builder().setTargetRotation(rotation)
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .setResolutionSelector(ResolutionSelector.Builder().setResolutionStrategy(
-                    ResolutionStrategy(Size(1600, 1200), ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER)).build())
+                .setResolutionSelector(ResolutionSelector.Builder()
+                    .setAllowedResolutionMode(ResolutionSelector.PREFER_HIGHER_RESOLUTION_OVER_CAPTURE_RATE)
+                    .setResolutionStrategy(
+                    ResolutionStrategy(Size(2560, 1920), ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER)).build())
                 .build().also { it.setAnalyzer(executor, reader) }
             var provider: ProcessCameraProvider? = null
             val future = ProcessCameraProvider.getInstance(context)
@@ -211,7 +214,7 @@ fun CardScannerDialog(
                     }, contentAlignment = Alignment.Center) {
                     if (hasPermission && owner != null) {
                         AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
-                        ScannerGuide(active = ready && !effectivelyPaused)
+                        ScannerGuide(active = ready && !effectivelyPaused, landscape = landscapeCard)
                         Surface(color = ScanInk.copy(alpha = 0.78f), shape = RoundedCornerShape(50.dp),
                             modifier = Modifier.align(Alignment.TopCenter).padding(top = 16.dp)) {
                             Row(Modifier.padding(horizontal = 14.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically,
@@ -247,6 +250,10 @@ fun CardScannerDialog(
               },
               actions = { paneModifier ->
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp), modifier = paneModifier) {
+                    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(selected = !landscapeCard, onClick = { landscapeCard = false }, label = { Text("Carte verticale") })
+                        FilterChip(selected = landscapeCard, onClick = { landscapeCard = true }, label = { Text("Leader / base") })
+                    }
                     Crossfade(targetState = if (userPaused) "Lecture en pause · reprends quand tu es prêt" else message, label = "scan-status") { status ->
                         Text(status, color = Color(0xFFE7EDF7), fontSize = 13.sp, textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth().heightIn(min = 38.dp))
@@ -315,13 +322,14 @@ private fun ScannerAdaptiveLayout(
 }
 
 @Composable
-private fun ScannerGuide(active: Boolean) {
+private fun ScannerGuide(active: Boolean, landscape: Boolean) {
     val transition = rememberInfiniteTransition(label = "scanner-guide")
     val progress by transition.animateFloat(initialValue = 0.18f, targetValue = 0.82f,
         animationSpec = infiniteRepeatable(tween(1900, easing = LinearEasing), RepeatMode.Reverse), label = "scan-line")
     Canvas(Modifier.fillMaxSize()) {
-        val height = min(size.height * 0.78f, size.width * 0.84f * 88f / 63f)
-        val width = height * 63f / 88f
+        val ratio = if (landscape) 88f / 63f else 63f / 88f
+        val height = min(size.height * 0.78f, size.width * 0.9f / ratio)
+        val width = height * ratio
         val left = (size.width - width) / 2; val top = (size.height - height) / 2
         val right = left + width; val bottom = top + height
         val shade = Color.Black.copy(alpha = 0.38f)
