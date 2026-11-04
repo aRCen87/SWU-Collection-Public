@@ -75,6 +75,17 @@ internal object CardLanguageArtwork {
         }.getOrNull()
         return select(card,language,faces)
     }
+    /** Display fallback is explicit and never changes the stored language or finish. */
+    fun displayFace(context: Context, card: CatalogCard, language: String, variant: String? = null, reverse: Boolean = false): Pair<String,String?> {
+        fun face(value: CatalogCard) = if (reverse) value.backImageUrl else value.imageUrl
+        val exact = face(localized(context,card,language,variant))
+        if (exact.isNotBlank()) return exact to CardLanguages.imageLanguage(exact)
+        for (fallback in listOf("EN","FR","DE","ES","IT").filter { it != language }) {
+            val url = face(localized(context,card,fallback,variant))
+            if (url.isNotBlank()) return url to fallback
+        }
+        return "" to null
+    }
     fun allFaces(context: Context,card: CatalogCard): List<CatalogCard> = runCatching {
         val data=load(context); val key=MarketPricing.key(card.setCode,card.number)
         val all=listOfNotNull(data.cards[key]) + data.prints[key].orEmpty().values

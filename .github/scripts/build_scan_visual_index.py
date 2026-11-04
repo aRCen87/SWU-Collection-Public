@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+"""Build compact offline image signatures from exact catalogue artwork URLs."""
+import argparse, base64, concurrent.futures, gzip, hashlib, io, json, pathlib, time, urllib.request
+from PIL import Image, ImageOps, ImageStat
+
+
+def signature(image):
+    image = image.convert('RGB')
+    w,h=image.size
+    image=image.crop((w*.06,h*.06,w*.94,h*.94)).resize((8,12),Image.Resampling.BILINEAR)
+    pixels=list(image.getdata())
+    gray=[.299*r+.587*g+.114*b for r,g,b in pixels]
+    mean=sum(gray)/len(gray)
+    deviation=max(18,(sum((v-mean)**2 for v in gray)/len(gray))**.5)
+    out=[]
+    for (r,g,b),v in zip(pixels,gray):
+        out.extend((round(max(0,min(255,128+(v-mean)*48/deviation))),
+                    round(255*r/max(1,r+g+b)),round(255*b/max(1,r+g+b))))
+    return bytes(out)
+
+
+def main():
+    p=argparse.ArgumentParser()
+    p.add_argument('--catalog',default='app/src/main/assets/catalog-fr.json')
+    p.add_argument('--art',default='app/src/main/assets/card-art-languages.json.gz')
+    p.add_argument('--output',default='app/src/main/assets/scan-visual-index.json.gz')
+    p.add_argument('--cache',default='/tmp/swu-visual-images')
+    p.add_argument('--workers',type=int,default=12)
+    a=p.parse_args()
+    cards=json.loads(pathlib.Path(a.catalog).read_text())['cards']
+    art=json.loads(gzip.decompress(pathlib.Path(a.art).read_bytes()))
+    cache=pathlib.Path(a.cache);cache.mkdir(parents=True,exist_ok=True)
+    work=[]
+    for c in cards:
+        key=c['s']+':'+c['n']
+        faces=art['cards'].get(key,{})
+        for face in range(2):
+            url=next((art['urls'][faces[l][face]] for l in ('FR','EN') if l in faces and art['urls'][faces[l][face]]),'')
+            if url:work.append((c,url,face))
+    def build(item):
+        c,url,face=item
+        file=cache/hashlib.sha256(url.encode()).hexdigest()
+        try:
+            if not file.exists():
+                req=urllib.request.Request(url,headers={'User-Agent':'SWU-Collection/1.0'})
+                for attempt in range(3):
+                    try:
+                        with urllib.request.urlopen(req,timeout=30) as response:data=response.read(5_000_001)
+                        if len(data)>5_000_000:raise ValueError('oversized image')
+                        file.write_bytes(data);break
+                    except Exception:
+                        if attempt==2:raise
+                        time.sleep(attempt+1)
+            with Image.open(file) as img:
+                img=ImageOps.exif_transpose(img)
+                return [c['s'],c['n'],c['name'],url,face,img.width>img.height,base64.b64encode(signature(img)).decode()]
+        except Exception as e:return {'reference':c['s']+':'+c['n'],'face':face,'error':str(e)}
+    entries=[];missing=[]
+    with concurrent.futures.ThreadPoolExecutor(max_workers=a.workers) as pool:
+        for i,row in enumerate(pool.map(build,work),1):
+            (missing if isinstance(row,dict) else entries).append(row)
+            if i%500==0:print(f'{i}/{len(work)} images, {len(missing)} unavailable',flush=True)
+    result={'format':'SWU_VISUAL_INDEX','version':1,'width':8,'height':12,'entries':entries}
+    pathlib.Path(a.output).write_bytes(gzip.compress(json.dumps(result,separators=(',',':'),ensure_ascii=False).encode(),mtime=0))
+    pathlib.Path(a.output+'.missing.json').write_text(json.dumps(missing,ensure_ascii=False,indent=2))
+    print(json.dumps({'images':len(entries),'missing':len(missing),'references':len(set((v[0],v[1]) for v in entries))}),flush=True)
+
+if __name__=='__main__':main()

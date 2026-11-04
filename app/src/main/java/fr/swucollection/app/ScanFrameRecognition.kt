@@ -20,15 +20,33 @@ internal object ScanFrameRecognition {
                 }
                 if (row == null) rows.add(mutableListOf(word)) else row.add(word)
             }
+        var correctedRaw = raw
         val stitched = rows.flatMap { row ->
             val parts = mutableListOf<String>()
             var previous: ScanOcrWord? = null
             val segment = mutableListOf<String>()
             fun flush() {
                 if (segment.isNotEmpty()) {
-                    parts.add(segment.joinToString(" "))
-                    // Small footer letters can each become a separate OCR word.
-                    parts.add(segment.joinToString(""))
+                    val spaced = segment.joinToString(" ")
+                    val compact = segment.joinToString("")
+                    val compactReferences = ScanRecognition.references(compact)
+                    // A split collector number ("1 0 9 3") otherwise contributes
+                    // both 001 from raw OCR and 1093 from the reconstructed row.
+                    // Correct only this exact spatially verified sequence; keep
+                    // unrelated references elsewhere in the frame as conflicts.
+                    val splitDigits = segment.zipWithNext().any { (a, b) ->
+                        a.matches(Regex("[0-9OIL]+")) && b.matches(Regex("[0-9OIL]+"))
+                    }
+                    if (splitDigits && compactReferences.size == 1) {
+                        val sequence = Regex("(?<![A-Za-z0-9])" +
+                            segment.joinToString("\\s+") { Regex.escape(it) } + "(?![A-Za-z0-9])")
+                        correctedRaw = sequence.replace(correctedRaw) { compact }
+                        parts.add(compact)
+                    } else {
+                        parts.add(spaced)
+                        // Small footer letters can each become a separate OCR word.
+                        parts.add(compact)
+                    }
                     segment.clear()
                 }
             }
@@ -47,7 +65,7 @@ internal object ScanFrameRecognition {
         // still be rejected, rather than picking the first reconstructed footer.
         // Append complete references only. Appending bare fragments would put
         // unrelated rows next to each other again (e.g. "SOR FR" above a stat).
-        return (listOf(raw) + stitched.filter { ScanRecognition.references(it).isNotEmpty() }).joinToString("\n")
+        return (listOf(correctedRaw) + stitched.filter { ScanRecognition.references(it).isNotEmpty() }).joinToString("\n")
     }
 }
 

@@ -78,12 +78,15 @@ def add_official(code,lang,payload,only_number=None):
   french=[loc.get('attributes',loc) for loc in (c.get('localizations')or{}).get('data',[]) if loc.get('attributes',loc).get('locale')=='fr']
   if french:
    if not any(norm(loc.get('title'))==norm(canonical['name']) and norm(loc.get('subtitle'))==norm(canonical.get('sub','')) for loc in french):continue
+  elif lang=='FR':
+   if norm(c.get('title'))!=norm(canonical['name']) or norm(c.get('subtitle'))!=norm(canonical.get('sub','')):continue
   elif not trusted_uids.get(key):continue
   kind=rel('type').get('name')
   # Publisher type labels are localized. Their invariant abbreviations identify leaders/tokens.
   kind_map={'Anführer':'Leader','Anführer-Einheit':'Leader','Einheit':'Unit','Aufwertung':'Upgrade','Ereignis':'Event','Basis':'Base',
             'Líder':'Leader','Unidad':'Unit','Mejora':'Upgrade','Evento':'Event','Base':'Base',
             'Leader':'Leader','Unità':'Unit','Miglioria':'Upgrade','Evento':'Event','Segnalino':'Token'}
+  kind_map.update({'Unité':'Unit','Événement':'Event','Évènement':'Event','Amélioration':'Upgrade','Jeton':'Token'})
   kind=kind_map.get(kind,kind)
   add(code+':'+number,kind,lang,face('artFront'),face('artBack'),treatment=finish(code,c.get('serialCode')))
 # HMW is not yet in the community mirror. Download the complete localized publisher sets.
@@ -100,16 +103,30 @@ for key,c in byref.items():
   value=url(c.get(field,''));marker=language_marker(value)
   faces.append('' if marker not in (None,'FR') else value)
  rows[key]['FR']=faces
-# Exact localized reference lookups fill any mirror omissions. Unavailable art stays explicitly empty.
-for key in byref:
- for lang in LANGUAGES[1:]:
-  if rows[key].get(lang,[''])[0] or (key,lang) in unavailable:continue
-  code,number=key.split(':');f=cache/('missing-'+code+'-'+number+'-'+lang.lower()+'.json')
-  if f.exists():payload=json.loads(f.read_text())
-  else:
-   q=urllib.parse.urlencode({'locale':lang.lower(),'filters[expansion][code][$eq]':code,'filters[cardNumber][$eq]':str(int(number)),'pagination[pageSize]':'100'})
-   payload=fetch('https://admin.starwarsunlimited.com/api/card-list?'+q);f.write_text(json.dumps(payload))
-  add_official(code,lang,payload,number)
+# Repair missing French faces from full localized set records, including promos.
+# One request per page avoids hundreds of repeated single-card calls.
+missing_fr=sorted({key.split(':')[0] for key in byref if not rows[key].get('FR',[''])[0]})
+def french_set(code):
+ first=official(code,'FR',1)
+ count=first.get('meta',{}).get('pagination',{}).get('pageCount',0)
+ with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+  return code,[first]+list(pool.map(lambda page:official(code,'FR',page),range(2,count+1)))
+with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+ for code,batches in pool.map(french_set,missing_fr):
+  for payload in batches:add_official(code,'FR',payload)
+  print('French artwork checked: '+code,flush=True)
+# Exact localized lookups fill other mirror omissions without inventing URLs.
+missing=[(key,lang) for key in byref for lang in LANGUAGES[1:]
+         if not rows[key].get(lang,[''])[0] and (key,lang) not in unavailable]
+def lookup(pair):
+ key,lang=pair;code,number=key.split(':');f=cache/('missing-'+code+'-'+number+'-'+lang.lower()+'.json')
+ if f.exists():payload=json.loads(f.read_text())
+ else:
+  q=urllib.parse.urlencode({'locale':lang.lower(),'filters[expansion][code][$eq]':code,'filters[cardNumber][$eq]':str(int(number)),'pagination[pageSize]':'100'})
+  payload=fetch('https://admin.starwarsunlimited.com/api/card-list?'+q);f.write_text(json.dumps(payload))
+ return code,lang,payload,number
+with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+ for code,lang,payload,number in pool.map(lookup,missing):add_official(code,lang,payload,number)
 for faces in rows.values():
  for lang in LANGUAGES:faces.setdefault(lang,['',''])
 # Only shared-reference finishes need extra artwork; unique references already have exact faces.

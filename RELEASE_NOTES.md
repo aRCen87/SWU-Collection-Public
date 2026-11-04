@@ -1,3 +1,9 @@
+## Version 0.8.9
+
+- Aide à la reconnaissance par l’image, sur le téléphone : lorsque la référence reste illisible, proposition de correspondances visuelles à confirmer. L’illustration ne détermine jamais seule la langue ou la finition ; les références proches restent proposées séparément.
+- Images manquantes : nouvelle recherche des faces françaises officielles ; affichage d’un visuel disponible dans une autre langue avec une mention explicite lorsque la face choisie n’est pas publiée, sans modifier la langue enregistrée. Les versos des leaders bénéficient du même traitement.
+- Lecture des numéros fragmentés en plusieurs chiffres ; conservation des références contradictoires pour éviter de choisir une mauvaise carte. Une pause ou une saisie manuelle ne peut plus compléter une ancienne lecture ou déclencher immédiatement un double ajout.
+
 ## Version 0.8.8
 
 - Scanner : cadre horizontal « Leader / base », recherche dans les quatre orientations et demande d’une image plus détaillée lorsque la caméra le permet.

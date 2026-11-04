@@ -86,7 +86,11 @@ internal class StableScanGate(private val maxGapMs: Long = 2500, private val rem
     var blockedReference: ScanReference? = null
         private set
 
-    fun reset() { candidate = null; reads = 0; lastSeen = 0L; absentSince = null; blockedReference = null }
+    /** Pausing is not proof of removal, and an old frame must not complete a new scan. */
+    fun interrupt() { candidate = null; candidateLanguage = null; reads = 0; lastSeen = 0L; absentSince = null }
+
+    fun block(reference: ScanReference) { interrupt(); blockedReference = reference }
+    fun reset() { interrupt(); blockedReference = null }
 
     fun observe(reference: ScanReference?, now: Long, language: String? = null): ScanReference? {
         if (reference == null) {

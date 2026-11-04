@@ -52,4 +52,25 @@ class StableScanGateTest {
         assertNull(gate.observe(first, 3000));assertNull(gate.observe(first, 6000))
         assertEquals(first, gate.observe(first, 6500))
     }
+    @Test fun pauseDiscardsPartialReadsAndNeverUsesPausedTimeAsRemoval() {
+        val gate = StableScanGate()
+        gate.observe(first, 1000)
+        gate.interrupt()
+        assertNull(gate.observe(first, 1500))
+        assertEquals(first, gate.observe(first, 2000))
+        gate.observe(null, 2500)
+        gate.interrupt()
+        gate.observe(null, 30000)
+        assertNull(gate.observe(first, 30500))
+        assertNull(gate.observe(first, 31000))
+    }
+    @Test fun manualConfirmationBlocksTheSameCardUntilRemovalOrExplicitRetry() {
+        val gate = StableScanGate()
+        gate.block(first)
+        assertNull(gate.observe(first, 1000))
+        assertNull(gate.observe(first, 1500))
+        gate.reset()
+        assertNull(gate.observe(first, 2000))
+        assertEquals(first, gate.observe(first, 2500))
+    }
 }
