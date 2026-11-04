@@ -28,7 +28,7 @@ internal class LiveScanAnalyzer(
     private val released = AtomicBoolean(false)
     private val force = AtomicBoolean(false)
     private var lastAnalysis = SystemClock.elapsedRealtime() // Allow positioning after opening the camera.
-    private var rejected: ScanReference? = null
+    @Volatile private var rejected: ScanReference? = null
     private val orientation = ScanOrientation()
     private var lastVisualAnalysis = 0L
     private var visualKey: List<ScanReference> = emptyList()
@@ -78,7 +78,7 @@ internal class LiveScanAnalyzer(
                         val reference = ScanRecognition.extract(raw)
                         val checksAbsence = orientation.checksAbsence
                         orientation.observed(reference)
-                        val visualAttempted = reference == null && ScanRecognition.references(raw).isEmpty() &&
+                        val visualAttempted = (reference == null || reference == rejected) && ScanRecognition.references(raw).size <= 1 &&
                             SystemClock.elapsedRealtime() - lastVisualAnalysis >= 1800
                         val visual = if (visualAttempted) {
                             lastVisualAnalysis = SystemClock.elapsedRealtime()
@@ -118,6 +118,7 @@ internal class LiveScanAnalyzer(
                                     onMessage("Référence introuvable · recentre le bas de la carte ou saisis-la manuellement")
                                 }
                             }
+                            reference == null && visual.isNotEmpty() -> onMessage("Illustration repérée · garde la carte immobile")
                             reference == null -> onMessage("Garde la carte entière dans le cadre, avec son numéro bien visible")
                             reference == rejected -> Unit
                             reference == gate.blockedReference -> onMessage("Présente la carte suivante, ou relance pour lire la même carte")

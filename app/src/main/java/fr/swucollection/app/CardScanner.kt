@@ -25,6 +25,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -215,6 +216,14 @@ fun CardScannerDialog(
                 Box(paneModifier.clip(RoundedCornerShape(26.dp))
                     .background(Color(0xFF0B1B2D)).border(1.dp, ScanGold.copy(alpha = 0.3f), RoundedCornerShape(26.dp))
                     .pointerInput(camera, ready) {
+                        detectTransformGestures { _, _, zoom, _ ->
+                            val activeCamera = camera
+                            val state = activeCamera?.cameraInfo?.zoomState?.value
+                            if (state != null && zoom != 1f) activeCamera?.cameraControl?.setZoomRatio(
+                                (state.zoomRatio * zoom).coerceIn(state.minZoomRatio,state.maxZoomRatio))
+                        }
+                    }
+                    .pointerInput(camera, ready) {
                         detectTapGestures { tap ->
                             camera?.cameraControl?.startFocusAndMetering(FocusMeteringAction.Builder(
                                 previewView.meteringPointFactory.createPoint(tap.x, tap.y))
@@ -242,7 +251,7 @@ fun CardScannerDialog(
                                 if (failed) OutlinedButton(onClick = { restart++ }) { Text("Réessayer") }
                             }
                         }
-                        Text("Touche l’image pour faire le point", color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp,
+                        Text("Touche pour faire le point · pince pour zoomer", color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp,
                             modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp))
                     } else {
                         Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally,

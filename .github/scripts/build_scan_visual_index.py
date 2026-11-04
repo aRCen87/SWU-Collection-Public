@@ -26,6 +26,7 @@ def main():
     p.add_argument('--output',default='app/src/main/assets/scan-visual-index.json.gz')
     p.add_argument('--cache',default='/tmp/swu-visual-images')
     p.add_argument('--workers',type=int,default=12)
+    p.add_argument('--cached-only',action='store_true',help='Build a development index from already cached images')
     a=p.parse_args()
     cards=json.loads(pathlib.Path(a.catalog).read_text())['cards']
     art=json.loads(gzip.decompress(pathlib.Path(a.art).read_bytes()))
@@ -42,6 +43,7 @@ def main():
         file=cache/hashlib.sha256(url.encode()).hexdigest()
         try:
             if not file.exists():
+                if a.cached_only:raise FileNotFoundError('not cached')
                 req=urllib.request.Request(url,headers={'User-Agent':'SWU-Collection/1.0'})
                 for attempt in range(3):
                     try:
@@ -61,6 +63,8 @@ def main():
             (missing if isinstance(row,dict) else entries).append(row)
             if i%500==0:print(f'{i}/{len(work)} images, {len(missing)} unavailable',flush=True)
     result={'format':'SWU_VISUAL_INDEX','version':1,'width':8,'height':12,'entries':entries}
+    if not a.cached_only and len(set((v[0],v[1]) for v in entries)) < len(cards)*.98:
+        raise RuntimeError('Incomplete visual index; refusing to replace the shipped index')
     pathlib.Path(a.output).write_bytes(gzip.compress(json.dumps(result,separators=(',',':'),ensure_ascii=False).encode(),mtime=0))
     pathlib.Path(a.output+'.missing.json').write_text(json.dumps(missing,ensure_ascii=False,indent=2))
     print(json.dumps({'images':len(entries),'missing':len(missing),'references':len(set((v[0],v[1]) for v in entries))}),flush=True)

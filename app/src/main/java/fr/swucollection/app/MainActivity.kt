@@ -1507,8 +1507,9 @@ private fun GalaxyBackground() {
 }
 
 @Composable
-internal fun CardArtwork(card: CatalogCard, modifier: Modifier = Modifier, language: String = card.language,
+internal fun CardArtwork(card: CatalogCard?, modifier: Modifier = Modifier, language: String = card?.language ?: CardLanguages.UNKNOWN,
     variant: String? = null, reverse: Boolean = false, grayscale: Boolean = false) {
+    if (card == null) { CardArtwork("",modifier,grayscale); return }
     val context = LocalContext.current
     val face = remember(card,language,variant,reverse) { CardLanguageArtwork.displayFace(context,card,language,variant,reverse) }
     Box(modifier) {

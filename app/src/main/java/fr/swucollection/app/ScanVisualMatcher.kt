@@ -6,6 +6,7 @@ import android.graphics.Matrix
 import android.util.Base64
 import org.json.JSONObject
 import java.util.zip.GZIPInputStream
+import java.io.FileNotFoundException
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -15,8 +16,12 @@ internal data class ScanViewport(val width: Int, val height: Int, val landscape:
 internal class ScanVisualMatcher(private val context: Context) {
     private val entries by lazy {
         runCatching {
-            context.assets.open("scan-visual-index.json.gz").use { input ->
-                val json = GZIPInputStream(input).bufferedReader().use { JSONObject(it.readText()) }
+            val input = try { context.assets.open("scan-visual-index.json") }
+                catch (_: FileNotFoundException) { context.assets.open("scan-visual-index.json.gz") }
+            input.buffered().use { buffered ->
+                buffered.mark(2); val compressed = buffered.read() == 0x1f && buffered.read() == 0x8b; buffered.reset()
+                val decoded = if (compressed) GZIPInputStream(buffered) else buffered
+                val json = decoded.bufferedReader().use { JSONObject(it.readText()) }
                 require(json.getString("format") == "SWU_VISUAL_INDEX" && json.getInt("version") == 1)
                 val rows = json.getJSONArray("entries")
                 (0 until rows.length()).map { i ->

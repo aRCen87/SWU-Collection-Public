@@ -24,7 +24,7 @@ internal fun DeckIdentityCard(label: String, card: CatalogCard?, reference: Stri
         border = BorderStroke(1.dp, ListPalette.Gold.copy(alpha = .5f))) {
         Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(label, color = ListPalette.Gold, style = MaterialTheme.typography.labelLarge)
-            CardArtwork(card?.imageUrl.orEmpty(), Modifier.fillMaxWidth().height(74.dp)
+            CardArtwork(card, Modifier.fillMaxWidth().height(74.dp)
                 .clip(RoundedCornerShape(6.dp)).clickable(enabled = card != null, onClick = onPreview)
                 .semantics { contentDescription = "Agrandir $label" })
             Text(card?.name ?: reference, maxLines = 2, overflow = TextOverflow.Ellipsis,
@@ -45,7 +45,7 @@ internal fun DeckCardTile(card: CatalogCard, visual: Boolean, quantity: Int, own
         @Composable fun artwork(modifier: Modifier) {
             Box(modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onPreview)
                 .semantics { contentDescription = "Agrandir ${card.name}" }) {
-                CardArtwork(card.imageUrl, Modifier.fillMaxSize())
+                CardArtwork(card, Modifier.fillMaxSize())
                 if (!slot && quantity > 0) Surface(Modifier.align(Alignment.TopEnd).padding(4.dp),
                     shape = RoundedCornerShape(7.dp), color = ListPalette.Gold) {
                     Text("×$quantity", Modifier.padding(horizontal = 6.dp, vertical = 2.dp), color = ListPalette.Background)

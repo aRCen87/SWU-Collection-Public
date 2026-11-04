@@ -146,7 +146,7 @@ internal fun BadgeDetailsDialog(p: BadgeProgress, all: List<BadgeProgress>, cata
                         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(10.dp)) {
                             p.award.evidence.mapNotNull { id -> catalog.firstOrNull { DeckConstruction.reference(it)==id } }.take(12).forEach { card ->
                                 Column(Modifier.width(100.dp).clickable{onCard(card)}) {
-                                    CardArtwork(card.imageUrl,Modifier.width(100.dp).height(140.dp))
+                                    CardArtwork(card,Modifier.width(100.dp).height(140.dp))
                                     Text(card.name.substringBefore(" — "),color=badgeSilver,style=MaterialTheme.typography.labelSmall)
                                 }
                             }
@@ -160,7 +160,7 @@ internal fun BadgeDetailsDialog(p: BadgeProgress, all: List<BadgeProgress>, cata
         LazyColumn(Modifier.heightIn(max=440.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
             items(check.candidates,key={DeckConstruction.reference(it)}) { card ->
                 Row(Modifier.fillMaxWidth().clickable{alternatives=null;onCard(card)},horizontalArrangement=Arrangement.spacedBy(10.dp),verticalAlignment=Alignment.CenterVertically) {
-                    CardArtwork(card.imageUrl,Modifier.width(66.dp).height(92.dp))
+                    CardArtwork(card,Modifier.width(66.dp).height(92.dp))
                     Column(Modifier.weight(1f)) {Text(card.name);Text("${card.setCode} · ${card.number}",style=MaterialTheme.typography.bodySmall,color=badgeGold)}
                 }
             }
@@ -192,7 +192,7 @@ internal fun BadgeCelebration(pending: List<BadgeProgress>,catalog: List<Catalog
                     Text("Les cartes de ton exploit",color=badgeGold)
                     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(10.dp)) {
                         first.award.evidence.mapNotNull { id -> catalog.firstOrNull { DeckConstruction.reference(it)==id } }.take(6).forEach { card ->
-                            CardArtwork(card.imageUrl,Modifier.width(86.dp).height(120.dp))
+                            CardArtwork(card,Modifier.width(86.dp).height(120.dp))
                         }
                     }
                 }
