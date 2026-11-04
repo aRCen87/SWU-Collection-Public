@@ -31,6 +31,9 @@ class ScanFrameRecognitionTest {
     @Test fun rejectsConflictingFootersInsteadOfPickingOneCard() {
         val text = ScanFrameRecognition.text("SOR FR 019/252\nASH FR 614", listOf(word("SOR FR", 0), word("019/252", 80)))
         assertNull(ScanRecognition.extract(text))
+        val fragmented = ScanFrameRecognition.text("SOR FR\nTEXTE\n019/252\nASH FR\nTEXTE\n614", listOf(
+            word("SOR FR", 0), word("019/252", 80), word("ASH FR", 0, 250), word("614", 80, 250)))
+        assertNull(ScanRecognition.extract(fragmented))
     }
 
     @Test fun serialStampDoesNotReplaceReconstructedCollectorNumber() {

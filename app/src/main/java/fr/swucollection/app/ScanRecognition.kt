@@ -44,7 +44,9 @@ internal object ScanRecognition {
         return matches.singleOrNull()?.takeIf { it in CardLanguages.supported }
     }
 
-    fun extract(raw: String): ScanReference? {
+    fun extract(raw: String): ScanReference? = references(raw).singleOrNull()
+
+    internal fun references(raw: String): Set<ScanReference> {
         val normalized = Normalizer.normalize(raw, Normalizer.Form.NFKC).uppercase(Locale.ROOT)
             .replace('／', '/').replace('⁄', '/').replace('∕', '/')
         val text = expansionFooter.replace(normalized) { expansionOcr.getValue(it.value) }
@@ -60,8 +62,8 @@ internal object ScanRecognition {
         }.toSet()
         // A separate serial stamp such as 002/250 must not replace the collector
         // number explicitly attached to the expansion/language footer.
-        if (footers.isNotEmpty()) return footers.singleOrNull()
-        if (Regex("\\b($codeAlternatives)$separator(?:FR|EN|DE|ES|IT)").containsMatchIn(text)) return null
+        if (footers.isNotEmpty()) return footers
+        if (Regex("\\b($codeAlternatives)$separator(?:FR|EN|DE|ES|IT)").containsMatchIn(text)) return emptySet()
         val setMatches = sets.findAll(text).toList()
         return fractions.findAll(text).mapNotNull { match ->
             val n = number(match.groupValues[1]) ?: return@mapNotNull null
@@ -70,7 +72,7 @@ internal object ScanRecognition {
             val nearest = setMatches.minByOrNull { abs(it.range.first - match.range.first) } ?: return@mapNotNull null
             if (abs(nearest.range.first - match.range.first) > 64 || !validDenominator(nearest.value,total)) return@mapNotNull null
             manual(nearest.value, n.toString())
-        }.toSet().singleOrNull()
+        }.toSet()
     }
 }
 

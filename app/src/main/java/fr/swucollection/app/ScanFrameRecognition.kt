@@ -37,7 +37,9 @@ internal object ScanFrameRecognition {
         }
         // Keep the original text as evidence too: conflicting card references must
         // still be rejected, rather than picking the first reconstructed footer.
-        return (listOf(raw) + stitched).joinToString("\n")
+        // Append complete references only. Appending bare fragments would put
+        // unrelated rows next to each other again (e.g. "SOR FR" above a stat).
+        return (listOf(raw) + stitched.filter { ScanRecognition.references(it).isNotEmpty() }).joinToString("\n")
     }
 }
 
