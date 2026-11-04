@@ -1,0 +1,49 @@
+name: Audit free SWU catalogue
+on:
+  push:
+    paths:
+      - ".github/workflows/catalogue-audit.yml"
+  workflow_dispatch:
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download public CC0 dataset
+        run: |
+          python - <<'PY'
+          import urllib.request
+          url = "https://raw.githubusercontent.com/Team-Zura/swu-cards-json/main/data/v1/all-cards.json"
+          urllib.request.urlretrieve(url, "all-cards.json")
+          import os
+          print("Downloaded bytes:", os.path.getsize("all-cards.json"))
+          PY
+      - name: Inspect French coverage and schema
+        run: |
+          python - <<'PY'
+          import json, collections
+          with open("all-cards.json", encoding="utf-8") as f:
+              data = json.load(f)
+          report = {"root_type": type(data).__name__, "record_count": len(data) if isinstance(data,list) else None}
+          if isinstance(data,list) and data and isinstance(data[0],dict):
+              report["first_record"] = data[0]
+              report["first_record_keys"] = list(data[0].keys())
+              for field in ("name","subtitle","text"):
+                  vals = [c.get(field) for c in data if isinstance(c.get(field),dict)]
+                  if vals:
+                      report[field+"_locale_keys"] = sorted(set(k for v in vals for k in v.keys()))
+                      report[field+"_fr_missing"] = sum(not v.get("fr") for v in vals)
+                      report[field+"_fr_equals_en"] = sum(bool(v.get("fr")) and v.get("fr")==v.get("en") for v in vals)
+                      report[field+"_fr_samples"] = [v for v in vals if v.get("fr")][:8]
+              sets = collections.Counter((c.get("set") or {}).get("code","?") for c in data)
+              report["set_counts"] = sets.most_common()
+              report["sample_cards"] = data[:3]
+          with open("catalogue-audit.txt","w",encoding="utf-8") as f:
+              f.write(json.dumps(report,ensure_ascii=False,indent=2,default=str))
+          print(json.dumps(report,ensure_ascii=False,indent=2,default=str)[:12000])
+          PY
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalogue-audit
+          path: catalogue-audit.txt
+          retention-days: 7

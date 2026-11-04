@@ -1,0 +1,40 @@
+name: Verify official French card source
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/official-card-source-probe.yml"
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify official French API response (no catalogue mutation)
+        run: |
+          python - <<'PY'
+          import json, urllib.parse, urllib.request
+          url = "https://admin.starwarsunlimited.com/api/card-list?" + urllib.parse.urlencode({"locale":"fr", "pagination[page]":"1", "pagination[pageSize]":"5"})
+          req = urllib.request.Request(url, headers={"User-Agent":"SWU-Collection/1.0", "Accept":"application/json"})
+          with urllib.request.urlopen(req, timeout=25) as response:
+              data=json.load(response)
+          print("Top-level keys:",list(data) if isinstance(data,dict) else type(data).__name__)
+          items=data.get("data",[]) if isinstance(data,dict) else []
+          print("Cards returned:",len(items))
+          if not items: raise RuntimeError("Official French API returned no cards")
+          attr=items[0].get("attributes",items[0])
+          print("Card attribute keys:",list(attr))
+          print("Sample card number:",attr.get("cardNumber"))
+          print("Sample title:",str(attr.get("title",attr.get("name","")))[:90])
+          for key in ("expansion","artFront","artThumbnail","type","rarity","locale"):
+              print("Sample",key,":",str(attr.get(key))[:550])
+          print("Pagination meta:",str(data.get("meta"))[:500])
+          hmw="https://admin.starwarsunlimited.com/api/card-list?" + urllib.parse.urlencode({"locale":"fr","filters[expansion][code][$eq]":"HMW","pagination[pageSize]":"2"})
+          with urllib.request.urlopen(urllib.request.Request(hmw,headers={"User-Agent":"SWU-Collection/1.0"}),timeout=25) as response:
+              hd=json.load(response)
+          print("HMW filter meta:",str(hd.get("meta"))[:400])
+          print("HMW filter results:",len(hd.get("data",[])))
+          if hd.get("data"):
+              a=hd["data"][0].get("attributes",hd["data"][0])
+              print("HMW sample:",str({k:a.get(k) for k in ("title","cardNumber","expansion","artFront","locale")})[:1300])
+          PY
