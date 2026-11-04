@@ -1,0 +1,7588 @@
+{
+  "format": "SWU_LEGALITY",
+  "schema": 1,
+  "checkedAt": "2026-11-01T10:30:37.246754+00:00",
+  "sourceUpdatedAt": "2026-10-06T22:37:23.786Z",
+  "source": "https://starwarsunlimited.com/how-to-play?chapter=rules",
+  "rotationSource": "https://cdn.starwarsunlimited.com//Comprehensive_Event_Guide_v1_5_FINAL_8_2e86283787.pdf",
+  "activeSets": [
+    "ASH",
+    "HMW",
+    "IBH",
+    "JTL",
+    "LAW",
+    "LOF",
+    "SEC"
+  ],
+  "rotatedSets": [
+    "SHD",
+    "SOR",
+    "TWI"
+  ],
+  "suspended": [
+    {
+      "setCode": "ASH",
+      "number": "11",
+      "name": "Cad Bane — Toujours Plus Rapide Que Toi",
+      "type": "Leader"
+    }
+  ],
+  "legalCards": [
+    {
+      "name": "0-0-0 — Traduction Et Torture",
+      "type": "Unité"
+    },
+    {
+      "name": "4-LOM — Sournois",
+      "type": "Unité"
+    },
+    {
+      "name": "8D8 — Majordome Du Daimyo",
+      "type": "Unité"
+    },
+    {
+      "name": "A'Koba — Pillard Agité",
+      "type": "Unité"
+    },
+    {
+      "name": "A'Koba — Restless Raider",
+      "type": "Unité"
+    },
+    {
+      "name": "A-Wing",
+      "type": "Unité"
+    },
+    {
+      "name": "A-Wing de l'Escadron Phoenix",
+      "type": "Unité"
+    },
+    {
+      "name": "ARC-170 Avisé",
+      "type": "Unité"
+    },
+    {
+      "name": "ARC-170 Héroïque",
+      "type": "Unité"
+    },
+    {
+      "name": "Abattre",
+      "type": "Évènement"
+    },
+    {
+      "name": "Abuser de la Confiance",
+      "type": "Évènement"
+    },
+    {
+      "name": "Académie Militaire",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Accumulation",
+      "type": "Évènement"
+    },
+    {
+      "name": "Accusé d'Espionnage",
+      "type": "Évènement"
+    },
+    {
+      "name": "Accusé de Corruption",
+      "type": "Évènement"
+    },
+    {
+      "name": "Accusé de Trahison",
+      "type": "Évènement"
+    },
+    {
+      "name": "Accusée de Meurtre",
+      "type": "Évènement"
+    },
+    {
+      "name": "Accélérez nos Plans",
+      "type": "Évènement"
+    },
+    {
+      "name": "Acklay de l'Arène — Prédateur Hurlant",
+      "type": "Unité"
+    },
+    {
+      "name": "Acolyte Trayus",
+      "type": "Unité"
+    },
+    {
+      "name": "Acolyte de l'Au-Delà",
+      "type": "Unité"
+    },
+    {
+      "name": "Action Irréfléchie",
+      "type": "Évènement"
+    },
+    {
+      "name": "Adepte de la Colère",
+      "type": "Unité"
+    },
+    {
+      "name": "Adepte du Code",
+      "type": "Unité"
+    },
+    {
+      "name": "Adi Gallia — Stern and Focused",
+      "type": "Unité"
+    },
+    {
+      "name": "Adi Gallia — Sérieuse Et Concentrée",
+      "type": "Unité"
+    },
+    {
+      "name": "Adieu Fatidique",
+      "type": "Évènement"
+    },
+    {
+      "name": "Admiral Ackbar — Assume Attack Coordinates",
+      "type": "Unité"
+    },
+    {
+      "name": "Aerie — Vaisseau De Transport Des Cloud-Riders",
+      "type": "Unité"
+    },
+    {
+      "name": "Aethersprite de Kit Fisto — Bonne Chasse",
+      "type": "Unité"
+    },
+    {
+      "name": "Aethersprite de Qui-Gon Jinn — Guidé Par La Force",
+      "type": "Unité"
+    },
+    {
+      "name": "Agence de Renseignement",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Agent Infiltré",
+      "type": "Unité"
+    },
+    {
+      "name": "Agent Kallus — Reconsidérez Votre Allégeance",
+      "type": "Leader"
+    },
+    {
+      "name": "Agent du BSI",
+      "type": "Unité"
+    },
+    {
+      "name": "Aggressor en Chasse",
+      "type": "Unité"
+    },
+    {
+      "name": "Aggrocrabe",
+      "type": "Unité"
+    },
+    {
+      "name": "Agresseur d'Haxion",
+      "type": "Unité"
+    },
+    {
+      "name": "Ahsoka Tano — Croit En La Force",
+      "type": "Leader"
+    },
+    {
+      "name": "Ahsoka Tano — Je L'Ai Appris De Toi",
+      "type": "Unité"
+    },
+    {
+      "name": "Ahsoka Tano — Pourchasse Des Murmures",
+      "type": "Unité"
+    },
+    {
+      "name": "Ahsoka Tano — Se Bat Pour La Paix",
+      "type": "Leader"
+    },
+    {
+      "name": "Ailier Victor Deux — Mauler Mithel",
+      "type": "Unité"
+    },
+    {
+      "name": "Ailier Victor Trois — Backstabber",
+      "type": "Unité"
+    },
+    {
+      "name": "Ailiers Dévoués",
+      "type": "Évènement"
+    },
+    {
+      "name": "Ailiers de l'Escadron Danger",
+      "type": "Unité"
+    },
+    {
+      "name": "Airspeeder Modernisé",
+      "type": "Unité"
+    },
+    {
+      "name": "Alexsandr Kallus — De Nouveaux Engagements",
+      "type": "Unité"
+    },
+    {
+      "name": "Alexsandr Kallus — With New Purpose",
+      "type": "Unité"
+    },
+    {
+      "name": "Allumage Primaire du Réacteur",
+      "type": "Évènement"
+    },
+    {
+      "name": "Ambition Démesurée",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Ambition Malsaine",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Amiral Ackbar — C'Est Un Piège !",
+      "type": "Leader"
+    },
+    {
+      "name": "Amiral Ackbar — En Formation D'Attaque",
+      "type": "Unité"
+    },
+    {
+      "name": "Amiral Holdo — Nous Ne Sommes Pas Seuls",
+      "type": "Leader"
+    },
+    {
+      "name": "Amiral Motti — Chaîne De Commandement",
+      "type": "Unité"
+    },
+    {
+      "name": "Amiral Ozzel — Aussi Maladroit Que Stupide",
+      "type": "Unité"
+    },
+    {
+      "name": "Amiral Piett — Commandant De L'Armada",
+      "type": "Leader"
+    },
+    {
+      "name": "Amiral Piett — Exerce Le Commandement",
+      "type": "Unité"
+    },
+    {
+      "name": "Amiral Trench — Chk-Chk-Chk-Chk",
+      "type": "Leader"
+    },
+    {
+      "name": "Amiral Yularen — Coordinateur De La Flotte",
+      "type": "Unité"
+    },
+    {
+      "name": "Amiral de Flotte Chevronné",
+      "type": "Unité"
+    },
+    {
+      "name": "Amitié Renouvelée",
+      "type": "Évènement"
+    },
+    {
+      "name": "Améliorations Cybernétiques",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Anakin Skywalker — Champion De Mortis",
+      "type": "Unité"
+    },
+    {
+      "name": "Anakin Skywalker — Champion of Mortis",
+      "type": "Unité"
+    },
+    {
+      "name": "Anakin Skywalker — Force Prodigy",
+      "type": "Unité"
+    },
+    {
+      "name": "Anakin Skywalker — J'Vais Tenter Une Vrille",
+      "type": "Unité"
+    },
+    {
+      "name": "Anakin Skywalker — Marié En Secret",
+      "type": "Unité"
+    },
+    {
+      "name": "Anakin Skywalker — Pilote De Module Clairvoyant",
+      "type": "Unité"
+    },
+    {
+      "name": "Anakin Skywalker — Prodige De La Force",
+      "type": "Unité"
+    },
+    {
+      "name": "Anakin Skywalker — Tenté Par Le Côté Obscur",
+      "type": "Leader"
+    },
+    {
+      "name": "Anakin Skywalker — Tu Avais Raison À Mon Sujet",
+      "type": "Unité"
+    },
+    {
+      "name": "Anakin Skywalker — You Were Right About Me",
+      "type": "Unité"
+    },
+    {
+      "name": "Annihilator — Tagge'S Flagship",
+      "type": "Unité"
+    },
+    {
+      "name": "Annihilator — Vaisseau Amiral De Tagge",
+      "type": "Unité"
+    },
+    {
+      "name": "Antique Cromlech",
+      "type": "Base"
+    },
+    {
+      "name": "Appelons ça une Guerre",
+      "type": "Évènement"
+    },
+    {
+      "name": "Araignée des Glaces",
+      "type": "Unité"
+    },
+    {
+      "name": "Arbalète de Chewbacca — Tradition Artisanale",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Arbre des Origines",
+      "type": "Base"
+    },
+    {
+      "name": "Arcana Star Map — Path to Peridea",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Archers Ewoks",
+      "type": "Unité"
+    },
+    {
+      "name": "Arena Acklay — Screaming Predator",
+      "type": "Unité"
+    },
+    {
+      "name": "Arihnda Pryce — Sur La Route Du Pouvoir",
+      "type": "Unité"
+    },
+    {
+      "name": "Armure de Fortune",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Armée des Morts",
+      "type": "Unité"
+    },
+    {
+      "name": "Armée et Pleinement Opérationnelle",
+      "type": "Évènement"
+    },
+    {
+      "name": "Arpenteur Rebelle",
+      "type": "Unité"
+    },
+    {
+      "name": "Arrestation",
+      "type": "Évènement"
+    },
+    {
+      "name": "Artilleur E-Web",
+      "type": "Unité"
+    },
+    {
+      "name": "Arvel Skeen — Gagner Et S'En Aller",
+      "type": "Unité"
+    },
+    {
+      "name": "As de l'Interception",
+      "type": "Unité"
+    },
+    {
+      "name": "As de l'Open Circle",
+      "type": "Unité"
+    },
+    {
+      "name": "Asajj Ventress — Chasseresse Réticente",
+      "type": "Unité"
+    },
+    {
+      "name": "Asajj Ventress — Endurcit Votre Cœur",
+      "type": "Unité"
+    },
+    {
+      "name": "Asajj Ventress — Je Travaille Seule",
+      "type": "Leader"
+    },
+    {
+      "name": "Asajj Ventress — L'Heure N'Est Pas Aux Regrets",
+      "type": "Leader"
+    },
+    {
+      "name": "Asajj Ventress — Reluctant Hunter",
+      "type": "Unité"
+    },
+    {
+      "name": "Assaillants du Night Wind",
+      "type": "Unité"
+    },
+    {
+      "name": "Assassin Clone X",
+      "type": "Unité"
+    },
+    {
+      "name": "Assassin Sith",
+      "type": "Unité"
+    },
+    {
+      "name": "Assassin de Talzin",
+      "type": "Unité"
+    },
+    {
+      "name": "Assaut Supraluminique",
+      "type": "Évènement"
+    },
+    {
+      "name": "Assaut Tempêtueux",
+      "type": "Évènement"
+    },
+    {
+      "name": "Assaut en Tandem",
+      "type": "Évènement"
+    },
+    {
+      "name": "Assemblée Raxienne",
+      "type": "Unité"
+    },
+    {
+      "name": "Assistante Sénatoriale",
+      "type": "Unité"
+    },
+    {
+      "name": "Assistante du Conseil Suprême",
+      "type": "Unité"
+    },
+    {
+      "name": "Astromech Indiscipliné",
+      "type": "Unité"
+    },
+    {
+      "name": "Astropilote Sullustéen",
+      "type": "Unité"
+    },
+    {
+      "name": "Attaquer de Tous les Côtés",
+      "type": "Évènement"
+    },
+    {
+      "name": "Au Chat et à La Souris",
+      "type": "Évènement"
+    },
+    {
+      "name": "Au Cœur de la Bataille",
+      "type": "Évènement"
+    },
+    {
+      "name": "Aurra Sing — Assassin",
+      "type": "Leader"
+    },
+    {
+      "name": "Aurra Sing — Patiente Et Mortelle",
+      "type": "Unité"
+    },
+    {
+      "name": "Autorité Morale",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Auzituck Revanchard",
+      "type": "Unité"
+    },
+    {
+      "name": "Avant-Garde Snowtrooper",
+      "type": "Unité"
+    },
+    {
+      "name": "Avant-Garde de TIE Dagger",
+      "type": "Unité"
+    },
+    {
+      "name": "Avant-Garde de l'Équipe d'Assaut",
+      "type": "Unité"
+    },
+    {
+      "name": "Avant-Poste de l'Alliance",
+      "type": "Base"
+    },
+    {
+      "name": "Avar Kriss — Marshal Du Flambeau Stellaire",
+      "type": "Leader"
+    },
+    {
+      "name": "Avenger — Traque Les Rebelles",
+      "type": "Unité"
+    },
+    {
+      "name": "Aveugler avec ses Réacteurs",
+      "type": "Évènement"
+    },
+    {
+      "name": "Avide de Pouvoir",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Avoir Foi en Ses amis",
+      "type": "Évènement"
+    },
+    {
+      "name": "Awakened Exogorth",
+      "type": "Unité"
+    },
+    {
+      "name": "Axe Woves — Guerrier Accompli",
+      "type": "Unité"
+    },
+    {
+      "name": "Axe Woves — Intrépide",
+      "type": "Unité"
+    },
+    {
+      "name": "B-Wing de l'Arrière-Garde",
+      "type": "Unité"
+    },
+    {
+      "name": "B-Wing de l'Escadron Blade",
+      "type": "Unité"
+    },
+    {
+      "name": "B1 Sacrifiable",
+      "type": "Unité"
+    },
+    {
+      "name": "B2EMO — Ce Sont Deux Mensonges",
+      "type": "Unité"
+    },
+    {
+      "name": "B2EMO — That's Two Lies",
+      "type": "Unité"
+    },
+    {
+      "name": "BB-8 — Bips Joyeux",
+      "type": "Unité"
+    },
+    {
+      "name": "BD-1 — Beep Boo Boo Bweep",
+      "type": "Unité"
+    },
+    {
+      "name": "BT-1 — Blastomech",
+      "type": "Unité"
+    },
+    {
+      "name": "Babu Frik — Heyyy !",
+      "type": "Unité"
+    },
+    {
+      "name": "Babwa Venomor — Burning Kashyyyk",
+      "type": "Unité"
+    },
+    {
+      "name": "Babwa Venomor — Crame Kashyyyk",
+      "type": "Unité"
+    },
+    {
+      "name": "Bail Organa — Fait Tout Ce Qu'Il Peut",
+      "type": "Leader"
+    },
+    {
+      "name": "Bail Organa — Responding to Catastrophe",
+      "type": "Unité"
+    },
+    {
+      "name": "Bail Organa — Réagit Face À La Catastrophe",
+      "type": "Unité"
+    },
+    {
+      "name": "Balayer la Zone",
+      "type": "Évènement"
+    },
+    {
+      "name": "Bandit de Peridea",
+      "type": "Unité"
+    },
+    {
+      "name": "Bandits du Gang Ohnaka",
+      "type": "Unité"
+    },
+    {
+      "name": "Banshee — Crippling Command",
+      "type": "Unité"
+    },
+    {
+      "name": "Banshee — Ordre D'Anéantissement",
+      "type": "Unité"
+    },
+    {
+      "name": "Barge d'Invasion",
+      "type": "Unité"
+    },
+    {
+      "name": "Barrage de Torpilles",
+      "type": "Évènement"
+    },
+    {
+      "name": "Barriss Offee — Nous Sommes Devenus Méchants",
+      "type": "Leader"
+    },
+    {
+      "name": "Barriss Offee — Se Rachète",
+      "type": "Unité"
+    },
+    {
+      "name": "Base de Chopper",
+      "type": "Base"
+    },
+    {
+      "name": "Batcher — Limier Loyal",
+      "type": "Unité"
+    },
+    {
+      "name": "Battle-Scarred Destroyer",
+      "type": "Unité"
+    },
+    {
+      "name": "Baylan Skoll — Enigmatic Master",
+      "type": "Unité"
+    },
+    {
+      "name": "Baylan Skoll — Fallen Jedi",
+      "type": "Unité"
+    },
+    {
+      "name": "Baylan Skoll — Jedi Déchu",
+      "type": "Unité"
+    },
+    {
+      "name": "Baylan Skoll — Maître Énigmatique",
+      "type": "Unité"
+    },
+    {
+      "name": "Baylan Skoll — Un Pouvoir Au-Delà Des Rêves",
+      "type": "Leader"
+    },
+    {
+      "name": "Baze Malbus — Bonne Chance",
+      "type": "Unité"
+    },
+    {
+      "name": "Baze Malbus — Good Luck",
+      "type": "Unité"
+    },
+    {
+      "name": "Beilert Valance — Cible : Vador",
+      "type": "Unité"
+    },
+    {
+      "name": "Ben Kenobi — N'Aie Pas Peur",
+      "type": "Unité"
+    },
+    {
+      "name": "Ben Solo — Face À La Lumière",
+      "type": "Unité"
+    },
+    {
+      "name": "Bendu — Avez-Vous Peur De L'Orage ?",
+      "type": "Unité"
+    },
+    {
+      "name": "Bendu — Do You Fear the Storm?",
+      "type": "Unité"
+    },
+    {
+      "name": "Benthic “Deux-Tubes“ — La Guerre Vient Juste De Débuter",
+      "type": "Unité"
+    },
+    {
+      "name": "Berserkers de Son-Tuul",
+      "type": "Unité"
+    },
+    {
+      "name": "Bib Fortuna — Die Wanna Wanga ?",
+      "type": "Unité"
+    },
+    {
+      "name": "Biggs Darklighter — Ils Ne Nous Arrêteront Jamais",
+      "type": "Unité"
+    },
+    {
+      "name": "Bix Caleen — Vend De La Ferraille",
+      "type": "Unité"
+    },
+    {
+      "name": "Black One — Droit Sur Eux",
+      "type": "Unité"
+    },
+    {
+      "name": "Black One — Straight At Them",
+      "type": "Unité"
+    },
+    {
+      "name": "Blade Three — Bane of the Devastator",
+      "type": "Unité"
+    },
+    {
+      "name": "Blade Trois — Fléau Du Devastator",
+      "type": "Unité"
+    },
+    {
+      "name": "Blade of Talzin — A Gift of Shadows",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Blaster Recyclé",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Blindage en Duracier",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Blizzard One — Veers À La Barre",
+      "type": "Unité"
+    },
+    {
+      "name": "Blue Leader — Scarif Air Support",
+      "type": "Unité"
+    },
+    {
+      "name": "Blue Leader — Support Aérien Sur Scarif",
+      "type": "Unité"
+    },
+    {
+      "name": "Blurrg",
+      "type": "Unité"
+    },
+    {
+      "name": "Blurrg Fougueux",
+      "type": "Unité"
+    },
+    {
+      "name": "Bo-Katan Kryze — Pour Tous Ceux De Mandalore",
+      "type": "Unité"
+    },
+    {
+      "name": "Bo-Katan Kryze — Reconquérir Mandalore",
+      "type": "Leader"
+    },
+    {
+      "name": "Bo-Katan Kryze — Seule",
+      "type": "Unité"
+    },
+    {
+      "name": "Bo-Katan's Gauntlet — Reinforce from Above",
+      "type": "Unité"
+    },
+    {
+      "name": "BoShek — Contrebandier Charismatique",
+      "type": "Unité"
+    },
+    {
+      "name": "Boba Fett — A Trouvé Une Famille",
+      "type": "Unité"
+    },
+    {
+      "name": "Boba Fett — Chasseur De Primes Redouté",
+      "type": "Unité"
+    },
+    {
+      "name": "Boba Fett — Commandant De La Griffe De Krayt",
+      "type": "Leader"
+    },
+    {
+      "name": "Boba Fett — For a Price",
+      "type": "Unité"
+    },
+    {
+      "name": "Boba Fett — Moyennant Finances",
+      "type": "Unité"
+    },
+    {
+      "name": "Boba Fett — Tous Les Moyens Nécessaires",
+      "type": "Leader"
+    },
+    {
+      "name": "Boba Fett's Rancor — Emotionally Complex Creature",
+      "type": "Unité"
+    },
+    {
+      "name": "Bodhi Rook — Creating a Diversion",
+      "type": "Unité"
+    },
+    {
+      "name": "Bodhi Rook — Crée Une Diversion",
+      "type": "Unité"
+    },
+    {
+      "name": "Boga — Loyal Varactyl",
+      "type": "Unité"
+    },
+    {
+      "name": "Boga — Varactyl Loyal",
+      "type": "Unité"
+    },
+    {
+      "name": "Bombardement Planétaire",
+      "type": "Évènement"
+    },
+    {
+      "name": "Bombardier Hyena",
+      "type": "Unité"
+    },
+    {
+      "name": "Bombardier Lourd Forteresse Stellaire",
+      "type": "Unité"
+    },
+    {
+      "name": "Bombardier TIE",
+      "type": "Unité"
+    },
+    {
+      "name": "Bombardier Tactique Lourd",
+      "type": "Unité"
+    },
+    {
+      "name": "Bombardier d'Assaut en Surface",
+      "type": "Unité"
+    },
+    {
+      "name": "Bombardier des As Jaunes",
+      "type": "Unité"
+    },
+    {
+      "name": "Bondir",
+      "type": "Évènement"
+    },
+    {
+      "name": "Boss Lyonie — Hypnotisé",
+      "type": "Unité"
+    },
+    {
+      "name": "Boss Nass — Boss D'Otoh Gunga <Return>",
+      "type": "Unité"
+    },
+    {
+      "name": "Boss Nass — Otoh Gunga Boss",
+      "type": "Unité"
+    },
+    {
+      "name": "Bossk — Chasseur Cruel",
+      "type": "Leader"
+    },
+    {
+      "name": "Bossk — Instinct De Chasse",
+      "type": "Unité"
+    },
+    {
+      "name": "Bossk — Join Our Merry Band",
+      "type": "Unité"
+    },
+    {
+      "name": "Bossk — Se Joint À Notre Joyeuse Bande",
+      "type": "Unité"
+    },
+    {
+      "name": "Bothan-5 — Vaisseau Pénitentiaire De La Nouvelle République",
+      "type": "Unité"
+    },
+    {
+      "name": "Boule Booma",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Boussole Stellaire de Pillio",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Braquage des Salaires",
+      "type": "Évènement"
+    },
+    {
+      "name": "Bravoure Héroïque",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Brigade d'Ewoks",
+      "type": "Unité"
+    },
+    {
+      "name": "Bright Hope — Échappée Belle",
+      "type": "Unité"
+    },
+    {
+      "name": "Broken Horn — Fierté De Vizago",
+      "type": "Unité"
+    },
+    {
+      "name": "Brouillage des Transmissions",
+      "type": "Évènement"
+    },
+    {
+      "name": "Brouiller les Communications",
+      "type": "Évènement"
+    },
+    {
+      "name": "Brute Bith",
+      "type": "Unité"
+    },
+    {
+      "name": "Brute de l'Escadron Onyx",
+      "type": "Unité"
+    },
+    {
+      "name": "Brutes Corporatistes",
+      "type": "Unité"
+    },
+    {
+      "name": "Brèche",
+      "type": "Évènement"
+    },
+    {
+      "name": "Bureaucrate de la Régulation",
+      "type": "Unité"
+    },
+    {
+      "name": "Bâton Gaderffii",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Bête des Sables de Tatooine",
+      "type": "Unité"
+    },
+    {
+      "name": "C'est Pire !",
+      "type": "Évènement"
+    },
+    {
+      "name": "C'est un Caillou",
+      "type": "Évènement"
+    },
+    {
+      "name": "C'est un Piège",
+      "type": "Évènement"
+    },
+    {
+      "name": "C-3PO — Conteur Captivant",
+      "type": "Unité"
+    },
+    {
+      "name": "C-3PO — Protocole De Traduction",
+      "type": "Unité"
+    },
+    {
+      "name": "C-3PO — Puis-Je Faire Quelque Chose ?",
+      "type": "Unité"
+    },
+    {
+      "name": "C-3PO — Relations Humain-Cyborg",
+      "type": "Leader"
+    },
+    {
+      "name": "C-3PO — Translation Protocol",
+      "type": "Unité"
+    },
+    {
+      "name": "C-3PO — Ô Seigneur, Ô Seigneur",
+      "type": "Unité"
+    },
+    {
+      "name": "CAB Incinérateur",
+      "type": "Unité"
+    },
+    {
+      "name": "CD-TT d'Occupation",
+      "type": "Unité"
+    },
+    {
+      "name": "CR90 Humanitaire",
+      "type": "Unité"
+    },
+    {
+      "name": "Cabaliste du Soleil Noir",
+      "type": "Unité"
+    },
+    {
+      "name": "Cad Bane — Impressed Now?",
+      "type": "Unité"
+    },
+    {
+      "name": "Cad Bane — Impressionné Maintenant ?",
+      "type": "Unité"
+    },
+    {
+      "name": "Cad Bane — Maintenant C'Est À Moi",
+      "type": "Unité"
+    },
+    {
+      "name": "Cad Bane — Now It's My Turn",
+      "type": "Unité"
+    },
+    {
+      "name": "Cad Bane — Toujours Plus Rapide Que Toi",
+      "type": "Leader"
+    },
+    {
+      "name": "Cal Kestis — Je Ne Peux Pas Rester Caché",
+      "type": "Leader"
+    },
+    {
+      "name": "Camp Tusken",
+      "type": "Base"
+    },
+    {
+      "name": "Camp d'Insurgés",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Camtono",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Can-Cell Planant",
+      "type": "Unité"
+    },
+    {
+      "name": "Canon Blaster Lourd",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Canon Ionique",
+      "type": "Unité"
+    },
+    {
+      "name": "Canon Ionique Lourd",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Canon Ionique Super Lourd",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Canon Mobile Umbaran",
+      "type": "Unité"
+    },
+    {
+      "name": "Canon à Répétition « Éclairs Staccato »",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Canonnière Dornéenne",
+      "type": "Unité"
+    },
+    {
+      "name": "Canonnière à Missiles Lourde",
+      "type": "Unité"
+    },
+    {
+      "name": "Canto Bight",
+      "type": "Base"
+    },
+    {
+      "name": "Capitaine Enoch — Capitaine De La Garde",
+      "type": "Unité"
+    },
+    {
+      "name": "Capitaine Pellaeon — Complote Depuis Les Ombres",
+      "type": "Unité"
+    },
+    {
+      "name": "Capitaine Phasma — Dôme De Chrome",
+      "type": "Leader"
+    },
+    {
+      "name": "Capitaine Phasma — À Mon Commandement",
+      "type": "Unité"
+    },
+    {
+      "name": "Capitaine Rex — Dans Un Échange De Tirs",
+      "type": "Unité"
+    },
+    {
+      "name": "Capitaine Tarkin — Assaut Total",
+      "type": "Unité"
+    },
+    {
+      "name": "Capitaine Tarpals — Capitaine De La Grande Armée",
+      "type": "Unité"
+    },
+    {
+      "name": "Capitaine Typho — Toutes Les Précautions Nécessaires",
+      "type": "Unité"
+    },
+    {
+      "name": "Capitaine de la Sécurité du Conveyex",
+      "type": "Unité"
+    },
+    {
+      "name": "Capsule de Sauvetage",
+      "type": "Unité"
+    },
+    {
+      "name": "Captain Tarpals — Grand Army Captain",
+      "type": "Unité"
+    },
+    {
+      "name": "Caravane de l'Arbre de Vie",
+      "type": "Unité"
+    },
+    {
+      "name": "Cargo Corellien",
+      "type": "Unité"
+    },
+    {
+      "name": "Cargo Dragonboat",
+      "type": "Unité"
+    },
+    {
+      "name": "Cargo Léger Élégant",
+      "type": "Unité"
+    },
+    {
+      "name": "Cargo Renforcé",
+      "type": "Unité"
+    },
+    {
+      "name": "Cargo d'Évasion",
+      "type": "Unité"
+    },
+    {
+      "name": "Carnage",
+      "type": "Évènement"
+    },
+    {
+      "name": "Carson Teva — Quelque Chose Se Trame",
+      "type": "Unité"
+    },
+    {
+      "name": "Carson Teva — There's Something Going On",
+      "type": "Unité"
+    },
+    {
+      "name": "Carte Stellaire des Arcanes — Route Vers Peridea",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Casque d'Enfys Nest",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Casseur Devaronien",
+      "type": "Unité"
+    },
+    {
+      "name": "Cassian Andor — Everything For the Rebellion",
+      "type": "Unité"
+    },
+    {
+      "name": "Cassian Andor — Faire Profil-Bas",
+      "type": "Unité"
+    },
+    {
+      "name": "Cassian Andor — Grimpe !",
+      "type": "Leader"
+    },
+    {
+      "name": "Cassian Andor — Lay Low",
+      "type": "Unité"
+    },
+    {
+      "name": "Cassian Andor — Passe Par Un Trou De Souris",
+      "type": "Unité"
+    },
+    {
+      "name": "Cassian Andor — Tout Pour La Rébellion",
+      "type": "Unité"
+    },
+    {
+      "name": "Catamarans Côtiers",
+      "type": "Unité"
+    },
+    {
+      "name": "Cause Commune",
+      "type": "Évènement"
+    },
+    {
+      "name": "Cavalerie Impériale",
+      "type": "Unité"
+    },
+    {
+      "name": "Cavalier Révolutionnaire de Ryloth",
+      "type": "Unité"
+    },
+    {
+      "name": "Cavalier Sandtrooper",
+      "type": "Unité"
+    },
+    {
+      "name": "Cavernes Contestées",
+      "type": "Base"
+    },
+    {
+      "name": "Cavernes Echo",
+      "type": "Base"
+    },
+    {
+      "name": "Cavernes de Cristal",
+      "type": "Base"
+    },
+    {
+      "name": "Centre de Recherche de la Citadelle",
+      "type": "Base"
+    },
+    {
+      "name": "Cette Fois, Je te Tiens",
+      "type": "Évènement"
+    },
+    {
+      "name": "Chairman Papanoida — Undaunted Diplomat",
+      "type": "Unité"
+    },
+    {
+      "name": "Challenger du Circuit",
+      "type": "Unité"
+    },
+    {
+      "name": "Cham Syndulla — Marteau De Ryloth",
+      "type": "Leader"
+    },
+    {
+      "name": "Cham Syndulla — Ralliement De Ryloth",
+      "type": "Unité"
+    },
+    {
+      "name": "Chambre de Congélation Carbonique",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Champ Mortel",
+      "type": "Évènement"
+    },
+    {
+      "name": "Champ de Mines Perfide",
+      "type": "Évènement"
+    },
+    {
+      "name": "Champion Populiste",
+      "type": "Unité"
+    },
+    {
+      "name": "Champion de l'Empereur",
+      "type": "Unité"
+    },
+    {
+      "name": "Champions d'Endor",
+      "type": "Unité"
+    },
+    {
+      "name": "Chancelier Palpatine — C'Est Ainsi Que S'Éteint La Liberté",
+      "type": "Leader"
+    },
+    {
+      "name": "Chancelier Palpatine — Le Sénat C'Est Moi",
+      "type": "Unité"
+    },
+    {
+      "name": "Chancelier Valorum — Fonctionnaire",
+      "type": "Unité"
+    },
+    {
+      "name": "Chancellor Valorum — Civil Servant",
+      "type": "Unité"
+    },
+    {
+      "name": "Chantiers Navals de Nadiri",
+      "type": "Base"
+    },
+    {
+      "name": "Char de Siège Occupier",
+      "type": "Unité"
+    },
+    {
+      "name": "Char des Sables Récupérateur",
+      "type": "Unité"
+    },
+    {
+      "name": "Char à Sustentation Caché",
+      "type": "Unité"
+    },
+    {
+      "name": "Charge Furieuse",
+      "type": "Évènement"
+    },
+    {
+      "name": "Charge Gravitationnelle",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Chariot de Combat Gungan",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur Alamite",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur Aurek de la République",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur Diabolique de Marrok — Redoutable Poursuivant",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur Diabolique de Shin Hati — Compact Et Réactif",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur Fang de Flanc",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur Helix",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur Jedi",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur Lourd Kimogila",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur Lourd du Cartel",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur Mercantile",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur N-1",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur N-1 de Mando — Plus Rapide Qu'Un Fathier",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur Patient",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur Snub Pirate",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur Snub Rôdant",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur TIE Strident",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur TIE de Reconnaissance",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur TIE des Forces Spéciales",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur TIE du Premier Ordre",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur Zenuas Discret",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur d'Escorte Impulsif",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur d'Horizon",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur d'Orages",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur de Classe Rogue",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur de Padawan",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur de Primes Insensible",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur de Têtes en Repérage",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur de l'Escadron Bravo",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur de la Forge",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur de la Sécurité Royale",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur des Braconniers",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur du Cartel Hutt",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur du Protectorat",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseur à Louer",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseurs Cachés",
+      "type": "Unité"
+    },
+    {
+      "name": "Chasseurs de l'Escadron Phoenix",
+      "type": "Unité"
+    },
+    {
+      "name": "Chef Chirpa — Aîné Provocateur",
+      "type": "Unité"
+    },
+    {
+      "name": "Chef Wookie",
+      "type": "Unité"
+    },
+    {
+      "name": "Chef d'Œuvre de Sabine — Extravagance Colorée",
+      "type": "Unité"
+    },
+    {
+      "name": "Chevalier Jedi",
+      "type": "Unité"
+    },
+    {
+      "name": "Chevalier de Ren",
+      "type": "Unité"
+    },
+    {
+      "name": "Chevaucheur de Bantha Tusken",
+      "type": "Unité"
+    },
+    {
+      "name": "Chevaucheur de Milodon",
+      "type": "Unité"
+    },
+    {
+      "name": "Chevaucheur de Mylaya",
+      "type": "Unité"
+    },
+    {
+      "name": "Chewbacca — Fidèle Second",
+      "type": "Unité"
+    },
+    {
+      "name": "Chewbacca — Héros De Kessel",
+      "type": "Leader"
+    },
+    {
+      "name": "Chewbacca — Mighty Rescuer",
+      "type": "Unité"
+    },
+    {
+      "name": "Chewbacca — Puissant Sauveteur",
+      "type": "Unité"
+    },
+    {
+      "name": "Chewbacca — Rebelle Obstiné",
+      "type": "Leader"
+    },
+    {
+      "name": "Chewbacca — Resourceful Wookiee",
+      "type": "Unité"
+    },
+    {
+      "name": "Chewbacca — Rrruuuurrr",
+      "type": "Unité"
+    },
+    {
+      "name": "Chewbacca — Wookie Débrouillard",
+      "type": "Unité"
+    },
+    {
+      "name": "Chief Chirpa — Defiant Elder",
+      "type": "Unité"
+    },
+    {
+      "name": "Chimaera — Reinforcing The Center",
+      "type": "Unité"
+    },
+    {
+      "name": "Chimaera — Renforts Au Centre",
+      "type": "Unité"
+    },
+    {
+      "name": "Chimaera — Une Réalité Effrayante",
+      "type": "Unité"
+    },
+    {
+      "name": "Chio Fain — Pirate Informatique À Quatre Bras",
+      "type": "Unité"
+    },
+    {
+      "name": "Chirrut Îmwe — Blind, but not Deaf",
+      "type": "Unité"
+    },
+    {
+      "name": "Chirrut Îmwe — I Don't Need Luck",
+      "type": "Unité"
+    },
+    {
+      "name": "Chirrut Îmwe — Je N'Ai Pas Besoin De Chance",
+      "type": "Unité"
+    },
+    {
+      "name": "Chirrut Îmwe — Je Suis Aveugle, Pas Sourd",
+      "type": "Unité"
+    },
+    {
+      "name": "Choisis ton Chemin",
+      "type": "Évènement"
+    },
+    {
+      "name": "Choose Your Path",
+      "type": "Évènement"
+    },
+    {
+      "name": "Chopper — Héros De Guerre",
+      "type": "Unité"
+    },
+    {
+      "name": "Chopper — Spectre Three",
+      "type": "Unité"
+    },
+    {
+      "name": "Chopper — Spectre Trois",
+      "type": "Unité"
+    },
+    {
+      "name": "Chopper — War Hero",
+      "type": "Unité"
+    },
+    {
+      "name": "Château des Kryze",
+      "type": "Base"
+    },
+    {
+      "name": "Châtiment",
+      "type": "Évènement"
+    },
+    {
+      "name": "Cibler le Générateur Principal",
+      "type": "Événement"
+    },
+    {
+      "name": "Ciblé pour Élimination",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Cid Scaleback — N'Est Pas Fiable",
+      "type": "Unité"
+    },
+    {
+      "name": "Cikatro Vizago — Le Business, C'Est Ça Qui Est Important",
+      "type": "Unité"
+    },
+    {
+      "name": "Cime de Stygeon",
+      "type": "Base"
+    },
+    {
+      "name": "Cin Drallig — Esteemed Blademaster",
+      "type": "Unité"
+    },
+    {
+      "name": "Cin Drallig — Épéiste Réputé",
+      "type": "Unité"
+    },
+    {
+      "name": "Cinta Kaz — Impassible Et Téméraire",
+      "type": "Unité"
+    },
+    {
+      "name": "Cinta Kaz — La Lutte Avant Tout",
+      "type": "Unité"
+    },
+    {
+      "name": "Cinta Kaz — The Struggle Comes First",
+      "type": "Unité"
+    },
+    {
+      "name": "Cité Souterraine",
+      "type": "Base"
+    },
+    {
+      "name": "Cité dans les Nuages",
+      "type": "Base"
+    },
+    {
+      "name": "Clone de la Bête de Zillo — Expérience De L'Empereur",
+      "type": "Unité"
+    },
+    {
+      "name": "Clone of the Zillo Beast — Emperor's Experiment",
+      "type": "Unité"
+    },
+    {
+      "name": "Cloud-Rider Vétéran",
+      "type": "Unité"
+    },
+    {
+      "name": "Coalition de la Bordure Intérieure",
+      "type": "Unité"
+    },
+    {
+      "name": "Cobb Vanth — Laisse-Moi Régler Ça",
+      "type": "Unité"
+    },
+    {
+      "name": "Cobb Vanth — Let Me Handle This",
+      "type": "Unité"
+    },
+    {
+      "name": "Collaborateur Trandoshan",
+      "type": "Unité"
+    },
+    {
+      "name": "Colonel Yularen — C'Est Pour Ça Que Nous Planifions",
+      "type": "Leader"
+    },
+    {
+      "name": "Colossus",
+      "type": "Base"
+    },
+    {
+      "name": "Combat à Basse Altitude",
+      "type": "Évènement"
+    },
+    {
+      "name": "Combattant Endoctriné",
+      "type": "Unité"
+    },
+    {
+      "name": "Combattre le Feu par le Feu",
+      "type": "Évènement"
+    },
+    {
+      "name": "Commandant Gree — Du 41E Corps D'Élite",
+      "type": "Unité"
+    },
+    {
+      "name": "Commando Blindé Impérial",
+      "type": "Unité"
+    },
+    {
+      "name": "Commando Désespéré",
+      "type": "Unité"
+    },
+    {
+      "name": "Commando de Daro",
+      "type": "Unité"
+    },
+    {
+      "name": "Commandos Cruels",
+      "type": "Unité"
+    },
+    {
+      "name": "Commandos Dresselliens",
+      "type": "Unité"
+    },
+    {
+      "name": "Commandos Impériaux",
+      "type": "Unité"
+    },
+    {
+      "name": "Comme Je l'Avais Prévu",
+      "type": "Évènement"
+    },
+    {
+      "name": "Commerciaux du Char des Sables",
+      "type": "Unité"
+    },
+    {
+      "name": "Commission d'Ando",
+      "type": "Unité"
+    },
+    {
+      "name": "Compagnon Tibidee",
+      "type": "Unité"
+    },
+    {
+      "name": "Complexe Pénitencier Impérial",
+      "type": "Base"
+    },
+    {
+      "name": "Complexe de Commandement Impérial",
+      "type": "Base"
+    },
+    {
+      "name": "Complexe du Générateur de Bouclier",
+      "type": "Base"
+    },
+    {
+      "name": "Concentrer les Tirs",
+      "type": "Évènement"
+    },
+    {
+      "name": "Condamner",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Confiance Trahie",
+      "type": "Évènement"
+    },
+    {
+      "name": "Confiant en la Victoire",
+      "type": "Évènement"
+    },
+    {
+      "name": "Congrès de Malastare",
+      "type": "Unité"
+    },
+    {
+      "name": "Connexions Clandestines",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Connétable de la Bordure Extérieure",
+      "type": "Unité"
+    },
+    {
+      "name": "Conscrit Endoctriné",
+      "type": "Unité"
+    },
+    {
+      "name": "Conseiller Populiste",
+      "type": "Unité"
+    },
+    {
+      "name": "Conseiller du Haut Commandement",
+      "type": "Unité"
+    },
+    {
+      "name": "Consumé par le Côté Obscur",
+      "type": "Évènement"
+    },
+    {
+      "name": "Contact Criminel",
+      "type": "Unité"
+    },
+    {
+      "name": "Contrebandier Indépendant",
+      "type": "Unité"
+    },
+    {
+      "name": "Convoquer le Sénat",
+      "type": "Évènement"
+    },
+    {
+      "name": "Coordinateur Echo",
+      "type": "Unité"
+    },
+    {
+      "name": "Coordonner les Fronts",
+      "type": "Évènement"
+    },
+    {
+      "name": "Corona Quatre — Justice Pour Alderaan",
+      "type": "Unité"
+    },
+    {
+      "name": "Coronet — Navire Majestueux",
+      "type": "Unité"
+    },
+    {
+      "name": "Corps Subsistant de Stormtroopers",
+      "type": "Unité"
+    },
+    {
+      "name": "Corvette d'Entraînement Paladin",
+      "type": "Unité"
+    },
+    {
+      "name": "Corvus — Inferno Squadron Raider",
+      "type": "Unité"
+    },
+    {
+      "name": "Corvus — Raider De L'Escadron Inferno",
+      "type": "Unité"
+    },
+    {
+      "name": "Coup au But !",
+      "type": "Évènement"
+    },
+    {
+      "name": "Coup de Maître",
+      "type": "Évènement"
+    },
+    {
+      "name": "Coup Écrasant",
+      "type": "Évènement"
+    },
+    {
+      "name": "Coupe Circuit",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Course dans la Tranchée",
+      "type": "Évènement"
+    },
+    {
+      "name": "Couvée Curieuse",
+      "type": "Unité"
+    },
+    {
+      "name": "Crix Madine — Stratège De L'Équipe D'Assaut",
+      "type": "Unité"
+    },
+    {
+      "name": "Crix Madine — Strike Team Strategist",
+      "type": "Unité"
+    },
+    {
+      "name": "Crois en Toi",
+      "type": "Évènement"
+    },
+    {
+      "name": "Croiseur Arrestor Cantwell",
+      "type": "Unité"
+    },
+    {
+      "name": "Croiseur Consulaire",
+      "type": "Unité"
+    },
+    {
+      "name": "Croiseur Longbeam",
+      "type": "Unité"
+    },
+    {
+      "name": "Croiseur Léger Corporatiste",
+      "type": "Unité"
+    },
+    {
+      "name": "Croiseur Léger Jedi",
+      "type": "Unité"
+    },
+    {
+      "name": "Croiseur Léger en Renfort",
+      "type": "Unité"
+    },
+    {
+      "name": "Croiseur de Mon Cal",
+      "type": "Unité"
+    },
+    {
+      "name": "Croiseur de Surveillance",
+      "type": "Unité"
+    },
+    {
+      "name": "Croissance",
+      "type": "Évènement"
+    },
+    {
+      "name": "Crosshair — J'Ai Changé",
+      "type": "Unité"
+    },
+    {
+      "name": "Crosshair — Plein De Doutes",
+      "type": "Unité"
+    },
+    {
+      "name": "Crouler sous les Procédures",
+      "type": "Évènement"
+    },
+    {
+      "name": "Croyants dans la Clandestinité",
+      "type": "Unité"
+    },
+    {
+      "name": "Crucible — Des Siècles De Sagesse",
+      "type": "Unité"
+    },
+    {
+      "name": "Crypte des Données",
+      "type": "Base"
+    },
+    {
+      "name": "Crédits Non Identifiables",
+      "type": "Évènement"
+    },
+    {
+      "name": "Cuve à Bacta",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Câble Ascensionnel",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Cérémonial Diplomatique",
+      "type": "Évènement"
+    },
+    {
+      "name": "D'un Certain Point de Vue",
+      "type": "Évènement"
+    },
+    {
+      "name": "DJ — Je Vous Dépose ?",
+      "type": "Leader"
+    },
+    {
+      "name": "Dans l'Ombre",
+      "type": "Évènement"
+    },
+    {
+      "name": "Dark Malak — Apprenti Envieux",
+      "type": "Unité"
+    },
+    {
+      "name": "Dark Maul — Sith Avéré",
+      "type": "Leader"
+    },
+    {
+      "name": "Dark Nihilus — Seigneur De La Faim",
+      "type": "Unité"
+    },
+    {
+      "name": "Dark Revan — Fléau De L'Ancienne République",
+      "type": "Leader"
+    },
+    {
+      "name": "Dark Sidious — Aucune Pitié",
+      "type": "Leader"
+    },
+    {
+      "name": "Dark Sidious — La Menace Fantôme",
+      "type": "Unité"
+    },
+    {
+      "name": "Dark Sion — Seigneur De La Douleur",
+      "type": "Unité"
+    },
+    {
+      "name": "Dark Traya — Seigneur De La Trahison",
+      "type": "Unité"
+    },
+    {
+      "name": "Dark Trooper Impérial",
+      "type": "Unité"
+    },
+    {
+      "name": "Dark Tyranus — Serviteur De Sidious",
+      "type": "Unité"
+    },
+    {
+      "name": "Dark Vador — Affronte Ton Destin",
+      "type": "Unité"
+    },
+    {
+      "name": "Dark Vador — Crépuscule De L'Apprenti",
+      "type": "Unité"
+    },
+    {
+      "name": "Dark Vador — Fléau Des Escadrons",
+      "type": "Unité"
+    },
+    {
+      "name": "Dark Vador — Inarrêtable",
+      "type": "Leader"
+    },
+    {
+      "name": "Dark Vador — Leader De L'Escadron Victor",
+      "type": "Leader"
+    },
+    {
+      "name": "Dark Vador — Ne Me Décevez Plus",
+      "type": "Leader"
+    },
+    {
+      "name": "Dark Vador — Puissance De L'Empire",
+      "type": "Leader"
+    },
+    {
+      "name": "Dark Vador — Toutes Les Méthodes Nécessaires",
+      "type": "Unité"
+    },
+    {
+      "name": "Darth Malak — Covetous Apprentice",
+      "type": "Unité"
+    },
+    {
+      "name": "Darth Vader — Meet Your Destiny",
+      "type": "Unité"
+    },
+    {
+      "name": "Darth Vader — Twilight of the Apprentice",
+      "type": "Unité"
+    },
+    {
+      "name": "Dathomiri Rancor",
+      "type": "Unité"
+    },
+    {
+      "name": "De Peur et d'Hommes Morts",
+      "type": "Évènement"
+    },
+    {
+      "name": "Death Trooper",
+      "type": "Unité"
+    },
+    {
+      "name": "Decimator des Dissidents",
+      "type": "Unité"
+    },
+    {
+      "name": "Dedra Meero — Avec Des Données Vérifiables",
+      "type": "Unité"
+    },
+    {
+      "name": "Dedra Meero — Ne Perd Pas De Temps",
+      "type": "Leader"
+    },
+    {
+      "name": "Dedra Meero — With Verifiable Data",
+      "type": "Unité"
+    },
+    {
+      "name": "Defender de Vult Skerris — Projet Secret",
+      "type": "Unité"
+    },
+    {
+      "name": "Defender du CDD",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Dengar — Grossier Et Débraillé",
+      "type": "Unité"
+    },
+    {
+      "name": "Dengar — Tentez Votre Chance",
+      "type": "Unité"
+    },
+    {
+      "name": "Depa Billaba — A Higher Purpose",
+      "type": "Unité"
+    },
+    {
+      "name": "Depa Billaba — Un Objectif Plus Noble",
+      "type": "Unité"
+    },
+    {
+      "name": "Derniers Mots",
+      "type": "Évènement"
+    },
+    {
+      "name": "Destroyer Détérioré",
+      "type": "Unité"
+    },
+    {
+      "name": "Destroyer de l'Escadron de la Mort",
+      "type": "Unité"
+    },
+    {
+      "name": "Devastator — Hunting The Rebellion",
+      "type": "Unité"
+    },
+    {
+      "name": "Devastator — Traque La Rébellion",
+      "type": "Unité"
+    },
+    {
+      "name": "Dianoga Répugnant",
+      "type": "Unité"
+    },
+    {
+      "name": "Dignitaires Renommés",
+      "type": "Unité"
+    },
+    {
+      "name": "Diplômé de l'Académie",
+      "type": "Unité"
+    },
+    {
+      "name": "Directeur Krennic — Au Milieu De Sa Réussite",
+      "type": "Leader"
+    },
+    {
+      "name": "Directeur Krennic — Le Projet N'Avance Pas",
+      "type": "Unité"
+    },
+    {
+      "name": "Directeur Krennic — Vous M'Aurez Seulement Fait Perdre Du Temps",
+      "type": "Unité"
+    },
+    {
+      "name": "Directeur Krennic — À Deux Doigts De La Gloire",
+      "type": "Unité"
+    },
+    {
+      "name": "Director Krennic — I Lose Nothing But Time",
+      "type": "Unité"
+    },
+    {
+      "name": "Dirigé par la Force",
+      "type": "Évènement"
+    },
+    {
+      "name": "Disciplinaire de l'Académie",
+      "type": "Unité"
+    },
+    {
+      "name": "Dissimulation dans les Ombres",
+      "type": "Évènement"
+    },
+    {
+      "name": "Diversion",
+      "type": "Évènement"
+    },
+    {
+      "name": "Docteur Aphra — Creuse En Quête De Réponses",
+      "type": "Unité"
+    },
+    {
+      "name": "Docteur Hemlock — L'Émotion N'A Pas Sa Place Ici",
+      "type": "Leader"
+    },
+    {
+      "name": "Docteur Pershing — Dévoué À La Recherche",
+      "type": "Unité"
+    },
+    {
+      "name": "Dommage Collatéral",
+      "type": "Évènement"
+    },
+    {
+      "name": "Dooku — Il Est Trop Tard",
+      "type": "Unité"
+    },
+    {
+      "name": "Dooku — It Is Too Late",
+      "type": "Unité"
+    },
+    {
+      "name": "Dooku — La Corruption Doit Être Éradiquée",
+      "type": "Unité"
+    },
+    {
+      "name": "Double Jeu",
+      "type": "Évènement"
+    },
+    {
+      "name": "Dragon Rituel",
+      "type": "Unité"
+    },
+    {
+      "name": "Drain d'Essence",
+      "type": "Évènement"
+    },
+    {
+      "name": "Droit dans le Mille",
+      "type": "Évènement"
+    },
+    {
+      "name": "Droits du Créancier",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Droïde Annihilateur Scorpenek",
+      "type": "Unité"
+    },
+    {
+      "name": "Droïde Assassin HK-87",
+      "type": "Unité"
+    },
+    {
+      "name": "Droïde Assassin en Chasse",
+      "type": "Unité"
+    },
+    {
+      "name": "Droïde Crabe Muckraker",
+      "type": "Unité"
+    },
+    {
+      "name": "Droïde Cuisinier du Palais",
+      "type": "Unité"
+    },
+    {
+      "name": "Droïde Ferry",
+      "type": "Unité"
+    },
+    {
+      "name": "Droïde Fourmi",
+      "type": "Unité"
+    },
+    {
+      "name": "Droïde Sentinelle N5",
+      "type": "Unité"
+    },
+    {
+      "name": "Droïde Sonde DRK-1",
+      "type": "Unité"
+    },
+    {
+      "name": "Droïde Sonde Viper",
+      "type": "Unité"
+    },
+    {
+      "name": "Droïde Souris",
+      "type": "Unité"
+    },
+    {
+      "name": "Droïde d'Alimentation GNK",
+      "type": "Unité"
+    },
+    {
+      "name": "Droïde d'Interrogatoire",
+      "type": "Unité"
+    },
+    {
+      "name": "Droïde de Sécurité d'At Attin",
+      "type": "Unité"
+    },
+    {
+      "name": "Dryden Vos — I Get All Worked Up",
+      "type": "Unité"
+    },
+    {
+      "name": "Dryden Vos — Je M'Emporte Facilement",
+      "type": "Unité"
+    },
+    {
+      "name": "Dryden Vos — Je Ne Demande Jamais Deux Fois",
+      "type": "Leader"
+    },
+    {
+      "name": "Duel Aérien",
+      "type": "Évènement"
+    },
+    {
+      "name": "Dume — Préserver L'Avenir",
+      "type": "Unité"
+    },
+    {
+      "name": "Dume — Redeem the Future",
+      "type": "Unité"
+    },
+    {
+      "name": "Duo Impitoyable",
+      "type": "Unité"
+    },
+    {
+      "name": "Débuter les Festivités",
+      "type": "Évènement"
+    },
+    {
+      "name": "Décharge Maléfique",
+      "type": "Évènement"
+    },
+    {
+      "name": "Défenseur de Tranchée",
+      "type": "Unité"
+    },
+    {
+      "name": "Défenseur du Bunker",
+      "type": "Unité"
+    },
+    {
+      "name": "Défenseurs de la Forêt",
+      "type": "Unité"
+    },
+    {
+      "name": "Déguisement de Leia",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Délégués de la Fédération du Commerce",
+      "type": "Unité"
+    },
+    {
+      "name": "Démanteler la Conspiration",
+      "type": "Évènement"
+    },
+    {
+      "name": "Démolisseur Naval de Bracca",
+      "type": "Unité"
+    },
+    {
+      "name": "Démonstration de Force",
+      "type": "Évènement"
+    },
+    {
+      "name": "Dératiseur LEP",
+      "type": "Unité"
+    },
+    {
+      "name": "Dériveur des Survivants",
+      "type": "Unité"
+    },
+    {
+      "name": "Dés Dorés de Han",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Désastre Hyperspatial",
+      "type": "Évènement"
+    },
+    {
+      "name": "Désert du Jundland",
+      "type": "Base"
+    },
+    {
+      "name": "Déserteur Impérial",
+      "type": "Unité"
+    },
+    {
+      "name": "Détenu pour Interrogatoire",
+      "type": "Évènement"
+    },
+    {
+      "name": "Détonateur Thermique",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Détonation Improvisée",
+      "type": "Événement"
+    },
+    {
+      "name": "Détonation Sismique",
+      "type": "Évènement"
+    },
+    {
+      "name": "Détruire pour Créer",
+      "type": "Évènement"
+    },
+    {
+      "name": "Dévotion",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Dévotion des Disciples",
+      "type": "Amélioration"
+    },
+    {
+      "name": "E-Wing de Lothal",
+      "type": "Unité"
+    },
+    {
+      "name": "Ebon Hawk — Cause À Effet",
+      "type": "Unité"
+    },
+    {
+      "name": "Eeth Koth — Guerrier Spirituel",
+      "type": "Unité"
+    },
+    {
+      "name": "Eeth Koth — Spiritual Warrior",
+      "type": "Unité"
+    },
+    {
+      "name": "Effondrement de Nébuleuse",
+      "type": "Évènement"
+    },
+    {
+      "name": "Eighth Brother — Hunt Together",
+      "type": "Unité"
+    },
+    {
+      "name": "Elia Kane — Fausse Convertie",
+      "type": "Unité"
+    },
+    {
+      "name": "Elzar Mann — Hanté Par Une Vision",
+      "type": "Unité"
+    },
+    {
+      "name": "Elzar Mann — Haunted by a Vision",
+      "type": "Unité"
+    },
+    {
+      "name": "Emerie Karr — Pour Ton Propre Bien",
+      "type": "Unité"
+    },
+    {
+      "name": "Empereur Palpatine — Consolide Son Pouvoir",
+      "type": "Unité"
+    },
+    {
+      "name": "Empereur Palpatine — Selon Mes Plans",
+      "type": "Leader"
+    },
+    {
+      "name": "Emperor Palpatine — Consolidating Power",
+      "type": "Unité"
+    },
+    {
+      "name": "Enchaînement Shien",
+      "type": "Évènement"
+    },
+    {
+      "name": "Endurance Accrue",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Enfant de Dathomir",
+      "type": "Unité"
+    },
+    {
+      "name": "Enfys Nest — Ne Plus Pouvoir Aller Plus Haut",
+      "type": "Leader"
+    },
+    {
+      "name": "Enoch — Serviteur Cérémonieux",
+      "type": "Unité"
+    },
+    {
+      "name": "Enquêteurs de la Duchesse",
+      "type": "Unité"
+    },
+    {
+      "name": "Enragé",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Entraver les Jambes",
+      "type": "Événement"
+    },
+    {
+      "name": "Entrer en Clandestinité",
+      "type": "Évènement"
+    },
+    {
+      "name": "Entrer en Résonance",
+      "type": "Évènement"
+    },
+    {
+      "name": "Envol de l'Inquisiteur",
+      "type": "Évènement"
+    },
+    {
+      "name": "Envoyer la Patrouille",
+      "type": "Évènement"
+    },
+    {
+      "name": "Envoyé Diplomatique",
+      "type": "Unité"
+    },
+    {
+      "name": "Eopie Amical",
+      "type": "Unité"
+    },
+    {
+      "name": "Eravana — Transporte Des Rathtars",
+      "type": "Unité"
+    },
+    {
+      "name": "Ermite Mystérieux",
+      "type": "Unité"
+    },
+    {
+      "name": "Escadron Blue de la Résistance",
+      "type": "Unité"
+    },
+    {
+      "name": "Escadron Victor — En Formation D'Attaque",
+      "type": "Unité"
+    },
+    {
+      "name": "Escadron d'Exécuteurs",
+      "type": "Unité"
+    },
+    {
+      "name": "Escadron de Chasseurs Fang",
+      "type": "Unité"
+    },
+    {
+      "name": "Escadron de Combat Clone",
+      "type": "Unité"
+    },
+    {
+      "name": "Escadron de Mini-chasseurs",
+      "type": "Unité"
+    },
+    {
+      "name": "Escadron de TIE Embusqué",
+      "type": "Unité"
+    },
+    {
+      "name": "Escorte d'Évacuation",
+      "type": "Unité"
+    },
+    {
+      "name": "Escouade Inferno — Nous Ferons Notre Deuil Plus Tard",
+      "type": "Unité"
+    },
+    {
+      "name": "Escouade de Choc Dogmatique",
+      "type": "Unité"
+    },
+    {
+      "name": "Escouade de Death Troopers",
+      "type": "Unité"
+    },
+    {
+      "name": "Escouade de Sandtroopers",
+      "type": "Unité"
+    },
+    {
+      "name": "Esquif Pirate Shydopp",
+      "type": "Unité"
+    },
+    {
+      "name": "Esquif Stellaire Nubienne",
+      "type": "Unité"
+    },
+    {
+      "name": "Estropier",
+      "type": "Évènement"
+    },
+    {
+      "name": "Eta-2 en Soutien",
+      "type": "Unité"
+    },
+    {
+      "name": "Eviscerator — Carbonisez-Les",
+      "type": "Unité"
+    },
+    {
+      "name": "Ewoks Inflexibles",
+      "type": "Unité"
+    },
+    {
+      "name": "Excuses Acceptées",
+      "type": "Évènement"
+    },
+    {
+      "name": "Executor — Destruction Totale De L'Alliance",
+      "type": "Unité"
+    },
+    {
+      "name": "Executor — Might Of The Empire",
+      "type": "Unité"
+    },
+    {
+      "name": "Executor — Puissance De L'Empire",
+      "type": "Unité"
+    },
+    {
+      "name": "Exercice de Combat",
+      "type": "Évènement"
+    },
+    {
+      "name": "Exilé de la Force",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Exogorth Réveillé",
+      "type": "Unité"
+    },
+    {
+      "name": "Exploiter l'Avantage",
+      "type": "Évènement"
+    },
+    {
+      "name": "Explorateur de l'Espace Sauvage",
+      "type": "Unité"
+    },
+    {
+      "name": "Exploration Audacieuse",
+      "type": "Évènement"
+    },
+    {
+      "name": "Explosion de Rhydonium",
+      "type": "Évènement"
+    },
+    {
+      "name": "Eye of Sion — Delivered from Exile",
+      "type": "Unité"
+    },
+    {
+      "name": "Ezra Bridger — Attuned With Life",
+      "type": "Unité"
+    },
+    {
+      "name": "Ezra Bridger — C'Est Maintenant Ou Jamais",
+      "type": "Leader"
+    },
+    {
+      "name": "Ezra Bridger — De Quoi As-Tu Peur ?",
+      "type": "Unité"
+    },
+    {
+      "name": "Ezra Bridger — En Harmonie Avec La Vie",
+      "type": "Unité"
+    },
+    {
+      "name": "Ezra Bridger — La Force Est Tout Ce Dont J'Ai Besoin",
+      "type": "Unité"
+    },
+    {
+      "name": "Ezra Bridger — Spectre Six",
+      "type": "Unité"
+    },
+    {
+      "name": "Ezra Bridger — The Force is All I Need",
+      "type": "Unité"
+    },
+    {
+      "name": "Face-à-Face",
+      "type": "Évènement"
+    },
+    {
+      "name": "Faire Fausse Route",
+      "type": "Évènement"
+    },
+    {
+      "name": "Faire Pencher la Balance",
+      "type": "Évènement"
+    },
+    {
+      "name": "Fais ou Ne Le Fais Pas",
+      "type": "Évènement"
+    },
+    {
+      "name": "Faites décoller la Chasse",
+      "type": "Évènement"
+    },
+    {
+      "name": "Faites-les Parler",
+      "type": "Évènement"
+    },
+    {
+      "name": "Falaises Étranglées",
+      "type": "Base"
+    },
+    {
+      "name": "Fambaa Porteur de Bouclier",
+      "type": "Unité"
+    },
+    {
+      "name": "Fambaa Shield Team",
+      "type": "Unité"
+    },
+    {
+      "name": "Far Far Away",
+      "type": "Évènement"
+    },
+    {
+      "name": "Faucon Millenium — Amoncellement De Boulons",
+      "type": "Unité"
+    },
+    {
+      "name": "Faucon Millenium — Besoin D'Aide Pour Pousser ?",
+      "type": "Unité"
+    },
+    {
+      "name": "Faucon Millenium — Esquive Les Patrouilles",
+      "type": "Unité"
+    },
+    {
+      "name": "Fausse Bagarre",
+      "type": "Évènement"
+    },
+    {
+      "name": "Favori du Canyon",
+      "type": "Unité"
+    },
+    {
+      "name": "Fennec Shand — La Galaxie Est Dangereuse",
+      "type": "Unité"
+    },
+    {
+      "name": "Fennec Shand — Prête Pour La Guerre",
+      "type": "Leader"
+    },
+    {
+      "name": "Fennec Shand — The Galaxy Is Dangerous",
+      "type": "Unité"
+    },
+    {
+      "name": "Fennec Shand — Un Vaisseau Contre Une Vie",
+      "type": "Unité"
+    },
+    {
+      "name": "Fermeture du Portail-Bouclier",
+      "type": "Évènement"
+    },
+    {
+      "name": "Ferrailleuse Provocatrice",
+      "type": "Unité"
+    },
+    {
+      "name": "Fett's Firespray — Feared Silhouette",
+      "type": "Unité"
+    },
+    {
+      "name": "Fett's Firespray — In Pursuit",
+      "type": "Unité"
+    },
+    {
+      "name": "Fett's Firespray — Settling the Score",
+      "type": "Unité"
+    },
+    {
+      "name": "Ficher le Camp",
+      "type": "Évènement"
+    },
+    {
+      "name": "Fie-Toi à Ton Instinct",
+      "type": "Évènement"
+    },
+    {
+      "name": "Finn — Regarde De Plus Près",
+      "type": "Unité"
+    },
+    {
+      "name": "Fireball — An Explosion With Wings",
+      "type": "Unité"
+    },
+    {
+      "name": "Fireball — Explosion En Vol",
+      "type": "Unité"
+    },
+    {
+      "name": "Firespray Acharné",
+      "type": "Unité"
+    },
+    {
+      "name": "Firespray de Fett — En Poursuite",
+      "type": "Unité"
+    },
+    {
+      "name": "Firespray de Fett — Règle Ses Comptes",
+      "type": "Unité"
+    },
+    {
+      "name": "Firespray de Fett — Silhouette Intimidante",
+      "type": "Unité"
+    },
+    {
+      "name": "First Light — Menace Élégante",
+      "type": "Unité"
+    },
+    {
+      "name": "First Light — Threatening Elegance",
+      "type": "Unité"
+    },
+    {
+      "name": "Flotte Mercenaire",
+      "type": "Unité"
+    },
+    {
+      "name": "Foi en l'Empire",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Fonctionnaire Rebelle",
+      "type": "Unité"
+    },
+    {
+      "name": "Fonctionnaire Subsistant",
+      "type": "Unité"
+    },
+    {
+      "name": "Force Voilée",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Force de Sécurité Naboo",
+      "type": "Unité"
+    },
+    {
+      "name": "Forceur de Blocus",
+      "type": "Unité"
+    },
+    {
+      "name": "Forceur de Blocus Rebelle",
+      "type": "Unité"
+    },
+    {
+      "name": "Forteresse Verdoyante",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Forteresse de Vador",
+      "type": "Base"
+    },
+    {
+      "name": "Forteresse des Grandes Matriarches",
+      "type": "Base"
+    },
+    {
+      "name": "Fouiller de Fond en Comble",
+      "type": "Évènement"
+    },
+    {
+      "name": "Fournisseur de Boucliers",
+      "type": "Unité"
+    },
+    {
+      "name": "Fournisseur de la Main Cachée",
+      "type": "Unité"
+    },
+    {
+      "name": "Frappe Niman",
+      "type": "Évènement"
+    },
+    {
+      "name": "Frisk — Grande Gueule De L'Avant-Garde",
+      "type": "Unité"
+    },
+    {
+      "name": "Frégate Cargo de D'Qar",
+      "type": "Unité"
+    },
+    {
+      "name": "Frégate Munificent",
+      "type": "Unité"
+    },
+    {
+      "name": "Frégate Médicale",
+      "type": "Unité"
+    },
+    {
+      "name": "Frégate Nebulon-C",
+      "type": "Unité"
+    },
+    {
+      "name": "Frégate d'Assaut",
+      "type": "Unité"
+    },
+    {
+      "name": "Frégate d'Assaut MC30",
+      "type": "Unité"
+    },
+    {
+      "name": "Frégate de Secours Pelta",
+      "type": "Unité"
+    },
+    {
+      "name": "Fugitifs d'un Braquage de Banque",
+      "type": "Unité"
+    },
+    {
+      "name": "Fuite Impossible",
+      "type": "Évènement"
+    },
+    {
+      "name": "Fulcrum",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Fulminatrix — Tueur De Flotte",
+      "type": "Unité"
+    },
+    {
+      "name": "Fusil à Lunette de l'Aventurier",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Fyrnock Apprivoisé",
+      "type": "Unité"
+    },
+    {
+      "name": "Férocité Soudaine",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Gagner du Temps",
+      "type": "Évènement"
+    },
+    {
+      "name": "Galaxie en Flammes",
+      "type": "Évènement"
+    },
+    {
+      "name": "Galen Erso — Détruit Sa Création",
+      "type": "Unité"
+    },
+    {
+      "name": "Galen Erso — Vous Ne Gagnerez Jamais",
+      "type": "Unité"
+    },
+    {
+      "name": "Gallius Rax — Conseiller De L'Empire",
+      "type": "Unité"
+    },
+    {
+      "name": "Gamine Talentueuse",
+      "type": "Unité"
+    },
+    {
+      "name": "Gar Saxon — Convoite Le Pouvoir",
+      "type": "Unité"
+    },
+    {
+      "name": "Garant Rodien",
+      "type": "Unité"
+    },
+    {
+      "name": "Garde Prétorien",
+      "type": "Unité"
+    },
+    {
+      "name": "Garde de la Cité Gungan",
+      "type": "Unité"
+    },
+    {
+      "name": "Gardes Forestiers Wookies",
+      "type": "Unité"
+    },
+    {
+      "name": "Gardes de la Rotonde du Sénat",
+      "type": "Unité"
+    },
+    {
+      "name": "Gardes du Temple Jedi",
+      "type": "Unité"
+    },
+    {
+      "name": "Gardien Combatif",
+      "type": "Unité"
+    },
+    {
+      "name": "Gardien Jedi",
+      "type": "Unité"
+    },
+    {
+      "name": "Gardien de Rancor",
+      "type": "Unité"
+    },
+    {
+      "name": "Gardien de Skara Nal — Éveillé",
+      "type": "Unité"
+    },
+    {
+      "name": "Gardien de la Meute",
+      "type": "Unité"
+    },
+    {
+      "name": "Gardien des Whills",
+      "type": "Unité"
+    },
+    {
+      "name": "Gardien du Sénat",
+      "type": "Unité"
+    },
+    {
+      "name": "Garindan — Courtier En Informations",
+      "type": "Unité"
+    },
+    {
+      "name": "Garindan — Information Broker",
+      "type": "Unité"
+    },
+    {
+      "name": "Garnac — Let the Hunt Begin!",
+      "type": "Unité"
+    },
+    {
+      "name": "Garnac — Que La Chasse Commence !",
+      "type": "Unité"
+    },
+    {
+      "name": "Garnison d'Aldhani",
+      "type": "Base"
+    },
+    {
+      "name": "Garnison de la Bordure Extérieure",
+      "type": "Unité"
+    },
+    {
+      "name": "Gauntlet de Bo-Katan — Renfort Dominateur",
+      "type": "Unité"
+    },
+    {
+      "name": "General Grievous — Scourge of Dathomir",
+      "type": "Unité"
+    },
+    {
+      "name": "General Grievous — Scuttling to Safety",
+      "type": "Unité"
+    },
+    {
+      "name": "Ghost — Demeure Des Spectres",
+      "type": "Unité"
+    },
+    {
+      "name": "Ghost — Foyer Familial",
+      "type": "Unité"
+    },
+    {
+      "name": "Giant Gorax",
+      "type": "Unité"
+    },
+    {
+      "name": "Gold Leader — Fastest Ship In The Fleet",
+      "type": "Unité"
+    },
+    {
+      "name": "Gold Leader — Vaisseau Le Plus Rapide De La Flotte",
+      "type": "Unité"
+    },
+    {
+      "name": "Gorax Géant",
+      "type": "Unité"
+    },
+    {
+      "name": "Gorian Shard's Corsair — Pirate Warship",
+      "type": "Unité"
+    },
+    {
+      "name": "Gouverneur Pryce — Tyran De Lothal",
+      "type": "Leader"
+    },
+    {
+      "name": "Grand Admiral Thrawn — Grand Schemer",
+      "type": "Unité"
+    },
+    {
+      "name": "Grand Admiral Thrawn — Orchestrating His Return",
+      "type": "Unité"
+    },
+    {
+      "name": "Grand Amiral Thrawn — Grand Conspirateur",
+      "type": "Unité"
+    },
+    {
+      "name": "Grand Amiral Thrawn — La Victoire Me Revient",
+      "type": "Leader"
+    },
+    {
+      "name": "Grand Amiral Thrawn — Planifie Son Retour",
+      "type": "Unité"
+    },
+    {
+      "name": "Grand Amiral Thrawn — …Quel Dommage",
+      "type": "Leader"
+    },
+    {
+      "name": "Grand Inquisiteur — Les Histoires Circulent Vite",
+      "type": "Leader"
+    },
+    {
+      "name": "Grand Inquisiteur — Vous Avez Raison D'Avoir Peur",
+      "type": "Unité"
+    },
+    {
+      "name": "Grand Inquisitor — You're Right to Be Afraid",
+      "type": "Unité"
+    },
+    {
+      "name": "Grand Moff Tarkin — S'Approprie La Réalisation De Krennic",
+      "type": "Unité"
+    },
+    {
+      "name": "Grand Moff Tarkin — Taking Krennic's Achievement",
+      "type": "Unité"
+    },
+    {
+      "name": "Grand Moff Tarkin — Tyran De La Bordure Extérieure",
+      "type": "Leader"
+    },
+    {
+      "name": "Grande Amirale Sloane — Maintient L'Unité De L'Empire",
+      "type": "Leader"
+    },
+    {
+      "name": "Grande Fosse de Carkoon",
+      "type": "Base"
+    },
+    {
+      "name": "Grandes Plaines Herbeuses",
+      "type": "Base"
+    },
+    {
+      "name": "Greater Sarlacc",
+      "type": "Unité"
+    },
+    {
+      "name": "Greef Karga — Introductions are in Order",
+      "type": "Unité"
+    },
+    {
+      "name": "Greef Karga — Les Présentations Sont De Mise",
+      "type": "Unité"
+    },
+    {
+      "name": "Greef Karga — Magistrat Chaleureux",
+      "type": "Leader"
+    },
+    {
+      "name": "Green Leader — Sacrifice De Crynyd",
+      "type": "Unité"
+    },
+    {
+      "name": "Grogu — Charmant Compagnon",
+      "type": "Leader"
+    },
+    {
+      "name": "Grogu — Enfant Mystérieux",
+      "type": "Unité"
+    },
+    {
+      "name": "Grogu — Mysterious Child",
+      "type": "Unité"
+    },
+    {
+      "name": "Grogu — Oui. Oui. Oui.",
+      "type": "Unité"
+    },
+    {
+      "name": "Grogu — Yes. Yes. Yes.",
+      "type": "Unité"
+    },
+    {
+      "name": "Groupe d'Assaut de l'Escadron Blue",
+      "type": "Unité"
+    },
+    {
+      "name": "Groupe de Pillards",
+      "type": "Unité"
+    },
+    {
+      "name": "Guerrier Ewok",
+      "type": "Unité"
+    },
+    {
+      "name": "Guerrier Gungan",
+      "type": "Unité"
+    },
+    {
+      "name": "Guerrier du Clan Kryze",
+      "type": "Unité"
+    },
+    {
+      "name": "Guerrier du Clan Ordo",
+      "type": "Unité"
+    },
+    {
+      "name": "Guerrière Itinérante",
+      "type": "Unité"
+    },
+    {
+      "name": "Guerrière Sœur de la Nuit",
+      "type": "Unité"
+    },
+    {
+      "name": "Guetteur Lepi",
+      "type": "Unité"
+    },
+    {
+      "name": "Guetteurs Subsistants",
+      "type": "Unité"
+    },
+    {
+      "name": "Gundark Vorace",
+      "type": "Unité"
+    },
+    {
+      "name": "Gungi — Fighting for Kashyyyk",
+      "type": "Unité"
+    },
+    {
+      "name": "Gungi — Finding Himself",
+      "type": "Unité"
+    },
+    {
+      "name": "Gungi — S'Est Trouvé",
+      "type": "Unité"
+    },
+    {
+      "name": "Gungi — Se Bat Pour Kashyyyk",
+      "type": "Unité"
+    },
+    {
+      "name": "Guérilla Wookie",
+      "type": "Unité"
+    },
+    {
+      "name": "Guérillero",
+      "type": "Unité"
+    },
+    {
+      "name": "Général Draven — Fait Ce Qui Doit Être Fait",
+      "type": "Unité"
+    },
+    {
+      "name": "Général Grievous — Clopine En Sécurité",
+      "type": "Unité"
+    },
+    {
+      "name": "Général Grievous — Fléau De Dathomir",
+      "type": "Unité"
+    },
+    {
+      "name": "Général Grievous — Seigneur De Guerre Séparatiste",
+      "type": "Leader"
+    },
+    {
+      "name": "Général Hux — Aucune Condition, Aucune Reddition",
+      "type": "Unité"
+    },
+    {
+      "name": "Général Rieekan — Tacticien Exemplaire",
+      "type": "Unité"
+    },
+    {
+      "name": "Général Veers — Mène L'Assaut",
+      "type": "Unité"
+    },
+    {
+      "name": "Générateur de Bouclier de l'Alliance",
+      "type": "Amélioration"
+    },
+    {
+      "name": "HK-47 — Exclamation : Meurs, Sac À Viande !",
+      "type": "Unité"
+    },
+    {
+      "name": "Habileté Redoutable",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Habitation Mobile Noti",
+      "type": "Unité"
+    },
+    {
+      "name": "Hacker Embauché",
+      "type": "Unité"
+    },
+    {
+      "name": "Halo — Ne Respecte Pas Le Plan",
+      "type": "Unité"
+    },
+    {
+      "name": "Hammerhead Provocatrice",
+      "type": "Unité"
+    },
+    {
+      "name": "Hammerhead Rebelle",
+      "type": "Unité"
+    },
+    {
+      "name": "Han Solo — A De Bons Moments",
+      "type": "Unité"
+    },
+    {
+      "name": "Han Solo — Hibernation Sick",
+      "type": "Unité"
+    },
+    {
+      "name": "Han Solo — It'll Work",
+      "type": "Unité"
+    },
+    {
+      "name": "Han Solo — J'Ai Un Vraiment Bon Pressentiment",
+      "type": "Leader"
+    },
+    {
+      "name": "Han Solo — Mal De L'Hibernation",
+      "type": "Unité"
+    },
+    {
+      "name": "Han Solo — Moi Et Les Probabilités",
+      "type": "Leader"
+    },
+    {
+      "name": "Han Solo — Mon Équipe Est Prête",
+      "type": "Unité"
+    },
+    {
+      "name": "Han Solo — Ours Mal-Léché Prétentieux",
+      "type": "Unité"
+    },
+    {
+      "name": "Han Solo — Ça Va Marcher",
+      "type": "Unité"
+    },
+    {
+      "name": "Helgait — Dooku Était Un Visionnaire",
+      "type": "Unité"
+    },
+    {
+      "name": "Hera Syndulla — Générale Renégate",
+      "type": "Unité"
+    },
+    {
+      "name": "Hera Syndulla — Ne Se Bat Pas Seule",
+      "type": "Leader"
+    },
+    {
+      "name": "Hera Syndulla — Nous Avons Assez Perdu",
+      "type": "Unité"
+    },
+    {
+      "name": "Hera Syndulla — Renegade General",
+      "type": "Unité"
+    },
+    {
+      "name": "Highsinger — Deadly Droid",
+      "type": "Unité"
+    },
+    {
+      "name": "Highsinger — Droïde Mortel",
+      "type": "Unité"
+    },
+    {
+      "name": "Holocron Jedi",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Holocron Sith",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Home One — Cœur De La Flotte",
+      "type": "Unité"
+    },
+    {
+      "name": "Home One — Heart of the Fleet",
+      "type": "Unité"
+    },
+    {
+      "name": "Home One — On My Mark",
+      "type": "Unité"
+    },
+    {
+      "name": "Home One — À Mon Signal",
+      "type": "Unité"
+    },
+    {
+      "name": "Hondo Ohnaka — Escroc Superflu",
+      "type": "Unité"
+    },
+    {
+      "name": "Hondo Ohnaka — Joue Avec Ses Propres Règles",
+      "type": "Unité"
+    },
+    {
+      "name": "Hondo Ohnaka — Plays By His Own Rules",
+      "type": "Unité"
+    },
+    {
+      "name": "Hondo Ohnaka — Tu Ferais Mieux De Te Grouiller",
+      "type": "Unité"
+    },
+    {
+      "name": "Honnah — Oink ! Squee !",
+      "type": "Unité"
+    },
+    {
+      "name": "Hors-la-Loi de la Bordure Extérieure",
+      "type": "Unité"
+    },
+    {
+      "name": "Hound's Tooth — Chasse À L'Approche",
+      "type": "Unité"
+    },
+    {
+      "name": "Hound's Tooth — Fiable Et Mortel",
+      "type": "Unité"
+    },
+    {
+      "name": "Hound's Tooth — Hunters' Approach",
+      "type": "Unité"
+    },
+    {
+      "name": "Hound's Tooth — Reliable And Deadly",
+      "type": "Unité"
+    },
+    {
+      "name": "Hunter — Pisteur Exceptionnel",
+      "type": "Unité"
+    },
+    {
+      "name": "Hunter — Tout Le Monde À Couvert !",
+      "type": "Unité"
+    },
+    {
+      "name": "Hurlement",
+      "type": "Évènement"
+    },
+    {
+      "name": "Huyang — Votre Aptitude S'Avère Insuffisante",
+      "type": "Unité"
+    },
+    {
+      "name": "Héraut Séparatiste",
+      "type": "Unité"
+    },
+    {
+      "name": "Héritage du Guerrier",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Héritiers de la Death Watch",
+      "type": "Unité"
+    },
+    {
+      "name": "IG-2000 — Aggressor De L'Assassin",
+      "type": "Unité"
+    },
+    {
+      "name": "IG-2000 — Assassin'S Aggressor",
+      "type": "Unité"
+    },
+    {
+      "name": "IG-88 — Phlutdroïde Meurtrier",
+      "type": "Unité"
+    },
+    {
+      "name": "IG-88 — Programmed to Kill",
+      "type": "Unité"
+    },
+    {
+      "name": "IG-88 — Programmé Pour Tuer",
+      "type": "Unité"
+    },
+    {
+      "name": "Iden Versio — S'Adapter Ou Mourir",
+      "type": "Unité"
+    },
+    {
+      "name": "Identité Improvisée",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Il Est Grand Temps",
+      "type": "Évènement"
+    },
+    {
+      "name": "Il n'y a pas de Conflit",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Illusion de Force",
+      "type": "Évènement"
+    },
+    {
+      "name": "Ils Détestent ce Vaisseau",
+      "type": "Évènement"
+    },
+    {
+      "name": "Ima-Gun Di — En Attente De Ravitaillement",
+      "type": "Unité"
+    },
+    {
+      "name": "Immense Sarlacc",
+      "type": "Unité"
+    },
+    {
+      "name": "Immunité Diplomatique",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Improviser",
+      "type": "Évènement"
+    },
+    {
+      "name": "Impulsion Électromagnétique",
+      "type": "Évènement"
+    },
+    {
+      "name": "Incriminer",
+      "type": "Évènement"
+    },
+    {
+      "name": "Infanterie Partisane",
+      "type": "Unité"
+    },
+    {
+      "name": "Infiltrateurs Rebelles",
+      "type": "Unité"
+    },
+    {
+      "name": "Ingénieur de la Base Echo",
+      "type": "Unité"
+    },
+    {
+      "name": "Instinct du Chasseur",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Intercepteur Jedi",
+      "type": "Unité"
+    },
+    {
+      "name": "Intercepteur Subsistant",
+      "type": "Unité"
+    },
+    {
+      "name": "Intercepteur TIE de Flanc",
+      "type": "Unité"
+    },
+    {
+      "name": "Intercepteur TIE de Vonreg — As Du Premier Ordre",
+      "type": "Unité"
+    },
+    {
+      "name": "Intercepteur du Cartel",
+      "type": "Unité"
+    },
+    {
+      "name": "Interdictor de la Flotte",
+      "type": "Unité"
+    },
+    {
+      "name": "Intimidation",
+      "type": "Évènement"
+    },
+    {
+      "name": "Intimidator — Surveillance De La Citadelle",
+      "type": "Unité"
+    },
+    {
+      "name": "Intrus de la Guilde Minière",
+      "type": "Unité"
+    },
+    {
+      "name": "Inutile de Résister",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Invasion Lander",
+      "type": "Unité"
+    },
+    {
+      "name": "Investigation Illégale",
+      "type": "Évènement"
+    },
+    {
+      "name": "Invincible — Adversaire Naval",
+      "type": "Unité"
+    },
+    {
+      "name": "Invincible — Naval Adversary",
+      "type": "Unité"
+    },
+    {
+      "name": "Jabba le Hutt — Humaniste Invertébré",
+      "type": "Leader"
+    },
+    {
+      "name": "Jabba le Hutt — Parrain Du Crime",
+      "type": "Leader"
+    },
+    {
+      "name": "Jabba le Hutt — Éminence De Tatooine",
+      "type": "Unité"
+    },
+    {
+      "name": "Jabba's Rancor — Snack Time!",
+      "type": "Unité"
+    },
+    {
+      "name": "Jango Fett — Mercenaire Astucieux",
+      "type": "Unité"
+    },
+    {
+      "name": "Jango Fett — Wily Mercenary",
+      "type": "Unité"
+    },
+    {
+      "name": "Jar Jar Binks — Général Bombad",
+      "type": "Leader"
+    },
+    {
+      "name": "Jar Jar Binks — Mesa Propose…",
+      "type": "Unité"
+    },
+    {
+      "name": "Jar Jar Binks — Missa Propose…",
+      "type": "Unité"
+    },
+    {
+      "name": "Jarek Yeager — En Coordination Avec La Résistance",
+      "type": "Unité"
+    },
+    {
+      "name": "Jawa Expatrié",
+      "type": "Unité"
+    },
+    {
+      "name": "Jaxxon — Je Peux T'Entendre Respirer !",
+      "type": "Unité"
+    },
+    {
+      "name": "Je Te Couvre",
+      "type": "Événement"
+    },
+    {
+      "name": "Je Veux des Preuves, Pas des Indices",
+      "type": "Événement"
+    },
+    {
+      "name": "Je les Ai Trouvés",
+      "type": "Événement"
+    },
+    {
+      "name": "Jedi Clandestin",
+      "type": "Unité"
+    },
+    {
+      "name": "Jedi Consulaire",
+      "type": "Unité"
+    },
+    {
+      "name": "Jedi Déchu",
+      "type": "Unité"
+    },
+    {
+      "name": "Jedi Perdu",
+      "type": "Unité"
+    },
+    {
+      "name": "Jeune Padawan",
+      "type": "Unité"
+    },
+    {
+      "name": "Jeune Sénateur",
+      "type": "Unité"
+    },
+    {
+      "name": "Jocasta Nu — Le Don De Connaissance",
+      "type": "Unité"
+    },
+    {
+      "name": "Jocasta Nu — The Gift of Knowledge",
+      "type": "Unité"
+    },
+    {
+      "name": "Jod Na Nawood — Détient Des Secrets",
+      "type": "Unité"
+    },
+    {
+      "name": "Juggernaut de Guerre",
+      "type": "Unité"
+    },
+    {
+      "name": "Jumpmaster Sous Contrat",
+      "type": "Unité"
+    },
+    {
+      "name": "Justifier — Implacable",
+      "type": "Unité"
+    },
+    {
+      "name": "Jyn Erso — L'Heure De Se Battre",
+      "type": "Leader"
+    },
+    {
+      "name": "Jyn Erso — Saisir Sa Chance",
+      "type": "Unité"
+    },
+    {
+      "name": "Jyn Erso — Take the Next Chance",
+      "type": "Unité"
+    },
+    {
+      "name": "K-2SO — Locking the Vault",
+      "type": "Unité"
+    },
+    {
+      "name": "K-2SO — Verrouille La Chambre Forte",
+      "type": "Unité"
+    },
+    {
+      "name": "K-Wing en Orbite",
+      "type": "Unité"
+    },
+    {
+      "name": "Kaadu",
+      "type": "Unité"
+    },
+    {
+      "name": "Kachirho",
+      "type": "Base"
+    },
+    {
+      "name": "Kalikori Twi'lek",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Kanan Jarrus — Nous Aide À Survivre",
+      "type": "Leader"
+    },
+    {
+      "name": "Kanan Jarrus — Spectre One",
+      "type": "Unité"
+    },
+    {
+      "name": "Kanan Jarrus — Spectre Un",
+      "type": "Unité"
+    },
+    {
+      "name": "Karis Nemik — Freedom is a Pure Idea",
+      "type": "Unité"
+    },
+    {
+      "name": "Karis Nemik — La Liberté Est Une Idée Pure",
+      "type": "Unité"
+    },
+    {
+      "name": "Karis — Nous N'Aimons Pas Les Étrangers",
+      "type": "Unité"
+    },
+    {
+      "name": "Karis — We Don't Like Strangers",
+      "type": "Unité"
+    },
+    {
+      "name": "Kaydel Connix — Pour Notre Survie",
+      "type": "Unité"
+    },
+    {
+      "name": "Kazuda Xiono — Je Ne Suis Pas Un Espion",
+      "type": "Unité"
+    },
+    {
+      "name": "Kazuda Xiono — Meilleur Pilote De La Galaxie",
+      "type": "Leader"
+    },
+    {
+      "name": "Keeper of Skara Nal — Awoken",
+      "type": "Unité"
+    },
+    {
+      "name": "Kelleran Beq — La Main Sabrée",
+      "type": "Unité"
+    },
+    {
+      "name": "Kelleran Beq — Où Sont Les Autres ?",
+      "type": "Unité"
+    },
+    {
+      "name": "Kelleran Beq — The Sabered Hand",
+      "type": "Unité"
+    },
+    {
+      "name": "Kelnacca — Maître Solitaire",
+      "type": "Unité"
+    },
+    {
+      "name": "Khetanna — Sur La Mer De Dunes",
+      "type": "Unité"
+    },
+    {
+      "name": "Ki-Adi-Mundi — Nous Devons Aller De L'Avant",
+      "type": "Unité"
+    },
+    {
+      "name": "Ki-Adi-Mundi — We Must Push On",
+      "type": "Unité"
+    },
+    {
+      "name": "King Grakchawwaa — King of Kashyyyk",
+      "type": "Unité"
+    },
+    {
+      "name": "Kino Loy — Tu Auras À Faire À Moi",
+      "type": "Unité"
+    },
+    {
+      "name": "Kino Loy — You Answer to Me",
+      "type": "Unité"
+    },
+    {
+      "name": "Kit Fisto — Maître Jedi Concentré",
+      "type": "Leader"
+    },
+    {
+      "name": "Koska Reeves — Guerrière De Mandalore",
+      "type": "Unité"
+    },
+    {
+      "name": "Krrsantan — Frappe Et Court",
+      "type": "Unité"
+    },
+    {
+      "name": "Krrsantan — Santo",
+      "type": "Unité"
+    },
+    {
+      "name": "Kylo Ren — I Know Your Story",
+      "type": "Unité"
+    },
+    {
+      "name": "Kylo Ren — Je Connais Ton Histoire",
+      "type": "Unité"
+    },
+    {
+      "name": "Kylo Ren — Nous N'En Avons Pas Terminé",
+      "type": "Leader"
+    },
+    {
+      "name": "L'Arbre se Souvient",
+      "type": "Évènement"
+    },
+    {
+      "name": "L'Armurière — L'Acier Nous Façonne",
+      "type": "Leader"
+    },
+    {
+      "name": "L'Armurière — Notre Secret Est Notre Survie",
+      "type": "Unité"
+    },
+    {
+      "name": "L'As Bleu — Concurrent Haut En Couleurs",
+      "type": "Unité"
+    },
+    {
+      "name": "L'Attention Détermine la Réalité",
+      "type": "Évènement"
+    },
+    {
+      "name": "L'Escouade d'Élite — Neutralise Les Insurgés",
+      "type": "Unité"
+    },
+    {
+      "name": "L'Oppression Nourrit la Rébellion",
+      "type": "Évènement"
+    },
+    {
+      "name": "L'Étranger — Pas De Survivant",
+      "type": "Unité"
+    },
+    {
+      "name": "L'Étudiant Guide le Maître",
+      "type": "Évènement"
+    },
+    {
+      "name": "L'Œil d'Aldhani",
+      "type": "Évènement"
+    },
+    {
+      "name": "L3-37 — Dégage De Mon Siège",
+      "type": "Unité"
+    },
+    {
+      "name": "L3-37 — Incitatrice Radicalisée",
+      "type": "Unité"
+    },
+    {
+      "name": "L3-37 — Nous Sommes Programmés Pour Apprendre",
+      "type": "Unité"
+    },
+    {
+      "name": "L3-37 — Radical Instigator",
+      "type": "Unité"
+    },
+    {
+      "name": "La Deuxième Sœur — Cherche L'Holocron",
+      "type": "Unité"
+    },
+    {
+      "name": "La Doctrine Tarkin — Protéger Et Punir",
+      "type": "Amélioration"
+    },
+    {
+      "name": "La Désolation de Hoth",
+      "type": "Événement"
+    },
+    {
+      "name": "La Fille — Incarnation De La Lumière",
+      "type": "Unité"
+    },
+    {
+      "name": "La Guerrière — Duelliste Adroite",
+      "type": "Leader"
+    },
+    {
+      "name": "La Hache Oublie",
+      "type": "Évènement"
+    },
+    {
+      "name": "La Main Invisible — Entourée De Chasseurs Vulture",
+      "type": "Unité"
+    },
+    {
+      "name": "La Navette du Chancelier — Sinistre Présage",
+      "type": "Unité"
+    },
+    {
+      "name": "La Neuvième Sœur — Inquisitrice Imposante",
+      "type": "Unité"
+    },
+    {
+      "name": "La Première Légion — Poing De Vador",
+      "type": "Unité"
+    },
+    {
+      "name": "La Route est Dégagée P'tit Gars",
+      "type": "Évènement"
+    },
+    {
+      "name": "La Taille Importe Peu",
+      "type": "Amélioration"
+    },
+    {
+      "name": "La Tragédie de Plagueis",
+      "type": "Évènement"
+    },
+    {
+      "name": "La Troisième Sœur — Cycle De Vengeance",
+      "type": "Unité"
+    },
+    {
+      "name": "La Troisième Sœur — Déborde D'Ambition",
+      "type": "Leader"
+    },
+    {
+      "name": "La Ville Sainte",
+      "type": "Base"
+    },
+    {
+      "name": "La Voie du Mand'alor",
+      "type": "Amélioration"
+    },
+    {
+      "name": "La Volonté de la Force",
+      "type": "Évènement"
+    },
+    {
+      "name": "Laboratoire d'Armes Biologiques",
+      "type": "Base"
+    },
+    {
+      "name": "Lady Proxima — Où Est Mon Argent ?",
+      "type": "Unité"
+    },
+    {
+      "name": "Lama Su — Nous Avons Modifié Leur Génome",
+      "type": "Leader"
+    },
+    {
+      "name": "Lame de Talzin — Un Cadeau Des Ombres",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Lancer de Sabre Laser",
+      "type": "Évènement"
+    },
+    {
+      "name": "Lando Calrissian — Eyes Open",
+      "type": "Unité"
+    },
+    {
+      "name": "Lando Calrissian — Fais-Moi Confiance",
+      "type": "Unité"
+    },
+    {
+      "name": "Lando Calrissian — Gagne Du Temps",
+      "type": "Leader"
+    },
+    {
+      "name": "Lando Calrissian — Les Yeux Ouverts",
+      "type": "Unité"
+    },
+    {
+      "name": "Lando Calrissian — Trust Me",
+      "type": "Unité"
+    },
+    {
+      "name": "Lando Calrissian — « Full Sabacc »",
+      "type": "Leader"
+    },
+    {
+      "name": "Landspeeder X-34",
+      "type": "Unité"
+    },
+    {
+      "name": "Lang — Mercenaire Arrogant",
+      "type": "Unité"
+    },
+    {
+      "name": "Latts Razzi — Deadly Whipmaster",
+      "type": "Unité"
+    },
+    {
+      "name": "Latts Razzi — Maîtrise Mortelle Du Fouet",
+      "type": "Unité"
+    },
+    {
+      "name": "Lawbringer — Une Ombre Sur Lothal",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Blade Wing — Le Secret De Shantipole",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Calme au Cœur de la Tempête",
+      "type": "Évènement"
+    },
+    {
+      "name": "Le Chef — Ici Depuis Que Les Océans Se Sont Taris",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Client — S'Il Vous Plait, Baissez Votre Blaster",
+      "type": "Leader"
+    },
+    {
+      "name": "Le Conflit Intérieur",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Le Corsaire de Gorian Shard — Vaisseau De Guerre Pirate",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Cyborg Mecha — Menace Mystérieuse",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Dévoué Général Pryde — Impitoyable Et Loyal",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Fardeau des Maîtres",
+      "type": "Évènement"
+    },
+    {
+      "name": "Le Fils — Incarnation Des Ténèbres",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Galleon — Vaisseau Pirate En Maraude",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Grand Progéniteur — Le Premier Des Drengir",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Huitième Frère — Chassons Ensemble",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Legacy Run — Débris Maudits",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Mal Est Partout",
+      "type": "Évènement"
+    },
+    {
+      "name": "Le Mandalorien — Fais Voir Le Palet",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Mandalorien — Fait Le Ménage Sur Nevarro",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Mandalorien — Nous Ne Pouvons Fuir Éternellement",
+      "type": "Leader"
+    },
+    {
+      "name": "Le Mandalorien — Pilote Amoindri",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Mandalorien — Sauveteur Dévoué",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Marauder — Une Nouvelle Maison",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Max Rebo Band — Pleureuses De Jatz",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Maître du Décryptage — Hauts Enjeux",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Père — Maintien L'Équilibre",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Roi Purrgil — Mène Le Voyage",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Sabre Noir — Symbole Du Commandement",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Le Sarlacc de Carkoon — Horreur De La Mer De Dunes",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Starhawk — Prototype De Vaisseau De Combat",
+      "type": "Unité"
+    },
+    {
+      "name": "Le Sénat c'Est Moi",
+      "type": "Évènement"
+    },
+    {
+      "name": "Leia Organa — Ce Sont Mes Amis",
+      "type": "Unité"
+    },
+    {
+      "name": "Leia Organa — D'Une Lignée Cachée",
+      "type": "Leader"
+    },
+    {
+      "name": "Leia Organa — Extraordinaire",
+      "type": "Unité"
+    },
+    {
+      "name": "Leia Organa — Extraordinary",
+      "type": "Unité"
+    },
+    {
+      "name": "Leia Organa — Pilotes, À Vos Postes",
+      "type": "Unité"
+    },
+    {
+      "name": "Leia Organa — Quelqu'Un Qui Vous Aime",
+      "type": "Leader"
+    },
+    {
+      "name": "Leia Organa — Rejoignez Vos Transports !",
+      "type": "Leader"
+    },
+    {
+      "name": "Leia Organa — Vigilant for Danger",
+      "type": "Unité"
+    },
+    {
+      "name": "Leia Organa — Vigilante Face Au Danger",
+      "type": "Unité"
+    },
+    {
+      "name": "Les Grandes Matriarches — Pratiquent Une Magie Étrange",
+      "type": "Unité"
+    },
+    {
+      "name": "Les Jumeaux — Nous Ne Voulons Pas La Guerre",
+      "type": "Unité"
+    },
+    {
+      "name": "Libertine — Avec Son Nouveau Propriétaire",
+      "type": "Unité"
+    },
+    {
+      "name": "Libertine — Under New Ownership",
+      "type": "Unité"
+    },
+    {
+      "name": "Liberty — Attirez Leurs Feux !",
+      "type": "Unité"
+    },
+    {
+      "name": "Libéré par les Ténèbres",
+      "type": "Évènement"
+    },
+    {
+      "name": "Lien Bestial",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Lieutenant Force Tempest",
+      "type": "Unité"
+    },
+    {
+      "name": "Lieutenant Gorn — Je Mérite Pire",
+      "type": "Unité"
+    },
+    {
+      "name": "Lieutenant de Hoth",
+      "type": "Unité"
+    },
+    {
+      "name": "Lieutenant sur Scarif",
+      "type": "Unité"
+    },
+    {
+      "name": "Lightmaker — I Have An Idea",
+      "type": "Unité"
+    },
+    {
+      "name": "Lightmaker — J'Ai Une Idée",
+      "type": "Unité"
+    },
+    {
+      "name": "Limiers Corelliens",
+      "type": "Unité"
+    },
+    {
+      "name": "Lobot — Coordinateur De La Cité Des Nuages",
+      "type": "Unité"
+    },
+    {
+      "name": "Logement d'Amnistie",
+      "type": "Base"
+    },
+    {
+      "name": "Logray — Bright Tree Shaman",
+      "type": "Unité"
+    },
+    {
+      "name": "Logray — Chaman De Bright Tree",
+      "type": "Unité"
+    },
+    {
+      "name": "Longue Vie à l'Empire",
+      "type": "Évènement"
+    },
+    {
+      "name": "Lor San Tekka — Gardien Du Secret",
+      "type": "Unité"
+    },
+    {
+      "name": "Loth-Chat",
+      "type": "Unité"
+    },
+    {
+      "name": "Loth-Chat Domestiqué",
+      "type": "Unité"
+    },
+    {
+      "name": "Loth-Loup",
+      "type": "Unité"
+    },
+    {
+      "name": "Loyaliste Impérial",
+      "type": "Unité"
+    },
+    {
+      "name": "Loyaliste du Clan Wren",
+      "type": "Unité"
+    },
+    {
+      "name": "Luke Skywalker — A Hero's Beginning",
+      "type": "Unité"
+    },
+    {
+      "name": "Luke Skywalker — Answering the Call",
+      "type": "Unité"
+    },
+    {
+      "name": "Luke Skywalker — Dreaming Farmboy",
+      "type": "Unité"
+    },
+    {
+      "name": "Luke Skywalker — En Tirer Avantage, Ou Bien Être Détruit",
+      "type": "Unité"
+    },
+    {
+      "name": "Luke Skywalker — Est-Ce-Que Tu Me Reçois ?",
+      "type": "Unité"
+    },
+    {
+      "name": "Luke Skywalker — Garçon De Ferme Rêveur",
+      "type": "Unité"
+    },
+    {
+      "name": "Luke Skywalker — Héros De Yavin",
+      "type": "Leader"
+    },
+    {
+      "name": "Luke Skywalker — Je Peux Le Sauver",
+      "type": "Leader"
+    },
+    {
+      "name": "Luke Skywalker — La Genèse D'Un Héros",
+      "type": "Unité"
+    },
+    {
+      "name": "Luke Skywalker — Profit or Be Destroyed",
+      "type": "Unité"
+    },
+    {
+      "name": "Luke Skywalker — Répond À L'Appel",
+      "type": "Unité"
+    },
+    {
+      "name": "Luke Skywalker — Tu Es Toujours Avec Moi ?",
+      "type": "Unité"
+    },
+    {
+      "name": "Luminara Unduli — Besieged General",
+      "type": "Unité"
+    },
+    {
+      "name": "Luminara Unduli — Générale Assiégée",
+      "type": "Unité"
+    },
+    {
+      "name": "Luthen Rael — Antiquaire Mystifiant",
+      "type": "Unité"
+    },
+    {
+      "name": "Luthen Rael — Ne Veux-Tu Pas Te Battre Pour De Vrai ?",
+      "type": "Leader"
+    },
+    {
+      "name": "Luthen's Haulcraft — Countermeasures Armed",
+      "type": "Unité"
+    },
+    {
+      "name": "Légionnaire Sith",
+      "type": "Unité"
+    },
+    {
+      "name": "Maarva Andor — Nous Nous Sommes Endormis",
+      "type": "Unité"
+    },
+    {
+      "name": "Maarva Andor — We've Been Sleeping",
+      "type": "Unité"
+    },
+    {
+      "name": "Mace Windu — Centriste Austère",
+      "type": "Unité"
+    },
+    {
+      "name": "Mace Windu — Leaping into Action",
+      "type": "Unité"
+    },
+    {
+      "name": "Mace Windu — Passe À L'Action",
+      "type": "Unité"
+    },
+    {
+      "name": "Mae — Kill the Dream",
+      "type": "Unité"
+    },
+    {
+      "name": "Mae — Tue Le Rêve",
+      "type": "Unité"
+    },
+    {
+      "name": "Magie Dathomirienne",
+      "type": "Évènement"
+    },
+    {
+      "name": "Magna Garde Infatigable",
+      "type": "Unité"
+    },
+    {
+      "name": "Magouille Budgétaire",
+      "type": "Évènement"
+    },
+    {
+      "name": "Major Partagaz — Healthcare Provider",
+      "type": "Unité"
+    },
+    {
+      "name": "Major Partagaz — Professionnel De Santé",
+      "type": "Unité"
+    },
+    {
+      "name": "Major Vonreg — Baron Rouge",
+      "type": "Leader"
+    },
+    {
+      "name": "Majordome du Maire — Aucun Scrupule À Ramper",
+      "type": "Unité"
+    },
+    {
+      "name": "Malakili — Gardien De La Ménagerie",
+      "type": "Unité"
+    },
+    {
+      "name": "Malakili — Gardien Émotif Du Rancor",
+      "type": "Unité"
+    },
+    {
+      "name": "Mando's N-1 Starfighter — Faster than a Fathier",
+      "type": "Unité"
+    },
+    {
+      "name": "Manifeste de Nemik",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Manne Financière",
+      "type": "Évènement"
+    },
+    {
+      "name": "Manta Neebray",
+      "type": "Unité"
+    },
+    {
+      "name": "Manœuvre Remarquable",
+      "type": "Évènement"
+    },
+    {
+      "name": "Manœuvre d'Évasion",
+      "type": "Évènement"
+    },
+    {
+      "name": "Marais de Kyyyalstaad",
+      "type": "Base"
+    },
+    {
+      "name": "Marais du Dragon-Serpent",
+      "type": "Base"
+    },
+    {
+      "name": "Maraudeur Nihil",
+      "type": "Unité"
+    },
+    {
+      "name": "Maraudeur Trexler Blindé",
+      "type": "Unité"
+    },
+    {
+      "name": "Maraudeur sur Moto Swoop",
+      "type": "Unité"
+    },
+    {
+      "name": "Marchand d'Eau de Mos Espa",
+      "type": "Unité"
+    },
+    {
+      "name": "Marcheur de Guerre de la République",
+      "type": "Unité"
+    },
+    {
+      "name": "Marcheur de Reconnaissance Imposant",
+      "type": "Unité"
+    },
+    {
+      "name": "Marcheur de Trask",
+      "type": "Unité"
+    },
+    {
+      "name": "Marchion Ro — L'Œil Des Nihil",
+      "type": "Unité"
+    },
+    {
+      "name": "Marin de la Grande Armée",
+      "type": "Unité"
+    },
+    {
+      "name": "Marines du Groupe Massassi",
+      "type": "Unité"
+    },
+    {
+      "name": "Marqueur de Cible",
+      "type": "Unité"
+    },
+    {
+      "name": "Marrok — Guerrier Mystérieux",
+      "type": "Unité"
+    },
+    {
+      "name": "Marrok — Mysterious Warrior",
+      "type": "Unité"
+    },
+    {
+      "name": "Mas Amedda — Accomplice to Power",
+      "type": "Unité"
+    },
+    {
+      "name": "Mas Amedda — Complice Du Pouvoir",
+      "type": "Unité"
+    },
+    {
+      "name": "Mastodonte de Kessel",
+      "type": "Unité"
+    },
+    {
+      "name": "Matriarche Gardienne",
+      "type": "Unité"
+    },
+    {
+      "name": "Matériels Récupérés",
+      "type": "Évènement"
+    },
+    {
+      "name": "Maul — Master of the Shadow Collective",
+      "type": "Unité"
+    },
+    {
+      "name": "Maul — Maître Du Collectif Des Ombres",
+      "type": "Unité"
+    },
+    {
+      "name": "Maul — Only Revenge Remains",
+      "type": "Unité"
+    },
+    {
+      "name": "Maul — Seule Reste La Vengeance",
+      "type": "Unité"
+    },
+    {
+      "name": "Maul — Vieux Maître",
+      "type": "Leader"
+    },
+    {
+      "name": "Max Rebo — Encore !",
+      "type": "Unité"
+    },
+    {
+      "name": "Maz Kanata — Où Est Mon Fiancé ?",
+      "type": "Unité"
+    },
+    {
+      "name": "Maz Kanata — Que La Lumière Vous Guide",
+      "type": "Unité"
+    },
+    {
+      "name": "Maz Kanata — Reine Pirate Éclectique",
+      "type": "Leader"
+    },
+    {
+      "name": "Maz Kanata — Where's My Boyfriend?",
+      "type": "Unité"
+    },
+    {
+      "name": "Maître Dagoyan",
+      "type": "Unité"
+    },
+    {
+      "name": "Maître des Lames Ryyk",
+      "type": "Unité"
+    },
+    {
+      "name": "Maîtrise",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Mer de Dunes",
+      "type": "Base"
+    },
+    {
+      "name": "Mercenaire Sacrifiable",
+      "type": "Unité"
+    },
+    {
+      "name": "Merrin — Alone with the Dead",
+      "type": "Unité"
+    },
+    {
+      "name": "Merrin — Seule Avec Les Morts",
+      "type": "Unité"
+    },
+    {
+      "name": "Messager de l'Empereur",
+      "type": "Unité"
+    },
+    {
+      "name": "Meute de Hurleurs",
+      "type": "Unité"
+    },
+    {
+      "name": "Migration",
+      "type": "Évènement"
+    },
+    {
+      "name": "Migs Mayfeld — Si Nous Portions Un Toast ?",
+      "type": "Unité"
+    },
+    {
+      "name": "Milice de Kachirho",
+      "type": "Unité"
+    },
+    {
+      "name": "Milice du Domaine",
+      "type": "Unité"
+    },
+    {
+      "name": "Militarisme Corporatiste",
+      "type": "Évènement"
+    },
+    {
+      "name": "Millennium Falcon — Dodging Patrols",
+      "type": "Unité"
+    },
+    {
+      "name": "Millennium Falcon — Get Out And Push",
+      "type": "Unité"
+    },
+    {
+      "name": "Mina Bonteri — Arrêtez Cette Guerre !",
+      "type": "Unité"
+    },
+    {
+      "name": "Mina Bonteri — Stop This War",
+      "type": "Unité"
+    },
+    {
+      "name": "Mine de Coaxium",
+      "type": "Base"
+    },
+    {
+      "name": "Mini-chasseur de Vane — Téméraire Et Fier",
+      "type": "Unité"
+    },
+    {
+      "name": "Miraj Scintel — Les Faibles Devraient S'Agenouiller",
+      "type": "Unité"
+    },
+    {
+      "name": "Mission d'Attaque",
+      "type": "Évènement"
+    },
+    {
+      "name": "Mist Hunter — La Poursuite Du Trouveur",
+      "type": "Unité"
+    },
+    {
+      "name": "Mist Hunter — The Findsman'S Pursuit",
+      "type": "Unité"
+    },
+    {
+      "name": "Modificateur de Mos Eisley",
+      "type": "Unité"
+    },
+    {
+      "name": "Modifications Spéciales",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Module Starpath Volé",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Module de Course d'Anakin — Trop Génial !",
+      "type": "Unité"
+    },
+    {
+      "name": "Module de Course de Sebulba — Prend La Tête",
+      "type": "Unité"
+    },
+    {
+      "name": "Module de course KT9 du Champion",
+      "type": "Unité"
+    },
+    {
+      "name": "Moff Gideon — Commandant Subsistant",
+      "type": "Unité"
+    },
+    {
+      "name": "Moff Gideon — Je Sais Tout",
+      "type": "Unité"
+    },
+    {
+      "name": "Moff Gideon — Remnant Commander",
+      "type": "Unité"
+    },
+    {
+      "name": "Moff Gideon — Seigneur De Guerre Indomptable",
+      "type": "Leader"
+    },
+    {
+      "name": "Moff Jerjerrod — Nous Allons Redoubler D'Efforts",
+      "type": "Unité"
+    },
+    {
+      "name": "Moi et les Probabilités",
+      "type": "Évènement"
+    },
+    {
+      "name": "Mon Mothma — Clinging to Hope",
+      "type": "Unité"
+    },
+    {
+      "name": "Mon Mothma — Monte Une Coalition",
+      "type": "Leader"
+    },
+    {
+      "name": "Mon Mothma — S'Accroche À L'Espoir",
+      "type": "Unité"
+    },
+    {
+      "name": "Monastère Mystique",
+      "type": "Base"
+    },
+    {
+      "name": "Monstre Aquatique Sando",
+      "type": "Unité"
+    },
+    {
+      "name": "Mont Tantiss",
+      "type": "Base"
+    },
+    {
+      "name": "Monter une Équipe",
+      "type": "Évènement"
+    },
+    {
+      "name": "Montrer sa Puissance",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Monture Tauntaun",
+      "type": "Unité"
+    },
+    {
+      "name": "Monument aux Morts Lugubre",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Morgan Elsbeth — Life Abandoned",
+      "type": "Unité"
+    },
+    {
+      "name": "Morgan Elsbeth — Répond À L'Appel",
+      "type": "Leader"
+    },
+    {
+      "name": "Morgan Elsbeth — Une Vie Abandonnée",
+      "type": "Unité"
+    },
+    {
+      "name": "Mos Eisley",
+      "type": "Base"
+    },
+    {
+      "name": "Mother Talzin — Pledged to the Sisterhood",
+      "type": "Unité"
+    },
+    {
+      "name": "Mudhorn Territorial",
+      "type": "Unité"
+    },
+    {
+      "name": "Murmures de Kreia",
+      "type": "Évènement"
+    },
+    {
+      "name": "Mutiler",
+      "type": "Évènement"
+    },
+    {
+      "name": "Mynock",
+      "type": "Unité"
+    },
+    {
+      "name": "Mystique de la Bordure Extérieure",
+      "type": "Unité"
+    },
+    {
+      "name": "Mystérieuse Disparition",
+      "type": "Évènement"
+    },
+    {
+      "name": "Mythosaure — Folklore Éveillé",
+      "type": "Unité"
+    },
+    {
+      "name": "Mère Talzin — Dévouée À La Sororité",
+      "type": "Unité"
+    },
+    {
+      "name": "Mère Talzin — Le Pouvoir Grâce À La Magie",
+      "type": "Leader"
+    },
+    {
+      "name": "Mépris de la Culture",
+      "type": "Évènement"
+    },
+    {
+      "name": "Nala Se — Chef Médical Scientifique",
+      "type": "Unité"
+    },
+    {
+      "name": "Nala Se — Survivante Silencieuse",
+      "type": "Unité"
+    },
+    {
+      "name": "Nantex Désespéré",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette Eta Volée",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette Lambda",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette Médicale Rho",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette ST-149 — Sous L'Autorité De Krennic",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette Scion — À La Disposition De Morgan",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette T-6 1974 — Avec Le Dévouement D'Un Mentor",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette T-6 1974 — Reste À Proximité",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette Taylander",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette Touristique Réquisitionnée",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette Tydirium — Vole L'Air Décontracté",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette d'Attaque Flarestar",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette d'Attaque Omicron",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette de Commandement de Kylo Ren — Symbole D'Autorité",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette de Débarquement",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette de Défense Corporatiste",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette de Talzin — Arrivée Nimbée De Mystère",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette de l'Inspecteur",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette du BSI",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette du Clan Bancaire",
+      "type": "Unité"
+    },
+    {
+      "name": "Navette du Gouverneur",
+      "type": "Unité"
+    },
+    {
+      "name": "Navigateur Assistant",
+      "type": "Unité"
+    },
+    {
+      "name": "Ne Touche à Rien",
+      "type": "Évènement"
+    },
+    {
+      "name": "Ne pas Lâcher la Cible",
+      "type": "Évènement"
+    },
+    {
+      "name": "Neel — Le Garçon Le Plus Mignon",
+      "type": "Unité"
+    },
+    {
+      "name": "Nef Royale Naboo — Aménagée Pour Une Reine",
+      "type": "Unité"
+    },
+    {
+      "name": "Nef de Foudre",
+      "type": "Unité"
+    },
+    {
+      "name": "Nevarro City, Reconstruite",
+      "type": "Base"
+    },
+    {
+      "name": "Nexu de l'Arène — Privé De Nourriture",
+      "type": "Unité"
+    },
+    {
+      "name": "Nexu en Chasse",
+      "type": "Unité"
+    },
+    {
+      "name": "Nien Nunb — Copilote Loyal",
+      "type": "Unité"
+    },
+    {
+      "name": "Night Trooper Réanimé",
+      "type": "Unité"
+    },
+    {
+      "name": "Nightbrother — Gauntlet De Maul",
+      "type": "Unité"
+    },
+    {
+      "name": "Nite Owl Estimé",
+      "type": "Unité"
+    },
+    {
+      "name": "Nomade Noti",
+      "type": "Unité"
+    },
+    {
+      "name": "Nomades de la Mer de Dunes",
+      "type": "Unité"
+    },
+    {
+      "name": "Nouvelles Tactiques",
+      "type": "Évènement"
+    },
+    {
+      "name": "Novice avec Propulseurs",
+      "type": "Unité"
+    },
+    {
+      "name": "Nulle Part où se Cacher",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Numa — Continue Le Combat",
+      "type": "Unité"
+    },
+    {
+      "name": "Nute Gunray — Escaping Justice",
+      "type": "Unité"
+    },
+    {
+      "name": "Nute Gunray — Parfaitement Légal",
+      "type": "Unité"
+    },
+    {
+      "name": "Nute Gunray — Échappe À La Justice",
+      "type": "Unité"
+    },
+    {
+      "name": "Nuvo Vindi — Ombre Bleue Perfectionnée",
+      "type": "Unité"
+    },
+    {
+      "name": "Nuée de Droïdes Vulture",
+      "type": "Unité"
+    },
+    {
+      "name": "Nuée de Mynocks",
+      "type": "Unité"
+    },
+    {
+      "name": "Négociations Agressives",
+      "type": "Évènement"
+    },
+    {
+      "name": "Obi-Wan Kenobi — Le Courage Révèle Les Héros",
+      "type": "Leader"
+    },
+    {
+      "name": "Obi-Wan Kenobi — Padawan Protecteur",
+      "type": "Unité"
+    },
+    {
+      "name": "Obi-Wan Kenobi — Protecteur De Felucia",
+      "type": "Unité"
+    },
+    {
+      "name": "Obi-Wan Kenobi — Protective Padawan",
+      "type": "Unité"
+    },
+    {
+      "name": "Obi-Wan Kenobi — Trouve Ce Qui N'Existe Pas",
+      "type": "Unité"
+    },
+    {
+      "name": "Objectif Commun",
+      "type": "Évènement"
+    },
+    {
+      "name": "Observatoire de l'Empereur",
+      "type": "Base"
+    },
+    {
+      "name": "Occupant Impérial",
+      "type": "Unité"
+    },
+    {
+      "name": "Offensive Ataru",
+      "type": "Évènement"
+    },
+    {
+      "name": "Officier Tactique Massassi",
+      "type": "Unité"
+    },
+    {
+      "name": "Officier d'Amnistie",
+      "type": "Unité"
+    },
+    {
+      "name": "Officier d'Occupation",
+      "type": "Unité"
+    },
+    {
+      "name": "Officier de Flotte Vétéran",
+      "type": "Unité"
+    },
+    {
+      "name": "Officier de Pont Impérial",
+      "type": "Unité"
+    },
+    {
+      "name": "Oggdo Bogdo — Bête Sauvage De Bogano",
+      "type": "Unité"
+    },
+    {
+      "name": "Oiseaux Siffleurs",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Old Daka — Oldest and Wisest",
+      "type": "Unité"
+    },
+    {
+      "name": "Ombre Trompeuse",
+      "type": "Unité"
+    },
+    {
+      "name": "Ombre de Stygeon Prime",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Omega — Ferme Tes Yeux Et Concentre-Toi",
+      "type": "Leader"
+    },
+    {
+      "name": "On Met la Gomme",
+      "type": "Évènement"
+    },
+    {
+      "name": "On a un Pépin",
+      "type": "Événement"
+    },
+    {
+      "name": "One Must Destroy to Create",
+      "type": "Évènement"
+    },
+    {
+      "name": "Onyx Cinder — L'Aventure Attend",
+      "type": "Unité"
+    },
+    {
+      "name": "Oppo Rancisis — Ancien Conseiller",
+      "type": "Unité"
+    },
+    {
+      "name": "Oppo Rancisis — Ancient Councilor",
+      "type": "Unité"
+    },
+    {
+      "name": "Opération Cendres",
+      "type": "Évènement"
+    },
+    {
+      "name": "Opération Rebelle",
+      "type": "Évènement"
+    },
+    {
+      "name": "Opération sous Couverture",
+      "type": "Évènement"
+    },
+    {
+      "name": "Orateur Bien-Aimé",
+      "type": "Unité"
+    },
+    {
+      "name": "Ordinateur de Visée",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Origin Tree Shyyyo",
+      "type": "Unité"
+    },
+    {
+      "name": "Orn Free Taa — Courtier En Pouvoir Politique",
+      "type": "Unité"
+    },
+    {
+      "name": "Orn Free Taa — Political Power Broker",
+      "type": "Unité"
+    },
+    {
+      "name": "Ornithoptère Bardottan",
+      "type": "Unité"
+    },
+    {
+      "name": "Oscillateur Thermique",
+      "type": "Base"
+    },
+    {
+      "name": "Osha — Hantée Par Son Passé",
+      "type": "Leader"
+    },
+    {
+      "name": "Otoh Gunga",
+      "type": "Base"
+    },
+    {
+      "name": "Outcast — Vaisseau Mercenaire",
+      "type": "Unité"
+    },
+    {
+      "name": "Ouvrier ASP",
+      "type": "Unité"
+    },
+    {
+      "name": "Owen Lars — Oncle Dévoué",
+      "type": "Unité"
+    },
+    {
+      "name": "Pacification Forcée",
+      "type": "Évènement"
+    },
+    {
+      "name": "Padmé Amidala — Qu'Avez-Vous À Cacher ?",
+      "type": "Leader"
+    },
+    {
+      "name": "Paige Tico — Écrase Le Champignon",
+      "type": "Unité"
+    },
+    {
+      "name": "Palais de Theed",
+      "type": "Base"
+    },
+    {
+      "name": "Palais du Daimyo",
+      "type": "Base"
+    },
+    {
+      "name": "Par le Sas",
+      "type": "Évènement"
+    },
+    {
+      "name": "Parcourir les Archives",
+      "type": "Évènement"
+    },
+    {
+      "name": "Parlons-En",
+      "type": "Évènement"
+    },
+    {
+      "name": "Partisan Tenu par l'Honneur",
+      "type": "Unité"
+    },
+    {
+      "name": "Pas de Désintégration",
+      "type": "Évènement"
+    },
+    {
+      "name": "Pas de Gloire, Seulement des Résultats",
+      "type": "Évènement"
+    },
+    {
+      "name": "Passage en Vitesse Lumière",
+      "type": "Évènement"
+    },
+    {
+      "name": "Patrouille Non Autorisée",
+      "type": "Unité"
+    },
+    {
+      "name": "Patrouille de Stormtroopers",
+      "type": "Unité"
+    },
+    {
+      "name": "Patrouille de l'Escadron Jade",
+      "type": "Unité"
+    },
+    {
+      "name": "Patrouilleur N-1",
+      "type": "Unité"
+    },
+    {
+      "name": "Patrouilleur d'Alkenzi",
+      "type": "Unité"
+    },
+    {
+      "name": "Patrouilleur d'Exegol",
+      "type": "Unité"
+    },
+    {
+      "name": "Patrouilleur du Soleil Noir",
+      "type": "Unité"
+    },
+    {
+      "name": "Patrouilleur en Forêt",
+      "type": "Unité"
+    },
+    {
+      "name": "Patrouilleurs de Kijimi",
+      "type": "Unité"
+    },
+    {
+      "name": "Paz Vizsla — For a Brighter Future",
+      "type": "Unité"
+    },
+    {
+      "name": "Paz Vizsla — Guerrier Inflexible",
+      "type": "Unité"
+    },
+    {
+      "name": "Paz Vizsla — Pour Un Futur Plus Radieux",
+      "type": "Unité"
+    },
+    {
+      "name": "Pegasus Tri-Wing",
+      "type": "Unité"
+    },
+    {
+      "name": "Peli Motto — Je Devrais Te Facturer Plus",
+      "type": "Unité"
+    },
+    {
+      "name": "Peli Motto — Tu As Apporté L'Argent ?",
+      "type": "Unité"
+    },
+    {
+      "name": "Peppi Bow — Shaak Herder",
+      "type": "Unité"
+    },
+    {
+      "name": "Peppi Bow — Éleveur De Shaaks",
+      "type": "Unité"
+    },
+    {
+      "name": "Perdu et Oublié",
+      "type": "Évènement"
+    },
+    {
+      "name": "Persecutor — Fait Feu Sur Scarif",
+      "type": "Unité"
+    },
+    {
+      "name": "Personne n'a Jamais Su",
+      "type": "Évènement"
+    },
+    {
+      "name": "Persécuteur Politique",
+      "type": "Unité"
+    },
+    {
+      "name": "Persévérance",
+      "type": "Évènement"
+    },
+    {
+      "name": "Perturbation de la Force",
+      "type": "Évènement"
+    },
+    {
+      "name": "Phantom II — Modified To Dock",
+      "type": "Unité"
+    },
+    {
+      "name": "Phantom II — Modifié Pour S'Arrimer",
+      "type": "Unité"
+    },
+    {
+      "name": "Phantom — Navette Des Spectres",
+      "type": "Unité"
+    },
+    {
+      "name": "Phantom — Spectre Shuttle",
+      "type": "Unité"
+    },
+    {
+      "name": "Phee Genoa — Libératrice Des Merveilles Antiques",
+      "type": "Unité"
+    },
+    {
+      "name": "Phillak Chargeant",
+      "type": "Unité"
+    },
+    {
+      "name": "Pic de la Charogne — Annonciateur De La Tyrannie",
+      "type": "Unité"
+    },
+    {
+      "name": "Picador Géonosien",
+      "type": "Unité"
+    },
+    {
+      "name": "Pickpocket Habile",
+      "type": "Unité"
+    },
+    {
+      "name": "Pillard Tusken",
+      "type": "Unité"
+    },
+    {
+      "name": "Pilleur de Reliques",
+      "type": "Unité"
+    },
+    {
+      "name": "Pilleur de Tempêtes",
+      "type": "Unité"
+    },
+    {
+      "name": "Pilote Astromech",
+      "type": "Unité"
+    },
+    {
+      "name": "Pilote Clone",
+      "type": "Unité"
+    },
+    {
+      "name": "Pilote de Module Sans Pitié",
+      "type": "Unité"
+    },
+    {
+      "name": "Pilote de l'Escadron Dagger",
+      "type": "Unité"
+    },
+    {
+      "name": "Pirate Weequay",
+      "type": "Unité"
+    },
+    {
+      "name": "Piège à Rondins",
+      "type": "Évènement"
+    },
+    {
+      "name": "Plans de l'Étoile Noire",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Plateforme d'Atterrissage",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Plateforme à Missiles Droïde",
+      "type": "Unité"
+    },
+    {
+      "name": "Plein de Surprises",
+      "type": "Évènement"
+    },
+    {
+      "name": "Plo Koon — I Don't Believe in Chance",
+      "type": "Unité"
+    },
+    {
+      "name": "Plo Koon — Je Ne Crois Pas À La Chance",
+      "type": "Unité"
+    },
+    {
+      "name": "Plus Aucune Raison d'Avoir Peur",
+      "type": "Évènement"
+    },
+    {
+      "name": "Plus Forts Ensemble",
+      "type": "Évènement"
+    },
+    {
+      "name": "Poe Dameron — Je Reviendrai Pour Toi",
+      "type": "Unité"
+    },
+    {
+      "name": "Poe Dameron — Je Sais Tout Piloter",
+      "type": "Leader"
+    },
+    {
+      "name": "Poe Dameron — Un Sacré Pilote",
+      "type": "Unité"
+    },
+    {
+      "name": "Poggle le Bref — Que L'Exécution Commence",
+      "type": "Leader"
+    },
+    {
+      "name": "Point de Bascule",
+      "type": "Évènement"
+    },
+    {
+      "name": "Police de la Ville Basse de Coruscant",
+      "type": "Unité"
+    },
+    {
+      "name": "Politicien Corrompu",
+      "type": "Unité"
+    },
+    {
+      "name": "Pong Krell — It's Treason, Then",
+      "type": "Unité"
+    },
+    {
+      "name": "Pong Krell — L'Heure Est À La Trahison",
+      "type": "Unité"
+    },
+    {
+      "name": "Porg",
+      "type": "Unité"
+    },
+    {
+      "name": "Porteur de Drapeau de la Boonta Eve",
+      "type": "Unité"
+    },
+    {
+      "name": "Poste de Commandement Avancé",
+      "type": "Base"
+    },
+    {
+      "name": "Posture Soresu",
+      "type": "Évènement"
+    },
+    {
+      "name": "Poursuivants Tenaces",
+      "type": "Unité"
+    },
+    {
+      "name": "Pouvoir de la Douleur",
+      "type": "Évènement"
+    },
+    {
+      "name": "Pouvoirs d'Exception",
+      "type": "Évènement"
+    },
+    {
+      "name": "Pre Vizsla — Dirigeant Déterminé",
+      "type": "Unité"
+    },
+    {
+      "name": "Prendre de Court",
+      "type": "Évènement"
+    },
+    {
+      "name": "Priestesses of the Force — Eternal",
+      "type": "Unité"
+    },
+    {
+      "name": "Profundity — Battons-Nous !",
+      "type": "Unité"
+    },
+    {
+      "name": "Profundity — We Fight!",
+      "type": "Unité"
+    },
+    {
+      "name": "Proie Facile",
+      "type": "Évènement"
+    },
+    {
+      "name": "Prolifération",
+      "type": "Évènement"
+    },
+    {
+      "name": "Propagandiste Rebelle",
+      "type": "Unité"
+    },
+    {
+      "name": "Protecteur Wookie",
+      "type": "Unité"
+    },
+    {
+      "name": "Protecteur de la Duchesse",
+      "type": "Unité"
+    },
+    {
+      "name": "Prototype de TIE Advanced",
+      "type": "Unité"
+    },
+    {
+      "name": "Protéger la Formation",
+      "type": "Évènement"
+    },
+    {
+      "name": "Protéger le Module",
+      "type": "Évènement"
+    },
+    {
+      "name": "Prouesse d'Agilité",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Prudent",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Prédiction de Malheur",
+      "type": "Évènement"
+    },
+    {
+      "name": "Préparation",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Préparation au Décollage",
+      "type": "Évènement"
+    },
+    {
+      "name": "Président Papanoida — Diplomate Imperturbable",
+      "type": "Unité"
+    },
+    {
+      "name": "Prêtresses de la Force — Éternelles",
+      "type": "Unité"
+    },
+    {
+      "name": "Psychométrie",
+      "type": "Évènement"
+    },
+    {
+      "name": "Puissance du Dragon",
+      "type": "Évènement"
+    },
+    {
+      "name": "Punishing One — Ne Fait Pas De Prisonniers",
+      "type": "Unité"
+    },
+    {
+      "name": "Purge Trooper",
+      "type": "Unité"
+    },
+    {
+      "name": "Purrgil Gracieux",
+      "type": "Unité"
+    },
+    {
+      "name": "Purrgil Héroïque",
+      "type": "Unité"
+    },
+    {
+      "name": "Purrgil Illuminé",
+      "type": "Unité"
+    },
+    {
+      "name": "Purrgil Ultra",
+      "type": "Unité"
+    },
+    {
+      "name": "Pyke Perfide",
+      "type": "Unité"
+    },
+    {
+      "name": "Pèlerine Dhani",
+      "type": "Unité"
+    },
+    {
+      "name": "QG du Renseignement Naval",
+      "type": "Base"
+    },
+    {
+      "name": "Qi'ra — Maîtresse Du Teräs Käsi",
+      "type": "Unité"
+    },
+    {
+      "name": "Qimir — Everyone Has a Weakness",
+      "type": "Unité"
+    },
+    {
+      "name": "Qimir — Tout Le Monde A Une Faiblesse",
+      "type": "Unité"
+    },
+    {
+      "name": "Quadjumper Bringuebalant",
+      "type": "Unité"
+    },
+    {
+      "name": "Quartier Général de la Résistance",
+      "type": "Base"
+    },
+    {
+      "name": "Quartier des Divertissements Uscru",
+      "type": "Base"
+    },
+    {
+      "name": "Queen Amidala — Championing Her People",
+      "type": "Unité"
+    },
+    {
+      "name": "Queen Amidala — Retaking Theed",
+      "type": "Unité"
+    },
+    {
+      "name": "Qui-Gon Jinn — Influence La Chance",
+      "type": "Unité"
+    },
+    {
+      "name": "Qui-Gon Jinn — Laissez-Nous Régler Ça",
+      "type": "Unité"
+    },
+    {
+      "name": "Qui-Gon Jinn — Les Négociations Ne Dureront Pas",
+      "type": "Unité"
+    },
+    {
+      "name": "Qui-Gon Jinn — The Negotiations Will Be Short",
+      "type": "Unité"
+    },
+    {
+      "name": "Qui-Gon Jinn — We'll Handle This",
+      "type": "Unité"
+    },
+    {
+      "name": "Qui-Gon Jinn — Étudiant De La Force Vivante",
+      "type": "Leader"
+    },
+    {
+      "name": "Quinlan Vos — Sombre Disciple",
+      "type": "Unité"
+    },
+    {
+      "name": "R2-D2 — Artooooooooo !",
+      "type": "Unité"
+    },
+    {
+      "name": "R2-D2 — Connu Pour Faire Des Erreurs",
+      "type": "Unité"
+    },
+    {
+      "name": "R2-D2 — Fait Partie Du Plan",
+      "type": "Unité"
+    },
+    {
+      "name": "R2-D2 — Part of the Plan",
+      "type": "Unité"
+    },
+    {
+      "name": "R5-D4 — Conçu Pour L'Aventure",
+      "type": "Unité"
+    },
+    {
+      "name": "Raddus — Holdo'S Final Command",
+      "type": "Unité"
+    },
+    {
+      "name": "Raddus — Ultime Commandement D'Holdo",
+      "type": "Unité"
+    },
+    {
+      "name": "Radiant VII — Ambassadors' Arrival",
+      "type": "Unité"
+    },
+    {
+      "name": "Radiant VII — Arrivée De L'Ambassadeur",
+      "type": "Unité"
+    },
+    {
+      "name": "Radiant VII — Négocie Pour Naboo",
+      "type": "Unité"
+    },
+    {
+      "name": "Rafa Martez — Sœur Astucieuse",
+      "type": "Unité"
+    },
+    {
+      "name": "Raffinerie Polluante",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Rage Déchaînée",
+      "type": "Évènement"
+    },
+    {
+      "name": "Rage de Vaincre",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Ralentissement de Force",
+      "type": "Évènement"
+    },
+    {
+      "name": "Rampart — Enjoy The Exit",
+      "type": "Unité"
+    },
+    {
+      "name": "Rampart — Profitez De La Sortie",
+      "type": "Unité"
+    },
+    {
+      "name": "Rampeur des Ombres",
+      "type": "Unité"
+    },
+    {
+      "name": "Rancor Dathomirien",
+      "type": "Unité"
+    },
+    {
+      "name": "Rancor de Boba Fett — Créature Aux Émotions Complexes",
+      "type": "Unité"
+    },
+    {
+      "name": "Rancor de Jabba — L'Heure Du Goûter !",
+      "type": "Unité"
+    },
+    {
+      "name": "Range Troopers de Vandor",
+      "type": "Unité"
+    },
+    {
+      "name": "Rat Womp",
+      "type": "Unité"
+    },
+    {
+      "name": "Rathtar Vorace",
+      "type": "Unité"
+    },
+    {
+      "name": "Ravage",
+      "type": "Évènement"
+    },
+    {
+      "name": "Ravager — Ultime Ordre Impérial",
+      "type": "Unité"
+    },
+    {
+      "name": "Razor Crest — Armement Activé",
+      "type": "Unité"
+    },
+    {
+      "name": "Razor Crest — Outfitted Armament",
+      "type": "Unité"
+    },
+    {
+      "name": "Razor Crest — Ride For Hire",
+      "type": "Unité"
+    },
+    {
+      "name": "Razor Crest — Vaisseau À Louer",
+      "type": "Unité"
+    },
+    {
+      "name": "Rebelle Téméraire",
+      "type": "Unité"
+    },
+    {
+      "name": "Rebelle Wroshyr",
+      "type": "Unité"
+    },
+    {
+      "name": "Reconnaissance",
+      "type": "Évènement"
+    },
+    {
+      "name": "Recrue Déterminée",
+      "type": "Unité"
+    },
+    {
+      "name": "Recrue Inspirée",
+      "type": "Unité"
+    },
+    {
+      "name": "Recruteur des Gangs de Rue",
+      "type": "Unité"
+    },
+    {
+      "name": "Red Cinq — Remonte La Tranchée",
+      "type": "Unité"
+    },
+    {
+      "name": "Red Five — Running The Trench",
+      "type": "Unité"
+    },
+    {
+      "name": "Red Leader — Form Up",
+      "type": "Unité"
+    },
+    {
+      "name": "Red Leader — Regroupez-Vous",
+      "type": "Unité"
+    },
+    {
+      "name": "Red Leader — Strike the Reactor",
+      "type": "Unité"
+    },
+    {
+      "name": "Red Leader — Tire Sur Le Réacteur",
+      "type": "Unité"
+    },
+    {
+      "name": "Reek dans l'Arène — Indispensable À La Cérémonie",
+      "type": "Unité"
+    },
+    {
+      "name": "Reforger",
+      "type": "Évènement"
+    },
+    {
+      "name": "Regarde Ça",
+      "type": "Événement"
+    },
+    {
+      "name": "Reine Amidala — Défend Son Peuple",
+      "type": "Unité"
+    },
+    {
+      "name": "Reine Amidala — Reprend Theed",
+      "type": "Unité"
+    },
+    {
+      "name": "Reine Soruna — Veut Se Battre",
+      "type": "Unité"
+    },
+    {
+      "name": "Rejeton de Drengir",
+      "type": "Unité"
+    },
+    {
+      "name": "Renflouement",
+      "type": "Évènement"
+    },
+    {
+      "name": "Renforts à Point Nommé",
+      "type": "Évènement"
+    },
+    {
+      "name": "Renouveau",
+      "type": "Évènement"
+    },
+    {
+      "name": "Renverser la Situation",
+      "type": "Évènement"
+    },
+    {
+      "name": "Renverser le Sommet",
+      "type": "Évènement"
+    },
+    {
+      "name": "Repaire des Partisans",
+      "type": "Base"
+    },
+    {
+      "name": "Repaire des Sœurs de la Nuit",
+      "type": "Base"
+    },
+    {
+      "name": "Représailles",
+      "type": "Évènement"
+    },
+    {
+      "name": "Republic City",
+      "type": "Base"
+    },
+    {
+      "name": "Requête Humanitaire",
+      "type": "Évènement"
+    },
+    {
+      "name": "Rescapé de Point Rain",
+      "type": "Unité"
+    },
+    {
+      "name": "Ressentir à Travers la Force",
+      "type": "Évènement"
+    },
+    {
+      "name": "Restaurer la Liberté",
+      "type": "Évènement"
+    },
+    {
+      "name": "Retenez-les",
+      "type": "Évènement"
+    },
+    {
+      "name": "Rex — A Fait Son Temps",
+      "type": "Unité"
+    },
+    {
+      "name": "Rey — Avec Les Pouvoirs De Palpatine",
+      "type": "Unité"
+    },
+    {
+      "name": "Rey — Personne",
+      "type": "Leader"
+    },
+    {
+      "name": "Rey — Skywalker",
+      "type": "Unité"
+    },
+    {
+      "name": "Rio Durant — Beckett's Right Hands",
+      "type": "Unité"
+    },
+    {
+      "name": "Rio Durant — Main Droite De Beckett",
+      "type": "Unité"
+    },
+    {
+      "name": "Rio Durant — Pilote Blagueur",
+      "type": "Leader"
+    },
+    {
+      "name": "Rish Loo — Ministre Déloyal",
+      "type": "Unité"
+    },
+    {
+      "name": "Ritual Dragon",
+      "type": "Unité"
+    },
+    {
+      "name": "Rix Road",
+      "type": "Base"
+    },
+    {
+      "name": "Rogue One — À N'Importe Quel Prix",
+      "type": "Unité"
+    },
+    {
+      "name": "Roi Grakchawwaa — Roi De Kashyyyk",
+      "type": "Unité"
+    },
+    {
+      "name": "Rose Tico — Maintenant Ça En Valait La Peine",
+      "type": "Unité"
+    },
+    {
+      "name": "Rose Tico — Sauve Ce Que L'On Aime",
+      "type": "Leader"
+    },
+    {
+      "name": "Rotonde du Sénat",
+      "type": "Base"
+    },
+    {
+      "name": "Rukh — Depuis Les Ombres",
+      "type": "Unité"
+    },
+    {
+      "name": "Ruse Mentale",
+      "type": "Évènement"
+    },
+    {
+      "name": "Ryder Azadi — Gouverneur Réinstauré",
+      "type": "Unité"
+    },
+    {
+      "name": "Récompenser l'Ambition",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Réfugié du Passage",
+      "type": "Unité"
+    },
+    {
+      "name": "Région Arborescente",
+      "type": "Base"
+    },
+    {
+      "name": "Région des Lacs",
+      "type": "Base"
+    },
+    {
+      "name": "Réhabilitation",
+      "type": "Évènement"
+    },
+    {
+      "name": "Réparation",
+      "type": "Évènement"
+    },
+    {
+      "name": "Réquisitionner",
+      "type": "Évènement"
+    },
+    {
+      "name": "Résistance Communautaire",
+      "type": "Évènement"
+    },
+    {
+      "name": "Rétablissement",
+      "type": "Événement"
+    },
+    {
+      "name": "S'Étouffer avec ses Ambitions",
+      "type": "Évènement"
+    },
+    {
+      "name": "Sabine Wren — I Learned the Hard Way",
+      "type": "Unité"
+    },
+    {
+      "name": "Sabine Wren — J'Ai Appris À La Dure",
+      "type": "Unité"
+    },
+    {
+      "name": "Sabine Wren — Négocie Selon Ses Convictions",
+      "type": "Leader"
+    },
+    {
+      "name": "Sabine Wren — Spectre Cinq",
+      "type": "Unité"
+    },
+    {
+      "name": "Sabine Wren — Spectre Five",
+      "type": "Unité"
+    },
+    {
+      "name": "Sabine's Masterpiece — Crazy Colorful",
+      "type": "Unité"
+    },
+    {
+      "name": "Saboteurs Insurgés",
+      "type": "Unité"
+    },
+    {
+      "name": "Sabre Bokken",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Sabre Corrompu",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Sabre Laser Assemblé",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Sabre Laser Jedi de Luke — Assemblé Manuellement",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Sabre Laser Légué",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Sabre Laser d'Inquisiteur",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Sabre Laser de Dark Maul",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Sabre Laser de Kylo Ren",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Sabre Laser de Qui-Gon Jinn",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Sabre Laser de Sabine — N'Est Pas Seule",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Sabre Laser de Yoda",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Sabre de Chevalier",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Sabres Laser de Dark Revan",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Sabé — L'Ombre De La Reine",
+      "type": "Leader"
+    },
+    {
+      "name": "Sacrifice Irresponsable",
+      "type": "Évènement"
+    },
+    {
+      "name": "Saesee Tiin — Courageous Warrior",
+      "type": "Unité"
+    },
+    {
+      "name": "Saesee Tiin — Guerrier Valeureux",
+      "type": "Unité"
+    },
+    {
+      "name": "Sage Discret",
+      "type": "Unité"
+    },
+    {
+      "name": "Sage du Vent de la Vie",
+      "type": "Unité"
+    },
+    {
+      "name": "Salacious Crumb — Cackling Companion",
+      "type": "Unité"
+    },
+    {
+      "name": "Salacious Crumb — Compagnon Caquetant",
+      "type": "Unité"
+    },
+    {
+      "name": "Salle du Trône de l'Empereur",
+      "type": "Base"
+    },
+    {
+      "name": "Salve de Turbolaser",
+      "type": "Évènement"
+    },
+    {
+      "name": "Sando Aqua Monster",
+      "type": "Unité"
+    },
+    {
+      "name": "Sapeur Sullustéen",
+      "type": "Unité"
+    },
+    {
+      "name": "Sarisa Pyke",
+      "type": "Unité"
+    },
+    {
+      "name": "Satine Kryze — Reste Sur Ses Principes",
+      "type": "Leader"
+    },
+    {
+      "name": "Saut Galvanisé",
+      "type": "Évènement"
+    },
+    {
+      "name": "Sauvetage d'un Orphelin",
+      "type": "Évènement"
+    },
+    {
+      "name": "Savage Opress — Imbued With Hate",
+      "type": "Unité"
+    },
+    {
+      "name": "Savage Opress — Plein De Haine",
+      "type": "Unité"
+    },
+    {
+      "name": "Savoir et Défense",
+      "type": "Évènement"
+    },
+    {
+      "name": "Saw Gerrera — Fait Tomber L'Empire",
+      "type": "Leader"
+    },
+    {
+      "name": "Saw Gerrera — Insurgé Des Terres D'Ombre",
+      "type": "Unité"
+    },
+    {
+      "name": "Saw Gerrera — Shadowlands Insurgent",
+      "type": "Unité"
+    },
+    {
+      "name": "Saw Gerrera's U-Wing — Breaking the Rules",
+      "type": "Unité"
+    },
+    {
+      "name": "Scimitar — Infiltrateur Sith",
+      "type": "Unité"
+    },
+    {
+      "name": "Scorch — Commando Impérial",
+      "type": "Unité"
+    },
+    {
+      "name": "Scorch — Imperial Commando",
+      "type": "Unité"
+    },
+    {
+      "name": "Scythe — Silhouette Effrayante",
+      "type": "Unité"
+    },
+    {
+      "name": "Sebulba — Dug Particulièrement Dangereux",
+      "type": "Leader"
+    },
+    {
+      "name": "Second Sister — Seeking the Holocron",
+      "type": "Unité"
+    },
+    {
+      "name": "Semeur de Tempêtes Nihil",
+      "type": "Unité"
+    },
+    {
+      "name": "Senator Chuchi — Voice for the Voiceless",
+      "type": "Unité"
+    },
+    {
+      "name": "Sense Through the Force",
+      "type": "Évènement"
+    },
+    {
+      "name": "Sensibilité accrue",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Sentinelle Jedi",
+      "type": "Unité"
+    },
+    {
+      "name": "Serfs du Couvent",
+      "type": "Unité"
+    },
+    {
+      "name": "Sergent Arpenteur",
+      "type": "Unité"
+    },
+    {
+      "name": "Servante Discrète",
+      "type": "Unité"
+    },
+    {
+      "name": "Shaaks Lacustres",
+      "type": "Unité"
+    },
+    {
+      "name": "Shadow Caster — C'Est Juste Du Business",
+      "type": "Unité"
+    },
+    {
+      "name": "Shadow Caster — Just Business",
+      "type": "Unité"
+    },
+    {
+      "name": "Sheathipede de l'Émissaire",
+      "type": "Unité"
+    },
+    {
+      "name": "Shin Hati — Adversaire Impatiente",
+      "type": "Leader"
+    },
+    {
+      "name": "Shin Hati — Apprentie Trop Zélée",
+      "type": "Unité"
+    },
+    {
+      "name": "Shin Hati — Going Somewhere?",
+      "type": "Unité"
+    },
+    {
+      "name": "Shin Hati — Overeager Apprentice",
+      "type": "Unité"
+    },
+    {
+      "name": "Shin Hati — Tu Vas Quelque Part ?",
+      "type": "Unité"
+    },
+    {
+      "name": "Shuttle ST-149 — Under Krennic'S Authority",
+      "type": "Unité"
+    },
+    {
+      "name": "Shuttle Tydirium — Fly Casual",
+      "type": "Unité"
+    },
+    {
+      "name": "Shyyyo de l'Arbre des Origines",
+      "type": "Unité"
+    },
+    {
+      "name": "Sidon Ithano — Le Corsaire Écarlate",
+      "type": "Unité"
+    },
+    {
+      "name": "Sifo-Dyas — Commissioning An Army",
+      "type": "Unité"
+    },
+    {
+      "name": "Sifo-Dyas — Rassemble Une Armée",
+      "type": "Unité"
+    },
+    {
+      "name": "Silver Angel — L'Espoir De Trace",
+      "type": "Unité"
+    },
+    {
+      "name": "Silver Angel — Trace'S Hope",
+      "type": "Unité"
+    },
+    {
+      "name": "Singe-Lézard Kowakien",
+      "type": "Unité"
+    },
+    {
+      "name": "Site de Démantèlement Naval",
+      "type": "Base"
+    },
+    {
+      "name": "Ski Speeder Délabré",
+      "type": "Unité"
+    },
+    {
+      "name": "Skyhopper Arpenteur de Canyons",
+      "type": "Unité"
+    },
+    {
+      "name": "Sly Moore — Cryptage Dans L'Ombre",
+      "type": "Leader"
+    },
+    {
+      "name": "Sly Moore — Témoin Du Pouvoir",
+      "type": "Unité"
+    },
+    {
+      "name": "Sly Moore — Witness to Power",
+      "type": "Unité"
+    },
+    {
+      "name": "Snap Wexley — Vol De Reconnaissance De La Résistance",
+      "type": "Unité"
+    },
+    {
+      "name": "Snowtrooper",
+      "type": "Unité"
+    },
+    {
+      "name": "Soigner les Blessures",
+      "type": "Évènement"
+    },
+    {
+      "name": "Sol — Compassionate Guardian",
+      "type": "Unité"
+    },
+    {
+      "name": "Sol — Gardien Compatissant",
+      "type": "Unité"
+    },
+    {
+      "name": "Soldat Sith",
+      "type": "Unité"
+    },
+    {
+      "name": "Soldat Zélé",
+      "type": "Unité"
+    },
+    {
+      "name": "Soldat avec Mortier",
+      "type": "Unité"
+    },
+    {
+      "name": "Soldat de Hoth",
+      "type": "Unité"
+    },
+    {
+      "name": "Soldat de la Première Légion",
+      "type": "Unité"
+    },
+    {
+      "name": "Soldat du Clan Vizsla",
+      "type": "Unité"
+    },
+    {
+      "name": "Soldats du Corps FN",
+      "type": "Unité"
+    },
+    {
+      "name": "Sonde Assassin",
+      "type": "Unité"
+    },
+    {
+      "name": "Sorciers de Tund",
+      "type": "Unité"
+    },
+    {
+      "name": "Sorcière de la Brume",
+      "type": "Unité"
+    },
+    {
+      "name": "Soulless One — Rapide Et Agile",
+      "type": "Unité"
+    },
+    {
+      "name": "Soulèvement de Ferrix",
+      "type": "Évènement"
+    },
+    {
+      "name": "Soupçon Persistant",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Sous une Pluie d'Applaudissements",
+      "type": "Évènement"
+    },
+    {
+      "name": "Sous-Marin Bongo Tri-Bulles",
+      "type": "Unité"
+    },
+    {
+      "name": "Sous-Traitant Quarren",
+      "type": "Unité"
+    },
+    {
+      "name": "Soutenu par les Hutts",
+      "type": "Évènement"
+    },
+    {
+      "name": "Soutien Local",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Spectres Éveillés",
+      "type": "Unité"
+    },
+    {
+      "name": "Speeder de l'Escadron Rogue",
+      "type": "Unité"
+    },
+    {
+      "name": "Sponsor Chandrilan",
+      "type": "Unité"
+    },
+    {
+      "name": "StarViper Occulté",
+      "type": "Unité"
+    },
+    {
+      "name": "StarViper du Consortium",
+      "type": "Unité"
+    },
+    {
+      "name": "Starhopper Zygérien",
+      "type": "Unité"
+    },
+    {
+      "name": "Starhopper de Contrebande",
+      "type": "Unité"
+    },
+    {
+      "name": "Starhopper du Gang Ohnaka",
+      "type": "Unité"
+    },
+    {
+      "name": "Station de Recherches 9",
+      "type": "Base"
+    },
+    {
+      "name": "Stinger Mantis — Où Allons-Nous ?",
+      "type": "Unité"
+    },
+    {
+      "name": "Stormtrooper du Premier Ordre",
+      "type": "Unité"
+    },
+    {
+      "name": "Stratagème Familier",
+      "type": "Évènement"
+    },
+    {
+      "name": "Suis-Moi",
+      "type": "Évènement"
+    },
+    {
+      "name": "Suivre l'Odeur",
+      "type": "Évènement"
+    },
+    {
+      "name": "Suivre la Piste",
+      "type": "Évènement"
+    },
+    {
+      "name": "Suivre le Passage",
+      "type": "Évènement"
+    },
+    {
+      "name": "Summa-verminoth",
+      "type": "Unité"
+    },
+    {
+      "name": "Sun Fac — Second De Poggle",
+      "type": "Unité"
+    },
+    {
+      "name": "Super Commandos Mandaloriens",
+      "type": "Unité"
+    },
+    {
+      "name": "Supremacy — D'Une Taille Inimaginable",
+      "type": "Unité"
+    },
+    {
+      "name": "Suprême Leader Snoke — Au Siège Du Pouvoir",
+      "type": "Leader"
+    },
+    {
+      "name": "Supériorité Aérienne",
+      "type": "Évènement"
+    },
+    {
+      "name": "Surpuissance",
+      "type": "Évènement"
+    },
+    {
+      "name": "Survivant de Savareen",
+      "type": "Unité"
+    },
+    {
+      "name": "Suspects Louches",
+      "type": "Unité"
+    },
+    {
+      "name": "Symbole d'Unité",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Synara San — Cache Un Secret",
+      "type": "Unité"
+    },
+    {
+      "name": "Synara San — Harboring a Secret",
+      "type": "Unité"
+    },
+    {
+      "name": "Syril Karn — Où Est-Il ?",
+      "type": "Unité"
+    },
+    {
+      "name": "Syril Karn — Where Is He?",
+      "type": "Unité"
+    },
+    {
+      "name": "Système Impacté",
+      "type": "Évènement"
+    },
+    {
+      "name": "Sécessionniste Converti",
+      "type": "Unité"
+    },
+    {
+      "name": "Sécurité de Canto Bight",
+      "type": "Unité"
+    },
+    {
+      "name": "Sécurité de Theed",
+      "type": "Unité"
+    },
+    {
+      "name": "Sécurité du Syndicat",
+      "type": "Unité"
+    },
+    {
+      "name": "Séduire",
+      "type": "Évènement"
+    },
+    {
+      "name": "Sénatrice Chuchi — Porte-Parole Des Sans-Voix",
+      "type": "Unité"
+    },
+    {
+      "name": "Sénatrice Inspirante",
+      "type": "Unité"
+    },
+    {
+      "name": "Sœur de la Nuit Prodige",
+      "type": "Unité"
+    },
+    {
+      "name": "T-6 Shuttle 1974 — With a Mentor's Dedication",
+      "type": "Unité"
+    },
+    {
+      "name": "TB-TT d'Assaut Terrestre",
+      "type": "Unité"
+    },
+    {
+      "name": "TCB-TT de Patrouille Côtière",
+      "type": "Unité"
+    },
+    {
+      "name": "TIE Outland Protecteur",
+      "type": "Unité"
+    },
+    {
+      "name": "TIE Striker",
+      "type": "Unité"
+    },
+    {
+      "name": "TIE/sf de Suprématie",
+      "type": "Unité"
+    },
+    {
+      "name": "TL-TT Périmétrique",
+      "type": "Unité"
+    },
+    {
+      "name": "TR-TT Détourné",
+      "type": "Unité"
+    },
+    {
+      "name": "TR-TT Raider",
+      "type": "Unité"
+    },
+    {
+      "name": "TR-TT de la Force Blizzard",
+      "type": "Unité"
+    },
+    {
+      "name": "Tactiques Cruelles",
+      "type": "Évènement"
+    },
+    {
+      "name": "Tala Durith — I Can Get You Inside",
+      "type": "Unité"
+    },
+    {
+      "name": "Tala Durith — Je Peux Vous Faire Entrer",
+      "type": "Unité"
+    },
+    {
+      "name": "Tam Ryvora — En Quête De Sens",
+      "type": "Unité"
+    },
+    {
+      "name": "Tanière de la Bête",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Tank Defoliator",
+      "type": "Unité"
+    },
+    {
+      "name": "Tank d'Escorte Isolé",
+      "type": "Unité"
+    },
+    {
+      "name": "Tantive IV — Fleeing The Empire",
+      "type": "Unité"
+    },
+    {
+      "name": "Tantive IV — Fuit Devant L'Empire",
+      "type": "Unité"
+    },
+    {
+      "name": "Tantive IV — Porteur D'Espoir",
+      "type": "Unité"
+    },
+    {
+      "name": "Taramyn Barcona — Regard Droit Devant !",
+      "type": "Unité"
+    },
+    {
+      "name": "Tarfful — Combattant Des Terres D'Ombre",
+      "type": "Leader"
+    },
+    {
+      "name": "Tauntaun",
+      "type": "Unité"
+    },
+    {
+      "name": "Taxation des Routes Commerciales",
+      "type": "Évènement"
+    },
+    {
+      "name": "Tech — Je Pensais Que C'Était Évident",
+      "type": "Unité"
+    },
+    {
+      "name": "Technicien Impérial de la Porte",
+      "type": "Unité"
+    },
+    {
+      "name": "Technicien Toydarien",
+      "type": "Unité"
+    },
+    {
+      "name": "Teebo — Chasseur Rayé",
+      "type": "Unité"
+    },
+    {
+      "name": "Teebo — Striped Hunter",
+      "type": "Unité"
+    },
+    {
+      "name": "Teeka — C'Est Votre Jour De Chance",
+      "type": "Unité"
+    },
+    {
+      "name": "Temple Jedi",
+      "type": "Base"
+    },
+    {
+      "name": "Temple Massassi",
+      "type": "Base"
+    },
+    {
+      "name": "Temple Noir",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Temple de la Destruction",
+      "type": "Base"
+    },
+    {
+      "name": "Temple de la Vergence",
+      "type": "Base"
+    },
+    {
+      "name": "Temple du Flambeau Stellaire",
+      "type": "Base"
+    },
+    {
+      "name": "Temps de Crise",
+      "type": "Évènement"
+    },
+    {
+      "name": "Tempête de Sable",
+      "type": "Évènement"
+    },
+    {
+      "name": "Tenez-Moi Ça",
+      "type": "Évènement"
+    },
+    {
+      "name": "Terentatek",
+      "type": "Unité"
+    },
+    {
+      "name": "Terres d'Ombre",
+      "type": "Base"
+    },
+    {
+      "name": "Terreur Sans Nom",
+      "type": "Unité"
+    },
+    {
+      "name": "The Armorer — Secrecy is Our Survival",
+      "type": "Unité"
+    },
+    {
+      "name": "The Chieftain — Here Since the Oceans Dried",
+      "type": "Unité"
+    },
+    {
+      "name": "The Darksaber — Icon of Leadership",
+      "type": "Amélioration"
+    },
+    {
+      "name": "The Daughter — Embodiment of Light",
+      "type": "Unité"
+    },
+    {
+      "name": "The Father — Maintaining Balance",
+      "type": "Unité"
+    },
+    {
+      "name": "The First Legion — Vader's Fist",
+      "type": "Unité"
+    },
+    {
+      "name": "The Galleon — Marauding Pirate Ship",
+      "type": "Unité"
+    },
+    {
+      "name": "The Ghost — Heart Of The Family",
+      "type": "Unité"
+    },
+    {
+      "name": "The Ghost — Home of the Spectres",
+      "type": "Unité"
+    },
+    {
+      "name": "The Great Progenitor — First of the Drengir",
+      "type": "Unité"
+    },
+    {
+      "name": "The Invisible Hand — Crawling With Vultures",
+      "type": "Unité"
+    },
+    {
+      "name": "The Mandalorian — Devoted Rescuer",
+      "type": "Unité"
+    },
+    {
+      "name": "The Mandalorian — Let's See the Puck",
+      "type": "Unité"
+    },
+    {
+      "name": "The Son — Embodiment of Darkness",
+      "type": "Unité"
+    },
+    {
+      "name": "The Starhawk — Prototype Battleship",
+      "type": "Unité"
+    },
+    {
+      "name": "Therm Scissorpunch — Parieur Prétentieux",
+      "type": "Unité"
+    },
+    {
+      "name": "Third Sister — Cycle of Vengeance",
+      "type": "Unité"
+    },
+    {
+      "name": "Tir Perforant",
+      "type": "Évènement"
+    },
+    {
+      "name": "Tir à la Volée",
+      "type": "Évènement"
+    },
+    {
+      "name": "Tirailleur B-Wing",
+      "type": "Unité"
+    },
+    {
+      "name": "Tirailleur V-19",
+      "type": "Unité"
+    },
+    {
+      "name": "Tirailleur de l'Espace Funeste",
+      "type": "Unité"
+    },
+    {
+      "name": "Tireur d'Élite dans le Désert",
+      "type": "Unité"
+    },
+    {
+      "name": "Tireur d'Élite de la Bordure Médiane",
+      "type": "Unité"
+    },
+    {
+      "name": "Tobias Beckett — Les Gens Sont Prévisibles",
+      "type": "Leader"
+    },
+    {
+      "name": "Tombeau d'Eilram",
+      "type": "Base"
+    },
+    {
+      "name": "Tonneau",
+      "type": "Évènement"
+    },
+    {
+      "name": "Torrent",
+      "type": "Évènement"
+    },
+    {
+      "name": "Tortue Dinosaure",
+      "type": "Unité"
+    },
+    {
+      "name": "Toujours par Deux",
+      "type": "Évènement"
+    },
+    {
+      "name": "Toujours un Plus Gros Poisson",
+      "type": "Évènement"
+    },
+    {
+      "name": "Tourbillon de Puissance",
+      "type": "Évènement"
+    },
+    {
+      "name": "Tourelle Dorsale",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Tourelle Laser Droïde",
+      "type": "Unité"
+    },
+    {
+      "name": "Tourelle à Lasers Jumelés",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Tous les Appareils, au Rapport !",
+      "type": "Évènement"
+    },
+    {
+      "name": "Tous les Jours, de Nouveaux Mensonges",
+      "type": "Évènement"
+    },
+    {
+      "name": "Tout Détruire",
+      "type": "Évènement"
+    },
+    {
+      "name": "Tout n'Est pas Encore Fini",
+      "type": "Évènement"
+    },
+    {
+      "name": "Trace Martez — Sœur De Confiance",
+      "type": "Unité"
+    },
+    {
+      "name": "Trafiquant d'Épices du Syndicat",
+      "type": "Unité"
+    },
+    {
+      "name": "Train à Répulsion de Tatooine",
+      "type": "Unité"
+    },
+    {
+      "name": "Transport Blindé Volé",
+      "type": "Unité"
+    },
+    {
+      "name": "Transport Cabossé",
+      "type": "Unité"
+    },
+    {
+      "name": "Transport Gallofree",
+      "type": "Unité"
+    },
+    {
+      "name": "Transport Moyen GR-75",
+      "type": "Unité"
+    },
+    {
+      "name": "Transport Ravitailleur",
+      "type": "Unité"
+    },
+    {
+      "name": "Transport Surchargé",
+      "type": "Unité"
+    },
+    {
+      "name": "Transport d'Assaut Gozanti",
+      "type": "Unité"
+    },
+    {
+      "name": "Transport de Luthen — Équipé De Contre-Mesures",
+      "type": "Unité"
+    },
+    {
+      "name": "Transport de Troupes de PreMor",
+      "type": "Unité"
+    },
+    {
+      "name": "Transport du Techno-Syndicat",
+      "type": "Unité"
+    },
+    {
+      "name": "Transporteur de TIE Quasar",
+      "type": "Unité"
+    },
+    {
+      "name": "Trappeur Malin",
+      "type": "Unité"
+    },
+    {
+      "name": "Traqueur Chevronné",
+      "type": "Unité"
+    },
+    {
+      "name": "Traqueur Tusken",
+      "type": "Unité"
+    },
+    {
+      "name": "Traqueur sous Contrat",
+      "type": "Unité"
+    },
+    {
+      "name": "Traqueurs Acharnés",
+      "type": "Unité"
+    },
+    {
+      "name": "Tri-Chasseurs Furieux",
+      "type": "Unité"
+    },
+    {
+      "name": "Troig à Deux Têtes",
+      "type": "Unité"
+    },
+    {
+      "name": "Trois Leçons",
+      "type": "Évènement"
+    },
+    {
+      "name": "Trop Puissant pour les Blasters",
+      "type": "Événement"
+    },
+    {
+      "name": "Trublion du Village",
+      "type": "Unité"
+    },
+    {
+      "name": "Très Très Lointaine",
+      "type": "Évènement"
+    },
+    {
+      "name": "Tu ne Peux pas t'Échapper",
+      "type": "Évènement"
+    },
+    {
+      "name": "Tueur des Mers Opee",
+      "type": "Unité"
+    },
+    {
+      "name": "Tuk'ata",
+      "type": "Unité"
+    },
+    {
+      "name": "Ty Yorrick — Chasseuse De Monstre",
+      "type": "Unité"
+    },
+    {
+      "name": "U-Wing Atterrissant",
+      "type": "Unité"
+    },
+    {
+      "name": "U-Wing Partisan",
+      "type": "Unité"
+    },
+    {
+      "name": "U-Wing de Saw Gerrera — Enfreint Les Règles",
+      "type": "Unité"
+    },
+    {
+      "name": "U-Wing de l'Escadron Alphabet — Dévotion Silencieuse",
+      "type": "Unité"
+    },
+    {
+      "name": "Un Nouvel Ordre",
+      "type": "Évènement"
+    },
+    {
+      "name": "Une Dette Envers l'Aube Écarlate",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Une Seule Issue",
+      "type": "Évènement"
+    },
+    {
+      "name": "Une Situation Précaire",
+      "type": "Évènement"
+    },
+    {
+      "name": "Uppercut Magistral",
+      "type": "Évènement"
+    },
+    {
+      "name": "Urrr'k — Tireur D'Élite D'Exception",
+      "type": "Unité"
+    },
+    {
+      "name": "Usurier",
+      "type": "Unité"
+    },
+    {
+      "name": "V-Wing Hors Pair",
+      "type": "Unité"
+    },
+    {
+      "name": "Vaillance Tragique",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Vaillant Commando",
+      "type": "Unité"
+    },
+    {
+      "name": "Vaillant Soldat de la Flotte",
+      "type": "Unité"
+    },
+    {
+      "name": "Vaisseau Amiral Mandalorien — Volé À L'Empire",
+      "type": "Unité"
+    },
+    {
+      "name": "Vaisseau Nubian de Type J",
+      "type": "Unité"
+    },
+    {
+      "name": "Vaisseau d'Assaut Acclamator",
+      "type": "Unité"
+    },
+    {
+      "name": "Vaisseau d'Assaut Trident",
+      "type": "Unité"
+    },
+    {
+      "name": "Vaisseau d'Écoute IGV-55",
+      "type": "Unité"
+    },
+    {
+      "name": "Vaisseau de Blocus",
+      "type": "Unité"
+    },
+    {
+      "name": "Vaisseau de Contrôle d'Invasion",
+      "type": "Unité"
+    },
+    {
+      "name": "Vaisseau de Guerre du Clan Bancaire",
+      "type": "Unité"
+    },
+    {
+      "name": "Val — It's Been a Ride, Babe",
+      "type": "Unité"
+    },
+    {
+      "name": "Val — Un Joli Bout De Chemin Toi Et Moi",
+      "type": "Unité"
+    },
+    {
+      "name": "Vane — Pirate Querelleur",
+      "type": "Leader"
+    },
+    {
+      "name": "Vaneé — Je Vis Pour Servir",
+      "type": "Unité"
+    },
+    {
+      "name": "Vector Jedi",
+      "type": "Unité"
+    },
+    {
+      "name": "Vel Sartha — Insurgée D'Aldhani<Return>",
+      "type": "Leader"
+    },
+    {
+      "name": "Vel Sartha — One Path, One Choice",
+      "type": "Unité"
+    },
+    {
+      "name": "Vel Sartha — Un Chemin, Un Choix",
+      "type": "Unité"
+    },
+    {
+      "name": "Venator Impérial",
+      "type": "Unité"
+    },
+    {
+      "name": "Vermillion — Salle Des Ventes De Qi'Ra",
+      "type": "Unité"
+    },
+    {
+      "name": "Vernestra Rwoh — Chevalier Précoce",
+      "type": "Unité"
+    },
+    {
+      "name": "Vernestra Rwoh — Nous Devrions Gérer Ça Nous-Même",
+      "type": "Unité"
+    },
+    {
+      "name": "Vernestra Rwoh — Precocious Knight",
+      "type": "Unité"
+    },
+    {
+      "name": "Vernestra Rwoh — We Should Handle This Ourselves",
+      "type": "Unité"
+    },
+    {
+      "name": "Vice Admiral Rampart — On Schedule",
+      "type": "Unité"
+    },
+    {
+      "name": "Vice-Amiral Rampart — Dans Les Temps",
+      "type": "Unité"
+    },
+    {
+      "name": "Vice-Amiral Rampart — Une Nouvelle Ère Sécuritaire",
+      "type": "Unité"
+    },
+    {
+      "name": "Victor Leader — Commandant En Première Ligne",
+      "type": "Unité"
+    },
+    {
+      "name": "Victor Leader — Leading From The Front",
+      "type": "Unité"
+    },
+    {
+      "name": "Vieille Daka — La Plus Âgée Et La Plus Sage",
+      "type": "Unité"
+    },
+    {
+      "name": "Vigil — Assurer L'Avenir",
+      "type": "Unité"
+    },
+    {
+      "name": "Village de Bright Tree",
+      "type": "Base"
+    },
+    {
+      "name": "Village de Nabat",
+      "type": "Base"
+    },
+    {
+      "name": "Villelibre",
+      "type": "Base"
+    },
+    {
+      "name": "Virage Koiogran",
+      "type": "Évènement"
+    },
+    {
+      "name": "Vitesse de Force",
+      "type": "Évènement"
+    },
+    {
+      "name": "Voilier Solaire de Dooku — Signe Annonciateur De L'Armée Droïde",
+      "type": "Unité"
+    },
+    {
+      "name": "Voiture des Nuages de Ligne",
+      "type": "Unité"
+    },
+    {
+      "name": "Vol Défensif de la Ruche",
+      "type": "Unité"
+    },
+    {
+      "name": "Vole l'Air Décontracté",
+      "type": "Évènement"
+    },
+    {
+      "name": "Voleur de Vaisseau Pantoran",
+      "type": "Unité"
+    },
+    {
+      "name": "Volontaire Optimiste",
+      "type": "Unité"
+    },
+    {
+      "name": "Vonreg's TIE Interceptor — Ace Of The First Order",
+      "type": "Unité"
+    },
+    {
+      "name": "Voyageur Hyperspatial",
+      "type": "Unité"
+    },
+    {
+      "name": "Vulnérabilité Mortelle",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Vulptex",
+      "type": "Unité"
+    },
+    {
+      "name": "Vuutun Palaa — Vaisseau De Contrôle Droïde",
+      "type": "Unité"
+    },
+    {
+      "name": "Vétéran Clandestin",
+      "type": "Unité"
+    },
+    {
+      "name": "Vétéran Inspirant",
+      "type": "Unité"
+    },
+    {
+      "name": "Vétéran de Crait",
+      "type": "Unité"
+    },
+    {
+      "name": "Wampa",
+      "type": "Unité"
+    },
+    {
+      "name": "Wampa Rôdant",
+      "type": "Unité"
+    },
+    {
+      "name": "Wampa en Furie",
+      "type": "Unité"
+    },
+    {
+      "name": "Watto — Pas D'Argent, Pas De Pièces, Pas D'Affaire",
+      "type": "Unité"
+    },
+    {
+      "name": "Weazel — Se Défend",
+      "type": "Unité"
+    },
+    {
+      "name": "Wedge Antilles — Leader De L'Escadron Red",
+      "type": "Leader"
+    },
+    {
+      "name": "Whistling Birds",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Wicket — Rares Sont Les Batailles Plus Grandes À Mener",
+      "type": "Leader"
+    },
+    {
+      "name": "Wicket — Yub Nub !",
+      "type": "Unité"
+    },
+    {
+      "name": "Wicket — Yub Nub!",
+      "type": "Unité"
+    },
+    {
+      "name": "Willrow Hood — En Fuite",
+      "type": "Unité"
+    },
+    {
+      "name": "Wookie Délivré",
+      "type": "Unité"
+    },
+    {
+      "name": "Wrecker — Démolit L'Empire",
+      "type": "Unité"
+    },
+    {
+      "name": "Wyyyshokk Venimeuse",
+      "type": "Unité"
+    },
+    {
+      "name": "X-Wing de l'Alliance",
+      "type": "Unité"
+    },
+    {
+      "name": "X-Wing de l'Escadron Corona",
+      "type": "Unité"
+    },
+    {
+      "name": "X-Wing de l'Escadron Red",
+      "type": "Unité"
+    },
+    {
+      "name": "X-Wing de la Flotte de Défense",
+      "type": "Unité"
+    },
+    {
+      "name": "X-Wing de la Force d'Assaut",
+      "type": "Unité"
+    },
+    {
+      "name": "X-Wing de la Résistance",
+      "type": "Unité"
+    },
+    {
+      "name": "X-Wing des Anges des Cavernes",
+      "type": "Unité"
+    },
+    {
+      "name": "Y-Wing de l'Escadron Red",
+      "type": "Unité"
+    },
+    {
+      "name": "Y-Wing de la Rébellion",
+      "type": "Unité"
+    },
+    {
+      "name": "Y-Wing de la République",
+      "type": "Unité"
+    },
+    {
+      "name": "YT-2400 du Contrebandier",
+      "type": "Unité"
+    },
+    {
+      "name": "Yaddle — A Chance To Make Things Right",
+      "type": "Unité"
+    },
+    {
+      "name": "Yaddle — Une Chance De Bien Faire",
+      "type": "Unité"
+    },
+    {
+      "name": "Yanna — Sanctuary Elder",
+      "type": "Unité"
+    },
+    {
+      "name": "Yanna — Vénérable Du Sanctuaire",
+      "type": "Unité"
+    },
+    {
+      "name": "Yoda — Farceur En Exil",
+      "type": "Unité"
+    },
+    {
+      "name": "Yoda — Mon Alliée Est La Force",
+      "type": "Unité"
+    },
+    {
+      "name": "Yoda — My Ally is the Force",
+      "type": "Unité"
+    },
+    {
+      "name": "Yord Fandar — Ardemment Discipliné",
+      "type": "Unité"
+    },
+    {
+      "name": "Yord Fandar — Devoutly Disciplined",
+      "type": "Unité"
+    },
+    {
+      "name": "Zam Wesell — Assassin Discrète",
+      "type": "Unité"
+    },
+    {
+      "name": "Zam Wesell — Inconspicuous Assassin",
+      "type": "Unité"
+    },
+    {
+      "name": "Zam Wesell — Pas Ce Qu'Elle Semble",
+      "type": "Unité"
+    },
+    {
+      "name": "Zeb Orellios — Spectre Four",
+      "type": "Unité"
+    },
+    {
+      "name": "Zeb Orellios — Spectre Quatre",
+      "type": "Unité"
+    },
+    {
+      "name": "Zeb Orrelios — Fists Work Every Time",
+      "type": "Unité"
+    },
+    {
+      "name": "Zeb Orrelios — Les Poings, Ça Marche À Tous Les Coups",
+      "type": "Unité"
+    },
+    {
+      "name": "Ziton Moj — Black Sun Bully",
+      "type": "Unité"
+    },
+    {
+      "name": "Ziton Moj — Brute Du Soleil Noir",
+      "type": "Unité"
+    },
+    {
+      "name": "Zone Piégée",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Zuckuss — Dangereux",
+      "type": "Unité"
+    },
+    {
+      "name": "Zuckuss — Le Trouveur",
+      "type": "Unité"
+    },
+    {
+      "name": "Zuckuss — The Findsman",
+      "type": "Unité"
+    },
+    {
+      "name": "À la Nuit Tombée",
+      "type": "Évènement"
+    },
+    {
+      "name": "Éclaireur Isolé",
+      "type": "Unité"
+    },
+    {
+      "name": "Éclaireur Mandalorien",
+      "type": "Unité"
+    },
+    {
+      "name": "Éclaireur du Magistrat",
+      "type": "Unité"
+    },
+    {
+      "name": "Éclaireurs Vigilants",
+      "type": "Unité"
+    },
+    {
+      "name": "Éclaireurs de l'Escadron Black",
+      "type": "Unité"
+    },
+    {
+      "name": "Écoute-Moi Bien",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Édile du Village",
+      "type": "Unité"
+    },
+    {
+      "name": "Éjection",
+      "type": "Évènement"
+    },
+    {
+      "name": "Éliminez-les",
+      "type": "Évènement"
+    },
+    {
+      "name": "Élite Prétorienne",
+      "type": "Unité"
+    },
+    {
+      "name": "Élite des Kage",
+      "type": "Unité"
+    },
+    {
+      "name": "Émissaires Alderaaniens",
+      "type": "Unité"
+    },
+    {
+      "name": "Émissaires de Ryloth",
+      "type": "Unité"
+    },
+    {
+      "name": "Épreuves Jedi",
+      "type": "Amélioration"
+    },
+    {
+      "name": "Équipe Besogneuse",
+      "type": "Unité"
+    },
+    {
+      "name": "Équipe d'Embuscade de la Guilde",
+      "type": "Unité"
+    },
+    {
+      "name": "Équipe de Ravitaillement Droïde",
+      "type": "Unité"
+    },
+    {
+      "name": "Équipe de Sécurité de la Garde Ailée",
+      "type": "Unité"
+    },
+    {
+      "name": "Équipe de Traque de la Ville Basse",
+      "type": "Unité"
+    },
+    {
+      "name": "Êtres de Lumière",
+      "type": "Évènement"
+    },
+    {
+      "name": "Œil de Sion — Libéré De L'Exil",
+      "type": "Unité"
+    },
+    {
+      "name": "Œil de Sion — Vers Peridea",
+      "type": "Unité"
+    },
+    {
+      "name": "Œuvre Exposée",
+      "type": "Évènement"
+    },
+    {
+      "name": "﻿Cette Faute Envers Moi",
+      "type": "Événement"
+    }
+  ]
+}

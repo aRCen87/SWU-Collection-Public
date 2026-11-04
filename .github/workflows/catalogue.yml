@@ -1,0 +1,46 @@
+name: Refresh French card catalogue
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 5 * * 1"
+  push:
+    branches: [ "main" ]
+    paths:
+      - ".github/scripts/build_catalog.py"
+      - ".github/scripts/build_card_details.py"
+      - ".github/workflows/catalogue.yml"
+permissions:
+  contents: write
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Build French catalogue
+        run: python .github/scripts/build_catalog.py
+      - name: Build offline search and version metadata
+        run: python .github/scripts/build_card_details.py
+      - name: Commit catalogue if changed
+        run: |
+          if git diff --quiet -- app/src/main/assets/catalog-fr.json app/src/main/assets/card-details.json.gz; then
+            echo "Catalogue inchangé."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/assets/catalog-fr.json app/src/main/assets/card-details.json.gz
+          git commit -m "Refresh French card catalogue"
+          # A concurrent UI commit must not make the catalogue refresh fail.
+          for attempt in 1 2 3; do
+            if git push; then
+              exit 0
+            fi
+            git fetch origin main
+            git rebase origin/main
+          done
+          echo "Unable to push catalogue after three retries" >&2
+          exit 1
+
