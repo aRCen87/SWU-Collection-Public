@@ -25,22 +25,25 @@ internal object ScanFrameRecognition {
         val stitched = rows.flatMap { row ->
             val parts = mutableListOf<String>()
             var previous: ScanOcrWord? = null
-            val segment = mutableListOf<String>()
+            val segment = mutableListOf<ScanOcrWord>()
             fun flush() {
                 if (segment.isNotEmpty()) {
-                    val spaced = segment.joinToString(" ")
-                    val compact = segment.joinToString("")
+                    val spaced = segment.joinToString(" ") { it.text }
+                    val compact = segment.joinToString("") { it.text }
                     val compactReferences = ScanRecognition.references(compact)
                     // A split collector number ("1 0 9 3") otherwise contributes
                     // both 001 from raw OCR and 1093 from the reconstructed row.
                     // Correct only this exact spatially verified sequence; keep
                     // unrelated references elsewhere in the frame as conflicts.
-                    val splitDigits = segment.zipWithNext().any { (a, b) ->
-                        a.matches(numericFragment) && b.matches(numericFragment)
+                    val numericPairs = segment.zipWithNext().filter { (a, b) ->
+                        a.text.matches(numericFragment) && b.text.matches(numericFragment)
+                    }
+                    val splitDigits = numericPairs.isNotEmpty() && numericPairs.all { (a,b) ->
+                        b.left-a.right <= min(a.height,b.height)*.75
                     }
                     if (splitDigits && compactReferences.size == 1) {
                         val sequence = Regex("(?<![A-Za-z0-9])" +
-                            segment.joinToString("\\s+") { Regex.escape(it) } + "(?![A-Za-z0-9])")
+                            segment.joinToString("\\s+") { Regex.escape(it.text) } + "(?![A-Za-z0-9])")
                         correctedRaw = sequence.replace(correctedRaw) { compact }
                         parts.add(compact)
                     } else {
@@ -57,7 +60,7 @@ internal object ScanFrameRecognition {
                 if (last != null && word.left - last.right > min(last.height, word.height) * 12) {
                     flush()
                 }
-                segment.add(word.text); previous = word
+                segment.add(word); previous = word
             }
             flush()
             parts

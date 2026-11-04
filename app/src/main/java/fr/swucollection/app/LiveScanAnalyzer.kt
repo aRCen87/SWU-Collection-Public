@@ -34,10 +34,13 @@ internal class LiveScanAnalyzer(
     private var visualKey: List<ScanReference> = emptyList()
     private var visualReads = 0
     private var lastVisualRead = 0L
+    private var visualAbsentSince: Long? = null
     private var blockedVisualKey: List<ScanReference> = emptyList()
 
     fun readAgain() { force.set(true) }
-    fun interrupt() { gate.interrupt() }
+    fun interrupt() {
+        gate.interrupt(); visualKey = emptyList(); visualReads = 0; visualAbsentSince = null
+    }
     fun close() { closed.set(true); releaseIfIdle() }
     private fun releaseIfIdle() {
         if (closed.get() && !processing.get() && released.compareAndSet(false, true)) {
@@ -91,6 +94,7 @@ internal class LiveScanAnalyzer(
                         callbackExecutor.execute {
                         if (closed.get() || paused()) return@execute
                         if (visual.isNotEmpty()) {
+                            visualAbsentSince = null
                             val key = visual.map { it.reference }.sortedBy { it.set + it.number }
                             val visualNow = SystemClock.elapsedRealtime()
                             visualReads = if (key == visualKey && visualNow-lastVisualRead <= 6000) visualReads + 1 else 1
@@ -102,6 +106,11 @@ internal class LiveScanAnalyzer(
                             }
                         } else if (reference != null || visualAttempted) {
                             visualKey = emptyList(); visualReads = 0
+                            if (visualAttempted) {
+                                val visualNow = SystemClock.elapsedRealtime()
+                                val firstAbsent = visualAbsentSince ?: visualNow.also { visualAbsentSince = it }
+                                if (visualNow-firstAbsent >= 3600) blockedVisualKey = emptyList()
+                            } else visualAbsentSince = null
                         }
                         // A sideways retry is not evidence that the held card was
                         // removed. Otherwise one failed read can rearm batch mode.

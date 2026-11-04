@@ -24,6 +24,7 @@ def main():
     p.add_argument('--catalog',default='app/src/main/assets/catalog-fr.json')
     p.add_argument('--art',default='app/src/main/assets/card-art-languages.json.gz')
     p.add_argument('--output',default='app/src/main/assets/scan-visual-index.json.gz')
+    p.add_argument('--report',help='Optional JSON report of unavailable images')
     p.add_argument('--cache',default='/tmp/swu-visual-images')
     p.add_argument('--workers',type=int,default=12)
     p.add_argument('--thumbnails',help='Exact publisher thumbnail URL mapping, keyed by original URL')
@@ -70,7 +71,7 @@ def main():
     if not a.cached_only and len(set((v[0],v[1]) for v in entries)) < len(cards)*.98:
         raise RuntimeError('Incomplete visual index; refusing to replace the shipped index')
     pathlib.Path(a.output).write_bytes(gzip.compress(json.dumps(result,separators=(',',':'),ensure_ascii=False).encode(),mtime=0))
-    pathlib.Path(a.output+'.missing.json').write_text(json.dumps(missing,ensure_ascii=False,indent=2))
+    if a.report:pathlib.Path(a.report).write_text(json.dumps(missing,ensure_ascii=False,indent=2))
     print(json.dumps({'images':len(entries),'missing':len(missing),'references':len(set((v[0],v[1]) for v in entries))}),flush=True)
 
 if __name__=='__main__':main()

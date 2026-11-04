@@ -95,4 +95,10 @@ class ScanFrameRecognitionTest {
             word("0", 0, 250), word("9", 40, 250), word("3", 80, 250)))
         assertNotEquals(ScanReference("JTL", "1093"), ScanRecognition.extract(text))
     }
+    @Test fun distantNumericWordsCannotBeReinterpretedAsOneCollectorNumber() {
+        val text = ScanFrameRecognition.text("JTL EN R 1 0 9 3", listOf(
+            word("JTL",0),word("EN",45),word("R",85),word("1",120,width=10),
+            word("0",180,width=10),word("9",240,width=10),word("3",300,width=10)))
+        assertNull(ScanRecognition.extract(text))
+    }
 }

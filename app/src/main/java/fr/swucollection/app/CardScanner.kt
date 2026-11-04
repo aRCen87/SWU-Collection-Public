@@ -120,7 +120,7 @@ fun CardScannerDialog(
     val externalPause = rememberUpdatedState(paused)
     val pauseCheck = { externalPause.value || userPaused || manualEntry || optionsOpen || visualCandidates.isNotEmpty() }
     val effectivelyPaused = paused || userPaused || manualEntry || optionsOpen || visualCandidates.isNotEmpty()
-    LaunchedEffect(effectivelyPaused) { if (effectivelyPaused) scanGate.interrupt() }
+    LaunchedEffect(effectivelyPaused) { if (effectivelyPaused) { scanGate.interrupt(); analyzer?.interrupt() } }
     val previewView = remember(context) {
         PreviewView(context).apply {
             scaleType = PreviewView.ScaleType.FILL_CENTER

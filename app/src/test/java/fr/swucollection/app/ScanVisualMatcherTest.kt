@@ -32,6 +32,9 @@ class ScanVisualMatcherTest {
     @Test fun recognizesAPortraitCardInsideTheCameraGuide() {
         assertTrue(matches("portrait",false).any { it.reference == ScanReference("SOR","236") })
     }
+    @Test fun englishArtworkCanMatchAFrenchReferenceWithoutAssigningALanguage() {
+        assertTrue(matches("english",false).any { it.reference == ScanReference("SOR","236") })
+    }
     @Test fun recognizesALandscapeBaseInsideTheCameraGuide() {
         assertTrue(matches("base",true).any { it.reference == ScanReference("SOR","029") })
     }

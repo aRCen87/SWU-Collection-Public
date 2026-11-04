@@ -36,7 +36,12 @@ internal class ScanVisualMatcher(private val context: Context) {
 
     fun match(frame: Bitmap, rotation: Int, viewport: ScanViewport): List<VisualCardMatch> {
         if (viewport.width <= 0 || viewport.height <= 0 || entries.isEmpty()) return emptyList()
-        val upright = if (rotation == 0) frame else Bitmap.createBitmap(frame,0,0,frame.width,frame.height,
+        // OCR keeps the full camera resolution. Image signatures need only a
+        // small working copy, avoiding repeated multi-megapixel crops/arrays.
+        val reduction = min(1.0,960.0 / maxOf(frame.width,frame.height))
+        val working = if (reduction == 1.0) frame else Bitmap.createScaledBitmap(frame,
+            (frame.width*reduction).roundToInt(),(frame.height*reduction).roundToInt(),true)
+        val upright = if (rotation == 0) working else Bitmap.createBitmap(working,0,0,working.width,working.height,
             Matrix().apply { postRotate(rotation.toFloat()) },true)
         try {
             // Same FILL_CENTER transform and guide dimensions as PreviewView/ScannerGuide.
@@ -61,6 +66,9 @@ internal class ScanVisualMatcher(private val context: Context) {
                 } finally { if(crop !== upright) crop.recycle() }
             }
             return ScanVisualRecognition.candidates(signatures,entries,viewport.landscape)
-        } finally { if (upright !== frame) upright.recycle() }
+        } finally {
+            if (upright !== working) upright.recycle()
+            if (working !== frame) working.recycle()
+        }
     }
 }

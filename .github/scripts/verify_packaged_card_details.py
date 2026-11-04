@@ -74,7 +74,10 @@ def verify(apk_path):
     for entry in visual["entries"]:
         if len(entry)!=7 or entry[0]+":"+entry[1] not in identities or len(base64.b64decode(entry[6],validate=True))!=288:
             raise ValueError("Invalid visual recognition reference")
-    print(f"Verified visual recognition index: {len(visual['entries'])} images")
+    covered={entry[0]+":"+entry[1] for entry in visual["entries"]}
+    if len(covered)<len(identities)*.98:
+        raise ValueError("Visual recognition index coverage is incomplete")
+    print(f"Verified visual recognition index: {len(visual['entries'])} images, {len(covered)} references")
     print(f"Verified packaged localized artwork: {len(art['cards'])} references")
     print(f"Verified packaged card details: {len(root['cards'])} cards")
 

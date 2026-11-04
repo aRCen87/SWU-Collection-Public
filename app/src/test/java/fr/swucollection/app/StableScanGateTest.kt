@@ -73,4 +73,12 @@ class StableScanGateTest {
         assertNull(gate.observe(first, 2000))
         assertEquals(first, gate.observe(first, 2500))
     }
+    @Test fun anInterveningBlockedCardDiscardsAPartialReadOfTheNextCard() {
+        val gate = StableScanGate()
+        gate.observe(first,1000);gate.observe(first,1500)
+        assertNull(gate.observe(second,2000))
+        assertNull(gate.observe(first,2450))
+        assertNull(gate.observe(second,2900))
+        assertEquals(second,gate.observe(second,3350))
+    }
 }

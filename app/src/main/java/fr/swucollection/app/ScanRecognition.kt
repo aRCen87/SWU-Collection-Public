@@ -100,7 +100,7 @@ internal class StableScanGate(private val maxGapMs: Long = 2500, private val rem
             return null
         }
         absentSince = null
-        if (reference == blockedReference) return null
+        if (reference == blockedReference) { interrupt(); return null }
         if (reference != candidate || language != candidateLanguage || now - lastSeen > maxGapMs) { candidate = reference; candidateLanguage = language; reads = 1 }
         else reads++
         lastSeen = now
