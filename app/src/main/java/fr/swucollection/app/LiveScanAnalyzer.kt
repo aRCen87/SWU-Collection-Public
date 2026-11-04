@@ -24,6 +24,7 @@ internal class LiveScanAnalyzer(
     private val force = AtomicBoolean(false)
     private var lastAnalysis = SystemClock.elapsedRealtime() // Allow positioning after opening the camera.
     private var rejected: ScanReference? = null
+    private val orientation = ScanOrientation()
 
     fun readAgain() { force.set(true) }
     fun close() { closed.set(true); releaseIfIdle() }
@@ -43,16 +44,24 @@ internal class LiveScanAnalyzer(
         try {
             val media = image.image
             if (media == null) { image.close(); processing.set(false); releaseIfIdle(); return }
-            recognizer.process(InputImage.fromMediaImage(media, image.imageInfo.rotationDegrees))
+            if (retry) { gate.reset(); rejected = null; orientation.reset() }
+            val rotation = (image.imageInfo.rotationDegrees + orientation.degrees) % 360
+            recognizer.process(InputImage.fromMediaImage(media, rotation))
                 .addOnSuccessListener(callbackExecutor) { text ->
                     if (!closed.get() && !paused()) {
-                        if (retry) { gate.reset(); rejected = null }
-                        val reference = ScanRecognition.extract(text.text)
-                        val stable = gate.observe(reference, SystemClock.elapsedRealtime(), ScanRecognition.language(text.text))
+                        val words = text.textBlocks.flatMap { it.lines }.flatMap { it.elements }.mapNotNull { element ->
+                            element.boundingBox?.let { bounds ->
+                                ScanOcrWord(element.text, bounds.left, bounds.top, bounds.right, bounds.bottom)
+                            }
+                        }
+                        val raw = ScanFrameRecognition.text(text.text, words)
+                        val reference = ScanRecognition.extract(raw)
+                        orientation.observed(reference)
+                        val stable = gate.observe(reference, SystemClock.elapsedRealtime(), ScanRecognition.language(raw))
                         when {
                             stable != null -> {
                                 force.set(false)
-                                if (onDetected(stable, text.text)) {
+                                if (onDetected(stable, raw)) {
                                     rejected = null
                                     onMessage("Carte reconnue · confirme son ajout")
                                 } else {

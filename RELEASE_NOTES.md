@@ -1,3 +1,9 @@
+## Version 0.8.8
+
+- Scanner : cadre horizontal « Leader / base », recherche dans les quatre orientations et demande d’une image plus détaillée lorsque la caméra le permet.
+- Lecture de la référence reconstruite à partir de la position des mots du bas de carte, même lorsque l’OCR sépare l’extension, la langue et le numéro en plusieurs blocs. Les références contradictoires restent refusées.
+- Le numéro exact reste conservé pour les hyperspace, showcase et autres variantes. Les finitions qui partagent un numéro, notamment normale/foil sur les premiers sets, restent à confirmer.
+
 ## Version 0.8.7
 
 - Les decks commencés apparaissent dans Mes listes avec leur nom, leurs quantités et la mention Brouillon, même avant le choix du leader et de la base. Plusieurs créations peuvent être conservées et reprises indépendamment, y compris l’ancien brouillon local.
