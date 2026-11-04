@@ -672,6 +672,7 @@ tap_label "Accueil"
 tap_description "Ouvrir le menu"
 tap_label "Scanner"
 sleep 4
+tap_label "Leader / base"
 for dimensions in 320x800 720x400; do
   physical=$(python3 - "$density" "$dimensions" <<'PYSCANSIZE'
 import sys
@@ -696,6 +697,7 @@ PYSCANLAYOUT
 done
 adb shell wm size reset
 sleep 3
+tap_label "Carte verticale"
 tap_label "Saisir une référence"
 tap_label "Extension"
 adb shell input text JTL

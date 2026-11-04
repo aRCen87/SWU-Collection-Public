@@ -56,8 +56,11 @@ internal class LiveScanAnalyzer(
                         }
                         val raw = ScanFrameRecognition.text(text.text, words)
                         val reference = ScanRecognition.extract(raw)
+                        // A sideways retry is not evidence that the held card was
+                        // removed. Otherwise one failed read can rearm batch mode.
+                        val stable = if (reference != null || orientation.checksAbsence)
+                            gate.observe(reference, SystemClock.elapsedRealtime(), ScanRecognition.language(raw)) else null
                         orientation.observed(reference)
-                        val stable = gate.observe(reference, SystemClock.elapsedRealtime(), ScanRecognition.language(raw))
                         when {
                             stable != null -> {
                                 force.set(false)
@@ -66,6 +69,7 @@ internal class LiveScanAnalyzer(
                                     onMessage("Carte reconnue · confirme son ajout")
                                 } else {
                                     rejected = stable
+                                    orientation.observed(null)
                                     onMessage("Référence introuvable · recentre le bas de la carte ou saisis-la manuellement")
                                 }
                             }

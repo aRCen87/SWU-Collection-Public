@@ -144,7 +144,9 @@ fun CardScannerDialog(
             val preview = Preview.Builder().setTargetRotation(rotation).build().also { it.surfaceProvider = previewView.surfaceProvider }
             val analysis = ImageAnalysis.Builder().setTargetRotation(rotation)
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .setResolutionSelector(ResolutionSelector.Builder().setResolutionStrategy(
+                .setResolutionSelector(ResolutionSelector.Builder()
+                    .setAllowedResolutionMode(ResolutionSelector.PREFER_HIGHER_RESOLUTION_OVER_CAPTURE_RATE)
+                    .setResolutionStrategy(
                     ResolutionStrategy(Size(2560, 1920), ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER)).build())
                 .build().also { it.setAnalyzer(executor, reader) }
             var provider: ProcessCameraProvider? = null

@@ -56,4 +56,21 @@ class ScanFrameRecognitionTest {
         orientation.observed(null); orientation.reset()
         assertEquals(0, orientation.degrees)
     }
+
+    @Test fun orientationRetriesDoNotCountAHeldCardTwiceInBatchMode() {
+        val gate = StableScanGate()
+        val orientation = ScanOrientation()
+        val card = ScanReference("SOR", "019")
+        fun read(reference: ScanReference?, time: Long): ScanReference? {
+            val result = if (reference != null || orientation.checksAbsence) gate.observe(reference, time) else null
+            orientation.observed(reference)
+            return result
+        }
+        assertNull(read(card, 1000)); assertEquals(card, read(card, 1500))
+        for (time in listOf(2000L, 2450L, 2900L, 3350L)) assertNull(read(null, time))
+        assertNull(read(card, 3800)); assertNull(read(card, 4250))
+        // Actual removal across a complete orientation sweep still rearms it.
+        for (time in listOf(4700L, 5150L, 5600L, 6050L, 6500L)) assertNull(read(null, time))
+        assertNull(read(card, 6950)); assertEquals(card, read(card, 7400))
+    }
 }

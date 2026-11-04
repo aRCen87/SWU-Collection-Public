@@ -47,8 +47,11 @@ internal object ScanFrameRecognition {
 internal class ScanOrientation {
     var degrees: Int = 0
         private set
+    private var preferredDegrees = 0
+    val checksAbsence get() = degrees == preferredDegrees
     fun observed(reference: ScanReference?) {
         if (reference == null) degrees = (degrees + 90) % 360
+        else preferredDegrees = degrees
     }
-    fun reset() { degrees = 0 }
+    fun reset() { degrees = 0; preferredDegrees = 0 }
 }
