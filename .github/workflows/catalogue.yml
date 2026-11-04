@@ -8,6 +8,7 @@ on:
     paths:
       - ".github/scripts/build_catalog.py"
       - ".github/scripts/build_card_details.py"
+      - ".github/scripts/build_card_art_languages.py"
       - ".github/workflows/catalogue.yml"
 permissions:
   contents: write
@@ -23,15 +24,17 @@ jobs:
         run: python .github/scripts/build_catalog.py
       - name: Build offline search and version metadata
         run: python .github/scripts/build_card_details.py
+      - name: Recover exact localized artwork
+        run: python .github/scripts/build_card_art_languages.py
       - name: Commit catalogue if changed
         run: |
-          if git diff --quiet -- app/src/main/assets/catalog-fr.json app/src/main/assets/card-details.json.gz; then
+          if git diff --quiet -- app/src/main/assets/catalog-fr.json app/src/main/assets/card-details.json.gz app/src/main/assets/card-art-languages.json.gz app/src/main/assets/card-print-finishes.json.gz; then
             echo "Catalogue inchangé."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app/src/main/assets/catalog-fr.json app/src/main/assets/card-details.json.gz
+          git add app/src/main/assets/catalog-fr.json app/src/main/assets/card-details.json.gz app/src/main/assets/card-art-languages.json.gz app/src/main/assets/card-print-finishes.json.gz
           git commit -m "Refresh French card catalogue"
           # A concurrent UI commit must not make the catalogue refresh fail.
           for attempt in 1 2 3; do

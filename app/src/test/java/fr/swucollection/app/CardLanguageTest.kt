@@ -104,4 +104,11 @@ class CardLanguageTest {
         val matches=TradeComparison.matching(giver,wantsAny)
         assertEquals(5,matches.sumOf { it.quantity });assertEquals(setOf("FR","EN"),matches.map { it.offered.language }.toSet())
     }
+    @Test fun aFreshCatalogFaceCanFillAnOlderEmptyLanguageEntryWithoutReplacingASpecificFinish() {
+        val fresh = CatalogCard("SOR","273","Palpatine","Leader","Rare","https://cdn.starwarsunlimited.com/card_SWH_01fr_273_new.png")
+        val empty = mapOf("FR" to listOf("",""))
+        assertEquals(fresh.imageUrl,CardLanguageArtwork.select(fresh,"FR",empty).imageUrl)
+        assertEquals("",CardLanguageArtwork.select(fresh,"FR",empty,allowEmptyFallback=false).imageUrl)
+        assertEquals("",CardLanguageArtwork.select(fresh,"EN",empty).imageUrl)
+    }
 }

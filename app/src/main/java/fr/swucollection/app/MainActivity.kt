@@ -793,7 +793,7 @@ private fun CollectionScreen(
                                 Card(onClick = { openPreview(catalogCard, filteredCatalogCards.map { CardPreviewEntry(it) }) }) {
                                     Row(Modifier.fillMaxWidth().padding(12.dp),
                                         horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        CardArtwork(catalogCard.imageUrl, Modifier.width(60.dp).height(84.dp), grayscale = !owned)
+                                        CardArtwork(catalogCard, Modifier.width(60.dp).height(84.dp), grayscale = !owned)
                                         Column(Modifier.weight(1f)) {
                                             Text(catalogCard.name, fontWeight = FontWeight.Medium)
                                             CardLegalityBadge(premierLegality.status(catalogCard))
@@ -1006,8 +1006,7 @@ private fun CollectionScreen(
                                 Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                         if (collectionView == "Visuel") {
-                                            CardArtwork(catalogMatch?.let { CardLanguageArtwork.localized(deckContext,it,card.language,card.variant).imageUrl }.orEmpty(),
-                                                Modifier.width(55.dp).height(78.dp))
+                                            if (catalogMatch != null) CardArtwork(catalogMatch, Modifier.width(55.dp).height(78.dp), language = card.language, variant = card.variant)
                                         }
                                         Column(Modifier.weight(1f)) {
                                             Text(card.name, fontWeight = FontWeight.SemiBold, maxLines = 2,
@@ -1106,7 +1105,7 @@ private fun CollectionScreen(
                         horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         val hasReverse = card.type.equals("Leader", ignoreCase = true) &&
-                            card.backImageUrl.startsWith("https://")
+                            CardLanguageArtwork.displayFace(deckContext,card,previewLanguage,previewVariant,true).first.isNotBlank()
                         if (hasReverse) {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 FilterChip(selected = leaderMode == "flip", onClick = {
@@ -1123,18 +1122,17 @@ private fun CollectionScreen(
                             Column(Modifier.heightIn(max = 430.dp).verticalScroll(rememberScrollState()),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text("Recto")
-                                CardArtwork(card.imageUrl, Modifier.fillMaxWidth().height(280.dp).then(swipeCardModifier))
+                                CardArtwork(card, Modifier.fillMaxWidth().height(280.dp).then(swipeCardModifier), variant = previewVariant)
                                 Text("Verso")
-                                CardArtwork(card.backImageUrl, Modifier.fillMaxWidth().height(280.dp).then(swipeCardModifier))
+                                CardArtwork(card, Modifier.fillMaxWidth().height(280.dp).then(swipeCardModifier), variant = previewVariant, reverse = true)
                             }
                         } else if (hasReverse) {
                             Crossfade(targetState = showReverse, label = "Retourner le leader") { reverse ->
-                                CardArtwork(if (reverse) card.backImageUrl else card.imageUrl,
-                                    Modifier.fillMaxWidth().height(artworkHeight).then(swipeCardModifier).clickable { showReverse = !showReverse })
+                                CardArtwork(card, Modifier.fillMaxWidth().height(artworkHeight).then(swipeCardModifier).clickable { showReverse = !showReverse }, variant = previewVariant, reverse = reverse)
                             }
                             Text("Toucher la carte pour la retourner", fontSize = 12.sp)
                         } else {
-                            CardArtwork(card.imageUrl, Modifier.fillMaxWidth().height(artworkHeight).then(swipeCardModifier))
+                            CardArtwork(card, Modifier.fillMaxWidth().height(artworkHeight).then(swipeCardModifier), variant = previewVariant)
                         }
                         Text(card.name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         val familyStock = remember(card, cards, allCatalog, cardDetails) { DeckCompanion.stock(card, cards, allCatalog, cardDetails) }
@@ -1154,7 +1152,7 @@ private fun CollectionScreen(
                         Text("${card.setCode} • ${card.number} • ${card.rarity}")
                         CardLanguageChoices(previewLanguage, { previewLanguage = it; showReverse = false })
                         if (previewLanguage == CardLanguages.UNKNOWN) Text("Visuel du catalogue : précise la langue pour afficher ta version.",style=MaterialTheme.typography.bodySmall)
-                        if (card.imageUrl.isBlank() && previewLanguage in CardLanguages.supported) Text("Visuel indisponible en ${CardLanguages.label(previewLanguage).lowercase(java.util.Locale.FRANCE)} pour cette référence.", color = ListPalette.Secondary)
+                        if (card.imageUrl.isBlank() && previewLanguage in CardLanguages.supported) Text("Le visuel ${CardLanguages.label(previewLanguage).lowercase(java.util.Locale.FRANCE)} n’est pas publié pour cette référence. Un visuel disponible est affiché avec sa langue.", color = ListPalette.Secondary)
                         Text("Ma collection — choisir une variante", fontWeight = FontWeight.SemiBold)
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             ScanVariants.options.forEach { option ->
@@ -1295,7 +1293,7 @@ private fun CollectionScreen(
                         Row(Modifier.fillMaxWidth(),
                             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            CardArtwork(CardLanguageArtwork.localized(deckContext,candidate,scanLanguage,scanVariant).imageUrl, Modifier.width(76.dp).height(108.dp))
+                            CardArtwork(candidate, Modifier.width(76.dp).height(108.dp), language = scanLanguage, variant = scanVariant)
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text(candidate.name, fontWeight = FontWeight.SemiBold)
                                 Text("Déjà possédée : ${cards.filter { MarketPricing.key(it.setCode,it.number) == MarketPricing.key(candidate.setCode,candidate.number) && it.variant == scanVariant && it.language == scanLanguage }.sumOf { it.quantity }} exemplaire(s)", fontSize = 12.sp)
@@ -1304,7 +1302,7 @@ private fun CollectionScreen(
                         }
                         CardLanguageChoices(scanLanguage, { scanLanguage = it; scanVariantError = null })
                         if (scanLanguage == CardLanguages.UNKNOWN) Text("La langue n’a pas été lue : choisis la langue avant l’ajout.", color = MaterialTheme.colorScheme.primary)
-                        if (scanLanguage in CardLanguages.supported && CardLanguageArtwork.localized(deckContext,candidate,scanLanguage,scanVariant).imageUrl.isBlank()) Text("Visuel indisponible dans cette langue pour cette référence.")
+                        if (scanLanguage in CardLanguages.supported && CardLanguageArtwork.localized(deckContext,candidate,scanLanguage,scanVariant).imageUrl.isBlank()) Text("Le visuel dans cette langue n’est pas publié. La langue du visuel de remplacement est indiquée sur l’image.")
                         OutlinedButton(onClick = { favoriteCard = CardLanguageArtwork.localized(deckContext,candidate,scanLanguage,scanVariant) }) { Text("☆ Ajouter à une liste") }
                         if (print.variant == null) Text(print.message, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         if (print.variant != null) {
@@ -1505,6 +1503,23 @@ private fun GalaxyBackground() {
             close()
         }
         drawPath(buildings, Color(0xFF030A14))
+    }
+}
+
+@Composable
+internal fun CardArtwork(card: CatalogCard?, modifier: Modifier = Modifier, language: String = card?.language ?: CardLanguages.UNKNOWN,
+    variant: String? = null, reverse: Boolean = false, grayscale: Boolean = false) {
+    if (card == null) { CardArtwork("",modifier,grayscale); return }
+    val context = LocalContext.current
+    val face = remember(card,language,variant,reverse) { CardLanguageArtwork.displayFace(context,card,language,variant,reverse) }
+    Box(modifier) {
+        CardArtwork(face.first, Modifier.fillMaxSize(), grayscale)
+        if (face.second != null && face.second != language) {
+            Surface(color = Color(0xEE071322), shape = RoundedCornerShape(4.dp),
+                modifier = Modifier.align(androidx.compose.ui.Alignment.BottomCenter)) {
+                Text("Visuel ${face.second}", color = Color.White, fontSize = 10.sp, modifier = Modifier.padding(horizontal=4.dp,vertical=2.dp))
+            }
+        }
     }
 }
 

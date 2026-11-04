@@ -80,4 +80,25 @@ class ScanFrameRecognitionTest {
         for (time in listOf(4700L, 5150L, 5600L, 6050L, 6500L)) assertNull(read(null, time))
         assertNull(read(card, 6950)); assertEquals(card, read(card, 7400))
     }
+    @Test fun splitCollectorDigitsDoNotConflictWithTheirOwnPartialRawRead() {
+        val words = listOf(word("JTL", 0), word("EN", 45), word("R", 85),
+            word("1", 120, width = 10), word("0", 135, width = 10),
+            word("9", 150, width = 10), word("3", 165, width = 10))
+        val text = ScanFrameRecognition.text("JTL EN R 1 0 9 3", words)
+        assertEquals(ScanReference("JTL", "1093"), ScanRecognition.extract(text))
+        assertEquals("EN", ScanRecognition.language(text))
+        assertNull(ScanRecognition.extract(ScanFrameRecognition.text("JTL EN R 1 0 9 3\nASH FR 614", words)))
+    }
+    @Test fun splitDigitsOnSeparateRowsAreNeverJoined() {
+        val text = ScanFrameRecognition.text("JTL EN R 1\n0 9 3", listOf(
+            word("JTL", 0), word("EN", 45), word("R", 85), word("1", 120),
+            word("0", 0, 250), word("9", 40, 250), word("3", 80, 250)))
+        assertNotEquals(ScanReference("JTL", "1093"), ScanRecognition.extract(text))
+    }
+    @Test fun distantNumericWordsCannotBeReinterpretedAsOneCollectorNumber() {
+        val text = ScanFrameRecognition.text("JTL EN R 1 0 9 3", listOf(
+            word("JTL",0),word("EN",45),word("R",85),word("1",120,width=10),
+            word("0",180,width=10),word("9",240,width=10),word("3",300,width=10)))
+        assertNull(ScanRecognition.extract(text))
+    }
 }

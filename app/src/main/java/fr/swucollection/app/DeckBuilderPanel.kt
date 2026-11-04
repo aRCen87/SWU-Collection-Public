@@ -400,7 +400,7 @@ internal fun DeckBuilderPanel(
                 text = {
                     LazyColumn(Modifier.heightIn(max = 360.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         item { Text(card.name) }
-                        item { CardArtwork(CardLanguageArtwork.localized(draftContext,card,pendingLanguage).imageUrl,Modifier.fillMaxWidth().height(140.dp)) }
+                        item { CardArtwork(card,Modifier.fillMaxWidth().height(140.dp),language=pendingLanguage) }
                         item { CardLanguageChoices(pendingLanguage, { pendingLanguage = it }) }
                         item { Text(ScanVariants.detect(card).message) }
                         items(ScanVariants.detect(card).choices) { variant ->

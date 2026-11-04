@@ -18,7 +18,7 @@ internal fun PinnedDecksPanel(decks: List<DeckStore.SavedDeck>, owned: List<Coll
         val missing = remember(saved, owned, catalog, details) { runCatching { DeckInsights.missingPrints(saved.deck, owned, catalog, details).sumOf { it.quantity } } }
         OutlinedCard(onClick = { onOpen(saved) }, modifier = Modifier.fillMaxWidth()) {
             Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                CardArtwork(byId[saved.deck.leader]?.imageUrl.orEmpty(), Modifier.width(80.dp).height(56.dp))
+                CardArtwork(byId[saved.deck.leader], Modifier.width(80.dp).height(56.dp))
                 Column(Modifier.weight(1f)) {
                     Text(saved.name, color = ListPalette.Gold)
                     Text(missing.getOrNull()?.let { if (it == 0) "Toutes les cartes sont disponibles" else "$it exemplaire(s) manquant(s)" } ?: "Références à vérifier", style = MaterialTheme.typography.bodySmall)

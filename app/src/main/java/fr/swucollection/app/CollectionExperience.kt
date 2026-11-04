@@ -127,7 +127,7 @@ internal fun GroupedOwnedCard(rows: List<CollectionCard>, catalog: List<CatalogC
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 val image = catalog.firstOrNull { MarketPricing.key(it.setCode,it.number) == MarketPricing.key(first.setCode,first.number) }
-                coil.compose.AsyncImage(image?.let { CardLanguageArtwork.localized(context,it,first.language,first.variant).imageUrl }, first.name, Modifier.size(48.dp, 68.dp), contentScale = androidx.compose.ui.layout.ContentScale.Fit)
+                CardArtwork(image, Modifier.size(48.dp,68.dp), language=first.language, variant=first.variant)
                 Column(Modifier.weight(1f)) {
                     Text(first.name, fontWeight = FontWeight.Bold)
                     Text("${first.setCode} · ${rows.size} versions · ${rows.sumOf { it.quantity }} exemplaires")
