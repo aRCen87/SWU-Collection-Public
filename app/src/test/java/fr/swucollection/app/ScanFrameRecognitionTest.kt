@@ -22,6 +22,13 @@ class ScanFrameRecognitionTest {
         }
     }
 
+    @Test fun readsFooterLettersSplitIntoIndividualOcrWords() {
+        val letters = "SORFRR019/252".mapIndexed { i, character -> word(character.toString(), i * 15, width = 10) }
+        val text = ScanFrameRecognition.text("SCARIF\n0 1 9\nS O R F R", letters)
+        assertEquals(ScanReference("SOR", "019"), ScanRecognition.extract(text))
+        assertEquals("FR", ScanRecognition.language(text))
+    }
+
     @Test fun neverJoinsDifferentRowsOrDistantCards() {
         val raw = "SOR FR\nTexte\n019"
         assertNull(ScanRecognition.extract(ScanFrameRecognition.text(raw, listOf(word("SOR FR", 0), word("019", 80, 240)))))

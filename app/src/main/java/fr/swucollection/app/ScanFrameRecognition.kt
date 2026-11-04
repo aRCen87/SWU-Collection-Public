@@ -24,15 +24,23 @@ internal object ScanFrameRecognition {
             val parts = mutableListOf<String>()
             var previous: ScanOcrWord? = null
             val segment = mutableListOf<String>()
+            fun flush() {
+                if (segment.isNotEmpty()) {
+                    parts.add(segment.joinToString(" "))
+                    // Small footer letters can each become a separate OCR word.
+                    parts.add(segment.joinToString(""))
+                    segment.clear()
+                }
+            }
             row.sortedBy { it.left }.forEach { word ->
                 val last = previous
                 // Never bridge a distant card or the whole camera frame.
                 if (last != null && word.left - last.right > min(last.height, word.height) * 12) {
-                    parts.add(segment.joinToString(" ")); segment.clear()
+                    flush()
                 }
                 segment.add(word.text); previous = word
             }
-            if (segment.isNotEmpty()) parts.add(segment.joinToString(" "))
+            flush()
             parts
         }
         // Keep the original text as evidence too: conflicting card references must
