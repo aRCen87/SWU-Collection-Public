@@ -1,0 +1,21 @@
+# SWU Collection — finalisation et distribution
+
+## Autorisation et préférences
+
+L’utilisateur autorise la publication automatique des versions finalisées afin de recevoir leurs notifications et de les installer depuis les paramètres. Ne lui fournir un APK dans la conversation que s’il le demande. Respecter tout nouvel ordre de ne pas publier une modification ou de garder une version en brouillon.
+
+Conserver les noms français et leurs accents. Ne jamais changer l’applicationId `fr.swucollection.app`, la clé de signature permanente ou effacer/recréer la base `swu_collection.db`. Toute migration doit conserver cartes, variantes et quantités et être testée. Ne jamais publier de clé, jeton privé ou données de collection.
+
+## Finalisation automatique
+
+1. Augmenter `versionCode` ET `versionName` pour une nouvelle modification applicative finalisée. Écrire ses nouveautés dans `RELEASE_NOTES.md`. Une branche de travail n’est pas une version finalisée.
+2. Vérifier les tests appropriés, les tests de conservation/restauration des données, `testDebugUnitTest`, `lintDebug` et la compilation. Intégrer à main après réussite des contrôles.
+3. Le workflow Android de main teste, compile et signe avec la clé permanente, vérifie la signature et produit l’APK et `release-metadata.json`. Le job `publish` récupère cet artefact du même run et publie automatiquement dans `aRCen87/SWU-Collection-Releases`.
+4. Le job publicateur utilise uniquement le secret Actions privé `RELEASES_TOKEN`, un jeton GitHub à accès fin limité au dépôt public de versions, avec Contents: read and write (et les métadonnées en lecture implicites). La clé de signature reste exclusivement dans les secrets de compilation du dépôt privé. Aucun jeton ne doit entrer dans l’APK, les fichiers du dépôt ou la conversation.
+5. Si ce secret manque ou que GitHub refuse la publication, la finalisation reste BLOQUÉE. Les outils GitHub connectés ne permettent pas de modifier les secrets. Il faut configurer cette autorisation une seule fois dans l’interface GitHub, avec l’accord de l’utilisateur pour le navigateur si nécessaire. Ne jamais prétendre que les notifications de nouvelles versions sont opérationnelles avant ce réglage et la publication réelle.
+6. Le publicateur vérifie identité, version, code croissant, taille, empreinte et certificat permanent. Il refuse de remplacer une version applicative publiée ; une réexécution pour les mêmes sources ne crée ni publication ni notification supplémentaire. L’APK et ses métadonnées sont vérifiés en brouillon avant publication stable. Les changements de tests ou de documentation seuls ne créent pas une version applicative différente.
+7. Attendre le succès des jobs build ET publish. Lire anonymement `https://api.github.com/repos/aRCen87/SWU-Collection-Releases/releases/latest` et vérifier version, fichier `SWU-Collection.apk`, taille, SHA-256 et accessibilité. Annoncer la finalisation uniquement après cette vérification.
+
+La version 0.3.3 sait déjà installer une nouvelle version publiée depuis Paramètres. Une première mise à jour 0.3.4 y ajoutera les notifications en arrière-plan et la restauration d’instantané. Ne pas imposer un nouvel APK manuel si cette première mise à jour peut être effectuée par le flux public.
+
+L’application refuse les paquets étrangers, les versions antérieures et les signatures différentes et vérifie une sauvegarde atomique avant l’installateur Android. Les notifications nécessitent l’autorisation du téléphone et les contrôles en arrière-plan peuvent être retardés par Android. Ne promettre ni notification instantanée indépendante de ces restrictions ni garantie absolue contre désinstallation ou panne du téléphone.

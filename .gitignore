@@ -1,0 +1,14 @@
+.gradle/
+**/build/
+local.properties
+.market-cache/
+*.jks
+*.keystore
+*.apk
+*.aab
+*.hprof
+*.log
+*keystore-base64*.txt
+
+__pycache__/
+*.py[cod]
