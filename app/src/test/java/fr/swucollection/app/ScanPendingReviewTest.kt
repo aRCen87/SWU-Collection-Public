@@ -11,6 +11,21 @@ import org.robolectric.annotation.Config
 @Config(sdk = [28], manifest = Config.NONE)
 class ScanPendingReviewTest {
     private val card = CatalogCard("SOR", "236", "R2-D2", "Unité", "Rare", language = CardLanguages.UNKNOWN)
+    @Test fun incrementingAFullBatchRowNeverDeletesItOrItsSavedCopies() {
+        val context = RuntimeEnvironment.getApplication()
+        context.getSharedPreferences("scan_batch",0).edit().clear().commit()
+        val batch = ScanBatchStore(context)
+        batch.add(card, "")
+        batch.change(batch.entries.single(), 9998)
+        val before = batch.entries
+        assertTrue(runCatching { batch.change(before.single(), 1) }.isFailure)
+        assertEquals(before, batch.entries)
+        assertEquals(before, ScanBatchStore(context).entries)
+        batch.change(before.single(), -9999)
+        assertTrue(batch.entries.isEmpty())
+        assertTrue(ScanBatchStore(context).entries.isEmpty())
+        batch.clear()
+    }
     @Test fun unresolvedScansSurviveReopeningAndCannotEnterTheCollection() {
         val context = RuntimeEnvironment.getApplication()
         context.getSharedPreferences("scan_batch",0).edit().clear().commit()

@@ -6,6 +6,34 @@ import org.junit.Test
 class StableScanGateTest {
     private val first = ScanReference("HMW", "001")
     private val second = ScanReference("HMW", "002")
+    @Test fun anUnreadableLanguageBetweenTwoFrenchReadsDoesNotRestartRecognition() {
+        val gate = StableScanGate(unknownLanguageReads = 5)
+        assertNull(gate.observe(first, 1000, "FR"))
+        assertNull(gate.observe(first, 1300))
+        assertEquals(first, gate.observe(first, 1600, "FR"))
+        assertNull(gate.observe(first, 1900, "FR"))
+    }
+    @Test fun aLanguageConflictStillRequiresTwoNewMatchingReads() {
+        val gate = StableScanGate(unknownLanguageReads = 5)
+        assertNull(gate.observe(first, 1000, "FR"))
+        assertNull(gate.observe(first, 1300))
+        assertNull(gate.observe(first, 1600, "EN"))
+        assertNull(gate.observe(first, 1900))
+        assertEquals(first, gate.observe(first, 2200, "EN"))
+    }
+    @Test fun unknownFramesCannotInventAConfirmedLanguage() {
+        val gate = StableScanGate(unknownLanguageReads = 5)
+        assertNull(gate.observe(first, 1000))
+        assertNull(gate.observe(first, 1300))
+        assertNull(gate.observe(first, 1600, "FR"))
+        assertNull(gate.observe(first, 1900))
+        assertEquals(first, gate.observe(first, 2200, "FR"))
+    }
+    @Test fun fiveConsistentReferencesCanStillRequestManualLanguageReview() {
+        val gate = StableScanGate(unknownLanguageReads = 5)
+        for (time in 1000L..1900L step 300) assertNull(gate.observe(first, time))
+        assertEquals(first, gate.observe(first, 2200))
+    }
     @Test fun needsTwoConsecutiveConsistentFrames() {
         val gate = StableScanGate()
         assertNull(gate.observe(first, 1000))
