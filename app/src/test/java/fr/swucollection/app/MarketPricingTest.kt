@@ -82,4 +82,26 @@ class MarketPricingTest {
             if (amount != null) assertTrue("Invalid $key $variant", amount.isFinite() && amount > 0)
         }
     }
+
+    @Test fun distinctFoilReferenceUsesFoilTrendWithoutChangingCollectorIdentity() {
+        val result = quote("JTL:552", MarketPricing.CATALOGUE)
+        assertEquals(quote("JTL:054", "Foil").amount!!, result.amount!!, 0.00001)
+        assertNull(quote("JTL:552", "Normale").amount)
+    }
+
+    @Test fun verifiedPremiumSelectionCannotFallBackToNormalOrAnotherFinish() {
+        val entry = JSONObject("""{"nameFr":"Carte","nameEn":"Card","defaultFinish":"Hyperspace",
+            "products":[1],"finishes":{"Hyperspace":{"products":[1],"field":"trend","range":false},
+            "Hyperspace Foil":{"products":[1],"field":"trend-foil","range":false}}}""")
+        val prices = mapOf(1L to JSONObject("""{"idProduct":1,"idCategory":1644,"trend":4.0,"trend-foil":7.0}"""))
+        fun resolve(finish: String) = MarketPricing.resolve(entry, "Carte", prices, finish, "", false)
+        assertEquals(4.0, resolve(MarketPricing.CATALOGUE).amount!!, 0.00001)
+        assertEquals(7.0, resolve("Hyperspace Foil").amount!!, 0.00001)
+        assertNull(resolve("Normale").amount)
+        assertNull(resolve("Prestige").amount)
+    }
+
+    @Test fun bundledMappingHasValidFinishSelections() {
+        MarketPricing.validateMapping(JSONObject(File("src/main/assets/cardmarket-map.json").readText(Charsets.UTF_8)))
+    }
 }

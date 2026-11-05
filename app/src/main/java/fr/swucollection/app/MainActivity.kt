@@ -328,7 +328,7 @@ private fun CollectionScreen(
         catalogBySet.values.flatten().associateBy { MarketPricing.key(it.setCode, it.number) }
     }
     val priceRequests = remember(catalogByKey, cards) {
-        (catalogByKey.values.map { it to "Normale" } + cards.mapNotNull { owned ->
+        (catalogByKey.values.map { it to MarketPricing.CATALOGUE } + cards.mapNotNull { owned ->
             catalogByKey[MarketPricing.key(owned.setCode, owned.number)]?.let { it to owned.variant }
         }).distinctBy { (card, variant) -> collectionPriceKey(card.setCode, card.number, variant) }
     }

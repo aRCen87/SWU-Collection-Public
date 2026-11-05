@@ -43,7 +43,7 @@ internal fun CompleteSetPanel(sets: List<CatalogSet>, catalog: Map<String, List<
     val missing = rows.filter { it.missing > 0 }
     val visible = missing.filter { it.card.name.contains(query, true) || it.card.number.contains(query, true) }
         .let { list -> if (!expensiveFirst) list else list.sortedByDescending {
-            quotes[collectionPriceKey(it.card.setCode, it.card.number, "Normale")]?.amount?.times(it.missing) ?: -1.0
+            catalogueQuote(quotes, it.card.setCode, it.card.number)?.amount?.times(it.missing) ?: -1.0
         } }
     val budget = remember(rows, quotes) { CollectionPlan.budget(rows, quotes) }
     val money = remember { NumberFormat.getCurrencyInstance(Locale.FRANCE) }
@@ -164,7 +164,7 @@ internal fun CompleteSetPanel(sets: List<CatalogSet>, catalog: Map<String, List<
                                 Text("N° ${row.card.number} · ${row.owned} possédé(s) sur ${row.target}", fontSize = 12.sp)
                                 Text("À trouver : ${row.missing}", fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary)
-                                val price = quotes[collectionPriceKey(row.card.setCode, row.card.number, "Normale")]?.amount
+                                val price = catalogueQuote(quotes, row.card.setCode, row.card.number)?.amount
                                     ?.takeIf { it.isFinite() && it > 0 }
                                 Text(price?.let { "${money.format(it)} / carte · ${money.format(it * row.missing)} au total" }
                                     ?: "Cote indisponible", fontSize = 12.sp)

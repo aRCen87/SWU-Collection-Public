@@ -33,7 +33,7 @@ internal object CollectionPlan {
     fun budget(rows: List<PlanRow>, quotes: Map<String, MarketQuote>): PlanBudget {
         var low = BigDecimal.ZERO; var high = BigDecimal.ZERO; var unknown = 0
         rows.filter { it.missing > 0 }.forEach { row ->
-            val quote = quotes[collectionPriceKey(row.card.setCode, row.card.number, "Normale")]
+            val quote = catalogueQuote(quotes, row.card.setCode, row.card.number)
             val price = quote?.amount?.takeIf { it.isFinite() && it > 0 }
             if (price == null) unknown += row.missing else {
                 low += BigDecimal.valueOf(price) * row.missing.toBigDecimal()

@@ -7,6 +7,10 @@ internal enum class CollectionPriceSort(val label: String) {
 internal fun collectionPriceKey(set: String, number: String, variant: String): String =
     MarketPricing.key(set, number) + ":" + variant
 
+internal fun catalogueQuote(quotes: Map<String, MarketQuote>, set: String, number: String): MarketQuote? =
+    quotes[collectionPriceKey(set, number, MarketPricing.CATALOGUE)]
+        ?: quotes[collectionPriceKey(set, number, "Normale")]
+
 /** Stable ties preserve catalogue order. Missing, zero and invalid prices always come last. */
 internal fun <T> sortCollectionByPrice(items: List<T>, order: CollectionPriceSort,
                                      amount: (T) -> Double?): List<T> {

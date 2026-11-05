@@ -1,0 +1,57 @@
+name: Cardmarket data
+on:
+  schedule:
+    - cron: '25 5 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/*market*.py'
+      - '.github/cardmarket-overrides.json'
+      - '.github/workflows/market-data.yml'
+      - 'app/src/main/assets/cardmarket-map.json'
+      - 'app/src/main/assets/card-details.json.gz'
+      - 'app/src/main/assets/card-print-finishes.json.gz'
+      - 'app/src/main/assets/catalog-fr.json'
+permissions:
+  contents: write
+concurrency:
+  group: market-data
+  cancel-in-progress: false
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare verified pricing links
+        run: python3 .github/scripts/extend_market_mapping.py --refresh
+      - name: Publish data only
+        shell: bash
+        run: |
+          set -euo pipefail
+          stage=$(mktemp -d)
+          cp app/src/main/assets/cardmarket-map.json "$stage/cardmarket-map.json"
+          cp app/src/main/assets/cardmarket-guide.json "$stage/cardmarket-guide.json"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          target=$(mktemp -d)
+          rmdir "$target"
+          if git ls-remote --exit-code --heads origin market-data; then
+            git fetch origin market-data
+            git worktree add -b market-data "$target" FETCH_HEAD
+          else
+            git worktree add --detach "$target" HEAD
+            git -C "$target" checkout --orphan market-data
+            git -C "$target" rm -rf .
+          fi
+          cp "$stage/cardmarket-map.json" "$target/cardmarket-map.json"
+          cp "$stage/cardmarket-guide.json" "$target/cardmarket-guide.json"
+          git -C "$target" add cardmarket-map.json cardmarket-guide.json
+          if ! git -C "$target" diff --cached --quiet; then
+            git -C "$target" commit -m 'Refresh verified Cardmarket data'
+            git -C "$target" push origin HEAD:market-data
+          fi

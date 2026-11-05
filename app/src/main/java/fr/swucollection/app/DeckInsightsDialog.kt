@@ -28,7 +28,7 @@ internal fun DeckInsightsDialog(deck: PortableDeck, owned: List<CollectionCard>,
     val quotes by produceState<Map<String, MarketQuote>>(emptyMap(), all) {
         suspend fun read(network: Boolean) = withContext(Dispatchers.IO) {
             all.distinctBy { DeckConstruction.reference(it.card) }.associate { item ->
-                DeckConstruction.reference(item.card) to runCatching { CardmarketPrices.quote(context, item.card, "Normale", false, network) }.getOrElse { MarketQuote(null) }
+                DeckConstruction.reference(item.card) to runCatching { CardmarketPrices.quote(context, item.card, MarketPricing.CATALOGUE, false, network) }.getOrElse { MarketQuote(null) }
             }
         }
         value = read(false); loading = false; value = read(true)
