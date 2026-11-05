@@ -427,6 +427,30 @@ scan_deck_reference() {
   adb shell input keyevent 4
   tap_label "Rechercher"
 }
+# Derive gestures from the actual scrollable pane, including its padding.
+# The compact scanner pane starts at x=16: a gesture at x=8 hits the margin.
+scroll_scanner_pane() {
+  local direction="$1"
+  dump_window >/dev/null
+  pull_file /sdcard/swu-window.xml smoke/scanner-scroll-window.xml >/dev/null
+  local gesture
+  gesture=$(python3 - "$direction" <<'PYSCROLLPANE'
+import re, sys, xml.etree.ElementTree as ET
+panes=[n for n in ET.parse('smoke/scanner-scroll-window.xml').iter('node')
+       if n.attrib.get('scrollable')=='true']
+assert len(panes)==1, 'Expected the scanner actions pane, got '+str(len(panes))
+x1,y1,x2,y2=map(int,re.findall(r'\d+',panes[0].attrib['bounds']))
+assert x2-x1>20 and y2-y1>40, 'Scanner actions pane is too small'
+x=(x1+x2)//2
+upper=y1+(y2-y1)//5
+lower=y2-(y2-y1)//5
+start,end=(lower,upper) if sys.argv[1]=='up' else (upper,lower)
+print(x,start,x,end)
+PYSCROLLPANE
+)
+  read -r start_x start_y end_x end_y <<< "$gesture"
+  adb shell input swipe "$start_x" "$start_y" "$end_x" "$end_y" 500
+}
 # Gather one unchanged scanner state across the scrollable actions pane.
 # At 320dp the preview, collection switch and deck counters cannot fit together.
 # Keep every assertion; only scrolling is allowed between these captures.
@@ -452,7 +476,7 @@ sys.exit(bool(missing))
 PYSCANNERSTATE
     then return 0; fi
     # Stay inside the actions pane, away from the fixed camera preview.
-    adb shell input swipe 8 600 8 445 350
+    scroll_scanner_pane up
   done
   echo "Missing scanner state in $capture" >&2
   return 1
@@ -465,7 +489,7 @@ pull_file /sdcard/swu-window.xml smoke/deck-scan-unconfirmed.xml >/dev/null
 # summary. Keep the confirmation check, then inspect the earlier content in
 # that same pane. The fixed camera/header must not receive these gestures.
 for summary_step in 1 2 3; do
-  adb shell input swipe 8 450 8 605 500
+  scroll_scanner_pane down
   dump_window >/dev/null
   pull_file /sdcard/swu-window.xml "smoke/deck-scan-summary-$summary_step.xml" >/dev/null
 done
