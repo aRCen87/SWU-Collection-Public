@@ -454,6 +454,10 @@ PYDECKCOLLECTION
 tap_label "Annuler le dernier ajout"
 scan_deck_reference SOR 095
 # An ambiguous foil finish must not interrupt the camera: review happens at the end.
+# Closing manual entry can leave the scrollable controls at the bottom. Reveal
+# the collection summary just as for the other deck scans before asserting it.
+adb shell input swipe 160 440 160 610 300
+sleep 1
 dump_window >/dev/null
 pull_file /sdcard/swu-window.xml smoke/deck-scan-pending-finish.xml >/dev/null
 python3 - <<'PYPENDINGFINISH'
