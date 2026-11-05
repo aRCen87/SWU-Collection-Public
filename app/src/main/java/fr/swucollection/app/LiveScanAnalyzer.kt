@@ -36,9 +36,8 @@ internal class LiveScanAnalyzer(
     @Volatile private var rejected: ScanReference? = null
     private val orientation = ScanOrientation()
     private var lastRegionAnalysis = 0L
-    private var regionLandscape = true
+    private val regionSearch = ScanRegionSearch()
     private val regionEvidence = ScanRegionEvidence()
-    private var regionHasReference = false
     private var lastVisualAnalysis = 0L
     private val visualEvidence = StableVisualScanEvidence()
     private var visualKey: List<ScanReference> = emptyList()
@@ -95,14 +94,13 @@ internal class LiveScanAnalyzer(
             val media = image.image
             if (media == null) { image.close(); processing.set(false); releaseIfIdle(); return }
             if (retry) {
-                orientation.reset(); regionHasReference = false
+                orientation.reset(); regionSearch.reset()
                 callbackExecutor.execute {
                     gate.reset(); regionEvidence.interrupt(); visualEvidence.interrupt(); rejected = null; visualKey = emptyList(); visualReads = 0; blockedVisualKey = emptyList()
                 }
             }
             val currentViewport = viewport()
             val rotation = (image.imageInfo.rotationDegrees + orientation.degrees) % 360
-            val textRotation = orientation.degrees
             recognizer.process(InputImage.fromMediaImage(media, rotation))
                 .continueWithTask(analysisExecutor) { result ->
                     if (!result.isSuccessful) Tasks.forException<ScanOcrReading>(result.exception ?: IllegalStateException("Lecture interrompue"))
@@ -113,12 +111,12 @@ internal class LiveScanAnalyzer(
                             !closed.get() && !paused() && generation.get() == frameGeneration
                         if (regional) {
                             lastRegionAnalysis = SystemClock.elapsedRealtime()
-                            if (!regionHasReference) regionLandscape = !regionLandscape
-                            readRegions(image,currentViewport,textRotation,regionLandscape,full) {
+                            val pose = regionSearch.pose
+                            readRegions(image,currentViewport,pose.rotation,pose.landscape,full) {
                                 !closed.get() && !paused() && generation.get() == frameGeneration
                             }.continueWith(analysisExecutor) { regionTask ->
                                 val reading = if (regionTask.isSuccessful) regionTask.result else ScanOcrReading(full,regionsAttempted=true)
-                                regionHasReference = reading.reference != null
+                                regionSearch.observed(reading.reference)
                                 reading
                             }
                         } else Tasks.forResult(ScanOcrReading(full))
@@ -129,7 +127,7 @@ internal class LiveScanAnalyzer(
                         val raw = reading.raw
                         val reference = reading.reference
                         val checksAbsence = orientation.checksAbsence
-                        orientation.observed(reference)
+                        orientation.observed(ScanRecognition.extract(reading.full))
                         val visualAttempted = (reference == null || reference == rejected) && reading.references.size <= 1 &&
                             SystemClock.elapsedRealtime() - lastVisualAnalysis >= 1800
                         val visual = if (visualAttempted) {
