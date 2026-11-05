@@ -953,6 +953,23 @@ assert {'Français','Anglais','Allemand','Espagnol','Italien'} <= texts,texts
 PYLANGUAGES
 
 tap_label "Accueil"
+competitive_scroll() {
+  dump_window >/dev/null
+  pull_file /sdcard/swu-window.xml smoke/competitive-scroll.xml >/dev/null
+  read -r sx sy ex ey < <(python3 - "$1" <<'PYHUBSCROLL'
+import re,sys,xml.etree.ElementTree as ET
+nodes=[n for n in ET.parse('smoke/competitive-scroll.xml').iter('node') if n.attrib.get('scrollable')=='true']
+assert nodes, 'Missing competitive list viewport'
+def bounds(n):return list(map(int,re.findall(r'\d+',n.attrib['bounds'])))
+x1,y1,x2,y2=max((bounds(n) for n in nodes),key=lambda b:(b[2]-b[0])*(b[3]-b[1]))
+x=x1+min(12,(x2-x1)//10)
+a=y1+(y2-y1)//4;b=y1+(y2-y1)*3//4
+print(x,b,x,a) if sys.argv[1]=='down' else print(x,a,x,b)
+PYHUBSCROLL
+)
+  adb shell input swipe "$sx" "$sy" "$ex" "$ey" 600
+  sleep 1
+}
 # Verify the new native hub and a real copied list on the optimized APK.
 tap_label "Tournois & Méta"
 tap_label "Méta"
@@ -982,7 +999,7 @@ texts={n.attrib.get('text','') for n in ET.parse('smoke/competitive-summary.xml'
 assert '6 exemplaire(s) à trouver sur 6' in texts,texts
 PYSUMMARYHUB
 tap_label "Manquantes"
-adb shell input swipe 20 480 20 280 600
+competitive_scroll down
 sleep 1
 dump_window >/dev/null
 pull_file /sdcard/swu-window.xml smoke/competitive-missing.xml >/dev/null
@@ -992,7 +1009,7 @@ texts={n.attrib.get('text','') for n in ET.parse('smoke/competitive-missing.xml'
 assert any('3 à trouver' in t for t in texts),texts
 PYMISSHUB
 adb exec-out screencap -p > smoke/competitive-missing.png
-for step in 1 2 3 4; do adb shell input swipe 20 180 20 500 600; done
+for step in 1 2 3 4; do competitive_scroll up; done
 tap_label "Enregistrer dans Mes decks"
 tap_label "Copier le deck"
 tap_label "Ouvrir dans Mes decks"
