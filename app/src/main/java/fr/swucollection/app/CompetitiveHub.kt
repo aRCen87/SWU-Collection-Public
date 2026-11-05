@@ -18,7 +18,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -28,7 +27,7 @@ internal fun CompetitiveHub(catalog: List<CatalogCard>, owned: List<CollectionCa
     rules: LegalityRules, decks: List<DeckStore.SavedDeck>, modifier: Modifier = Modifier,
     onSave: (String, PortableDeck) -> String, onOpen: (String) -> Unit,
     onPreview: (CatalogCard, List<CatalogCard>) -> Unit) {
-    var tab by rememberSaveable { mutableIntStateOf(0) }
+    var tab by rememberSaveable { mutableIntStateOf(1) }
     var importing by rememberSaveable { mutableStateOf(false) }
     var previewJson by rememberSaveable { mutableStateOf<String?>(null) }
     var name by rememberSaveable { mutableStateOf("") }
@@ -36,10 +35,6 @@ internal fun CompetitiveHub(catalog: List<CatalogCard>, owned: List<CollectionCa
     var readyOnly by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
     var status by rememberSaveable { mutableStateOf<String?>(null) }
-    val uri = LocalUriHandler.current
-    fun browse(url: String) {
-        runCatching { uri.openUri(url) }.onFailure { status = "Impossible d’ouvrir SWUBase. Vérifie ta connexion ou ton navigateur." }
-    }
     if (importing) DeckImportDialog(catalog, details, onDismiss = { importing = false }, onImport = { title, deck ->
         name = title; previewJson = DeckInterchange.exportJson(deck, title)
         savedId = null; status = null; importing = false
@@ -60,29 +55,19 @@ internal fun CompetitiveHub(catalog: List<CatalogCard>, owned: List<CollectionCa
         decks.associate { it.id to CompetitiveDecks.readiness(it.deck, owned, catalog, details) }
     }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Les résultats du circuit et les listes pour ta collection.", color = ListPalette.Secondary)
+        Text("Les decks du circuit, prêts à comparer à ta collection.", color = ListPalette.Secondary)
         TabRow(selectedTabIndex = tab, containerColor = ListPalette.Background, contentColor = ListPalette.Gold) {
-            listOf("Tournois", "Méta", "Decks").forEachIndexed { index, label ->
+            listOf("Tournois", "Méta", "Mes decks").forEachIndexed { index, label ->
                 Tab(selected = tab == index, onClick = { tab = index }, text = { Text(label) })
             }
         }
         status?.let { Text(it, color = ListPalette.Gold) }
-        LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 20.dp)) {
-            if (tab == 0) {
-                item { CompetitiveSourceCard("Résultats des tournois", "Classements, participants, Top 8 et listes publiées. Le circuit Premier, des PQ aux grands événements.", Icons.Default.EmojiEvents,
-                    "Consulter les tournois", { browse(CompetitiveDecks.TOURNAMENTS) }) }
-                item { Text("Sur SWUBase, sélectionne la saison, le niveau du tournoi et la région, puis ouvre l’événement. Les résultats et les listes restent ceux publiés par la source.", color = ListPalette.Secondary) }
-                item { CompetitiveImportCard { importing = true } }
-            } else if (tab == 1) {
-                item { CompetitiveSourceCard("Méta du moment", "Leaders et bases les plus joués, présence en Top 8, confrontations et évolution selon la période sélectionnée.", Icons.Default.Insights,
-                    "Explorer la méta", { browse(CompetitiveDecks.META) }) }
-                item { CompetitiveSourceCard("Les decks vainqueurs", "Retrouve les leaders et bases des champions dans la sélection de tournois SWUBase.", Icons.Default.MilitaryTech,
-                    "Voir les champions", { browse(CompetitiveDecks.CHAMPIONS) }) }
-                item { Text("Popularité et performance se lisent séparément. Vérifie la période, le format et le nombre de matchs avant de comparer deux decks.", color = ListPalette.Secondary) }
-                item { CompetitiveImportCard { importing = true } }
-            } else {
-                item { CompetitiveSourceCard("D’un tournoi à Mes decks", "Choisis une liste sur SWUBase et exporte-la, puis importe le fichier JSON ou colle la liste copiée ici.", Icons.Default.Layers,
-                    "Trouver une liste", { browse(CompetitiveDecks.DECKS) }) }
+        if (tab < 2) NativeCompetitivePanel(tab, catalog, owned, details, decks, Modifier.weight(1f), onSave,
+            onShow = { title, deck ->
+                name = title; previewJson = DeckInterchange.exportJson(deck, title)
+                savedId = decks.firstOrNull { it.deck == deck }?.id; status = null
+            })
+        else LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 20.dp)) {
                 item { CompetitiveImportCard { importing = true } }
                 item { OutlinedTextField(query, { query = it.take(120) }, label = { Text("Rechercher dans Mes decks") }, modifier = Modifier.fillMaxWidth(), singleLine = true) }
                 item { FilterChip(readyOnly, { readyOnly = !readyOnly }, label = { Text("Toutes les cartes possédées") }) }
@@ -104,9 +89,7 @@ internal fun CompetitiveHub(catalog: List<CatalogCard>, owned: List<CollectionCa
                         }
                     }
                 }
-                item { TextButton(onClick = { browse(CompetitiveDecks.CONVERTER) }) { Text("Convertir une liste Melee avec SWUBase") } }
-            }
-            item { Text("Source : SWUBase · les résultats et statistiques s’ouvrent dans ton navigateur. Les decks enregistrés restent accessibles hors connexion.", style = MaterialTheme.typography.bodySmall, color = ListPalette.Secondary) }
+            item { Text("Les decks enregistrés restent accessibles hors connexion.", style = MaterialTheme.typography.bodySmall, color = ListPalette.Secondary) }
         }
     }
 }
@@ -118,20 +101,6 @@ private fun CompetitiveImportCard(onImport: () -> Unit) {
             Text("Jouer ce deck avec ma collection", color = ListPalette.Gold, fontWeight = FontWeight.SemiBold)
             Text("Importe la liste exportée pour voir les manquantes, estimer le budget et l’enregistrer dans Mes decks.")
             Button(onClick = onImport, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Default.FileDownload, null); Spacer(Modifier.width(8.dp)); Text("Importer une liste") }
-        }
-    }
-}
-
-@Composable
-private fun CompetitiveSourceCard(title: String, text: String, icon: androidx.compose.ui.graphics.vector.ImageVector,
-    action: String, onClick: () -> Unit) {
-    OutlinedCard(shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, ListPalette.Gold.copy(alpha = .5f)),
-        colors = CardDefaults.outlinedCardColors(containerColor = ListPalette.Background, contentColor = ListPalette.Text)) {
-        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Icon(icon, null, tint = ListPalette.Gold, modifier = Modifier.size(36.dp))
-            Text(title, style = MaterialTheme.typography.titleLarge, color = ListPalette.Gold)
-            Text(text)
-            OutlinedButton(onClick = onClick, modifier = Modifier.fillMaxWidth()) { Text(action); Spacer(Modifier.width(6.dp)); Icon(Icons.Default.OpenInNew, "Ouvrir SWUBase dans le navigateur", Modifier.size(18.dp)) }
         }
     }
 }
