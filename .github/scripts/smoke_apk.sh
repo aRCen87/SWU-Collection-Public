@@ -88,7 +88,7 @@ import xml.etree.ElementTree as ET
 labels=set()
 for p in Path('smoke').glob('home-large-font-*.xml'):
     labels.update(n.attrib.get('text','') for n in ET.parse(p).iter('node'))
-assert {'SCANNER','EXTENSIONS','MA COLLECTION','MES DECKS','ÉCHANGES','STATISTIQUES'} <= labels,labels
+assert {'SCANNER','EXTENSIONS','MA COLLECTION','MES DECKS','TOURNOIS & MÉTA','BADGES','ÉCHANGES','STATISTIQUES'} <= labels,labels
 assert any(t in labels for t in ['0 exemplaires · 0 cartes différentes','0 exemplaires • 0 cartes différentes']), labels
 PYHOME
 adb shell settings put system font_scale 1.0
@@ -778,7 +778,7 @@ adb exec-out screencap -p > smoke/badge-celebration.png
 tap_label "Continuer"
 KEEP_BADGES=0
 tap_description "Ouvrir le menu"
-tap_label "Hauts faits"
+tap_label "Badges"
 sleep 3
 dump_window >/dev/null
 pull_file /sdcard/swu-window.xml smoke/badge-gallery.xml >/dev/null
@@ -951,6 +951,61 @@ for file in Path('smoke').glob('collection-languages-*.xml'):
     texts.update(frame_texts)
 assert {'Français','Anglais','Allemand','Espagnol','Italien'} <= texts,texts
 PYLANGUAGES
+
+tap_label "Accueil"
+# Verify the new native hub and a real copied list on the optimized APK.
+tap_label "Tournois & Méta"
+tap_label "Méta"
+dump_window >/dev/null
+pull_file /sdcard/swu-window.xml smoke/competitive-meta.xml >/dev/null
+python3 - <<'PYMETAHUB'
+import xml.etree.ElementTree as ET
+texts={n.attrib.get('text','') for n in ET.parse('smoke/competitive-meta.xml').iter('node')}
+assert 'Méta du moment' in texts and 'Explorer la méta' in texts,texts
+PYMETAHUB
+adb exec-out screencap -p > smoke/competitive-meta.png
+tap_label "Decks"
+tap_label "Importer une liste"
+tap_label "JSON ou texte du deck"
+python3 - <<'PYIMPORTCOMP'
+import json,shlex,subprocess
+raw=json.dumps({'metadata':{'name':'Tournoi test'},'leader':{'id':'JTL_001','count':1},'base':{'id':'JTL_024','count':1},'deck':[{'id':'JTL_095','count':3}],'sideboard':[{'id':'JTL_096','count':1}]},separators=(',',':'))
+subprocess.run(['adb','shell','input','text',shlex.quote(raw.replace(' ','%s'))],check=True)
+PYIMPORTCOMP
+adb shell input keyevent 4
+tap_label "Ouvrir le deck"
+dump_window >/dev/null
+pull_file /sdcard/swu-window.xml smoke/competitive-summary.xml >/dev/null
+python3 - <<'PYSUMMARYHUB'
+import xml.etree.ElementTree as ET
+texts={n.attrib.get('text','') for n in ET.parse('smoke/competitive-summary.xml').iter('node')}
+assert '6 exemplaire(s) à trouver sur 6' in texts,texts
+PYSUMMARYHUB
+tap_label "Manquantes"
+adb shell input swipe 20 480 20 280 600
+sleep 1
+dump_window >/dev/null
+pull_file /sdcard/swu-window.xml smoke/competitive-missing.xml >/dev/null
+python3 - <<'PYMISSHUB'
+import xml.etree.ElementTree as ET
+texts={n.attrib.get('text','') for n in ET.parse('smoke/competitive-missing.xml').iter('node')}
+assert any('3 à trouver' in t for t in texts),texts
+PYMISSHUB
+adb exec-out screencap -p > smoke/competitive-missing.png
+for step in 1 2 3 4; do adb shell input swipe 20 180 20 500 600; done
+tap_label "Enregistrer dans Mes decks"
+tap_label "Copier le deck"
+tap_label "Ouvrir dans Mes decks"
+dump_window >/dev/null
+pull_file /sdcard/swu-window.xml smoke/competitive-saved.xml >/dev/null
+python3 - <<'PYSAVEDHUB'
+import xml.etree.ElementTree as ET
+texts={n.attrib.get('text','') for n in ET.parse('smoke/competitive-saved.xml').iter('node')}
+assert 'Tournoi test' in texts,texts
+PYSAVEDHUB
+adb shell input keyevent 4
+sleep 2
+tap_label "Accueil"
 
 adb logcat -d -s AndroidRuntime:E > smoke/crashes.txt
 python3 - <<'PYCRASH'

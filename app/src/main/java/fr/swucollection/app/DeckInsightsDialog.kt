@@ -59,7 +59,7 @@ internal fun DeckInsightsDialog(deck: PortableDeck, owned: List<CollectionCard>,
                 Text("${missing.sumOf { it.quantity }} exemplaire(s) manquant(s), leader, base et réserve compris.", style = MaterialTheme.typography.bodySmall)
             }
             if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
-            Text("Versions normales · tendances Cardmarket, hors frais de port. Les cotes absentes ne sont jamais remplacées par un prix inventé.", style = MaterialTheme.typography.bodySmall)
+            Text("Finition de chaque référence · tendances Cardmarket, hors frais de port. Les cotes absentes ne sont jamais remplacées par un prix inventé.", style = MaterialTheme.typography.bodySmall)
             if (budget.date.isNotBlank()) Text("Cotes à partir du ${MarketPricing.displayDate(budget.date)}${if (budget.cached) " · cache utilisé" else ""}", style = MaterialTheme.typography.bodySmall)
         }
     }, confirmButton = { TextButton(onClick = onDismiss) { Text("Fermer") } })

@@ -68,6 +68,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.WorkspacePremium
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Tune
@@ -413,7 +414,7 @@ private fun CollectionScreen(
         Box(Modifier.fillMaxSize().background(Color(0xFF02090F)))
         Column(
             Modifier.fillMaxSize().padding(bottom = if (deckWorkspace) 0.dp else 82.dp).then(
-                if (selectedSection in listOf("Collection", "Extensions", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits"))
+                if (selectedSection in listOf("Collection", "Extensions", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta"))
                     Modifier else Modifier.verticalScroll(rememberScrollState())
             ).padding(horizontal = 16.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -464,6 +465,7 @@ private fun CollectionScreen(
                         "Ajouter" -> "Ajout manuel"
                         "Sauvegardes" -> "Sauvegardes"
                         "Mes listes" -> if (deckWorkspace) "Construire un deck" else "Mes listes"
+                        "Hauts faits" -> "Badges"
                         else -> selectedSection
                     },
                         modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
@@ -503,11 +505,13 @@ private fun CollectionScreen(
                     deckLibraryVisible = true
                     navigation.navigateTo("Mes listes")
                 })
+                HomeNavigationCard("🏆", "TOURNOIS & MÉTA", "Résultats, méta et decks de tournoi", reflection = borderTilt, onClick = {
+                    navigation.navigateTo("Tournois & Méta")
+                })
                 HomeNavigationCard("⇄", "ÉCHANGES", "Comparer et échanger vos cartes", reflection = borderTilt, onClick = {
                     navigation.navigateTo("Échanges")
                 })
-                HomeNavigationCard("✦", "HAUTS FAITS", "Badges, histoires et sagas", reflection = borderTilt,
-                    badge = badgeBook?.definitions?.firstOrNull { it.id == "droids" }, catalog = allCatalog, onClick = {
+                HomeNavigationCard("✦", "BADGES", "Hauts faits, histoires et sagas", reflection = borderTilt, onClick = {
                     navigation.navigateTo("Hauts faits")
                 })
                 HomeNavigationCard("▥", "STATISTIQUES", "Suivre votre collection", reflection = borderTilt, onClick = {
@@ -555,7 +559,7 @@ private fun CollectionScreen(
                         OutlinedButton(onClick = { proxyBuilderOpen = true }) { Text("Proxies") }
                     }
                     deckMessage?.let { Text(it, color = Color(0xFFFFD47D)) }
-                    if (deckLibraryVisible) DeckLibraryPanel(savedDecks, Modifier.weight(1f), catalog = allCatalog,
+                    if (deckLibraryVisible) DeckLibraryPanel(savedDecks, Modifier.weight(1f), catalog = allCatalog, owned = cards, details = cardDetails,
                         onCreate = { creatingDraftKey = "new:" + java.util.UUID.randomUUID().toString(); creatingDeck = true },
                         onResumeDraft = { key -> creatingDraftKey = key; creatingDeck = true },
                         onImport = { importingDeck = true },
@@ -591,6 +595,18 @@ private fun CollectionScreen(
                     owned = cards, catalog = allCatalog, details = cardDetails, rules = legalitySnapshot.rules,
                     onFormat = { id, format -> database.setListFormat(id, format); refresh() })
                 }
+            }
+            if (selectedSection == "Tournois & Méta") {
+                CompetitiveHub(allCatalog, cards, cardDetails, legalitySnapshot.rules, savedDecks, Modifier.weight(1f),
+                    onSave = { title, deck ->
+                        val id = CompetitiveDecks.saveCopy(deckStore, title, deck, allCatalog)
+                        savedDecks = deckStore.all()
+                        refresh()
+                        id
+                    }, onOpen = { id -> savedDecks.firstOrNull { it.id == id }?.let { saved ->
+                        deckLibraryVisible = true
+                        openSavedDeck(saved)
+                    } }, onPreview = { card, visible -> openPreview(card, visible.map { CardPreviewEntry(it) }) })
             }
             if (selectedSection == "À propos") {
                 LegalInformationPanel()
@@ -1469,7 +1485,8 @@ private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) 
                         val entries = listOf(
                             Triple(Icons.Default.PhotoCamera, "Scanner", "Scanner"),
                             Triple(Icons.Default.CollectionsBookmark, "Compléter mon set", "Compléter mon set"),
-                            Triple(Icons.Default.WorkspacePremium, "Hauts faits", "Hauts faits"),
+                            Triple(Icons.Default.EmojiEvents, "Tournois & Méta", "Tournois & Méta"),
+                            Triple(Icons.Default.WorkspacePremium, "Badges", "Hauts faits"),
                             Triple(Icons.Default.Info, "Statistiques", "Statistiques"),
                             Triple(Icons.Default.History, "Historique et annulation", "Historique"),
                             Triple(Icons.Default.Info, "À propos", "À propos"),

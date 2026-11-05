@@ -1,3 +1,13 @@
+## Version 0.8.11
+
+- Nouvel espace « Tournois & Méta » : accès aux résultats compétitifs, aux classements, aux listes publiées et aux analyses à jour sur SWUBase, dans le navigateur. La sélection de saison, de région, de niveau et de période reste sur la source.
+- Import JSON/fichier ou collage d’une liste exportée : aperçu illustré, leader, base, deck principal, réserve et cartes manquantes calculées avec la collection. Copie JSON et enregistrement indépendant dans Mes decks ; aucun ajout de cartes à la collection.
+- Depuis cet espace, comparaison des decks enregistrés avec la collection et filtre « Toutes les cartes possédées ». Quantités cumulées par famille reconnue, variantes, langues et rééditions comprises ; références inconnues signalées.
+- Les cartes manquantes apparaissent également dans la bibliothèque Mes decks. Budget et analyse accessibles depuis l’aperçu importé ; avertissements de légalité conservés pour les anciennes listes de tournoi.
+- Accueil bleu et or : illustration dédiée de trophée et cartes pour Tournois & Méta, et trois médailles pour Badges, qui remplace le portrait de personnages sur ce bouton. Accès au nouvel espace dans le menu.
+- Cotes Cardmarket : table par finition couvrant 6 318 références au lieu de 2 549, dont 711 numéros foil distincts et 3 058 références premium supplémentaires. Certaines tendances restent absentes du guide et 2 135 références restent sans correspondance fiable.
+- Actualisation des correspondances Cardmarket en plus du guide de prix, avec cache local conservé en cas d’échec réseau. Mise à jour quotidienne des fichiers de données dans une branche séparée, sans nouvelle installation de l’application.
+
 ## Version 0.8.10
 
 - Scanner : lecture séparée du titre et du bas de carte en cas de référence illisible, en conservant les détails de l’image caméra. Recherche automatique des formats portrait et paysage.
