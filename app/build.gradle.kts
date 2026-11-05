@@ -35,7 +35,14 @@ android {
         }
     }
     buildFeatures { compose = true }
-    testOptions { unitTests.isIncludeAndroidResources = true }
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+        unitTests.all {
+            it.systemProperty("robolectric.dependency.repo.url", "https://repo.maven.apache.org/maven2")
+            it.systemProperty("robolectric.usePreinstrumentedJars", "false")
+            it.testLogging.exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -68,3 +75,27 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
 
+
+// Resolve Android test runtimes through Gradle: older published POMs do not all
+// expose the SHA-512 sidecars required by Robolectric's runtime downloader.
+val robolectricRuntimeDirectory = layout.buildDirectory.dir("robolectric-runtimes")
+val prepareRobolectricRuntimes = listOf(
+    "28" to "9-robolectric-4913185-2",
+    "34" to "14-robolectric-10818077",
+    "35" to "15-robolectric-13954326"
+).map { (sdk, version) ->
+    val runtime = configurations.create("robolectricSdk$sdk") {
+        isCanBeConsumed = false
+        isCanBeResolved = true
+        isTransitive = false
+    }
+    dependencies.add(runtime.name, "org.robolectric:android-all:$version")
+    tasks.register<Copy>("prepareRobolectricSdk$sdk") {
+        from(runtime)
+        into(robolectricRuntimeDirectory)
+    }
+}
+tasks.withType<Test>().configureEach {
+    dependsOn(prepareRobolectricRuntimes)
+    systemProperty("robolectric.dependency.dir", robolectricRuntimeDirectory.get().asFile.absolutePath)
+}

@@ -65,8 +65,8 @@ internal fun DeckLibraryPanel(
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Column(Modifier.width(72.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                CardArtwork(byId[saved.deck.leader]?.imageUrl.orEmpty(), Modifier.fillMaxWidth().height(48.dp))
-                                CardArtwork(byId[saved.deck.base]?.imageUrl.orEmpty(), Modifier.fillMaxWidth().height(48.dp))
+                                CardArtwork(byId[saved.deck.leader], Modifier.fillMaxWidth().height(48.dp))
+                                CardArtwork(byId[saved.deck.base], Modifier.fillMaxWidth().height(48.dp))
                             }
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text(saved.name, maxLines = 2, overflow = TextOverflow.Ellipsis,

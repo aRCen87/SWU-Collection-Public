@@ -453,7 +453,15 @@ assert '1 ajout(s) à la collection en attente' in text and 'Deck 1' in text,tex
 PYDECKCOLLECTION
 tap_label "Annuler le dernier ajout"
 scan_deck_reference SOR 095
-tap_label "Foil"
+# An ambiguous foil finish must not interrupt the camera: review happens at the end.
+dump_window >/dev/null
+pull_file /sdcard/swu-window.xml smoke/deck-scan-pending-finish.xml >/dev/null
+python3 - <<'PYPENDINGFINISH'
+import xml.etree.ElementTree as ET
+text=' '.join(n.attrib.get('text','') for n in ET.parse('smoke/deck-scan-pending-finish.xml').iter('node'))
+assert 'Scanner mon deck' in text and '1 ajout(s) à la collection en attente' in text,text
+assert 'Vérifier la carte pour la collection' not in text,text
+PYPENDINGFINISH
 tap_label "Annuler le dernier ajout"
 adb shell input swipe 160 440 160 610 300
 sleep 1
@@ -695,7 +703,6 @@ tap_label "Scanner"
 tap_description "Options du scanner"
 tap_label "Unitaire"
 tap_label "Reprendre le scan"
-tap_label "Leader / base"
 for dimensions in 320x800 720x400; do
   physical=$(python3 - "$density" "$dimensions" <<'PYSCANSIZE'
 import sys
@@ -720,7 +727,6 @@ PYSCANLAYOUT
 done
 adb shell wm size reset
 sleep 3
-tap_label "Carte verticale"
 tap_label "Saisir une référence"
 tap_label "Extension"
 adb shell input text JTL

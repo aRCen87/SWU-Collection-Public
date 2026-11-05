@@ -25,6 +25,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,6 +43,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import coil.compose.AsyncImage
+import java.util.concurrent.atomic.AtomicReference
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -108,20 +112,24 @@ fun CardScannerDialog(
     var manualEntry by remember { mutableStateOf(false) }
     var landscapeCard by remember { mutableStateOf(false) }
     var optionsOpen by remember { mutableStateOf(false) }
+    val visualViewport = remember { AtomicReference(ScanViewport(0,0,false)) }
+    val visualMatcher = remember(context) { ScanVisualMatcher(context.applicationContext) }
     var restart by remember { mutableIntStateOf(0) }
     var message by remember { mutableStateOf("Initialisation de la caméra…") }
     // Camera bindings may change when folding/rotating; a held card is still the
     // same scan session and must not be counted a second time in batch mode.
-    val scanGate = remember { StableScanGate() }
+    val scanGate = remember { StableScanGate(unknownLanguageReads = 5) }
     val externalPause = rememberUpdatedState(paused)
     val pauseCheck = { externalPause.value || userPaused || manualEntry || optionsOpen }
     val effectivelyPaused = paused || userPaused || manualEntry || optionsOpen
+    LaunchedEffect(effectivelyPaused) { if (effectivelyPaused) { scanGate.interrupt(); analyzer?.interrupt() } }
     val previewView = remember(context) {
         PreviewView(context).apply {
             scaleType = PreviewView.ScaleType.FILL_CENTER
             implementationMode = PreviewView.ImplementationMode.PERFORMANCE
         }
     }
+    SideEffect { visualViewport.set(ScanViewport(previewView.width,previewView.height,landscapeCard)) }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         hasPermission = granted; permissionAsked = true
     }
@@ -134,7 +142,8 @@ fun CardScannerDialog(
             val active = AtomicBoolean(true)
             val main = ContextCompat.getMainExecutor(context)
             val executor = Executors.newSingleThreadExecutor()
-            val reader = LiveScanAnalyzer(main, pauseCheck, { if (active.get()) message = it }, scanGate) { reference, raw ->
+            val reader = LiveScanAnalyzer(main, executor, visualMatcher, { visualViewport.get() },
+                { matches -> if (active.get() && !pauseCheck()) matches.firstOrNull()?.let { landscapeCard = it.landscape } }, pauseCheck, { if (active.get()) message = it }, scanGate) { reference, raw ->
                 if (!active.get() || pauseCheck()) false
                 else latestDetected.value(reference.set, reference.number, raw).also { found ->
                     if (found) previewView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
@@ -170,9 +179,9 @@ fun CardScannerDialog(
             onDispose {
                 active.set(false)
                 analysis.clearAnalyzer()
+                reader.interrupt()
                 reader.close()
                 runCatching { provider?.unbind(preview, analysis) }
-                executor.shutdown()
                 camera = null; analyzer = null; ready = false; torch = false
             }
         }
@@ -230,6 +239,14 @@ fun CardScannerDialog(
                 Box(paneModifier.clip(RoundedCornerShape(26.dp))
                     .background(Color(0xFF0B1B2D)).border(1.dp, ScanGold.copy(alpha = 0.3f), RoundedCornerShape(26.dp))
                     .pointerInput(camera, ready) {
+                        detectTransformGestures { _, _, zoom, _ ->
+                            val activeCamera = camera
+                            val state = activeCamera?.cameraInfo?.zoomState?.value
+                            if (state != null && zoom != 1f) activeCamera?.cameraControl?.setZoomRatio(
+                                (state.zoomRatio * zoom).coerceIn(state.minZoomRatio,state.maxZoomRatio))
+                        }
+                    }
+                    .pointerInput(camera, ready) {
                         detectTapGestures { tap ->
                             camera?.cameraControl?.startFocusAndMetering(FocusMeteringAction.Builder(
                                 previewView.meteringPointFactory.createPoint(tap.x, tap.y))
@@ -237,7 +254,9 @@ fun CardScannerDialog(
                         }
                     }, contentAlignment = Alignment.Center) {
                     if (hasPermission && owner != null) {
-                        AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
+                        AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize().onSizeChanged {
+                            visualViewport.set(ScanViewport(it.width,it.height,landscapeCard))
+                        })
                         ScannerGuide(active = ready && !effectivelyPaused, landscape = landscapeCard)
                         Surface(color = ScanInk.copy(alpha = 0.78f), shape = RoundedCornerShape(50.dp),
                             modifier = Modifier.align(Alignment.TopCenter).padding(top = 16.dp)) {
@@ -255,7 +274,7 @@ fun CardScannerDialog(
                                 if (failed) OutlinedButton(onClick = { restart++ }) { Text("Réessayer") }
                             }
                         }
-                        Text("Touche l’image pour faire le point", color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp,
+                        Text("Touche pour faire le point · pince pour zoomer", color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp,
                             modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp))
                     } else {
                         Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally,
@@ -274,10 +293,8 @@ fun CardScannerDialog(
               },
               actions = { paneModifier ->
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp), modifier = paneModifier) {
-                    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(selected = !landscapeCard, onClick = { landscapeCard = false }, label = { Text("Carte verticale") })
-                        FilterChip(selected = landscapeCard, onClick = { landscapeCard = true }, label = { Text("Leader / base") })
-                    }
+                    Text("Cartes, leaders et bases · format automatique", color = ScanCyan, fontSize = 12.sp,
+                        modifier = Modifier.align(Alignment.CenterHorizontally))
                     Crossfade(targetState = if (userPaused) "Lecture en pause · reprends quand tu es prêt" else message, label = "scan-status") { status ->
                         Text(status, color = Color(0xFFE7EDF7), fontSize = 13.sp, textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth().heightIn(min = 38.dp))
@@ -312,7 +329,9 @@ fun CardScannerDialog(
         text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { controls() } },
         confirmButton = { TextButton(onClick = { optionsOpen = false }) { Text("Reprendre le scan") } })
     if (manualEntry) ManualScanReference(onDismiss = { manualEntry = false }) { reference, language ->
-        latestDetected.value(reference.set, reference.number, "${reference.set} $language ${reference.number}").also { found -> if (found) manualEntry = false }
+        latestDetected.value(reference.set, reference.number, "${reference.set} $language ${reference.number}").also { found ->
+            if (found) { scanGate.block(reference); manualEntry = false }
+        }
     }
 }
 

@@ -302,7 +302,7 @@ private fun TradeMatchCard(match: TradeMatch, catalog: List<CatalogCard>) {
     } }
     OutlinedCard(Modifier.fillMaxWidth()) {
         Row(Modifier.padding(10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-            if (card != null) coil.compose.AsyncImage(CardLanguageArtwork.localized(androidx.compose.ui.platform.LocalContext.current,card,offered.language,offered.variant).imageUrl, offered.name, Modifier.size(56.dp,78.dp), contentScale = androidx.compose.ui.layout.ContentScale.Fit)
+            if (card != null) CardArtwork(card, Modifier.size(56.dp,78.dp), language=offered.language, variant=offered.variant)
             Column(Modifier.weight(1f)) {
                 Text("${match.quantity} × ${offered.name}", style = MaterialTheme.typography.titleSmall)
                 Text("${offered.set} · ${offered.number} · ${offered.variant} · ${CardLanguages.label(offered.language)}", style = MaterialTheme.typography.bodySmall)

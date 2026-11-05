@@ -158,8 +158,7 @@ internal fun CompleteSetPanel(sets: List<CatalogSet>, catalog: Map<String, List<
                     Card(onClick = { onPreview(row.card, visible.map { it.card }) }, modifier = Modifier.fillMaxWidth()) {
                         Row(Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalAlignment = Alignment.CenterVertically) {
-                            AsyncImage(model = row.card.imageUrl, contentDescription = row.card.name,
-                                modifier = Modifier.size(64.dp, 88.dp), contentScale = ContentScale.Fit)
+                            CardArtwork(row.card, Modifier.size(64.dp, 88.dp))
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                                 Text(row.card.name, fontWeight = FontWeight.SemiBold)
                                 Text("N° ${row.card.number} · ${row.owned} possédé(s) sur ${row.target}", fontSize = 12.sp)

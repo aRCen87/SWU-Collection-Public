@@ -12,7 +12,29 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.UUID
 
-internal data class ScanBatchEntry(val card: CatalogCard, val variant: String, val quantity: Int)
+internal data class ScanBatchEntry(val card: CatalogCard, val variant: String, val quantity: Int) {
+    val resolved get() = card.language in CardLanguages.supported && variant in ScanVariants.options
+}
+
+/** Resolve copies explicitly; mixed foil/normal copies need not be assigned the same finish. */
+internal fun resolveScanEntries(entries: List<ScanBatchEntry>, entry: ScanBatchEntry,
+    language: String, variant: String, quantity: Int): List<ScanBatchEntry> {
+    require(entry in entries && quantity in 1..entry.quantity)
+    require(language in CardLanguages.supported && variant in ScanVariants.detect(entry.card).choices)
+    val remaining = entries.toMutableList()
+    val index = remaining.indexOf(entry)
+    if (quantity == entry.quantity) remaining.removeAt(index)
+    else remaining[index] = entry.copy(quantity = entry.quantity - quantity)
+    val resolved = entry.copy(card = entry.card.copy(language = language), variant = variant, quantity = quantity)
+    val existing = remaining.indexOfFirst { it.card.setCode == resolved.card.setCode && it.card.number == resolved.card.number && it.card.language == language && it.variant == variant }
+    if (existing < 0) remaining.add(resolved)
+    else {
+        val total = remaining[existing].quantity + quantity
+        require(total <= 9999)
+        remaining[existing] = remaining[existing].copy(quantity = total)
+    }
+    return remaining
+}
 internal class ScanBatchStore(context: Context) {
     private val prefs = context.getSharedPreferences("scan_batch", 0)
     var id by mutableStateOf(prefs.getString("id", null) ?: UUID.randomUUID().toString())
@@ -40,6 +62,8 @@ internal class ScanBatchStore(context: Context) {
         val next = entries.mapNotNull { if (it != entry) it else (it.quantity + delta).takeIf { n -> n in 1..9999 }?.let { n -> it.copy(quantity = n) } }
         save(id, next)
     }
+    fun resolve(entry: ScanBatchEntry, language: String, variant: String, quantity: Int) =
+        save(id, resolveScanEntries(entries, entry, language, variant, quantity))
     fun clear() = save(UUID.randomUUID().toString(), emptyList())
 }
 
@@ -48,7 +72,7 @@ internal fun CollectionDatabase.isScanBatchCommitted(id: String): Boolean =
 
 internal fun CollectionDatabase.commitScanBatch(id: String, entries: List<ScanBatchEntry>, details: CardDetails = CardDetails.empty()) = withHistory("Ajout d’un lot scanné") {
     require(id.isNotBlank() && entries.isNotEmpty())
-    require(entries.all { it.quantity in 1..9999 && it.variant.isNotBlank() && it.card.name.isNotBlank() && CardLanguages.valid(it.card.language) })
+    require(entries.all { it.quantity in 1..9999 && it.resolved && it.card.name.isNotBlank() })
     val db = writableDatabase
     db.beginTransaction()
     try {
@@ -87,7 +111,10 @@ internal fun ScanBatchPanel(batch: ScanBatchStore, committed: Boolean, onCommit:
                 items(batch.entries, key = { it.card.setCode + ":" + it.card.number + ":" + it.variant + ":" + it.card.language }) { entry ->
                     Column {
                         Text(entry.card.name)
-                        Text("${entry.card.setCode} · ${entry.card.number} · ${entry.variant} · ${CardLanguages.label(entry.card.language)}")
+                        Text("${entry.card.setCode} · ${entry.card.number} · ${entry.variant.ifBlank { "Finition à vérifier" }} · ${CardLanguages.label(entry.card.language)}")
+                        if (!entry.resolved && !committed) ScanEntryReview(entry) { language, variant, quantity ->
+                            runCatching { batch.resolve(entry, language, variant, quantity) }.onFailure { message = it.message }
+                        }
                         Row {
                             TextButton(enabled = !committed, onClick = { runCatching { batch.change(entry, -1) }.onFailure { message = it.message } }) { Text("−") }
                             Text("${entry.quantity}", modifier = Modifier.padding(top = 12.dp))
@@ -96,7 +123,8 @@ internal fun ScanBatchPanel(batch: ScanBatchStore, committed: Boolean, onCommit:
                     }
                 }
             }
-            Button(onClick = { runCatching(onCommit).onSuccess { message = "Lot ajouté à la collection." }.onFailure { message = it.message } }, modifier = Modifier.fillMaxWidth()) { Text(if (committed) "Fermer le lot déjà ajouté" else "Valider tout le lot") }
+            if (batch.entries.any { !it.resolved }) Text("Précise les langues et finitions en attente avant de valider.")
+            Button(enabled = committed || batch.entries.all { it.resolved }, onClick = { runCatching(onCommit).onSuccess { message = "Lot ajouté à la collection." }.onFailure { message = it.message } }, modifier = Modifier.fillMaxWidth()) { Text(if (committed) "Fermer le lot déjà ajouté" else "Valider tout le lot") }
             TextButton(enabled = !committed, onClick = { discard = true }) { Text("Abandonner ce lot") }
             message?.let { Text(it) }
         }
@@ -108,3 +136,24 @@ internal fun ScanBatchPanel(batch: ScanBatchStore, committed: Boolean, onCommit:
 }
 
 
+
+@Composable
+internal fun ScanEntryReview(entry: ScanBatchEntry, onResolve: (String, String, Int) -> Unit) {
+    var language by remember(entry) { mutableStateOf(entry.card.language) }
+    var variant by remember(entry) { mutableStateOf(entry.variant) }
+    var variantMenu by remember(entry) { mutableStateOf(false) }
+    if (entry.card.language !in CardLanguages.supported) CardLanguageChoices(language, { language = it })
+    if (entry.variant !in ScanVariants.options) Box {
+        OutlinedButton(onClick = { variantMenu = true }) { Text(variant.ifBlank { "Choisir la finition" }) }
+        DropdownMenu(expanded = variantMenu, onDismissRequest = { variantMenu = false }) {
+            ScanVariants.detect(entry.card).choices.forEach { option ->
+                DropdownMenuItem(text = { Text(option) }, onClick = { variant = option; variantMenu = false })
+            }
+        }
+    }
+    val ready = language in CardLanguages.supported && variant in ScanVariants.detect(entry.card).choices
+    TextButton(enabled = ready, onClick = { onResolve(language, variant, 1) }) { Text("Appliquer à 1 exemplaire") }
+    if (entry.quantity > 1) TextButton(enabled = ready, onClick = { onResolve(language, variant, entry.quantity) }) {
+        Text("Appliquer aux ${entry.quantity} exemplaires identiques")
+    }
+}

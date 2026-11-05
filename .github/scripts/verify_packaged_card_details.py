@@ -1,4 +1,5 @@
 """Verify the card-detail asset as shipped, after AAPT has transformed assets."""
+import base64
 import gzip
 import json
 import sys
@@ -62,6 +63,21 @@ def verify(apk_path):
     prints=json.loads(print_payload)
     if prints.get("format")!="SWU_PRINT_FINISHES" or not prints.get("cards"):
         raise ValueError("Invalid packaged print metadata")
+    with zipfile.ZipFile(apk_path) as apk:
+        visual_payload=apk.read("assets/scan-visual-index.json")
+    if visual_payload != gzip.decompress(Path("app/src/main/assets/scan-visual-index.json.gz").read_bytes()):
+        raise ValueError("Packaged visual index differs from source")
+    visual=json.loads(visual_payload)
+    if visual.get("format")!="SWU_VISUAL_INDEX" or visual.get("version")!=1 or visual.get("sampling")!="area-v1" or not visual.get("entries"):
+        raise ValueError("Invalid visual recognition index")
+    identities=set(art["cards"])
+    for entry in visual["entries"]:
+        if len(entry)!=7 or entry[0]+":"+entry[1] not in identities or len(base64.b64decode(entry[6],validate=True))!=288:
+            raise ValueError("Invalid visual recognition reference")
+    covered={entry[0]+":"+entry[1] for entry in visual["entries"]}
+    if len(covered)<len(identities)*.98:
+        raise ValueError("Visual recognition index coverage is incomplete")
+    print(f"Verified visual recognition index: {len(visual['entries'])} images, {len(covered)} references")
     print(f"Verified packaged localized artwork: {len(art['cards'])} references")
     print(f"Verified packaged card details: {len(root['cards'])} cards")
 

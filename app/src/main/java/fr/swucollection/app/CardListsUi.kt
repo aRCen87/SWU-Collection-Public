@@ -104,8 +104,7 @@ private fun ListThumbnail(card: CatalogCard, modifier: Modifier = Modifier) {
     Surface(modifier.size(48.dp, 67.dp), shape = RoundedCornerShape(6.dp), color = ListPalette.Raised) {
         Box(contentAlignment = Alignment.Center) {
             Icon(Icons.Default.Star, null, tint = ListPalette.Gold.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
-            AsyncImage(model = card.imageUrl, contentDescription = null, contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(6.dp)))
+            CardArtwork(card, Modifier.fillMaxSize().clip(RoundedCornerShape(6.dp)))
         }
     }
 }

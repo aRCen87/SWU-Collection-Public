@@ -76,7 +76,7 @@ internal fun DeckPreparationDialog(name: String, deck: PortableDeck, owned: List
                         LazyColumn(Modifier.fillMaxWidth().heightIn(max = 240.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             items(rows, key = { "${it.section}:${DeckConstruction.reference(it.card)}" }) { row ->
                                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    CardArtwork(row.card.imageUrl, Modifier.width(42.dp).height(58.dp))
+                                    CardArtwork(row.card, Modifier.width(42.dp).height(58.dp))
                                     Column(Modifier.weight(1f)) { Text("${row.quantity} × ${row.card.name}"); Text("${row.card.setCode} ${row.card.number} · ${row.section}", style = MaterialTheme.typography.bodySmall) }
                                 }
                             }

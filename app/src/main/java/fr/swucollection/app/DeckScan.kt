@@ -5,7 +5,7 @@ import org.json.JSONArray
 /** Deck-only scan operations. The caller confirms identity replacement before applying. */
 internal object DeckScan {
     fun addCollectionCopy(entries: List<ScanBatchEntry>, card: CatalogCard, variant: String): List<ScanBatchEntry> {
-        require(variant in ScanVariants.options) { "Choisis la finition de la carte." }
+        require(variant.isEmpty() || variant in ScanVariants.options) { "Finition de carte invalide." }
         val index = entries.indexOfFirst { DeckConstruction.reference(it.card) == DeckConstruction.reference(card) && it.variant == variant && it.card.language == card.language }
         return entries.toMutableList().apply {
             if (index < 0) add(ScanBatchEntry(card, variant, 1))
@@ -22,7 +22,7 @@ internal object DeckScan {
         require(array.length() <= 1000)
         return (0 until array.length()).map { index ->
             val row = array.getJSONObject(index)
-            val variant = row.getString("variant"); require(variant in ScanVariants.options)
+            val variant = row.getString("variant"); require(variant.isEmpty() || variant in ScanVariants.options)
             val count = row.get("quantity")
             require(count is Int && count in 1..9999)
             ScanBatchEntry(cardFromJson(row), variant, count)

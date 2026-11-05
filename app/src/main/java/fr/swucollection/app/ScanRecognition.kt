@@ -41,7 +41,7 @@ internal object ScanRecognition {
         val text = expansionFooter.replace(normalized) { expansionOcr.getValue(it.value) }
         val matches = Regex("\\b($codeAlternatives)$separator(FR|EN|DE|ES|IT)(?=$separator(?:[CURSL]$separator)?$digits)")
             .findAll(text).map { it.groupValues[2] }.toSet()
-        return matches.singleOrNull()?.takeIf { it in CardLanguages.supported }
+        return if (matches.isEmpty()) ScanTextLanguage.detect(raw) else matches.singleOrNull()?.takeIf { it in CardLanguages.supported }
     }
 
     fun extract(raw: String): ScanReference? = references(raw).singleOrNull()
@@ -77,7 +77,7 @@ internal object ScanRecognition {
 }
 
 /** Require consecutive consistent reads; a held card never triggers another confirmation. */
-internal class StableScanGate(private val maxGapMs: Long = 2500, private val removalMs: Long = 900) {
+internal class StableScanGate(private val maxGapMs: Long = 2500, private val removalMs: Long = 900, private val unknownLanguageReads: Int = 2) {
     private var candidate: ScanReference? = null
     private var reads = 0
     private var candidateLanguage: String? = null
@@ -86,7 +86,11 @@ internal class StableScanGate(private val maxGapMs: Long = 2500, private val rem
     var blockedReference: ScanReference? = null
         private set
 
-    fun reset() { candidate = null; reads = 0; lastSeen = 0L; absentSince = null; blockedReference = null }
+    /** Pausing is not proof of removal, and an old frame must not complete a new scan. */
+    fun interrupt() { candidate = null; candidateLanguage = null; reads = 0; lastSeen = 0L; absentSince = null }
+
+    fun block(reference: ScanReference) { interrupt(); blockedReference = reference }
+    fun reset() { interrupt(); blockedReference = null }
 
     fun observe(reference: ScanReference?, now: Long, language: String? = null): ScanReference? {
         if (reference == null) {
@@ -96,11 +100,11 @@ internal class StableScanGate(private val maxGapMs: Long = 2500, private val rem
             return null
         }
         absentSince = null
-        if (reference == blockedReference) return null
+        if (reference == blockedReference) { interrupt(); return null }
         if (reference != candidate || language != candidateLanguage || now - lastSeen > maxGapMs) { candidate = reference; candidateLanguage = language; reads = 1 }
         else reads++
         lastSeen = now
-        if (reads < 2) return null
+        if (reads < if (language == null) unknownLanguageReads else 2) return null
         blockedReference = reference
         candidate = null; reads = 0
         return reference

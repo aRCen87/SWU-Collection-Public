@@ -33,7 +33,7 @@ internal fun GlobalSearchPanel(query: String, onQuery: (String) -> Unit, catalog
             items(results, key = { "card:${DeckConstruction.reference(it)}" }) { card ->
                 Card(onClick = { onCard(card, results) }, modifier = Modifier.fillMaxWidth()) {
                     Row(Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        CardArtwork(card.imageUrl, Modifier.width(58.dp).height(82.dp))
+                        CardArtwork(card, Modifier.width(58.dp).height(82.dp))
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(card.name, color = ListPalette.Gold)
                             CardLegalityBadge(legality.status(card))

@@ -6,6 +6,12 @@
 - Destination visible dans le scanner : collection par défaut, nouveau deck, deck enregistré ou brouillon.
 - Depuis le scanner de deck, retour possible au scan collection ; les ajouts collection du deck restent optionnels.
 - Les cartes déjà scannées restent dans leur destination initiale lors d’un changement de destination.
+- Aide à la reconnaissance par l’image, sur le téléphone (8 453 références indexées) : lorsque la référence reste illisible, croisement de l’illustration et des fragments de référence lisibles. L’illustration seule ne détermine jamais la langue ou la finition. Les formats portrait et paysage sont recherchés automatiquement, sans sélection du type de carte.
+- Images manquantes : nouvelle recherche des faces françaises officielles ; affichage d’un visuel disponible dans une autre langue avec une mention explicite lorsque la face choisie n’est pas publiée, sans modifier la langue enregistrée. Les versos des leaders bénéficient du même traitement.
+- Lecture des numéros fragmentés en plusieurs chiffres ; conservation des références contradictoires pour éviter de choisir une mauvaise carte. Une pause ou une saisie manuelle ne peut plus compléter une ancienne lecture ou déclencher immédiatement un double ajout.
+
+- Langue reconnue par le code imprimé, ou par plusieurs mots distinctifs du texte lorsque le code est illisible, sans utiliser la langue du téléphone ou du visuel.
+- En série, une langue ou finition incertaine reste en attente de vérification dans le récapitulatif après « Terminer », sans interrompre chaque scan et sans être ajoutée avec une valeur inventée. Même protection pour les ajouts collection optionnels depuis un deck.
 
 ## Version 0.8.8
 
