@@ -122,14 +122,15 @@ def main():
     catalogue = json.loads((root/'app/src/main/assets/catalog-fr.json').read_text(encoding='utf-8'))
     mapping, skipped = build(catalogue, source, official, products['products'])
     assert 'HMW:001' in mapping and mapping['SOR:001']['nameEn'] == 'Director Krennic, Aspiring to Authority'
-    ids = {p for card in mapping.values() for p in card['products']}
-    snapshot = dict(guide, priceGuides=[p for p in guide['priceGuides'] if p['idProduct'] in ids and p['idCategory']==1644])
-    payload = {'version':2, 'createdAt':datetime.now(timezone.utc).isoformat(), 'cards':mapping}
+    import gzip
+    from extend_market_mapping import extend_mapping, write_outputs
     assets = root/'app/src/main/assets'
-    (assets/'cardmarket-map.json').write_text(json.dumps(payload, ensure_ascii=False, separators=(',', ':'))+'\n', encoding='utf-8')
-    (assets/'cardmarket-guide.json').write_text(json.dumps(snapshot, ensure_ascii=False, separators=(',', ':'))+'\n', encoding='utf-8')
-    print(json.dumps({'mapped':len(mapping),'bySet':dict(Counter(k.split(':')[0] for k in mapping)),
-                      'guideDate':guide['createdAt'],'prices':len(snapshot['priceGuides']), 'skipped':dict(skipped)}, ensure_ascii=False))
+    details = json.loads(gzip.decompress((assets/'card-details.json.gz').read_bytes()))['cards']
+    finishes = json.loads(gzip.decompress((assets/'card-print-finishes.json.gz').read_bytes()))['cards']
+    overrides = json.loads((root/'.github/cardmarket-overrides.json').read_text())
+    mapping, coverage = extend_mapping(catalogue, mapping, details, finishes, products['products'], overrides)
+    write_outputs(assets, mapping, guide)
+    print(json.dumps({'coverage':dict(coverage), 'skipped':dict(skipped)}, ensure_ascii=False))
 
 if __name__ == '__main__':
     main()

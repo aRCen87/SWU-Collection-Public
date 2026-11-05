@@ -41,6 +41,13 @@ internal fun DeckImportDialog(catalog: List<CatalogCard>, details: CardDetails, 
                 OutlinedButton(onClick = { picker.launch(arrayOf("application/json", "text/*", "application/octet-stream")) }) {
                     Text("Choisir un fichier")
                 }
+                OutlinedButton(onClick = {
+                    val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    val text = clipboard.primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(context)?.toString()
+                    if (text.isNullOrBlank()) error = "Le presse-papiers est vide."
+                    else if (text.length > 1_000_000) error = "Liste trop volumineuse (1 Mo maximum)."
+                    else { raw = text; error = null }
+                }) { Text("Coller une liste copiée") }
                 OutlinedTextField(raw, { if (it.length <= 1_000_000) { raw = it; error = null } },
                     label = { Text("JSON ou texte du deck") }, modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp))
                 error?.let { Text(it, color = ListPalette.Danger) }

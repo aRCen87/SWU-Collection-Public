@@ -39,7 +39,8 @@ internal fun HomeNavigationCard(symbol: String, title: String, subtitle: String,
         "EXTENSIONS" -> Icons.Default.Style
         "MA COLLECTION" -> Icons.Default.AutoStories
         "MES DECKS" -> Icons.Default.Layers
-        "HAUTS FAITS" -> Icons.Default.WorkspacePremium
+        "HAUTS FAITS", "BADGES" -> Icons.Default.WorkspacePremium
+        "TOURNOIS & MÉTA" -> Icons.Default.EmojiEvents
         "ÉCHANGES" -> Icons.Default.SwapHoriz
         else -> Icons.Default.BarChart
     }
@@ -51,12 +52,9 @@ internal fun HomeNavigationCard(symbol: String, title: String, subtitle: String,
         modifier = Modifier.fillMaxWidth().goldBorderReflection(reflection),
         shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, gold.copy(alpha = 0.8f)), color = navy) {
         Box(Modifier.fillMaxWidth().heightIn(min = 76.dp)) {
-            if(title == "HAUTS FAITS") {
-                Box(Modifier.align(Alignment.CenterEnd).width(124.dp).height(76.dp)) {
-                    if(badge != null && catalog.isNotEmpty()) BadgePin(badge,catalog,
-                        Modifier.align(Alignment.CenterEnd).fillMaxHeight().padding(end=10.dp))
-                    else HomeBadgeEmblem(Modifier.matchParentSize())
-                }
+            if(title in listOf("HAUTS FAITS", "BADGES", "TOURNOIS & MÉTA")) {
+                HomeFeatureArtwork(title == "TOURNOIS & MÉTA",
+                    Modifier.align(Alignment.CenterEnd).width(150.dp).height(76.dp))
             } else Canvas(Modifier.matchParentSize()) {
                 val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG or android.graphics.Paint.FILTER_BITMAP_FLAG)
                 drawContext.canvas.nativeCanvas.drawBitmap(artwork, null,

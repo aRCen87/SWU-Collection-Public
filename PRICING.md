@@ -1,21 +1,27 @@
-# Cotes Cardmarket
+# Cotes Cardmarket — version 0.8.11
 
-Les libellés français et leurs accents sont conservés exactement tels qu'ils figurent dans le catalogue. Le rapprochement utilise l'extension, le numéro de collection, le type et l'identité bilingue ; il ne rapproche jamais des lignes par leur position. La normalisation de recherche conserve les accents (NFC), mais harmonise la casse et les guillemets. Une dernière vérification du nom français protège l'affichage si le catalogue a changé depuis la création de la table.
+État de préparation de la version 0.8.11. Le scanner et ses données de reconnaissance restent inchangés. Aucune donnée de collection ni aucun schéma de base de données n'est modifié.
 
-La table v2 couvre les 2 549 références standard des onze extensions incluses : SOR 252, SHD 262, TWI 257, JTL 262, LOF 264, IBH 104, SEC 264, LAW 264, TS26 84, ASH 264 et HMW 272. Les données HMW proviennent des quatre pages anglaises de l'API officielle de l'éditeur, associées aux mêmes numéros et types du catalogue français. Les jetons qui réutilisent un numéro ne peuvent plus remplacer une carte.
+## Correspondances préparées
 
-Les prix sont exclusivement les tendances EUR du guide officiel Cardmarket, toutes langues et hors livraison. La tendance normale et la tendance foil sont lues séparément, y compris lorsqu'elles sont publiées sous différents identifiants de produit. Les moyennes de vente propres à chaque finition permettent d'écarter un identifiant dont la tendance résiduelle correspond à une autre finition. Lorsque plusieurs impressions vérifiées de la même carte restent possibles, l'application affiche une fourchette et l'indique. Une base dont le verso-jeton n'est pas identifié affiche aussi une fourchette explicite.
+La table v3 contient 6 318 références sur les 8 453 du catalogue : 2 549 standards existantes, 711 numéros foil distincts et 3 058 références premium supplémentaires. Il reste 2 135 références sans lien. Une référence reliée n'implique pas qu'une tendance positive soit disponible pour chaque finition dans le guide.
 
-L'application affiche d'abord la dernière cote enregistrée ou l'instantané livré avec l'APK, avec la date du guide, puis tente une actualisation à la première consultation de la session. Le guide est réutilisé pendant 24 heures ; Actualiser force une nouvelle tentative. Un échec de réseau ou de sauvegarde du cache n'efface pas les prix déjà disponibles. Les noms, fichiers et requêtes sont traités explicitement en UTF-8.
+Les numéros foil sont associés à la famille officielle de leur carte normale, dans la même extension, puis utilisent exclusivement la tendance foil. Les identifiants de collection restent inchangés. Les références premium utilisent l'extension Extras Cardmarket, le nom anglais complet et l'identité metacard de la carte standard ; les familles comportant plusieurs traitements premium sont exclues. Les prix et l'ordre des identifiants ne servent jamais à reconnaître une variante. Les associations restantes nécessitent une vérification précise sur Cardmarket, surtout pour les promos et les familles comprenant showcase/prestige/serialized.
 
-## Limites annoncées dans l'interface
+Chaque finition conserve sa sélection de produits et son champ trend ou trend-foil. Un prix normal ne remplace jamais une tendance premium ou foil absente. Une sélection de plusieurs produits affiche une fourchette explicite ; les bases avec plusieurs versos sont signalées. Les accents et noms français sont contrôlés avant affichage.
 
-Une correspondance vérifiée de la référence normale n'autorise pas à appliquer son prix à une impression premium, à un numéro foil distinct, à une promo ou à un showcase. Ces références restent signalées comme non reliées ; le bouton Voir Cardmarket reste accessible. Les 5 904 autres références du catalogue ne sont pas présentées comme cotées.
+Le catalogue et les budgets demandent la finition par défaut de la référence exacte. La valeur de collection utilise toujours la finition enregistrée pour la carte possédée. Aucun remplacement silencieux d'une finition incompatible n'est autorisé.
 
-Le guide public peut ne pas publier certaines tendances, même quand le site Cardmarket affiche des offres ou une cote. L'absence dans le guide n'est jamais présentée comme une absence de carte ou de cote sur le site. Dans l'instantané du 31 octobre 2026, les 272 cartes normales HMW ont une tendance exploitable ; le guide de leur édition normale ne fournit pas de tendance foil exploitable. L'application ne substitue pas une cote d'hyperspace, de prestige ou d'une autre impression pour combler ce manque.
+## Actualisation préparée
 
-## Reconstruction et validation
+Le guide officiel Cardmarket fourni a pour date le 5 novembre 2026. Les tendances EUR concernent toutes les langues et sont hors livraison. L'application affiche les fichiers embarqués ou le cache le plus récent avant de tenter une actualisation. Une erreur réseau ou d'écriture ne supprime pas les données disponibles.
 
-Depuis la racine du dépôt : `python3 .github/scripts/build_market_map.py --refresh`. Le script met à jour la table et l'instantané avec les exports officiels de produits et de prix Cardmarket, les identités bilingues de Team-Zura/swu-cards-json et les identités HMW de l'API de l'éditeur. Il refuse une pagination HMW incomplète et les associations ambiguës. Inspecter la couverture affichée avant publication. Le dossier temporaire `.market-cache` ne doit pas être commité.
+Le workflow market-data préparé actualisera quotidiennement les correspondances depuis les exports publics Cardmarket, les familles et finitions officielles déjà présentes dans les données du projet. Il écrira uniquement les deux fichiers de données dans une branche market-data, sans reconstruire ni publier d'APK. L'application pourra consulter cette table et la conserver en cache pendant la session, avec une tentative au maximum par jour hors actualisation manuelle. Cette alimentation est activée par l’intégration à main, puis par le planificateur quotidien.
 
-Les six tests Python couvrent les collisions de numéros, l'extension, les impressions, les accents et le refus d'identités ambiguës. Les tests Kotlin contrôlent les régressions Krennic/Chewbacca, les 272 prix normaux HMW, les noms français du catalogue, le choix normal/foil, les bases à plusieurs versos, le leader double face Palpatine/Sidious et la validation des dates et des montants. Aucun de ces tests ne prétend simuler un téléphone réel.
+Les cas vérifiés manuellement peuvent être ajoutés à .github/cardmarket-overrides.json avec référence, finition, produits exacts, champ, extension, nom anglais et URL Cardmarket documentant le traitement. Le fichier est volontairement vide pour le moment.
+
+## Préparation et contrôles différés
+
+`python3 .github/scripts/extend_market_mapping.py --refresh` régénère la table depuis les liens standards existants. `python3 .github/scripts/build_market_map.py --refresh` reconstruit aussi ces liens standards depuis les identités bilingues et l'API HMW. Les deux chemins conservent le format par finition.
+
+Des cas Kotlin sont préparés pour les numéros foil distincts, les prix premium séparés et la structure de la table. Les contrôles requis sont les tests Python de rapprochement, les tests Kotlin, lint, la compilation et les vérifications Android de navigation et de conservation des données dans le workflow. La création de la table est une préparation des données et ne constitue pas une validation applicative.

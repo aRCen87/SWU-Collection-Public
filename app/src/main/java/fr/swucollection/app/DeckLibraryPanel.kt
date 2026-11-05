@@ -19,7 +19,8 @@ internal fun DeckLibraryPanel(
     pinned: Set<String> = emptySet(), onPin: (DeckStore.SavedDeck) -> Unit = {}, onPrepare: (DeckStore.SavedDeck) -> Unit = {},
     onCreate: () -> Unit, onResumeDraft: (String) -> Unit, onImport: () -> Unit, onOpen: (DeckStore.SavedDeck) -> Unit,
     onDuplicate: (DeckStore.SavedDeck) -> Unit, onDelete: (DeckStore.SavedDeck) -> Unit,
-    onExport: (DeckStore.SavedDeck) -> Unit = {}
+    onExport: (DeckStore.SavedDeck) -> Unit = {},
+    owned: List<CollectionCard> = emptyList(), details: CardDetails? = null
 ) {
     val context = LocalContext.current.applicationContext
     val draftStore = remember(context) { DeckDraftStore(context) }
@@ -76,6 +77,13 @@ internal fun DeckLibraryPanel(
                                 Text("${saved.deck.deck.sumOf { it.count }} cartes · ${saved.deck.sideboard.sumOf { it.count }} en réserve",
                                     style = MaterialTheme.typography.bodySmall, color = ListPalette.Secondary)
                             }
+                        }
+                        if (details != null) {
+                            val stock = remember(saved.deck, owned, catalog, details) { CompetitiveDecks.readiness(saved.deck, owned, catalog, details) }
+                            Text(when { stock.unknown > 0 -> "Comparaison incomplète : ${stock.unknown} référence(s) inconnue(s)"
+                                stock.ready -> "Toutes les cartes possédées · réserve comprise"
+                                else -> "${stock.missing} exemplaire(s) manquant(s) · réserve comprise" },
+                                style = MaterialTheme.typography.bodySmall, color = ListPalette.Gold)
                         }
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             TextButton(onClick = { onOpen(saved) }) { Text("Modifier") }
