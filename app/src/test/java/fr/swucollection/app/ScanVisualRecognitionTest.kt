@@ -50,4 +50,62 @@ class ScanVisualRecognitionTest {
         assertNull(ScanVisualRecognition.corroborated("EN C 317",matches + matches[1].copy(reference=ScanReference("SHD","317"))))
         assertNull(ScanVisualRecognition.corroborated("SOR FR 236\nEN C 317",matches))
     }
+
+    @Test fun fineDetailsSeparateCardsWhoseCoarseColourSignaturesAreIdentical() {
+        val coarse = ScanVisualRecognition.signature(IntArray(96) { 0xff888888.toInt() })
+        val detailed = IntArray(16*24) { i ->
+            if ((i%16+i/16)%2 == 0) 0xff444444.toInt() else 0xffcccccc.toInt()
+        }
+        val right = ScanVisualRecognition.signature(detailed)
+        val wrong = ScanVisualRecognition.signature(detailed.map { if (it == 0xff444444.toInt()) 0xffcccccc.toInt() else 0xff444444.toInt() }.toIntArray())
+        val first = VisualIndexEntry(ScanReference("SOR","001"),"Premier","url",false,coarse,wrong)
+        val second = first.copy(reference=ScanReference("SOR","002"), detail=right)
+        val matches = ScanVisualRecognition.candidates(listOf(coarse),listOf(first,second),false,listOf(right))
+        assertEquals(second.reference,matches.first().reference)
+        assertEquals(0.0,matches.first().score,0.00001)
+    }
+
+    @Test fun exactTitleCanResolveAnOtherwiseAmbiguousNumberButNeverOverridesAConflict() {
+        val first = VisualCardMatch(ScanReference("SOR","317"),"Directeur Krennic — Aspire au pouvoir","url",.025,
+            englishName="Director Krennic — Aspiring to Authority")
+        val second = first.copy(reference=ScanReference("SHD","317"),name="Grand Amiral Thrawn",englishName="Grand Admiral Thrawn")
+        val matches = listOf(first,second)
+        assertNull(ScanVisualRecognition.corroborated("FR C 317",matches))
+        assertEquals(first.reference to "FR",ScanVisualRecognition.corroborated("FR C 317",matches,"DIRECTEUR KRENNIC"))
+        assertEquals(first.reference to "EN",ScanVisualRecognition.corroborated("EN C 317",matches,"Director Krennic"))
+        assertNull(ScanVisualRecognition.corroborated("FR C 317",matches,"Krennic"))
+        assertNull(ScanVisualRecognition.corroborated("SOR FR 317\nSHD FR 317",matches,"Directeur Krennic"))
+        assertNull(ScanVisualRecognition.corroborated("FR C 317",listOf(first.copy(reference=ScanReference("SOR","236")),second),"Directeur Krennic"))
+    }
+
+    @Test fun detailedComparisonPairsEachCropWithItsOwnCoarseSignature() {
+        val coarse = ScanVisualRecognition.signature(pixels)
+        val detail = ScanVisualRecognition.signature(IntArray(16*24) { pixels[it%96] })
+        val entry = VisualIndexEntry(ScanReference("SOR","001"),"Carte","url",false,coarse,detail)
+        assertEquals(0.0,ScanVisualRecognition.candidates(listOf(coarse),listOf(entry),false,listOf(detail)).single().score,.00001)
+        assertThrows(IllegalArgumentException::class.java) {
+            ScanVisualRecognition.candidates(listOf(coarse,coarse),listOf(entry),false,listOf(detail))
+        }
+    }
+
+    @Test fun detailedSimilarityCannotRescueAnUnrelatedGlobalImage() {
+        val coarse = ScanVisualRecognition.signature(pixels)
+        val uniform = ScanVisualRecognition.signature(IntArray(96) { 0xff888888.toInt() })
+        val fine = ScanVisualRecognition.signature(IntArray(16*24) { 0xff888888.toInt() })
+        val entry = VisualIndexEntry(ScanReference("SOR","001"),"Carte","url",false,coarse,fine)
+        assertTrue(ScanVisualRecognition.candidates(listOf(uniform),listOf(entry),false,listOf(fine)).isEmpty())
+    }
+
+    @Test fun partialNumberRetainsTheExactPrintingEvenWithManyIdenticalIllustrations() {
+        val signature = ScanVisualRecognition.signature(pixels)
+        val entries = (1..12).map { n -> VisualIndexEntry(ScanReference("SOR",n.toString().padStart(3,'0')),
+            "Même illustration","url",false,signature) }
+        val reference = ScanReference("SOR","012")
+        assertFalse(ScanVisualRecognition.candidates(listOf(signature),entries,false).any { it.reference == reference })
+        assertEquals(reference,ScanVisualRecognition.candidates(listOf(signature),entries,false,numberHint=12).single().reference)
+        assertTrue(ScanVisualRecognition.candidates(listOf(signature),entries,false,numberHint=317).isEmpty())
+        assertEquals(317 to "EN",ScanVisualRecognition.partialFooter("ＥＮ Ⓒ ３１７"))
+        assertNull(ScanVisualRecognition.partialFooter("FR C 000"))
+        assertNull(ScanVisualRecognition.partialFooter("FR C 317\nEN C 317"))
+    }
 }

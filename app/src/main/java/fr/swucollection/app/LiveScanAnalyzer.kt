@@ -1,6 +1,9 @@
 package fr.swucollection.app
 
 import android.os.SystemClock
+import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.Tasks
+import com.google.mlkit.vision.text.Text
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -32,6 +35,10 @@ internal class LiveScanAnalyzer(
     private var lastAnalysis = SystemClock.elapsedRealtime() // Allow positioning after opening the camera.
     @Volatile private var rejected: ScanReference? = null
     private val orientation = ScanOrientation()
+    private var lastRegionAnalysis = 0L
+    private var regionLandscape = true
+    private val regionEvidence = ScanRegionEvidence()
+    private var regionHasReference = false
     private var lastVisualAnalysis = 0L
     private val visualEvidence = StableVisualScanEvidence()
     private var visualKey: List<ScanReference> = emptyList()
@@ -43,12 +50,33 @@ internal class LiveScanAnalyzer(
     fun readAgain() { generation.incrementAndGet(); force.set(true) }
     fun interrupt() {
         generation.incrementAndGet()
-        gate.interrupt(); visualEvidence.interrupt(); visualKey = emptyList(); visualReads = 0; visualAbsentSince = null
+        gate.interrupt(); regionEvidence.interrupt(); visualEvidence.interrupt(); visualKey = emptyList(); visualReads = 0; visualAbsentSince = null
     }
     fun close() { closed.set(true); releaseIfIdle() }
     private fun releaseIfIdle() {
         if (closed.get() && !processing.get() && released.compareAndSet(false, true)) {
             recognizer.close(); analysisExecutor.shutdown()
+        }
+    }
+
+    private fun readingText(text: Text): String {
+        val words = text.textBlocks.flatMap { it.lines }.flatMap { it.elements }.mapNotNull { element ->
+            element.boundingBox?.let { bounds -> ScanOcrWord(element.text,bounds.left,bounds.top,bounds.right,bounds.bottom) }
+        }
+        return ScanFrameRecognition.text(text.text,words)
+    }
+
+    private fun readRegions(image: ImageProxy, viewport: ScanViewport, textRotation: Int,
+        landscape: Boolean, full: String, active: () -> Boolean): Task<ScanOcrReading> {
+        val crops = runCatching {
+            val frame = image.toBitmap()
+            try { ScanOcrRegions.crops(frame,image.imageInfo.rotationDegrees,viewport,landscape,textRotation) }
+            finally { frame.recycle() }
+        }.getOrNull() ?: return Tasks.forResult(ScanOcrReading(full,regionsAttempted=true))
+        return ScanOcrRegions.read(crops,full,analysisExecutor,active) { crop ->
+            recognizer.process(InputImage.fromBitmap(crop,0)).continueWith(analysisExecutor) { task ->
+                if (task.isSuccessful) readingText(task.result) else ""
+            }
         }
     }
 
@@ -67,40 +95,63 @@ internal class LiveScanAnalyzer(
             val media = image.image
             if (media == null) { image.close(); processing.set(false); releaseIfIdle(); return }
             if (retry) {
-                orientation.reset()
+                orientation.reset(); regionHasReference = false
                 callbackExecutor.execute {
-                    gate.reset(); visualEvidence.interrupt(); rejected = null; visualKey = emptyList(); visualReads = 0; blockedVisualKey = emptyList()
+                    gate.reset(); regionEvidence.interrupt(); visualEvidence.interrupt(); rejected = null; visualKey = emptyList(); visualReads = 0; blockedVisualKey = emptyList()
                 }
             }
             val currentViewport = viewport()
             val rotation = (image.imageInfo.rotationDegrees + orientation.degrees) % 360
+            val textRotation = orientation.degrees
             recognizer.process(InputImage.fromMediaImage(media, rotation))
-                .addOnSuccessListener(analysisExecutor) { text ->
-                    if (!closed.get() && !paused() && generation.get() == frameGeneration) {
-                        val words = text.textBlocks.flatMap { it.lines }.flatMap { it.elements }.mapNotNull { element ->
-                            element.boundingBox?.let { bounds ->
-                                ScanOcrWord(element.text, bounds.left, bounds.top, bounds.right, bounds.bottom)
+                .continueWithTask(analysisExecutor) { result ->
+                    if (!result.isSuccessful) Tasks.forException<ScanOcrReading>(result.exception ?: IllegalStateException("Lecture interrompue"))
+                    else {
+                        val full = readingText(result.result)
+                        val regional = ScanRecognition.extract(full) == null && ScanRecognition.references(full).size <= 1 &&
+                            SystemClock.elapsedRealtime() - lastRegionAnalysis >= 1800 &&
+                            !closed.get() && !paused() && generation.get() == frameGeneration
+                        if (regional) {
+                            lastRegionAnalysis = SystemClock.elapsedRealtime()
+                            if (!regionHasReference) regionLandscape = !regionLandscape
+                            readRegions(image,currentViewport,textRotation,regionLandscape,full) {
+                                !closed.get() && !paused() && generation.get() == frameGeneration
+                            }.continueWith(analysisExecutor) { regionTask ->
+                                val reading = if (regionTask.isSuccessful) regionTask.result else ScanOcrReading(full,regionsAttempted=true)
+                                regionHasReference = reading.reference != null
+                                reading
                             }
-                        }
-                        val raw = ScanFrameRecognition.text(text.text, words)
-                        val reference = ScanRecognition.extract(raw)
+                        } else Tasks.forResult(ScanOcrReading(full))
+                    }
+                }
+                .addOnSuccessListener(analysisExecutor) { reading ->
+                    if (!closed.get() && !paused() && generation.get() == frameGeneration) {
+                        val raw = reading.raw
+                        val reference = reading.reference
                         val checksAbsence = orientation.checksAbsence
                         orientation.observed(reference)
-                        val visualAttempted = (reference == null || reference == rejected) && ScanRecognition.references(raw).size <= 1 &&
+                        val visualAttempted = (reference == null || reference == rejected) && reading.references.size <= 1 &&
                             SystemClock.elapsedRealtime() - lastVisualAnalysis >= 1800
                         val visual = if (visualAttempted) {
                             lastVisualAnalysis = SystemClock.elapsedRealtime()
                             runCatching {
                                 val bitmap = image.toBitmap()
-                                try { visualMatcher.matchAutomatic(bitmap, image.imageInfo.rotationDegrees, currentViewport) }
+                                try { visualMatcher.matchAutomatic(bitmap, image.imageInfo.rotationDegrees, currentViewport,
+                                    ScanVisualRecognition.partialFooter(reading.footer.ifBlank { raw })?.first) }
                                 finally { bitmap.recycle() }
                             }.getOrDefault(emptyList())
                         } else emptyList()
                         callbackExecutor.execute {
                         if (closed.get() || paused() || generation.get() != frameGeneration) return@execute
+                        val regional = regionEvidence.observe(reading,SystemClock.elapsedRealtime())
+                        if (regional != null && gate.blockedReference != regional.first && onDetected(regional.first,raw)) {
+                            gate.block(regional.first); regionEvidence.confirmed(); visualEvidence.interrupt(); rejected = null
+                            onMessage("Carte reconnue · référence confirmée")
+                            return@execute
+                        }
                         if (reference != null) visualEvidence.interrupt()
                         val corroborated = if (visualAttempted) visualEvidence.observe(
-                            ScanVisualRecognition.corroborated(raw, visual), SystemClock.elapsedRealtime()
+                            ScanVisualRecognition.corroborated(raw, visual, reading.title), SystemClock.elapsedRealtime()
                         ) else null
                         if (corroborated != null && gate.blockedReference != corroborated.first) {
                             val (exact, language) = corroborated
@@ -131,7 +182,8 @@ internal class LiveScanAnalyzer(
                         }
                         // A sideways retry is not evidence that the held card was
                         // removed. Otherwise one failed read can rearm batch mode.
-                        val stable = if (reference != null || (checksAbsence && visualKey.isEmpty()))
+                        val stable = if (reference != null || (checksAbsence && visualKey.isEmpty() &&
+                            !regionEvidence.visible(SystemClock.elapsedRealtime())))
                             gate.observe(reference, SystemClock.elapsedRealtime(), ScanRecognition.language(raw)) else null
                         when {
                             stable != null -> {

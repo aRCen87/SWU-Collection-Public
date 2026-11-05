@@ -1,3 +1,10 @@
+## Version 0.8.10
+
+- Scanner : lecture séparée du titre et du bas de carte en cas de référence illisible, en conservant les détails de l’image caméra. Recherche automatique des formats portrait et paysage.
+- Comparaison visuelle affinée sur les candidats les plus proches : grille plus détaillée et comparaison des contours pour mieux départager des illustrations similaires.
+- Croisement du titre, de l’image, du numéro et de la langue imprimée. Les titres français et anglais peuvent aider à départager des références proches, sans imposer une langue ou une finition à partir du visuel.
+- Deux lectures cohérentes restent nécessaires ; les contradictions, pauses et doubles lectures restent protégées. Les contrôles supplémentaires sont espacés et réservés aux lectures incertaines.
+
 ## Version 0.8.9
 
 - Reconnaissance croisée image/texte : deux lectures cohérentes de la référence et de la langue sont exigées ; un changement de langue, une lecture contradictoire ou une pause annule la lecture partielle.

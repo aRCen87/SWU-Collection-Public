@@ -4,10 +4,10 @@ import argparse, base64, concurrent.futures, gzip, hashlib, io, json, pathlib, t
 from PIL import Image, ImageOps, ImageStat
 
 
-def signature(image):
+def signature(image, size=(8,12)):
     image = image.convert('RGB')
     w,h=image.size
-    image=image.crop((w*.06,h*.06,w*.94,h*.94)).resize((8,12),Image.Resampling.BOX)
+    image=image.crop((w*.06,h*.06,w*.94,h*.94)).resize(size,Image.Resampling.BOX)
     pixels=list(image.getdata())
     gray=[.299*r+.587*g+.114*b for r,g,b in pixels]
     mean=sum(gray)/len(gray)
@@ -23,6 +23,7 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument('--catalog',default='app/src/main/assets/catalog-fr.json')
     p.add_argument('--art',default='app/src/main/assets/card-art-languages.json.gz')
+    p.add_argument('--details',default='app/src/main/assets/card-details.json.gz')
     p.add_argument('--output',default='app/src/main/assets/scan-visual-index.json.gz')
     p.add_argument('--report',help='Optional JSON report of unavailable images')
     p.add_argument('--cache',default='/tmp/swu-visual-images')
@@ -32,6 +33,7 @@ def main():
     a=p.parse_args()
     cards=json.loads(pathlib.Path(a.catalog).read_text())['cards']
     art=json.loads(gzip.decompress(pathlib.Path(a.art).read_bytes()))
+    details=json.loads(gzip.decompress(pathlib.Path(a.details).read_bytes()))['cards']
     cache=pathlib.Path(a.cache);cache.mkdir(parents=True,exist_ok=True)
     thumbnails=json.loads(pathlib.Path(a.thumbnails).read_text()) if a.thumbnails else {}
     work=[]
@@ -60,14 +62,17 @@ def main():
                         time.sleep(attempt+1)
             with Image.open(file) as img:
                 img=ImageOps.exif_transpose(img)
-                return [c['s'],c['n'],c['name'],url,face,img.width>img.height,base64.b64encode(signature(img)).decode()]
+                return [c['s'],c['n'],c['name'],url,face,img.width>img.height,
+                        base64.b64encode(signature(img)).decode(),
+                        base64.b64encode(signature(img,(16,24))).decode(),
+                        details.get(c['s']+':'+c['n'],{}).get('en','')]
         except Exception as e:return {'reference':c['s']+':'+c['n'],'face':face,'error':str(e)}
     entries=[];missing=[]
     with concurrent.futures.ThreadPoolExecutor(max_workers=a.workers) as pool:
         for i,row in enumerate(pool.map(build,work),1):
             (missing if isinstance(row,dict) else entries).append(row)
             if i%500==0:print(f'{i}/{len(work)} images, {len(missing)} unavailable',flush=True)
-    result={'format':'SWU_VISUAL_INDEX','version':1,'width':8,'height':12,'sampling':'area-v1','entries':entries}
+    result={'format':'SWU_VISUAL_INDEX','version':2,'width':8,'height':12,'detailWidth':16,'detailHeight':24,'sampling':'area-v1','entries':entries}
     if not a.cached_only and len(set((v[0],v[1]) for v in entries)) < len(cards)*.98:
         raise RuntimeError('Incomplete visual index; refusing to replace the shipped index')
     pathlib.Path(a.output).write_bytes(gzip.compress(json.dumps(result,separators=(',',':'),ensure_ascii=False).encode(),mtime=0))
