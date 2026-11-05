@@ -2,6 +2,9 @@ package fr.swucollection.app
 
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.Tasks
+import java.util.concurrent.Executor
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -17,6 +20,25 @@ internal data class ScanOcrReading(val full: String, val title: String = "", val
 
 /** Native-resolution crops use the same FILL_CENTER guide as the camera preview. */
 internal object ScanOcrRegions {
+    /** Keep both crops alive until OCR has completed, including interruption and failure paths. */
+    fun read(crops: Pair<Bitmap,Bitmap>, full: String, executor: Executor, active: () -> Boolean,
+        recognize: (Bitmap) -> Task<String>): Task<ScanOcrReading> {
+        val (title,footer) = crops
+        return try {
+            recognize(title).continueWithTask(executor) { titleTask ->
+                val titleText = if (titleTask.isSuccessful) titleTask.result else ""
+                if (active()) recognize(footer).continueWith(executor) { footerTask ->
+                    ScanOcrReading(full,titleText,if (footerTask.isSuccessful) footerTask.result else "",true)
+                } else Tasks.forResult(ScanOcrReading(full,regionsAttempted=true))
+            }.continueWith(executor) { task ->
+                if (task.isSuccessful) task.result else ScanOcrReading(full,regionsAttempted=true)
+            }.addOnCompleteListener(executor) { title.recycle();footer.recycle() }
+        } catch (_: Exception) {
+            title.recycle();footer.recycle()
+            Tasks.forResult(ScanOcrReading(full,regionsAttempted=true))
+        }
+    }
+
     fun crops(frame: Bitmap, rotation: Int, viewport: ScanViewport, landscape: Boolean,
         textRotation: Int): Pair<Bitmap, Bitmap>? {
         if (viewport.width <= 0 || viewport.height <= 0) return null

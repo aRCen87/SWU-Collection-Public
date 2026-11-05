@@ -132,6 +132,7 @@ internal object ScanVisualRecognition {
         val coarse = entries.asSequence().filter { it.landscape == landscape }.map { entry ->
             entry to signatures.minOf { distance(it, entry.signature) }
         }.sortedBy { it.second }.take(48).toList()
+        if (coarse.isEmpty() || coarse.first().second > .085) return emptyList()
         val matches = coarse.map { (entry, coarseScore) ->
             val detail = entry.detail
             val score = if (detail == null || details.isEmpty()) coarseScore else signatures.indices.minOf { i ->

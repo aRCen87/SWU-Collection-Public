@@ -73,18 +73,10 @@ internal class LiveScanAnalyzer(
             try { ScanOcrRegions.crops(frame,image.imageInfo.rotationDegrees,viewport,landscape,textRotation) }
             finally { frame.recycle() }
         }.getOrNull() ?: return Tasks.forResult(ScanOcrReading(full,regionsAttempted=true))
-        val (title,footer) = crops
-        var titleText = ""
-        return try {
-            recognizer.process(InputImage.fromBitmap(title,0)).continueWithTask(analysisExecutor) { task ->
-                titleText = if (task.isSuccessful) readingText(task.result) else ""
-                if (active()) recognizer.process(InputImage.fromBitmap(footer,0)).continueWith(analysisExecutor) { footerTask ->
-                    ScanOcrReading(full,titleText,if (footerTask.isSuccessful) readingText(footerTask.result) else "",true)
-                } else Tasks.forResult(ScanOcrReading(full,regionsAttempted=true))
-            }.addOnCompleteListener(analysisExecutor) { title.recycle(); footer.recycle() }
-        } catch (_: Exception) {
-            title.recycle(); footer.recycle()
-            Tasks.forResult(ScanOcrReading(full,regionsAttempted=true))
+        return ScanOcrRegions.read(crops,full,analysisExecutor,active) { crop ->
+            recognizer.process(InputImage.fromBitmap(crop,0)).continueWith(analysisExecutor) { task ->
+                if (task.isSuccessful) readingText(task.result) else ""
+            }
         }
     }
 
@@ -153,7 +145,7 @@ internal class LiveScanAnalyzer(
                         val regional = regionEvidence.observe(reading,SystemClock.elapsedRealtime())
                         if (regional != null && gate.blockedReference != regional.first && onDetected(regional.first,raw)) {
                             gate.block(regional.first); regionEvidence.confirmed(); visualEvidence.interrupt(); rejected = null
-                            onMessage("Carte reconnue · nom et référence vérifiés")
+                            onMessage("Carte reconnue · référence confirmée")
                             return@execute
                         }
                         if (reference != null) visualEvidence.interrupt()

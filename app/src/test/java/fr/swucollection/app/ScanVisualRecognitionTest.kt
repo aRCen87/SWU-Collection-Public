@@ -87,4 +87,12 @@ class ScanVisualRecognitionTest {
             ScanVisualRecognition.candidates(listOf(coarse,coarse),listOf(entry),false,listOf(detail))
         }
     }
+
+    @Test fun detailedSimilarityCannotRescueAnUnrelatedGlobalImage() {
+        val coarse = ScanVisualRecognition.signature(pixels)
+        val uniform = ScanVisualRecognition.signature(IntArray(96) { 0xff888888.toInt() })
+        val fine = ScanVisualRecognition.signature(IntArray(16*24) { 0xff888888.toInt() })
+        val entry = VisualIndexEntry(ScanReference("SOR","001"),"Carte","url",false,coarse,fine)
+        assertTrue(ScanVisualRecognition.candidates(listOf(uniform),listOf(entry),false,listOf(fine)).isEmpty())
+    }
 }
