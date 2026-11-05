@@ -38,3 +38,9 @@ class CompetitiveFeedTest(unittest.TestCase):
     def test_same_title_in_distinct_families_is_never_guessed(self):
         aliases=english_aliases(self.cards,{'SOR:001':{'en':'Ambiguous','family':'a'},'SOR:100':{'en':'Ambiguous','family':'b'}},{})
         self.assertEqual(aliases,{})
+
+    def test_reprints_and_special_printings_share_one_exact_family_group(self):
+        cards=dict(self.cards,**{'HMW-100':{'type':'Unité','name':'Unité'}})
+        aliases=english_aliases(cards,{'SOR:100':{'en':'Unit','family':'unit'},'HMW:100':{'en':'Unit','family':'unit'}},{'SOR':'2024-01-01','HMW':'2026-10-01'})
+        rows=self.rows[:2]+[{'collector_number':'HMW_100','count':50}]
+        self.assertEqual(portable(rows,cards,aliases)['deck'],[{'id':'SOR-100','count':50}])

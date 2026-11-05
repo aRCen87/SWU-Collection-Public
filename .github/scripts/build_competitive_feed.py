@@ -49,7 +49,9 @@ def english_aliases(cards, details, dates):
     aliases = {}
     for name, entries in candidates.items():
         if len({family for _, family in entries}) != 1: continue
-        aliases[name] = min((ref for ref, _ in entries), key=lambda r: (int(r.split('-')[1]) >= 300, dates.get(r.split('-')[0], '9999'), int(r.split('-')[1]), r))
+        canonical = min((ref for ref, _ in entries), key=lambda r: (int(r.split('-')[1]) >= 300, dates.get(r.split('-')[0], '9999'), int(r.split('-')[1]), r))
+        aliases[name] = canonical
+        for ref, _ in entries: aliases['ref:' + ref] = canonical
     return aliases
 
 def portable(rows, cards, aliases=None):
@@ -66,6 +68,7 @@ def portable(rows, cards, aliases=None):
             name = (row.get('cardName') + ' ' + (row.get('subtitle') or '')) if row.get('cardName') else (row.get('name') or '')
             ref = (aliases or {}).get(identity_name(name), '')
         if ref not in cards: raise ValueError('Unknown card')
+        ref = (aliases or {}).get('ref:' + ref, ref)
         count = row.get('count')
         if type(count) is not int or not 1 <= count <= 99: raise ValueError('Invalid quantity')
         side = row.get('sideboard', False)

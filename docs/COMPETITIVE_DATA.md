@@ -14,7 +14,9 @@ Selection: completed Premier PQ/SQ/RQ/GC/LCQ events in the previous 60 days.
 The frequency denominator counts only complete lists whose every reference can
 be resolved against the French catalogue. Name-only rows and unavailable printings
 are resolved solely through an exact full English title/subtitle in the verified
-card details, and only if it maps to a unique card family; no fuzzy matching. Unknown card rows reject the entire
+card details, and only if it maps to a unique card family; no fuzzy matching.
+Equivalent known printings and reprints are normalized to that same reference
+before grouping, to avoid splitting the presence of an identical leader/base. Unknown card rows reject the entire
 list; leader/base must each occur exactly once and the main deck must contain
 at least 50 cards. Reserve quantities are preserved separately. Excluded-list
 count and partial coverage are shown in the app. Frequency is **not** win rate
