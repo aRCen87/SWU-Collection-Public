@@ -116,10 +116,14 @@ internal fun groupOwnedVersions(cards: List<CollectionCard>, catalog: List<Catal
         ?: "unknown:${MarketPricing.key(row.setCode,row.number)}" }.values.toList()
 }
 
+/** One collector reference and finish, with independent stock rows for each language. */
+internal fun groupOwnedPrints(rows: List<CollectionCard>): List<List<CollectionCard>> =
+    rows.groupBy { Triple(it.setCode, it.number, it.variant) }.values.toList()
+
 @Composable
 internal fun GroupedOwnedCard(rows: List<CollectionCard>, catalog: List<CatalogCard>, quotes: Map<String, MarketQuote>,
     onPreview: (CollectionCard, CatalogCard) -> Unit, onQuantity: (Long, Int) -> Unit, onLanguage: (CollectionCard) -> Unit = {}) {
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val prints = remember(rows) { groupOwnedPrints(rows) }
     var expanded by remember(rows.first().id) { mutableStateOf(false) }
     val first = rows.first()
     OutlinedCard(onClick = { expanded = !expanded }, modifier = Modifier.fillMaxWidth(),
@@ -139,17 +143,30 @@ internal fun GroupedOwnedCard(rows: List<CollectionCard>, catalog: List<CatalogC
                     Text(if (expanded) "Masquer les versions ▴" else "Voir les versions ▾", color = MaterialTheme.colorScheme.primary)
                 }
             }
-            if (expanded) rows.forEach { row ->
-                val card = catalog.firstOrNull { MarketPricing.key(it.setCode,it.number) == MarketPricing.key(row.setCode,row.number) }
+            if (expanded) prints.forEach { languages ->
+                val print = languages.first()
+                val card = catalog.firstOrNull { MarketPricing.key(it.setCode,it.number) == MarketPricing.key(print.setCode,print.number) }
                 HorizontalDivider()
-                Text("N° ${row.number} · ${row.variant}")
-                TextButton(onClick = { onLanguage(row) }) { Text(CardLanguages.label(row.language)) }
-                CollectionPriceLabel(quotes[collectionPriceKey(row.setCode,row.number,row.variant)], quotes.isNotEmpty())
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(onClick = { if (card != null) onPreview(row,card) }, enabled = card != null, modifier = Modifier.weight(1f)) { Text("Voir la carte") }
-                    TextButton(onClick = { onQuantity(row.id,-1) }) { Text("−") }
-                    Text("${row.quantity}")
-                    TextButton(onClick = { onQuantity(row.id,1) }) { Text("+") }
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("N° ${print.number} · ${print.variant}", modifier = Modifier.weight(1f))
+                    TextButton(onClick = { if (card != null) onPreview(print,card) }, enabled = card != null) { Text("Voir la carte") }
+                }
+                languages.forEach { row ->
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        TextButton(onClick = { onLanguage(row) }, modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(0.dp)) {
+                            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
+                                CollectionPriceLabel(quotes[collectionPriceKey(row.setCode,row.number,row.variant)],
+                                    quotes.isNotEmpty(), language = row.language)
+                            }
+                        }
+                        TextButton(onClick = { onQuantity(row.id,-1) }, modifier = Modifier.size(48.dp),
+                            contentPadding = PaddingValues(0.dp)) { Text("−") }
+                        Text("${row.quantity}", modifier = Modifier.widthIn(min = 24.dp),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center, fontWeight = FontWeight.Bold)
+                        TextButton(onClick = { onQuantity(row.id,1) }, modifier = Modifier.size(48.dp),
+                            contentPadding = PaddingValues(0.dp)) { Text("+") }
+                    }
                 }
             }
         }
