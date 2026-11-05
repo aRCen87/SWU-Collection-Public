@@ -1,4 +1,4 @@
-## 0.8.9 — Parcours du scanner
+## Version 0.8.9
 
 - Mise au point automatique régulière sur la carte, avec mise au point au toucher conservée.
 - Lecture en série par défaut et analyse plus rapprochée, avec protection contre les doubles lectures conservée.
