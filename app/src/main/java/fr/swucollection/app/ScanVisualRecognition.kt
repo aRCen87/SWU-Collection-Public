@@ -108,14 +108,19 @@ internal object ScanVisualRecognition {
         }
     }
 
+    fun partialFooter(raw: String): Pair<Int,String>? {
+        val normalized = java.text.Normalizer.normalize(raw,java.text.Normalizer.Form.NFKC)
+        val footers = Regex("\\b(FR|EN|DE|ES|IT)[\\s•·:|—–\\-●○◊◆◇★☆#©®]*(?:[CURSL][\\s•·:|—–\\-●○◊◆◇★☆#©®]*)?([0-9OIL]{3,4})(?![0-9A-Z])")
+            .findAll(normalized.uppercase(java.util.Locale.ROOT)).map { match ->
+                match.groupValues[2].replace('O','0').replace('I','1').replace('L','1').toInt() to match.groupValues[1]
+            }.toSet()
+        return footers.singleOrNull()?.takeIf { it.first in 1..9999 }
+    }
+
     /** A visual resemblance alone never identifies an exact printing or language. */
     fun corroborated(raw: String, matches: List<VisualCardMatch>, title: String = ""): Pair<ScanReference, String>? {
         if (ScanRecognition.references(raw).isNotEmpty()) return null
-        val footers = Regex("\\b(FR|EN|DE|ES|IT)[\\s•·:|—–\\-●○◊◆◇★☆#©®]*(?:[CURSL][\\s•·:|—–\\-●○◊◆◇★☆#©®]*)?([0-9OIL]{3,4})(?![0-9A-Z])")
-            .findAll(raw.uppercase(java.util.Locale.ROOT)).map { match ->
-                match.groupValues[2].replace('O','0').replace('I','1').replace('L','1').toInt() to match.groupValues[1]
-            }.toSet()
-        val footer = footers.singleOrNull() ?: return null
+        val footer = partialFooter(raw) ?: return null
         val candidates = matches.filter { it.reference.number.toIntOrNull() == footer.first && it.score <= .06 }
         val named = matches.filter { titleMatches(title,it) }
         // A recognized title belonging to a different candidate contradicts the footer.
@@ -125,11 +130,12 @@ internal object ScanVisualRecognition {
     }
 
     fun candidates(signatures: List<ByteArray>, entries: List<VisualIndexEntry>, landscape: Boolean,
-        details: List<ByteArray> = emptyList()): List<VisualCardMatch> {
+        details: List<ByteArray> = emptyList(), numberHint: Int? = null): List<VisualCardMatch> {
         if (signatures.isEmpty()) return emptyList()
         require(details.isEmpty() || details.size == signatures.size)
         // Keep both faces through refinement: the back may be a better detailed match.
-        val coarse = entries.asSequence().filter { it.landscape == landscape }.map { entry ->
+        val coarse = entries.asSequence().filter { it.landscape == landscape &&
+            (numberHint == null || it.reference.number.toIntOrNull() == numberHint) }.map { entry ->
             entry to signatures.minOf { distance(it, entry.signature) }
         }.sortedBy { it.second }.take(48).toList()
         if (coarse.isEmpty() || coarse.first().second > .085) return emptyList()

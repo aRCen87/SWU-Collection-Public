@@ -41,14 +41,14 @@ internal class ScanVisualMatcher(private val context: Context) {
         }.getOrDefault(emptyList())
     }
 
-    fun matchAutomatic(frame: Bitmap, rotation: Int, viewport: ScanViewport): List<VisualCardMatch> {
-        val matches = listOf(false, true).flatMap { landscape -> match(frame, rotation, viewport.copy(landscape = landscape)) }
+    fun matchAutomatic(frame: Bitmap, rotation: Int, viewport: ScanViewport, numberHint: Int? = null): List<VisualCardMatch> {
+        val matches = listOf(false, true).flatMap { landscape -> match(frame, rotation, viewport.copy(landscape = landscape),numberHint) }
             .groupBy { it.reference }.values.map { it.minBy { match -> match.score } }.sortedBy { it.score }
         val best = matches.firstOrNull() ?: return emptyList()
         return matches.takeWhile { it.score <= best.score + .018 }.take(6)
     }
 
-    fun match(frame: Bitmap, rotation: Int, viewport: ScanViewport): List<VisualCardMatch> {
+    fun match(frame: Bitmap, rotation: Int, viewport: ScanViewport, numberHint: Int? = null): List<VisualCardMatch> {
         if (viewport.width <= 0 || viewport.height <= 0 || entries.isEmpty()) return emptyList()
         // OCR keeps the full camera resolution. Image signatures need only a
         // small working copy, avoiding repeated multi-megapixel crops/arrays.
@@ -84,7 +84,7 @@ internal class ScanVisualMatcher(private val context: Context) {
                     details.add(ScanVisualRecognition.signature(detailed.reversedArray()))
                 } finally { if(crop !== upright) crop.recycle() }
             }
-            return ScanVisualRecognition.candidates(signatures,entries,viewport.landscape,details)
+            return ScanVisualRecognition.candidates(signatures,entries,viewport.landscape,details,numberHint)
         } finally {
             if (upright !== working) upright.recycle()
             if (working !== frame) working.recycle()

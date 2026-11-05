@@ -95,4 +95,17 @@ class ScanVisualRecognitionTest {
         val entry = VisualIndexEntry(ScanReference("SOR","001"),"Carte","url",false,coarse,fine)
         assertTrue(ScanVisualRecognition.candidates(listOf(uniform),listOf(entry),false,listOf(fine)).isEmpty())
     }
+
+    @Test fun partialNumberRetainsTheExactPrintingEvenWithManyIdenticalIllustrations() {
+        val signature = ScanVisualRecognition.signature(pixels)
+        val entries = (1..12).map { n -> VisualIndexEntry(ScanReference("SOR",n.toString().padStart(3,'0')),
+            "Même illustration","url",false,signature) }
+        val reference = ScanReference("SOR","012")
+        assertFalse(ScanVisualRecognition.candidates(listOf(signature),entries,false).any { it.reference == reference })
+        assertEquals(reference,ScanVisualRecognition.candidates(listOf(signature),entries,false,numberHint=12).single().reference)
+        assertTrue(ScanVisualRecognition.candidates(listOf(signature),entries,false,numberHint=317).isEmpty())
+        assertEquals(317 to "EN",ScanVisualRecognition.partialFooter("ＥＮ Ⓒ ３１７"))
+        assertNull(ScanVisualRecognition.partialFooter("FR C 000"))
+        assertNull(ScanVisualRecognition.partialFooter("FR C 317\nEN C 317"))
+    }
 }

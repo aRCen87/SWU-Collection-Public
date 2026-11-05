@@ -136,7 +136,8 @@ internal class LiveScanAnalyzer(
                             lastVisualAnalysis = SystemClock.elapsedRealtime()
                             runCatching {
                                 val bitmap = image.toBitmap()
-                                try { visualMatcher.matchAutomatic(bitmap, image.imageInfo.rotationDegrees, currentViewport) }
+                                try { visualMatcher.matchAutomatic(bitmap, image.imageInfo.rotationDegrees, currentViewport,
+                                    ScanVisualRecognition.partialFooter(reading.footer.ifBlank { raw })?.first) }
                                 finally { bitmap.recycle() }
                             }.getOrDefault(emptyList())
                         } else emptyList()
