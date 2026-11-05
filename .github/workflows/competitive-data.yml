@@ -1,0 +1,51 @@
+name: Competitive deck data
+on:
+  schedule:
+    - cron: '40 6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/build_competitive_feed.py'
+      - '.github/workflows/competitive-data.yml'
+permissions:
+  contents: write
+concurrency:
+  group: competitive-data
+  cancel-in-progress: false
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build selection from documented public exports
+        run: python3 .github/scripts/build_competitive_feed.py
+      - name: Publish data without a new APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          stage=$(mktemp -d)
+          cp app/src/main/assets/competitive-feed.json "$stage/competitive-feed.json"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          target=$(mktemp -d)
+          rmdir "$target"
+          if git ls-remote --exit-code --heads origin competitive-data; then
+            git fetch origin competitive-data
+            git worktree add -b competitive-data "$target" FETCH_HEAD
+          else
+            git worktree add --detach "$target" HEAD
+            git -C "$target" checkout --orphan competitive-data
+            git -C "$target" rm -rf .
+          fi
+          cp "$stage/competitive-feed.json" "$target/competitive-feed.json"
+          git -C "$target" add competitive-feed.json
+          if ! git -C "$target" diff --cached --quiet; then
+            git -C "$target" commit -m 'Refresh public competitive deck selection'
+            git -C "$target" push origin HEAD:competitive-data
+          fi

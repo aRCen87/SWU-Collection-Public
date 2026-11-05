@@ -1,3 +1,10 @@
+## Version 0.8.12
+
+- Tournois & Méta s’affiche directement dans l’application : sélection de listes Premier récentes avec leader, base, miniatures, événement et classement final lorsque la source le fournit.
+- Actions Copier et Enregistrer visibles sur chaque deck ; export complet avec réserve, copie indépendante dans Mes decks et comparaison avec la collection. Un deck déjà enregistré est signalé.
+- Classement par présence parmi les listes complètes reconnues des 60 derniers jours, sans assimiler cette présence à un taux de victoire. Source, période, date et couverture visibles.
+- Sélection SWU API issue des exports publics documentés, sans clé dans l’APK, actualisée quotidiennement. Dernière sélection disponible conservée hors connexion ; import manuel toujours accessible dans Mes decks.
+
 ## Version 0.8.11
 
 - Nouvel espace « Tournois & Méta » : accès aux résultats compétitifs, aux classements, aux listes publiées et aux analyses à jour sur SWUBase, dans le navigateur. La sélection de saison, de région, de niveau et de période reste sur la source.

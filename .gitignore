@@ -18,3 +18,5 @@ __pycache__/
 *scan-visual-index*.missing.json
 
 .kotlin/
+
+.competitive-cache/

@@ -978,10 +978,28 @@ pull_file /sdcard/swu-window.xml smoke/competitive-meta.xml >/dev/null
 python3 - <<'PYMETAHUB'
 import xml.etree.ElementTree as ET
 texts={n.attrib.get('text','') for n in ET.parse('smoke/competitive-meta.xml').iter('node')}
-assert 'Méta du moment' in texts and 'Explorer la méta' in texts,texts
+assert 'Les decks du moment' in texts and any('listes compatibles' in t for t in texts),texts
 PYMETAHUB
 adb exec-out screencap -p > smoke/competitive-meta.png
-tap_label "Decks"
+competitive_scroll down
+tap_label "Copier"
+dump_window >/dev/null
+pull_file /sdcard/swu-window.xml smoke/competitive-native-copy.xml >/dev/null
+python3 - <<'PYNATIVECOPY'
+import xml.etree.ElementTree as ET
+texts={n.attrib.get('text','') for n in ET.parse('smoke/competitive-native-copy.xml').iter('node')}
+assert 'Deck copié · leader, base et réserve compris.' in texts,texts
+PYNATIVECOPY
+tap_label "Enregistrer"
+dump_window >/dev/null
+pull_file /sdcard/swu-window.xml smoke/competitive-native-save.xml >/dev/null
+python3 - <<'PYNATIVESAVE'
+import xml.etree.ElementTree as ET
+texts={n.attrib.get('text','') for n in ET.parse('smoke/competitive-native-save.xml').iter('node')}
+assert 'Deck enregistré dans Mes decks.' in texts,texts
+PYNATIVESAVE
+adb exec-out screencap -p > smoke/competitive-native-save.png
+tap_label "Mes decks"
 tap_label "Importer une liste"
 tap_label "JSON ou texte du deck"
 python3 - <<'PYIMPORTCOMP'
