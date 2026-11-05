@@ -675,6 +675,22 @@ sleep 4
 # Destination stays explicit and cancelling the picker keeps the collection scanner.
 tap_label "Vers un deck…"
 tap_label "Rester sur la collection"
+# Enter the same camera through a saved deck, then return to collection.
+tap_label "Vers un deck…"
+tap_label "Mon deck"
+dump_window >/dev/null
+pull_file /sdcard/swu-window.xml smoke/scanner-deck-destination.xml >/dev/null
+python3 - <<'PYSCANDESTINATION'
+import xml.etree.ElementTree as ET
+texts={n.attrib.get('text','') for n in ET.parse('smoke/scanner-deck-destination.xml').iter('node')}
+assert 'Scanner mon deck' in texts and 'Mon deck' in texts and 'Terminer' in texts,texts
+PYSCANDESTINATION
+tap_label "Collection"
+tap_label "Terminer"
+tap_label "Enregistrer"
+tap_label "Accueil"
+tap_description "Ouvrir le menu"
+tap_label "Scanner"
 # The remaining checks exercise individual card confirmation deliberately.
 tap_description "Options du scanner"
 tap_label "Unitaire"
