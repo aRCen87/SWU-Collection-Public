@@ -427,6 +427,36 @@ scan_deck_reference() {
   adb shell input keyevent 4
   tap_label "Rechercher"
 }
+# Gather one unchanged scanner state across the scrollable actions pane.
+# At 320dp the preview, collection switch and deck counters cannot fit together.
+# Keep every assertion; only scrolling is allowed between these captures.
+capture_scanner_state() {
+  local capture="$1"
+  shift
+  rm -f "$capture"
+  for capture_step in {1..10}; do
+    dump_window >/dev/null
+    pull_file /sdcard/swu-window.xml smoke/scanner-state-window.xml >/dev/null
+    if python3 - "$capture" "$@" <<'PYSCANNERSTATE'
+from pathlib import Path
+import sys, xml.etree.ElementTree as ET
+path=Path(sys.argv[1])
+root=ET.parse(path).getroot() if path.exists() else ET.Element('scanner-state')
+root.append(ET.parse('smoke/scanner-state-window.xml').getroot())
+ET.ElementTree(root).write(path, encoding='utf-8')
+text=' '.join(n.attrib.get('text','') for n in root.iter('node'))
+missing=[label for label in sys.argv[2:] if label not in text]
+if missing:
+    print('Scanner controls still outside viewport:', missing, file=sys.stderr)
+sys.exit(bool(missing))
+PYSCANNERSTATE
+    then return 0; fi
+    # Stay inside the actions pane, away from the fixed camera preview.
+    adb shell input swipe 8 600 8 445 350
+  done
+  echo "Missing scanner state in $capture" >&2
+  return 1
+}
 scan_deck_reference JTL 788
 # Recognition must not mutate a deck before explicit validation.
 dump_window >/dev/null
@@ -456,8 +486,7 @@ tap_label "Valider · Ajouter à « Mon deck »"
 tap_label "Rafale"
 adb shell input swipe 160 440 160 610 300
 sleep 1
-dump_window >/dev/null
-pull_file /sdcard/swu-window.xml smoke/deck-scan-main.xml >/dev/null
+capture_scanner_state smoke/deck-scan-main.xml "Ajouter à « Mon deck »" "Deck 1" "Ajoutée à"
 python3 - <<'PYDECKSCAN'
 import xml.etree.ElementTree as ET
 text=' '.join(n.attrib.get('text','') for n in ET.parse('smoke/deck-scan-main.xml').iter('node'))
@@ -470,8 +499,7 @@ tap_label "Ajouter aussi à ma collection"
 scan_deck_reference JTL 788
 adb shell input swipe 160 440 160 610 300
 sleep 1
-dump_window >/dev/null
-pull_file /sdcard/swu-window.xml smoke/deck-scan-collection.xml >/dev/null
+capture_scanner_state smoke/deck-scan-collection.xml "1 ajout(s) à la collection en attente" "Deck 1"
 python3 - <<'PYDECKCOLLECTION'
 import xml.etree.ElementTree as ET
 text=' '.join(n.attrib.get('text','') for n in ET.parse('smoke/deck-scan-collection.xml').iter('node'))
@@ -484,8 +512,7 @@ scan_deck_reference SOR 095
 # the collection summary just as for the other deck scans before asserting it.
 adb shell input swipe 160 440 160 610 300
 sleep 1
-dump_window >/dev/null
-pull_file /sdcard/swu-window.xml smoke/deck-scan-pending-finish.xml >/dev/null
+capture_scanner_state smoke/deck-scan-pending-finish.xml "Ajouter à « Mon deck »" "1 ajout(s) à la collection en attente"
 python3 - <<'PYPENDINGFINISH'
 import xml.etree.ElementTree as ET
 text=' '.join(n.attrib.get('text','') for n in ET.parse('smoke/deck-scan-pending-finish.xml').iter('node'))
@@ -495,8 +522,7 @@ PYPENDINGFINISH
 tap_label "Annuler le dernier ajout"
 adb shell input swipe 160 440 160 610 300
 sleep 1
-dump_window >/dev/null
-pull_file /sdcard/swu-window.xml smoke/deck-scan-collection-undo.xml >/dev/null
+capture_scanner_state smoke/deck-scan-collection-undo.xml "0 ajout(s) à la collection en attente" "Deck 0"
 python3 - <<'PYDECKCOLLECTIONUNDO'
 import xml.etree.ElementTree as ET
 text=' '.join(n.attrib.get('text','') for n in ET.parse('smoke/deck-scan-collection-undo.xml').iter('node'))
@@ -509,8 +535,7 @@ tap_label "Réserve 0/10"
 scan_deck_reference JTL 788
 adb shell input swipe 160 440 160 610 300
 sleep 1
-dump_window >/dev/null
-pull_file /sdcard/swu-window.xml smoke/deck-scan-reserve.xml >/dev/null
+capture_scanner_state smoke/deck-scan-reserve.xml "Réserve 1/10" "Deck 0"
 python3 - <<'PYDECKRESERVE'
 import xml.etree.ElementTree as ET
 text=' '.join(n.attrib.get('text','') for n in ET.parse('smoke/deck-scan-reserve.xml').iter('node'))
