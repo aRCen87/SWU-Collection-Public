@@ -1,0 +1,30 @@
+name: Verify public SWU 0.8.10 download
+on:
+  push:
+    branches: ["verify/public-release-0810"]
+    paths: [".github/workflows/verify-public-0810.yml"]
+permissions:
+  contents: read
+jobs:
+  public:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify anonymous public download and exact tested APK
+        run: |
+          python3 - <<'PY'
+          import urllib.request,json,hashlib
+          with urllib.request.urlopen('https://api.github.com/repos/aRCen87/SWU-Collection-Releases/releases/latest',timeout=30) as r: release=json.load(r)
+          assert release['tag_name']=='v0.8.10' and not release['draft'] and not release['prerelease']
+          assets={a['name']:a for a in release['assets']}
+          with urllib.request.urlopen(assets['release-metadata.json']['browser_download_url'],timeout=60) as r: m=json.load(r)
+          assert m['version']=='0.8.10' and m['version_code']==51 and m['package']=='fr.swucollection.app'
+          assert m['source_fingerprint']=='c00eadfc27b597dac81e338e9b7f9d6cfd7676b9f3557d439c9e39cf11442062'
+          assert assets['SWU-Collection.apk']['size']==m['apk_size']==81368469
+          h=hashlib.sha256();size=0
+          with urllib.request.urlopen(assets['SWU-Collection.apk']['browser_download_url'],timeout=60) as r:
+              assert r.status==200
+              while data:=r.read(1024*1024): size+=len(data);h.update(data)
+          assert size==m['apk_size'] and h.hexdigest()==m['apk_sha256']=='dc8e9a1a2cb591aa597451c1a19be284b3a2e6d5d1d31c048125c33392359640'
+          print(json.dumps({'version':release['tag_name'],'public_access':True,'apk_size':size,'apk_sha256':h.hexdigest(),'source_matches':True,'published_at':release['published_at']}))
+          PY
