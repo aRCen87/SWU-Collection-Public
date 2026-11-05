@@ -76,35 +76,45 @@ internal object ScanRecognition {
     }
 }
 
-/** Require consecutive consistent reads; a held card never triggers another confirmation. */
+/** Require consistent reference and language evidence; a held card is delivered once. */
 internal class StableScanGate(private val maxGapMs: Long = 2500, private val removalMs: Long = 900, private val unknownLanguageReads: Int = 2) {
     private var candidate: ScanReference? = null
     private var reads = 0
     private var candidateLanguage: String? = null
+    private var languageReads = 0
     private var lastSeen = 0L
     private var absentSince: Long? = null
     var blockedReference: ScanReference? = null
         private set
 
     /** Pausing is not proof of removal, and an old frame must not complete a new scan. */
-    fun interrupt() { candidate = null; candidateLanguage = null; reads = 0; lastSeen = 0L; absentSince = null }
+    fun interrupt() { candidate = null; candidateLanguage = null; reads = 0; languageReads = 0; lastSeen = 0L; absentSince = null }
 
     fun block(reference: ScanReference) { interrupt(); blockedReference = reference }
     fun reset() { interrupt(); blockedReference = null }
 
     fun observe(reference: ScanReference?, now: Long, language: String? = null): ScanReference? {
         if (reference == null) {
-            candidate = null; reads = 0
+            candidate = null; candidateLanguage = null; reads = 0; languageReads = 0
             val firstAbsent = absentSince ?: now.also { absentSince = it }
             if (now - firstAbsent >= removalMs) blockedReference = null
             return null
         }
         absentSince = null
         if (reference == blockedReference) { interrupt(); return null }
-        if (reference != candidate || language != candidateLanguage || now - lastSeen > maxGapMs) { candidate = reference; candidateLanguage = language; reads = 1 }
-        else reads++
+        val conflicts = language != null && candidateLanguage != null && language != candidateLanguage
+        if (reference != candidate || conflicts || now - lastSeen > maxGapMs) {
+            candidate = reference; candidateLanguage = language; reads = 1
+            languageReads = if (language == null) 0 else 1
+        } else {
+            reads++
+            // A temporarily unreadable language is neutral, not a contradiction.
+            // Never reuse it in the delivered frame: a known language still needs
+            // two actual reads and must be present again when confirming.
+            if (language != null) { candidateLanguage = language; languageReads++ }
+        }
         lastSeen = now
-        if (reads < if (language == null) unknownLanguageReads else 2) return null
+        if (if (language == null) reads < unknownLanguageReads else languageReads < 2) return null
         blockedReference = reference
         candidate = null; reads = 0
         return reference

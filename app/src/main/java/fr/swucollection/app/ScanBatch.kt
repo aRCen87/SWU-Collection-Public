@@ -59,7 +59,10 @@ internal class ScanBatchStore(context: Context) {
         save(id, next)
     }
     fun change(entry: ScanBatchEntry, delta: Int) {
-        val next = entries.mapNotNull { if (it != entry) it else (it.quantity + delta).takeIf { n -> n in 1..9999 }?.let { n -> it.copy(quantity = n) } }
+        require(entry in entries) { "Cette ligne du lot a changé. Réessaie." }
+        val quantity = entry.quantity.toLong() + delta
+        require(quantity in 0L..9999L) { "Maximum 9 999 exemplaires pour cette langue et cette finition." }
+        val next = entries.mapNotNull { if (it != entry) it else if (quantity == 0L) null else it.copy(quantity = quantity.toInt()) }
         save(id, next)
     }
     fun resolve(entry: ScanBatchEntry, language: String, variant: String, quantity: Int) =

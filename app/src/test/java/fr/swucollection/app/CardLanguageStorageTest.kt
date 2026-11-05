@@ -80,6 +80,28 @@ class CardLanguageStorageTest {
         assertEquals(9,db.allCards().sumOf { it.quantity })
         assertEquals(3,db.allCards().size)
     }
+    @Test fun upgradingDirectlyFromTheOriginalSchemaKeepsEveryPrintingAndQuantity() {
+        db.close()
+        context.deleteDatabase("swu_collection.db")
+        android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(
+            context.getDatabasePath("swu_collection.db"), null).use { legacy ->
+            legacy.execSQL("CREATE TABLE collection_cards(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL,set_code TEXT NOT NULL,card_number TEXT NOT NULL,variant TEXT NOT NULL,quantity INTEGER NOT NULL,UNIQUE(set_code,card_number,variant))")
+            legacy.execSQL("INSERT INTO collection_cards VALUES(12,'Éclairs de Force','SOR','138','Normale',3)")
+            legacy.execSQL("INSERT INTO collection_cards VALUES(42,'Éclairs de Force','SOR','138','Foil',7)")
+            legacy.version = 1
+        }
+        db = CollectionDatabase(context)
+        val expected = listOf(
+            CollectionCard(12,"Éclairs de Force","SOR","138","Normale",3,CardLanguages.UNKNOWN),
+            CollectionCard(42,"Éclairs de Force","SOR","138","Foil",7,CardLanguages.UNKNOWN))
+        assertEquals(expected.sortedBy { it.id }, db.allCards().sortedBy { it.id })
+        val backup = db.exportJson()
+        db.importJson(backup, true)
+        db.close(); db = CollectionDatabase(context)
+        assertEquals(10, db.allCards().sumOf { it.quantity })
+        assertEquals(setOf("Normale","Foil"), db.allCards().map { it.variant }.toSet())
+        assertTrue(db.allCards().all { it.language == CardLanguages.UNKNOWN })
+    }
     @Test fun backupRestoresBothLanguagesAndRejectsInvalidOrMissingLanguageBeforeMutation() {
         db.addOrIncrement(r2.name,"SOR","236","Normale","FR")
         db.addOrIncrement(r2.name,"SOR","236","Normale","EN")

@@ -1,3 +1,11 @@
+## Version 0.8.16
+
+- Scanner : une langue momentanément illisible ne fait plus recommencer la confirmation d’une même référence. Deux lectures réelles de la langue restent nécessaires ; une langue contradictoire, une autre référence ou une interruption annule la confirmation partielle.
+- Lecture du bas de carte : lorsqu’une référence est repérée dans une zone agrandie, sa seconde vérification est rapprochée. La recherche sans résultat conserve son espacement pour limiter la charge caméra.
+- Rafales : atteindre le maximum de 9 999 exemplaires n’efface plus la ligne lors d’un nouvel appui sur +. Le lot enregistré reste intact en cas de dépassement.
+- Conservation des données : ajout d’un contrôle de migration directe du tout premier schéma vers le schéma actuel, avec références, finitions, quantités et accents conservés, puis export et restauration.
+- Miniatures du récapitulatif, séparation des langues et finitions et correspondances Cardmarket existantes conservées. Audit des sources de cotes : 6 318 références reliées sur 8 453 ; les correspondances ambiguës restent explicitement indisponibles.
+
 ## Version 0.8.15
 
 - Collection, versions regroupées : un seul en-tête par numéro et finition, puis une ligne par langue avec cote et boutons −/+.

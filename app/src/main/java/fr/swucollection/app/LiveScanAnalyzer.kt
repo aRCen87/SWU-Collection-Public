@@ -36,6 +36,7 @@ internal class LiveScanAnalyzer(
     @Volatile private var rejected: ScanReference? = null
     private val orientation = ScanOrientation()
     private var lastRegionAnalysis = 0L
+    private var regionalReference: ScanReference? = null
     private val regionSearch = ScanRegionSearch()
     private val regionEvidence = ScanRegionEvidence()
     private var lastVisualAnalysis = 0L
@@ -94,7 +95,7 @@ internal class LiveScanAnalyzer(
             val media = image.image
             if (media == null) { image.close(); processing.set(false); releaseIfIdle(); return }
             if (retry) {
-                orientation.reset(); regionSearch.reset()
+                orientation.reset(); regionSearch.reset(); regionalReference = null
                 callbackExecutor.execute {
                     gate.reset(); regionEvidence.interrupt(); visualEvidence.interrupt(); rejected = null; visualKey = emptyList(); visualReads = 0; blockedVisualKey = emptyList()
                 }
@@ -106,8 +107,13 @@ internal class LiveScanAnalyzer(
                     if (!result.isSuccessful) Tasks.forException<ScanOcrReading>(result.exception ?: IllegalStateException("Lecture interrompue"))
                     else {
                         val full = readingText(result.result)
-                        val regional = ScanRecognition.extract(full) == null && ScanRecognition.references(full).size <= 1 &&
-                            SystemClock.elapsedRealtime() - lastRegionAnalysis >= 1800 &&
+                        val fullReference = ScanRecognition.extract(full)
+                        if (fullReference != null) regionalReference = null
+                        // Once a footer is found, confirm it promptly. Expensive
+                        // searches without any candidate keep their slower cadence.
+                        val regionInterval = if (regionalReference != null) 600L else 1800L
+                        val regional = fullReference == null && ScanRecognition.references(full).size <= 1 &&
+                            SystemClock.elapsedRealtime() - lastRegionAnalysis >= regionInterval &&
                             !closed.get() && !paused() && generation.get() == frameGeneration
                         if (regional) {
                             lastRegionAnalysis = SystemClock.elapsedRealtime()
@@ -116,6 +122,7 @@ internal class LiveScanAnalyzer(
                                 !closed.get() && !paused() && generation.get() == frameGeneration
                             }.continueWith(analysisExecutor) { regionTask ->
                                 val reading = if (regionTask.isSuccessful) regionTask.result else ScanOcrReading(full,regionsAttempted=true)
+                                regionalReference = reading.reference
                                 regionSearch.observed(reading.reference)
                                 reading
                             }
