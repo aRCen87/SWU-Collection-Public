@@ -11,8 +11,8 @@ android {
         applicationId = "fr.swucollection.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 53
-        versionName = "0.8.12"
+        versionCode = 54
+        versionName = "0.8.13"
     }
     signingConfigs {
         create("release") {

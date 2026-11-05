@@ -31,6 +31,8 @@ internal fun HomeNavigationCard(symbol: String, title: String, subtitle: String,
         "EXTENSIONS" -> R.drawable.home_extensions_art
         "MA COLLECTION" -> R.drawable.home_collection_art
         "MES DECKS" -> R.drawable.home_decks_art
+        "HAUTS FAITS", "BADGES" -> R.drawable.home_badges_art
+        "TOURNOIS & MÉTA" -> R.drawable.home_meta_art
         "ÉCHANGES" -> R.drawable.home_trades_art
         else -> R.drawable.home_stats_art
     }
@@ -52,10 +54,7 @@ internal fun HomeNavigationCard(symbol: String, title: String, subtitle: String,
         modifier = Modifier.fillMaxWidth().goldBorderReflection(reflection),
         shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, gold.copy(alpha = 0.8f)), color = navy) {
         Box(Modifier.fillMaxWidth().heightIn(min = 76.dp)) {
-            if(title in listOf("HAUTS FAITS", "BADGES", "TOURNOIS & MÉTA")) {
-                HomeFeatureArtwork(title == "TOURNOIS & MÉTA",
-                    Modifier.align(Alignment.CenterEnd).width(150.dp).height(76.dp))
-            } else Canvas(Modifier.matchParentSize()) {
+            Canvas(Modifier.matchParentSize()) {
                 val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG or android.graphics.Paint.FILTER_BITMAP_FLAG)
                 drawContext.canvas.nativeCanvas.drawBitmap(artwork, null,
                     RectF(size.width * 0.53f, 0f, size.width, size.height), paint)

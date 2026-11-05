@@ -1,3 +1,7 @@
+## Version 0.8.13
+
+- Accueil : nouvelles illustrations réalistes pour Badges et Tournois & Méta, assorties aux autres boutons. Médailles métalliques, trophée et cartes sur fond spatial bleu nuit et or ; titres natifs et disposition conservés.
+
 ## Version 0.8.12
 
 - Tournois & Méta s’affiche directement dans l’application : sélection de listes Premier récentes avec leader, base, miniatures, événement et classement final lorsque la source le fournit.
