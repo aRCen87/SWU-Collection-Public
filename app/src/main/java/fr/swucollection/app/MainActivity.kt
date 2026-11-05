@@ -225,7 +225,9 @@ private fun CollectionScreen(
     var catalogSyncMessage by remember { mutableStateOf<String?>(null) }
     val batchContext = LocalContext.current
     val scanBatch = remember { ScanBatchStore(batchContext) }
-    var scanMode by rememberCollectionFilter("scanModeV2", "En série")
+    var scanMode by rememberCollectionFilter("scanModeV3", "Une par une")
+    var scanReadToken by remember { mutableIntStateOf(0) }
+    var scanLastCard by remember { mutableStateOf<ScanBatchEntry?>(null) }
     var batchVariant by rememberCollectionFilter("scanVariantMode", "Automatique")
     var batchMessage by remember { mutableStateOf<String?>(null) }
     var scannerOpen by remember { mutableStateOf(false) }
@@ -239,9 +241,6 @@ private fun CollectionScreen(
     var languageError by remember { mutableStateOf<String?>(null) }
     var scanVariant by remember { mutableStateOf("") }
     var scanVariantError by remember { mutableStateOf<String?>(null) }
-    var scanAgain by remember { mutableStateOf(true) }
-    var scanLastAdded by remember { mutableStateOf<String?>(null) }
-    var lastScanEvent by remember { mutableStateOf<Long?>(null) }
     var ownershipFilter by rememberCollectionFilter("ownershipFilter", "Toutes")
     var collectionSetFilter by rememberCollectionFilter("collectionSetFilter", "Toutes")
     var collectionView by rememberCollectionFilter("collectionView", "Visuel")
@@ -1227,24 +1226,41 @@ private fun CollectionScreen(
         CardScannerDialog(
             onDismiss = { closeScanner() },
             paused = scanCandidate != null || scanVariantMenuOpen || scanDeckPicker,
+            rescanToken = scanReadToken,
             destinationControls = {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(true, onClick = {}, label = { Text("Collection") })
-                    FilterChip(false, onClick = { scanDeckPicker = true }, label = { Text("Vers un deck…") })
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(true, onClick = {}, label = { Text("Ajouter à ma collection") })
+                        FilterChip(false, onClick = { scanDeckPicker = true }, label = { Text("Choisir un deck…") })
+                    }
+                    ScannerModeChoices(scanMode, enabled = scanCandidate == null) { scanMode = it }
                 }
             },
-            lastAdded = scanLastAdded,
-            onUndoLast = if(scanMode != "En série" && lastScanEvent != null && database.history().firstOrNull { !it.undone }?.id == lastScanEvent) ({
-                runCatching { database.undoLastChange() }.onSuccess { lastScanEvent = null; scanLastAdded = "Ajout annulé"; refresh() }
-                    .onFailure { batchMessage = it.message }
-                Unit
-            }) else null,
-            batchCount = if (scanMode == "En série") scanBatch.entries.sumOf { it.quantity } else null,
+            inlineControls = {
+                val candidate = scanCandidate
+                if (candidate != null) {
+                    ScannerCardConfirmation(candidate, scanLanguage, scanVariant, "Ajouter à ma collection",
+                        scanVariantError, onCancel = { scanCandidate = null; scanReadToken++ },
+                        onConfirm = confirm@{ language, finish ->
+                            if (scanCandidate != candidate) return@confirm
+                            runCatching {
+                                database.addScannedCard(candidate.copy(language = language), finish, cardDetails.family(candidate))
+                                refresh()
+                            }.onSuccess {
+                                scanLastCard = ScanBatchEntry(candidate.copy(language = language), finish, 1)
+                                scanCandidate = null
+                            }.onFailure { scanVariantError = it.message ?: "Impossible d’enregistrer cet ajout." }
+                        })
+                } else {
+                    scanLastCard?.let { ScannerCardSummary(it.card, it.variant, if (scanMode == "Rafale") "En attente de validation" else "Ajoutée à ma collection") }
+                    if (scanMode == "Rafale") TextButton(onClick = { closeScanner() }) {
+                        Text("Vérifier la liste (${scanBatch.entries.sumOf { it.quantity }})")
+                    }
+                }
+            },
+            batchCount = if (scanMode == "Rafale") scanBatch.entries.sumOf { it.quantity } else null,
             controls = {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("Unitaire", "En série").forEach { mode ->
-                        FilterChip(scanMode == mode, { scanMode = mode }, label = { Text(mode) })
-                    }
                     if (scanBatch.entries.isNotEmpty()) {
                         TextButton(onClick = { closeScanner() }) { Text("Voir le lot (${scanBatch.entries.sumOf { it.quantity }})") }
                     }
@@ -1278,12 +1294,11 @@ private fun CollectionScreen(
                     val detectedLanguage = ScanRecognition.language(raw)
                     scanLanguage = detectedLanguage ?: CardLanguages.UNKNOWN
                     val identified = ScanVariants.detect(match).resolve(batchVariant)
-                    if (scanMode == "En série") {
+                    if (scanMode == "Rafale") {
                         try {
                             check(!database.isScanBatchCommitted(scanBatch.id)) { "Ce lot est déjà validé. Ferme-le dans le récapitulatif." }
                             scanBatch.add(CardLanguageArtwork.localized(deckContext,match,scanLanguage,identified), identified.orEmpty())
-                            lastScanEvent = null
-                            scanLastAdded = "${match.name} · ${match.number} · ${identified ?: "Finition à vérifier"} · ${CardLanguages.label(scanLanguage)} · en attente"
+                            scanLastCard = ScanBatchEntry(match.copy(language = scanLanguage), identified.orEmpty(), 1)
                         } catch (error: Exception) {
                             batchMessage = error.message ?: "Impossible d’enregistrer le scan."
                             scannerOpen = false
@@ -1335,88 +1350,7 @@ private fun CollectionScreen(
             }
         },
         confirmButton = { TextButton(onClick = { scanDeckPicker = false }) { Text("Rester sur la collection") } })
-    scanCandidate?.let { candidate ->
-        val print = remember(candidate) { ScanVariants.detect(candidate) }
-        Dialog(onDismissRequest = { scanCandidate = null }) {
-            Card(shape = RoundedCornerShape(24.dp)) {
-                Column(Modifier.fillMaxWidth().heightIn(max = 620.dp).padding(18.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text("CARTE RECONNUE", color = MaterialTheme.colorScheme.secondary, fontSize = 10.sp, letterSpacing = 1.5.sp)
-                            Text("Ajouter cette carte", fontWeight = FontWeight.Bold, fontSize = 21.sp)
-                        }
-                        Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(10.dp)) {
-                            Text("${candidate.setCode} · ${candidate.number}", modifier = Modifier.padding(10.dp), fontSize = 12.sp)
-                        }
-                    }
-                    Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
-                        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Row(Modifier.fillMaxWidth(),
-                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            CardArtwork(candidate, Modifier.width(76.dp).height(108.dp), language = scanLanguage, variant = scanVariant)
-                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text(candidate.name, fontWeight = FontWeight.SemiBold)
-                                Text("Déjà possédée : ${cards.filter { MarketPricing.key(it.setCode,it.number) == MarketPricing.key(candidate.setCode,candidate.number) && it.variant == scanVariant && it.language == scanLanguage }.sumOf { it.quantity }} exemplaire(s)", fontSize = 12.sp)
-                                CardLegalityBadge(premierLegality.status(candidate))
-                            }
-                        }
-                        CardLanguageChoices(scanLanguage, { scanLanguage = it; scanVariantError = null })
-                        if (scanLanguage == CardLanguages.UNKNOWN) Text("La langue n’a pas été lue : choisis la langue avant l’ajout.", color = MaterialTheme.colorScheme.primary)
-                        if (scanLanguage in CardLanguages.supported && CardLanguageArtwork.localized(deckContext,candidate,scanLanguage,scanVariant).imageUrl.isBlank()) Text("Le visuel dans cette langue n’est pas publié. La langue du visuel de remplacement est indiquée sur l’image.")
-                        OutlinedButton(onClick = { favoriteCard = CardLanguageArtwork.localized(deckContext,candidate,scanLanguage,scanVariant) }) { Text("☆ Ajouter à une liste") }
-                        if (print.variant == null) Text(print.message, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        if (print.variant != null) {
-                            Text("Variante détectée : ${print.variant}", fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary)
-                        } else {
-                            Text("Confirmer la finition", fontWeight = FontWeight.SemiBold)
-                            FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                                print.choices.forEach { option ->
-                                    FilterChip(selected = scanVariant == option,
-                                        onClick = { scanVariant = option; scanVariantError = null },
-                                        label = { Text(option, fontSize = 11.sp) })
-                                }
-                            }
-                        }
-                        // Market detail remains available on the card sheet, outside the scan confirmation.
-                        scanVariantError?.let { Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp) }
-                        if (scanMode != "En série") Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                            Checkbox(checked = scanAgain, onCheckedChange = { scanAgain = it })
-                            Text("Continuer avec une autre carte", fontSize = 12.sp)
-                        }
-                    }
-                    Button(onClick = {
-                        if (scanCandidate == null || scanVariant !in print.choices || scanLanguage !in CardLanguages.supported) return@Button
-                        runCatching {
-                            if (scanMode == "En série") {
-                                check(!database.isScanBatchCommitted(scanBatch.id)) { "Ce lot est déjà validé. Ferme-le dans le récapitulatif." }
-                                scanBatch.add(CardLanguageArtwork.localized(deckContext,candidate,scanLanguage,scanVariant), scanVariant)
-                                lastScanEvent = null
-                            } else {
-                                database.addScannedCard(candidate.copy(language=scanLanguage), scanVariant, cardDetails.family(candidate))
-                                lastScanEvent = database.history().firstOrNull()?.id
-                                refresh()
-                            }
-                        }.onSuccess {
-                            scanLastAdded = "${candidate.name} · ${candidate.number} · $scanVariant · ${CardLanguages.label(scanLanguage)}"
-                            scanCandidate = null
-                            if (scanMode != "En série" && !scanAgain) closeScanner()
-                        }.onFailure { scanVariantError = it.message ?: "Impossible d’enregistrer cet ajout." }
-                    }, enabled = scanVariant in print.choices && scanLanguage in CardLanguages.supported, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                        Text(if (scanMode == "En série") "Ajouter au lot et continuer"
-                            else if (scanAgain) "Ajouter et continuer" else "Ajouter à ma collection")
-                    }
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        TextButton(onClick = { scanCandidate = null }) { Text("Reprendre le scan") }
-                        TextButton(onClick = { closeScanner() }) { Text("Terminer") }
-                    }
-                }
-            }
-        }
-    }
+
 
     val lifecycleState by androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.currentStateFlow.collectAsState()
     val pendingBadges = badgeProgress.filter { it.award?.seen == false && it.badge.id !in badgeCelebrationSeen }

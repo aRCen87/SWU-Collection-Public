@@ -1,3 +1,11 @@
+## Version 0.8.14
+
+- Scanner simplifié : destination collection par défaut et nom du deck affiché explicitement lors des scans vers un deck existant ou nouveau.
+- Modes « Une par une » et « Rafale » visibles sous la destination. En mode individuel, la reconnaissance attend Valider ou Annuler sous la caméra ; annuler relance la lecture sans ajout.
+- Miniature, référence, langue, finition et cote Cardmarket de la carte reconnue sous la caméra. Cote issue du cache disponible, avec indication lorsqu’elle manque ou que la finition reste à confirmer.
+- Récapitulatif illustré des rafales collection avant validation ; les scans vers un deck restent vérifiables dans son brouillon avant enregistrement. Option d’ajout simultané à la collection conservée.
+- Accueil : logo Star Wars Unlimited doré sur les dos de cartes et boosters des boutons Scanner, Extensions et Mes decks, avec les illustrations bleu nuit et or conservées.
+
 ## Version 0.8.13
 
 - Accueil : nouvelles illustrations réalistes pour Badges et Tournois & Méta, assorties aux autres boutons. Médailles métalliques, trophée et cartes sur fond spatial bleu nuit et or ; titres natifs et disposition conservés.

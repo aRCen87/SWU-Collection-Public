@@ -428,6 +428,19 @@ scan_deck_reference() {
   tap_label "Rechercher"
 }
 scan_deck_reference JTL 788
+# Recognition must not mutate a deck before explicit validation.
+dump_window >/dev/null
+pull_file /sdcard/swu-window.xml smoke/deck-scan-unconfirmed.xml >/dev/null
+python3 - <<'PYUNCONFIRMED'
+import xml.etree.ElementTree as ET
+texts={n.attrib.get('text','') for n in ET.parse('smoke/deck-scan-unconfirmed.xml').iter('node')}
+assert 'Valider · Ajouter à « Mon deck »' in texts and 'Annuler' in texts,texts
+assert any('Cote' in t for t in texts),texts
+PYUNCONFIRMED
+tap_label "Annuler"
+scan_deck_reference JTL 788
+tap_label "Valider · Ajouter à « Mon deck »"
+tap_label "Rafale"
 adb shell input swipe 160 440 160 610 300
 sleep 1
 dump_window >/dev/null
@@ -435,7 +448,7 @@ pull_file /sdcard/swu-window.xml smoke/deck-scan-main.xml >/dev/null
 python3 - <<'PYDECKSCAN'
 import xml.etree.ElementTree as ET
 text=' '.join(n.attrib.get('text','') for n in ET.parse('smoke/deck-scan-main.xml').iter('node'))
-assert 'Scanner mon deck' in text and 'Deck 1' in text and 'Dernier ajout' in text,text
+assert 'Ajouter à « Mon deck »' in text and 'Deck 1' in text and 'Ajoutée à' in text,text
 PYDECKSCAN
 tap_label "Annuler le dernier ajout"
 adb shell input swipe 160 440 160 610 300
@@ -463,7 +476,7 @@ pull_file /sdcard/swu-window.xml smoke/deck-scan-pending-finish.xml >/dev/null
 python3 - <<'PYPENDINGFINISH'
 import xml.etree.ElementTree as ET
 text=' '.join(n.attrib.get('text','') for n in ET.parse('smoke/deck-scan-pending-finish.xml').iter('node'))
-assert 'Scanner mon deck' in text and '1 ajout(s) à la collection en attente' in text,text
+assert 'Ajouter à « Mon deck »' in text and '1 ajout(s) à la collection en attente' in text,text
 assert 'Vérifier la carte pour la collection' not in text,text
 PYPENDINGFINISH
 tap_label "Annuler le dernier ajout"
@@ -492,7 +505,7 @@ assert 'Réserve 1/10' in text and 'Deck 0' in text,text
 PYDECKRESERVE
 tap_label "Annuler le dernier ajout"
 scan_deck_reference SOR 002
-tap_label "Conserver"
+tap_label "Annuler"
 adb exec-out screencap -p > smoke/deck-scan.png
 tap_label "Terminer"
 tap_label "Deck"
@@ -685,28 +698,26 @@ tap_description "Ouvrir le menu"
 tap_label "Scanner"
 sleep 4
 # Destination stays explicit and cancelling the picker keeps the collection scanner.
-tap_label "Vers un deck…"
+tap_label "Choisir un deck…"
 tap_label "Rester sur la collection"
 # Enter the same camera through a saved deck, then return to collection.
-tap_label "Vers un deck…"
+tap_label "Choisir un deck…"
 tap_label "Mon deck"
 dump_window >/dev/null
 pull_file /sdcard/swu-window.xml smoke/scanner-deck-destination.xml >/dev/null
 python3 - <<'PYSCANDESTINATION'
 import xml.etree.ElementTree as ET
 texts={n.attrib.get('text','') for n in ET.parse('smoke/scanner-deck-destination.xml').iter('node')}
-assert 'Scanner mon deck' in texts and 'Mon deck' in texts and 'Terminer' in texts,texts
+assert 'Ajouter à « Mon deck »' in texts and 'Terminer' in texts,texts
 PYSCANDESTINATION
-tap_label "Collection"
+tap_label "Ajouter à ma collection plutôt"
 tap_label "Terminer"
 tap_label "Enregistrer"
 tap_label "Accueil"
 tap_description "Ouvrir le menu"
 tap_label "Scanner"
 # The remaining checks exercise individual card confirmation deliberately.
-tap_description "Options du scanner"
-tap_label "Unitaire"
-tap_label "Reprendre le scan"
+tap_label "Une par une"
 for dimensions in 320x800 720x400; do
   physical=$(python3 - "$density" "$dimensions" <<'PYSCANSIZE'
 import sys
@@ -743,7 +754,7 @@ pull_file /sdcard/swu-window.xml smoke/scanner-variant.xml >/dev/null
 python3 - <<'PYSCANVARIANT'
 import xml.etree.ElementTree as ET
 text=' '.join(n.attrib.get('text','') for n in ET.parse('smoke/scanner-variant.xml').iter('node'))
-assert 'JTL' in text and '788' in text and 'Variante détectée : Hyperspace Foil' in text,text
+assert 'JTL' in text and '788' in text and 'Hyperspace Foil' in text and 'Valider · Ajouter à ma collection' in text,text
 PYSCANVARIANT
 adb exec-out screencap -p > smoke/scanner-variant.png
 tap_label "Terminer"
@@ -910,7 +921,7 @@ PYLANGUAGEKEYBOARD
   tap_label "Normale"
   sleep 3
   adb exec-out screencap -p > "smoke/scanner-language-$language.png"
-  tap_label "Ajouter et continuer"
+  tap_label "Valider · Ajouter à ma collection"
 done
 tap_label "Terminer"
 tap_label "Collection"

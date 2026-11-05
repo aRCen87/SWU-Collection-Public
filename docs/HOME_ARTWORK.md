@@ -31,3 +31,11 @@ embossed five-point star and navy pedestal. Two upright fanned collectible cards
 behind it, gold rims, one blue planet and science-fiction spires, the other amber
 planet and cloaked silhouette. Brushed gold texture, dramatic cinematic light,
 starfield and blue planetary glow.
+
+## 0.8.14 card identity
+
+Scanner, Extensions and Mes decks retain their navy/gold illustration subjects.
+Their generic compass-star card-back/booster marks now use the gold Star Wars
+Unlimited wordmark. Edited with the built-in image generation tool using the
+existing assets and an official card-back logo reference; exported as 1000-pixel
+WebP assets. Other home illustrations are unchanged.

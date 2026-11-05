@@ -94,7 +94,8 @@ fun CardScannerDialog(
     title: String? = null,
     hint: String? = null,
     inlineControls: (@Composable () -> Unit)? = null,
-    destinationControls: (@Composable () -> Unit)? = null
+    destinationControls: (@Composable () -> Unit)? = null,
+    rescanToken: Int = 0
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
@@ -122,6 +123,7 @@ fun CardScannerDialog(
     val externalPause = rememberUpdatedState(paused)
     val pauseCheck = { externalPause.value || userPaused || manualEntry || optionsOpen }
     val effectivelyPaused = paused || userPaused || manualEntry || optionsOpen
+    LaunchedEffect(rescanToken) { if (rescanToken > 0) analyzer?.readAgain() }
     LaunchedEffect(effectivelyPaused) { if (effectivelyPaused) { scanGate.interrupt(); analyzer?.interrupt() } }
     val previewView = remember(context) {
         PreviewView(context).apply {
@@ -213,7 +215,7 @@ fun CardScannerDialog(
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("SWU COLLECTION", color = ScanCyan, fontSize = 10.sp, letterSpacing = 2.sp)
-                        Text(title ?: if (batchCount != null) "Scanner en série" else "Scanner", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(title ?: "Scanner", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     if (controls != null) IconButton(onClick = { optionsOpen = true }) {
                         Icon(Icons.Default.Settings, "Options du scanner", tint = ScanGold)
@@ -302,6 +304,7 @@ fun CardScannerDialog(
                     lastAdded?.let { Text("Dernier ajout : $it", color = ScanCyan, fontSize = 11.sp, maxLines = 1, modifier = Modifier.align(Alignment.CenterHorizontally)) }
                     inlineControls?.invoke()
                     if(onUndoLast != null) TextButton(onClick=onUndoLast, modifier=Modifier.align(Alignment.CenterHorizontally)) {Text("Annuler le dernier ajout", color=ScanGold)}
+                    if (!paused) {
                     FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(onClick = { userPaused = !userPaused }, enabled = ready,
                             modifier = Modifier.widthIn(min = 140.dp).heightIn(min = 48.dp)) {
@@ -316,7 +319,8 @@ fun CardScannerDialog(
                     TextButton(onClick = { manualEntry = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                         Text("Saisir une référence", color = ScanCyan, fontSize = 12.sp)
                     }
-                    Text(hint ?: if (batchCount != null) "$batchCount carte(s) en attente · Terminer pour vérifier le lot" else "Chaque carte est à confirmer avant l’ajout.", color = Color(0xFF879AB6), fontSize = 11.sp,
+                    }
+                    Text(hint ?: if (batchCount != null) "$batchCount carte(s) en attente · Terminer pour valider la liste" else "Chaque carte est à confirmer avant l’ajout.", color = Color(0xFF879AB6), fontSize = 11.sp,
                         modifier = Modifier.align(Alignment.CenterHorizontally))
                 }
               }
