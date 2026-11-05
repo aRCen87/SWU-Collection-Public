@@ -959,6 +959,9 @@ PYBADGESEEN
 tap_label "Accueil"
 tap_description "Ouvrir le menu"
 tap_label "Scanner"
+# The preceding restart restores the saved mode (Rafale). This scenario
+# verifies individual confirmation, so explicitly select that mode first.
+tap_label "Une par une"
 for language in Français Anglais Allemand Espagnol Italien; do
   tap_label "Saisir une référence"
   tap_label "Extension"
