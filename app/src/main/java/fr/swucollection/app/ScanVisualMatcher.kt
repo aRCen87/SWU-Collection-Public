@@ -22,13 +22,20 @@ internal class ScanVisualMatcher(private val context: Context) {
                 buffered.mark(2); val compressed = buffered.read() == 0x1f && buffered.read() == 0x8b; buffered.reset()
                 val decoded = if (compressed) GZIPInputStream(buffered) else buffered
                 val json = decoded.bufferedReader().use { JSONObject(it.readText()) }
-                require(json.getString("format") == "SWU_VISUAL_INDEX" && json.getInt("version") == 1 && json.getString("sampling") == "area-v1")
+                val version = json.getInt("version")
+                require(json.getString("format") == "SWU_VISUAL_INDEX" && version in 1..2 && json.getString("sampling") == "area-v1")
+                if (version == 2) require(json.getInt("detailWidth") == ScanVisualRecognition.DETAIL_WIDTH &&
+                    json.getInt("detailHeight") == ScanVisualRecognition.DETAIL_HEIGHT)
                 val rows = json.getJSONArray("entries")
                 (0 until rows.length()).map { i ->
                     val row = rows.getJSONArray(i)
                     val signature = Base64.decode(row.getString(6), Base64.DEFAULT)
                     require(signature.size == ScanVisualRecognition.LENGTH)
-                    VisualIndexEntry(ScanReference(row.getString(0), row.getString(1)), row.getString(2), row.getString(3), row.getBoolean(5), signature)
+                    val detail = if (version == 2) Base64.decode(row.getString(7), Base64.DEFAULT).also {
+                        require(it.size == ScanVisualRecognition.DETAIL_LENGTH)
+                    } else null
+                    VisualIndexEntry(ScanReference(row.getString(0), row.getString(1)), row.getString(2), row.getString(3), row.getBoolean(5), signature,
+                        detail, if (version == 2) row.getString(8) else "")
                 }
             }
         }.getOrDefault(emptyList())
@@ -57,12 +64,13 @@ internal class ScanVisualMatcher(private val context: Context) {
             val guideHeight = min(viewport.height * .78, viewport.width * .9 / ratio) / scale
             val guideWidth = guideHeight * ratio
             val signatures = mutableListOf<ByteArray>()
+            val details = mutableListOf<ByteArray>()
             // Small positioning errors are expected while hand-holding a card.
             for (size in listOf(.94,1.0,1.06)) {
                 val w = guideWidth * size * .88; val h = guideHeight * size * .88
                 val left = ((upright.width-w)/2).roundToInt(); val top = ((upright.height-h)/2).roundToInt()
                 val width = w.roundToInt(); val height = h.roundToInt()
-                if (width < 8 || height < 12 || left < 0 || top < 0 || left+width > upright.width || top+height > upright.height) continue
+                if (width < ScanVisualRecognition.DETAIL_WIDTH || height < ScanVisualRecognition.DETAIL_HEIGHT || left < 0 || top < 0 || left+width > upright.width || top+height > upright.height) continue
                 val crop = Bitmap.createBitmap(upright,left,top,width,height)
                 try {
                     val pixels=IntArray(width*height)
@@ -70,9 +78,13 @@ internal class ScanVisualMatcher(private val context: Context) {
                     val sampled=ScanVisualRecognition.downsample(pixels,width,height)
                     signatures.add(ScanVisualRecognition.signature(sampled))
                     signatures.add(ScanVisualRecognition.signature(sampled.reversedArray()))
+                    val detailed = ScanVisualRecognition.downsample(pixels,width,height,
+                        ScanVisualRecognition.DETAIL_WIDTH,ScanVisualRecognition.DETAIL_HEIGHT)
+                    details.add(ScanVisualRecognition.signature(detailed))
+                    details.add(ScanVisualRecognition.signature(detailed.reversedArray()))
                 } finally { if(crop !== upright) crop.recycle() }
             }
-            return ScanVisualRecognition.candidates(signatures,entries,viewport.landscape)
+            return ScanVisualRecognition.candidates(signatures,entries,viewport.landscape,details)
         } finally {
             if (upright !== working) upright.recycle()
             if (working !== frame) working.recycle()
