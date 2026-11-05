@@ -132,7 +132,7 @@ internal object CardmarketPrices {
 }
 
 @Composable
-internal fun CollectionPriceLabel(quote: MarketQuote?, loaded: Boolean) {
+internal fun CollectionPriceLabel(quote: MarketQuote?, loaded: Boolean, language: String? = null) {
     val currency = remember { NumberFormat.getCurrencyInstance(Locale.FRANCE) }
     val label = when {
         quote == null -> if (loaded) "Cote indisponible" else "Cote : …"
@@ -141,7 +141,9 @@ internal fun CollectionPriceLabel(quote: MarketQuote?, loaded: Boolean) {
             if (quote.maxAmount != null && quote.maxAmount != quote.amount)
                 " à " + currency.format(quote.maxAmount) else ""
     }
-    Text(label, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+    val price = label.removePrefix("Cote : ").replaceFirst("Cote", "cote")
+    val display = if (language == null) label else "${CardLanguages.label(language)} : $price"
+    Text(display, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
         color = if (quote?.amount != null) MaterialTheme.colorScheme.primary
             else MaterialTheme.colorScheme.onSurfaceVariant)
 }

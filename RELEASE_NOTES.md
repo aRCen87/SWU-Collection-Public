@@ -1,3 +1,8 @@
+## Version 0.8.15
+
+- Collection, versions regroupées : un seul en-tête par numéro et finition, puis une ligne par langue avec cote et boutons −/+.
+- Les langues partagent l’affichage d’une version, mais conservent leurs quantités et leur visuel propres. Les finitions et références différentes restent séparées.
+
 ## Version 0.8.14
 
 - Scanner simplifié : destination collection par défaut et nom du deck affiché explicitement lors des scans vers un deck existant ou nouveau.
