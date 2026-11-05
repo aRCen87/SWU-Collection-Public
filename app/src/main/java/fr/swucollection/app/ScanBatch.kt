@@ -110,8 +110,7 @@ internal fun ScanBatchPanel(batch: ScanBatchStore, committed: Boolean, onCommit:
             LazyColumn(Modifier.fillMaxWidth().heightIn(max = 300.dp)) {
                 items(batch.entries, key = { it.card.setCode + ":" + it.card.number + ":" + it.variant + ":" + it.card.language }) { entry ->
                     Column {
-                        Text(entry.card.name)
-                        Text("${entry.card.setCode} · ${entry.card.number} · ${entry.variant.ifBlank { "Finition à vérifier" }} · ${CardLanguages.label(entry.card.language)}")
+                        ScannerCardSummary(entry.card, entry.variant)
                         if (!entry.resolved && !committed) ScanEntryReview(entry) { language, variant, quantity ->
                             runCatching { batch.resolve(entry, language, variant, quantity) }.onFailure { message = it.message }
                         }
@@ -124,7 +123,7 @@ internal fun ScanBatchPanel(batch: ScanBatchStore, committed: Boolean, onCommit:
                 }
             }
             if (batch.entries.any { !it.resolved }) Text("Précise les langues et finitions en attente avant de valider.")
-            Button(enabled = committed || batch.entries.all { it.resolved }, onClick = { runCatching(onCommit).onSuccess { message = "Lot ajouté à la collection." }.onFailure { message = it.message } }, modifier = Modifier.fillMaxWidth()) { Text(if (committed) "Fermer le lot déjà ajouté" else "Valider tout le lot") }
+            Button(enabled = committed || batch.entries.all { it.resolved }, onClick = { runCatching(onCommit).onSuccess { message = "Lot ajouté à la collection." }.onFailure { message = it.message } }, modifier = Modifier.fillMaxWidth()) { Text(if (committed) "Fermer le lot déjà ajouté" else "Valider · Ajouter à ma collection") }
             TextButton(enabled = !committed, onClick = { discard = true }) { Text("Abandonner ce lot") }
             message?.let { Text(it) }
         }

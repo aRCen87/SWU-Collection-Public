@@ -128,6 +128,11 @@ internal fun DeckBuilderPanel(
     var scanLast by remember { mutableStateOf<String?>(null) }
     var scanUndo by remember { mutableStateOf<List<DeckDraft>>(emptyList()) }
     var pendingIdentity by remember { mutableStateOf<CatalogCard?>(null) }
+    var scanMode by rememberCollectionFilter("scanModeV3", "Une par une")
+    var scanPending by remember { mutableStateOf<CatalogCard?>(null) }
+    var scanReadToken by remember { mutableIntStateOf(0) }
+    var scanLastCard by remember { mutableStateOf<ScanBatchEntry?>(null) }
+    var pendingFinish by remember { mutableStateOf<String?>(null) }
     fun saveDeck() {
         closing = true
         runCatching { onSave(name.trim(), deck, collectionBatchId, collectionEntries); draftStore.clear(draftKey) }
@@ -334,6 +339,7 @@ internal fun DeckBuilderPanel(
                         "leader", "chef" -> leaderChosen = true
                         "base" -> baseChosen = true
                     }
+                    scanLastCard = ScanBatchEntry(card, variant.orEmpty(), 1)
                     scanLast = "${card.name} · ${CardLanguages.label(card.language)}"
                     scanMessage = null
                 } else scanMessage = "Cette carte est déjà sélectionnée."
@@ -343,16 +349,17 @@ internal fun DeckBuilderPanel(
                 false
             })
         }
-        fun scanWithPrint(card: CatalogCard) {
+        fun scanWithPrint(card: CatalogCard): Boolean {
             val variant = ScanVariants.detect(card).variant
-            applyScan(CardLanguageArtwork.localized(draftContext, card, card.language, variant), variant)
+            return applyScan(CardLanguageArtwork.localized(draftContext, card, card.language, variant), variant)
         }
         CardScannerDialog(
             onDismiss = {
-                scanning = false; pendingIdentity = null
+                scanning = false; pendingIdentity = null; scanPending = null
                 tab = if (scanReserve) "Réserve" else "Deck"; catalogueOpen = false; query = ""
             },
-            onDetected = { set, number, raw ->
+            onDetected = detected@{ set, number, raw ->
+                if (scanPending != null || pendingIdentity != null) return@detected false
                 val card = DeckScan.find(catalog, set, number)?.copy(language = ScanRecognition.language(raw) ?: CardLanguages.UNKNOWN)
                 if (card == null) { scanMessage = "Référence introuvable : $set $number."; false }
                 else {
@@ -362,28 +369,48 @@ internal fun DeckBuilderPanel(
                         "base" -> baseChosen && deck.base != id
                         else -> false
                     }
-                    if (replacing) { pendingIdentity = card; true } else { scanWithPrint(card); true }
+                    if (scanMode == "Une par une") { scanPending = card; scanMessage = null; true }
+                    else if (replacing) { pendingFinish = ScanVariants.detect(card).variant; pendingIdentity = card; true }
+                    else scanWithPrint(card)
                 }
             },
-            paused = pendingIdentity != null,
-            lastAdded = scanLast,
+            paused = pendingIdentity != null || scanPending != null,
+            rescanToken = scanReadToken,
             onUndoLast = if (scanUndo.isEmpty()) null else ({
                 val previous = scanUndo.last(); scanUndo = scanUndo.dropLast(1)
                 checkpoint(); name = previous.name; deck = previous.deck
                 leaderChosen = previous.leaderChosen; baseChosen = previous.baseChosen
                 collectionEntries = previous.collectionEntries; collectionBatchId = previous.collectionBatchId.ifBlank { collectionBatchId }
-                scanLast = null; scanMessage = "Dernier ajout annulé."
+                scanLast = null; scanLastCard = null; scanMessage = "Dernier ajout annulé."
             }),
             destinationControls = {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(false, onClick = { scanning = false; onScanCollection?.invoke() },
-                        enabled = onScanCollection != null, label = { Text("Collection") })
-                    FilterChip(true, onClick = {}, label = { Text(name.ifBlank { "Mon deck" }) })
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(scannerDestination(name), color = gold, style = MaterialTheme.typography.titleSmall)
+                    TextButton(onClick = { scanning = false; scanPending = null; onScanCollection?.invoke() },
+                        enabled = onScanCollection != null) { Text("Ajouter à ma collection plutôt") }
+                    ScannerModeChoices(scanMode, enabled = scanPending == null && pendingIdentity == null) { scanMode = it }
                 }
             },
-            title = "Scanner mon deck",
-            hint = "Une carte à la fois. Retire-la du cadre avant de scanner un autre exemplaire. Terminer pour vérifier puis enregistrer.",
+            title = "Scanner",
+            hint = "Terminer pour vérifier les cartes de « $name » et enregistrer le deck.",
             inlineControls = {
+                val pending = scanPending
+                if (pending != null) {
+                    ScannerCardConfirmation(pending, pending.language, ScanVariants.detect(pending).variant.orEmpty(),
+                        scannerDestination(name), scanMessage,
+                        onCancel = { scanPending = null; scanMessage = null; scanReadToken++ },
+                        onConfirm = confirm@{ language, finish ->
+                            if (scanPending != pending) return@confirm
+                            val card = CardLanguageArtwork.localized(draftContext, pending, language, finish)
+                            val replacing = when (DeckConstruction.type(card)) {
+                                "leader", "chef" -> leaderChosen && deck.leader != DeckConstruction.reference(card)
+                                "base" -> baseChosen && deck.base != DeckConstruction.reference(card)
+                                else -> false
+                            }
+                            if (replacing) { pendingFinish = finish; pendingIdentity = card; scanPending = null }
+                            else if (applyScan(card, finish)) { scanPending = null; scanReadToken++ }
+                        })
+                } else scanLastCard?.let { ScannerCardSummary(it.card, it.variant, "Ajoutée à « $name » · brouillon") }
                 Row(Modifier.fillMaxWidth().toggleable(value = collectScans, role = Role.Checkbox, onValueChange = { collectScans = it }), verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(collectScans, onCheckedChange = null)
                     Text("Ajouter aussi à ma collection", color = gold, style = MaterialTheme.typography.labelMedium)
@@ -400,11 +427,11 @@ internal fun DeckBuilderPanel(
             }
         )
         pendingIdentity?.let { card ->
-            AlertDialog(onDismissRequest = { pendingIdentity = null },
+            AlertDialog(onDismissRequest = { pendingIdentity = null; scanReadToken++ },
                 title = { Text(if (DeckConstruction.type(card) == "base") "Remplacer la base ?" else "Remplacer le leader ?") },
                 text = { Text(card.name) },
-                confirmButton = { TextButton(onClick = { pendingIdentity = null; scanWithPrint(card) }) { Text("Remplacer") } },
-                dismissButton = { TextButton(onClick = { pendingIdentity = null }) { Text("Conserver") } })
+                confirmButton = { TextButton(onClick = { pendingIdentity = null; if (applyScan(card, pendingFinish) && scanMode == "Une par une") scanReadToken++ }) { Text("Remplacer") } },
+                dismissButton = { TextButton(onClick = { pendingIdentity = null; scanReadToken++ }) { Text("Annuler") } })
         }
     }
     if (confirmingSave) AlertDialog(onDismissRequest = { confirmingSave = false },
