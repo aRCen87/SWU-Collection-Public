@@ -305,16 +305,14 @@ fun CardScannerDialog(
                     inlineControls?.invoke()
                     if(onUndoLast != null) TextButton(onClick=onUndoLast, modifier=Modifier.align(Alignment.CenterHorizontally)) {Text("Annuler le dernier ajout", color=ScanGold)}
                     if (!paused) {
-                    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = { userPaused = !userPaused }, enabled = ready,
-                            modifier = Modifier.widthIn(min = 140.dp).heightIn(min = 48.dp)) {
-                            Icon(if (userPaused) Icons.Default.PlayArrow else Icons.Default.Pause, null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(6.dp)); Text(if (userPaused) "Reprendre" else "Pause", maxLines = 1)
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        IconButton(onClick = { userPaused = !userPaused }, enabled = ready) {
+                            Icon(if (userPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
+                                if (userPaused) "Reprendre" else "Pause", tint = ScanGold)
                         }
-                        Button(onClick = { userPaused = false; analyzer?.readAgain() }, enabled = ready,
-                            modifier = Modifier.widthIn(min = 140.dp).heightIn(min = 48.dp)) {
-                            Text("Relancer la lecture")
-                        }
+                        OutlinedButton(onClick = { userPaused = false; analyzer?.readAgain() }, enabled = ready,
+                            modifier = Modifier.weight(1f)) { Text("Relancer la lecture") }
                     }
                     TextButton(onClick = { manualEntry = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                         Text("Saisir une référence", color = ScanCyan, fontSize = 12.sp)
