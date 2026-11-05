@@ -811,8 +811,9 @@ tap_label "Numéro"
 adb shell input text 788
 adb shell input keyevent 4
 tap_label "Rechercher"
-dump_window >/dev/null
-pull_file /sdcard/swu-window.xml smoke/scanner-variant.xml >/dev/null
+# The variant summary and confirmation can occupy separate viewports on 320dp.
+# Capture the unchanged pending card while revealing its confirmation buttons.
+capture_scanner_state smoke/scanner-variant.xml "JTL 788" "Hyperspace Foil" "Cote" "Valider · Ajouter à ma collection" "Annuler"
 python3 - <<'PYSCANVARIANT'
 import xml.etree.ElementTree as ET
 text=' '.join(n.attrib.get('text','') for n in ET.parse('smoke/scanner-variant.xml').iter('node'))
