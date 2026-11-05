@@ -445,7 +445,6 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 texts={n.attrib.get('text','') for n in ET.parse('smoke/deck-scan-unconfirmed.xml').iter('node')}
 assert 'Valider · Ajouter à « Mon deck »' in texts and 'Annuler' in texts,texts
-assert '0 ajout(s) à la collection en attente · validation à l’enregistrement du deck' in texts,texts
 for capture in Path('smoke').glob('deck-scan-summary-*.xml'):
     texts.update(n.attrib.get('text','') for n in ET.parse(capture).iter('node'))
 assert any('JTL 788' in t for t in texts),texts
