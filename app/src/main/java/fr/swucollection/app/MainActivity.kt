@@ -1249,6 +1249,7 @@ private fun CollectionScreen(
                             }.onSuccess {
                                 scanLastCard = ScanBatchEntry(candidate.copy(language = language), finish, 1)
                                 scanCandidate = null
+                                scanReadToken++
                             }.onFailure { scanVariantError = it.message ?: "Impossible d’enregistrer cet ajout." }
                         })
                 } else {
