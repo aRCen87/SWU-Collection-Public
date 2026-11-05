@@ -1,3 +1,12 @@
+## 0.8.9 — Parcours du scanner
+
+- Mise au point automatique régulière sur la carte, avec mise au point au toucher conservée.
+- Lecture en série par défaut et analyse plus rapprochée, avec protection contre les doubles lectures conservée.
+- Bouton « Terminer » visible pour passer au récapitulatif du lot ou retrouver son deck avant enregistrement.
+- Destination visible dans le scanner : collection par défaut, nouveau deck, deck enregistré ou brouillon.
+- Depuis le scanner de deck, retour possible au scan collection ; les ajouts collection du deck restent optionnels.
+- Les cartes déjà scannées restent dans leur destination initiale lors d’un changement de destination.
+
 ## Version 0.8.8
 
 - Scanner : cadre horizontal « Leader / base », recherche dans les quatre orientations et demande d’une image plus détaillée lorsque la caméra le permet.

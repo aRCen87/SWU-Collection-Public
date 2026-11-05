@@ -52,4 +52,15 @@ class StableScanGateTest {
         assertNull(gate.observe(first, 3000));assertNull(gate.observe(first, 6000))
         assertEquals(first, gate.observe(first, 6500))
     }
+    @Test fun burstCadenceKeepsHeldCardsBlockedAndAcceptsTheNextCard() {
+        val gate = StableScanGate()
+        assertNull(gate.observe(first, 1000, "FR"))
+        assertEquals(first, gate.observe(first, 1300, "FR"))
+        assertNull(gate.observe(first, 1600, "FR"))
+        assertNull(gate.observe(null, 1900))
+        assertNull(gate.observe(first, 2200, "FR"))
+        assertNull(gate.observe(second, 2500, "EN"))
+        assertEquals(second, gate.observe(second, 2800, "EN"))
+        assertNull(gate.observe(second, 3100, "EN"))
+    }
 }

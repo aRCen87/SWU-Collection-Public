@@ -35,7 +35,7 @@ internal class LiveScanAnalyzer(
     @androidx.annotation.OptIn(ExperimentalGetImage::class)
     override fun analyze(image: ImageProxy) {
         val now = SystemClock.elapsedRealtime()
-        if (closed.get() || paused() || (!force.get() && now - lastAnalysis < 450) || !processing.compareAndSet(false, true)) {
+        if (closed.get() || paused() || (!force.get() && now - lastAnalysis < 300) || !processing.compareAndSet(false, true)) {
             image.close(); return
         }
         if (closed.get()) { image.close(); processing.set(false); releaseIfIdle(); return }
@@ -66,7 +66,7 @@ internal class LiveScanAnalyzer(
                                 force.set(false)
                                 if (onDetected(stable, raw)) {
                                     rejected = null
-                                    onMessage("Carte reconnue · confirme son ajout")
+                                    onMessage("Carte reconnue · scan pris en compte")
                                 } else {
                                     rejected = stable
                                     orientation.observed(null)

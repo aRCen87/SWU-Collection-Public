@@ -482,7 +482,7 @@ tap_label "Annuler le dernier ajout"
 scan_deck_reference SOR 002
 tap_label "Conserver"
 adb exec-out screencap -p > smoke/deck-scan.png
-tap_description "Fermer le scanner"
+tap_label "Terminer"
 tap_label "Deck"
 tap_description "Agrandir Leader"
 adb exec-out screencap -p > smoke/deck-card-preview.png
@@ -672,6 +672,13 @@ tap_label "Accueil"
 tap_description "Ouvrir le menu"
 tap_label "Scanner"
 sleep 4
+# Destination stays explicit and cancelling the picker keeps the collection scanner.
+tap_label "Vers un deck…"
+tap_label "Rester sur la collection"
+# The remaining checks exercise individual card confirmation deliberately.
+tap_description "Options du scanner"
+tap_label "Unitaire"
+tap_label "Reprendre le scan"
 tap_label "Leader / base"
 for dimensions in 320x800 720x400; do
   physical=$(python3 - "$density" "$dimensions" <<'PYSCANSIZE'
@@ -691,7 +698,7 @@ for label in ['Relancer la lecture','Saisir une référence']:
     visible=[n for n in nodes if n.attrib.get('text')==label]
     assert visible, label
     assert any((lambda b:b[2]>b[0] and b[3]>b[1])(list(map(int,re.findall(r'\d+',n.attrib['bounds'])))) for n in visible),label
-assert any(n.attrib.get('content-desc')=='Fermer le scanner' for n in nodes)
+assert any(n.attrib.get('text')=='Terminer' for n in nodes)
 PYSCANLAYOUT
   adb exec-out screencap -p > "smoke/scanner-$dimensions.png"
 done
@@ -879,7 +886,7 @@ PYLANGUAGEKEYBOARD
   adb exec-out screencap -p > "smoke/scanner-language-$language.png"
   tap_label "Ajouter et continuer"
 done
-tap_description "Fermer le scanner"
+tap_label "Terminer"
 tap_label "Collection"
 tap_label "Nom, extension ou numéro"
 adb shell input text R2-D2

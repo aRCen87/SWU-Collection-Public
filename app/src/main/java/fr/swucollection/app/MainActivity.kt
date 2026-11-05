@@ -224,10 +224,12 @@ private fun CollectionScreen(
     var catalogSyncMessage by remember { mutableStateOf<String?>(null) }
     val batchContext = LocalContext.current
     val scanBatch = remember { ScanBatchStore(batchContext) }
-    var scanMode by rememberCollectionFilter("scanMode", "Unitaire")
+    var scanMode by rememberCollectionFilter("scanModeV2", "En série")
     var batchVariant by rememberCollectionFilter("scanVariantMode", "Automatique")
     var batchMessage by remember { mutableStateOf<String?>(null) }
     var scannerOpen by remember { mutableStateOf(false) }
+    var scanDeckPicker by remember { mutableStateOf(false) }
+    var startDeckScan by remember { mutableStateOf(false) }
     var scanVariantMenuOpen by remember { mutableStateOf(false) }
     var scanCandidate by remember { mutableStateOf<CatalogCard?>(null) }
     var scanLanguage by remember { mutableStateOf(CardLanguages.UNKNOWN) }
@@ -532,6 +534,9 @@ private fun CollectionScreen(
                         catalog = allCatalog, owned = cards,
                         initial = editingDeck?.deck ?: PortableDeck("SOR-001", "SOR-024", emptyList()),
                         initialName = editingDeck?.name ?: "Mon deck", newDeck = creatingDeck && editingDeck == null, draftKey = editingDeck?.id ?: creatingDraftKey, details = cardDetails, rules = legalitySnapshot.rules,
+                        startScanning = startDeckScan,
+                        onScanStarted = { startDeckScan = false },
+                        onScanCollection = { openScanner() },
                         onCancel = { editingDeck = null; creatingDeck = false },
                         onSave = { title, deck, batchId, entries ->
                             deckStore.saveWithScans(title, editingDeck?.format ?: "Premier", deck, editingDeck?.id ?: java.util.UUID.randomUUID().toString(), batchId, entries, cardDetails)
@@ -1207,7 +1212,13 @@ private fun CollectionScreen(
     if (scannerOpen) {
         CardScannerDialog(
             onDismiss = { closeScanner() },
-            paused = scanCandidate != null || scanVariantMenuOpen,
+            paused = scanCandidate != null || scanVariantMenuOpen || scanDeckPicker,
+            destinationControls = {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(true, onClick = {}, label = { Text("Collection") })
+                    FilterChip(false, onClick = { scanDeckPicker = true }, label = { Text("Vers un deck…") })
+                }
+            },
             lastAdded = scanLastAdded,
             onUndoLast = if(scanMode != "En série" && lastScanEvent != null && database.history().firstOrNull { !it.undone }?.id == lastScanEvent) ({
                 runCatching { database.undoLastChange() }.onSuccess { lastScanEvent = null; scanLastAdded = "Ajout annulé"; refresh() }
@@ -1274,6 +1285,42 @@ private fun CollectionScreen(
             }
         )
     }
+    if (scanDeckPicker) AlertDialog(
+        onDismissRequest = { scanDeckPicker = false },
+        title = { Text("Scanner vers un deck") },
+        text = {
+            Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Les cartes déjà scannées vers la collection y restent en attente.")
+                if (creatingDeck || editingDeck != null) {
+                    Button(onClick = {
+                        scanDeckPicker = false; closeScanner(); startDeckScan = true
+                        navigation.navigateTo("Mes listes")
+                    }, modifier = Modifier.fillMaxWidth()) { Text("Reprendre le deck en cours") }
+                } else {
+                    Button(onClick = {
+                        scanDeckPicker = false; closeScanner()
+                        creatingDraftKey = "new:" + java.util.UUID.randomUUID().toString()
+                        creatingDeck = true; startDeckScan = true
+                        navigation.navigateTo("Mes listes")
+                    }, modifier = Modifier.fillMaxWidth()) { Text("Créer un deck") }
+                    DeckDraftStore(deckContext).newDrafts().forEach { (key, draft) ->
+                        OutlinedButton(onClick = {
+                            scanDeckPicker = false; closeScanner()
+                            creatingDraftKey = key; creatingDeck = true; startDeckScan = true
+                            navigation.navigateTo("Mes listes")
+                        }, modifier = Modifier.fillMaxWidth()) { Text("${draft.name} · brouillon") }
+                    }
+                    savedDecks.forEach { saved ->
+                        OutlinedButton(onClick = {
+                            scanDeckPicker = false; closeScanner(); startDeckScan = true
+                            openSavedDeck(saved)
+                        }, modifier = Modifier.fillMaxWidth()) { Text(saved.name) }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = { scanDeckPicker = false }) { Text("Rester sur la collection") } })
     scanCandidate?.let { candidate ->
         val print = remember(candidate) { ScanVariants.detect(candidate) }
         Dialog(onDismissRequest = { scanCandidate = null }) {

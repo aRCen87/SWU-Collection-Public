@@ -35,7 +35,9 @@ internal fun DeckBuilderPanel(
     catalog: List<CatalogCard>, owned: List<CollectionCard>, initial: PortableDeck,
     initialName: String = "Mon deck", newDeck: Boolean = false, draftKey: String = "new", details: CardDetails, rules: LegalityRules,
     onCancel: () -> Unit, onSave: (String, PortableDeck, String, List<ScanBatchEntry>) -> Unit,
-    onPreview: (CatalogCard, List<CatalogCard>) -> Unit
+    onPreview: (CatalogCard, List<CatalogCard>) -> Unit,
+    startScanning: Boolean = false, onScanStarted: () -> Unit = {},
+    onScanCollection: (() -> Unit)? = null
 ) {
     val draftContext = LocalContext.current.applicationContext
     val draftStore = remember(draftContext) { DeckDraftStore(draftContext) }
@@ -118,6 +120,9 @@ internal fun DeckBuilderPanel(
     val largeText = LocalDensity.current.fontScale > 1.3f
     var exportMenu by remember { mutableStateOf(false) }
     var scanning by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(startScanning) {
+        if (startScanning) { scanning = true; onScanStarted() }
+    }
     var scanReserve by rememberSaveable { mutableStateOf(false) }
     var scanMessage by remember { mutableStateOf<String?>(null) }
     var scanLast by remember { mutableStateOf<String?>(null) }
@@ -376,8 +381,15 @@ internal fun DeckBuilderPanel(
                 collectionEntries = previous.collectionEntries; collectionBatchId = previous.collectionBatchId.ifBlank { collectionBatchId }
                 scanLast = null; scanMessage = "Dernier ajout annulé."
             }),
+            destinationControls = {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(false, onClick = { scanning = false; onScanCollection?.invoke() },
+                        enabled = onScanCollection != null, label = { Text("Collection") })
+                    FilterChip(true, onClick = {}, label = { Text(name.ifBlank { "Mon deck" }) })
+                }
+            },
             title = "Scanner mon deck",
-            hint = "Une carte à la fois. Retire-la du cadre avant de scanner un autre exemplaire. Ferme pour vérifier puis enregistrer.",
+            hint = "Une carte à la fois. Retire-la du cadre avant de scanner un autre exemplaire. Terminer pour vérifier puis enregistrer.",
             inlineControls = {
                 Row(Modifier.fillMaxWidth().toggleable(value = collectScans, role = Role.Checkbox, onValueChange = { collectScans = it }), verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(collectScans, onCheckedChange = null)

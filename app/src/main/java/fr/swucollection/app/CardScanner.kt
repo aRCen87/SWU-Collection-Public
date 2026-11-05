@@ -48,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -60,6 +61,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.min
+import kotlinx.coroutines.delay
 
 private val ScanInk = Color(0xFF050D1A)
 private val ScanGold = Color(0xFFFFD47D)
@@ -87,7 +89,8 @@ fun CardScannerDialog(
     controls: (@Composable () -> Unit)? = null,
     title: String? = null,
     hint: String? = null,
-    inlineControls: (@Composable () -> Unit)? = null
+    inlineControls: (@Composable () -> Unit)? = null,
+    destinationControls: (@Composable () -> Unit)? = null
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
@@ -175,14 +178,33 @@ fun CardScannerDialog(
         }
     }
 
+    // Refresh focus on the card while scanning, then release it back to continuous AF.
+    // Do not meter while a confirmation or a destination chooser covers the camera.
+    LaunchedEffect(camera, ready, effectivelyPaused) {
+        val current = camera ?: return@LaunchedEffect
+        while (ready && !effectivelyPaused) {
+            if (previewView.width > 0 && previewView.height > 0) {
+                val point = previewView.meteringPointFactory.createPoint(
+                    previewView.width / 2f, previewView.height * 0.60f)
+                val action = FocusMeteringAction.Builder(point, FocusMeteringAction.FLAG_AF)
+                    .setAutoCancelDuration(2, TimeUnit.SECONDS).build()
+                if (current.cameraInfo.isFocusMeteringSupported(action)) {
+                    runCatching { current.cameraControl.startFocusAndMetering(action) }
+                }
+            }
+            delay(4000)
+        }
+    }
+
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false)) {
         Surface(color = ScanInk, modifier = Modifier.fillMaxSize()) {
           ScannerAdaptiveLayout(
               header = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("SWU COLLECTION", color = ScanCyan, fontSize = 10.sp, letterSpacing = 2.sp)
-                        Text(title ?: if (batchCount != null) "Scanner en série" else "Scanner", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 27.sp)
+                        Text(title ?: if (batchCount != null) "Scanner en série" else "Scanner", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     if (controls != null) IconButton(onClick = { optionsOpen = true }) {
                         Icon(Icons.Default.Settings, "Options du scanner", tint = ScanGold)
@@ -199,7 +221,9 @@ fun CardScannerDialog(
                             if (torch) "Éteindre la lampe" else "Allumer la lampe", tint = if (torch) ScanGold else Color.White)
                     }
                     Spacer(Modifier.width(8.dp))
-                    IconButton(onClick = onDismiss) { Icon(Icons.Default.Close, "Fermer le scanner", tint = Color.White) }
+                    TextButton(onClick = onDismiss) { Text("Terminer", color = ScanGold) }
+                }
+                destinationControls?.invoke()
                 }
               },
               preview = { paneModifier ->
@@ -275,7 +299,7 @@ fun CardScannerDialog(
                     TextButton(onClick = { manualEntry = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                         Text("Saisir une référence", color = ScanCyan, fontSize = 12.sp)
                     }
-                    Text(hint ?: if (batchCount != null) "$batchCount carte(s) en attente · fermer pour vérifier le lot" else "Chaque carte est à confirmer avant l’ajout.", color = Color(0xFF879AB6), fontSize = 11.sp,
+                    Text(hint ?: if (batchCount != null) "$batchCount carte(s) en attente · Terminer pour vérifier le lot" else "Chaque carte est à confirmer avant l’ajout.", color = Color(0xFF879AB6), fontSize = 11.sp,
                         modifier = Modifier.align(Alignment.CenterHorizontally))
                 }
               }
