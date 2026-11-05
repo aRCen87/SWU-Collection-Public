@@ -431,10 +431,24 @@ scan_deck_reference JTL 788
 # Recognition must not mutate a deck before explicit validation.
 dump_window >/dev/null
 pull_file /sdcard/swu-window.xml smoke/deck-scan-unconfirmed.xml >/dev/null
+# Manual-entry controls can leave the actions pane scrolled below the card
+# summary. Keep the confirmation check, then inspect the earlier content in
+# that same pane. The fixed camera/header must not receive these gestures.
+for summary_step in 1 2 3; do
+  adb shell input swipe 8 450 8 605 500
+  dump_window >/dev/null
+  pull_file /sdcard/swu-window.xml "smoke/deck-scan-summary-$summary_step.xml" >/dev/null
+done
+adb exec-out screencap -p > smoke/deck-scan-summary.png
 python3 - <<'PYUNCONFIRMED'
+from pathlib import Path
 import xml.etree.ElementTree as ET
 texts={n.attrib.get('text','') for n in ET.parse('smoke/deck-scan-unconfirmed.xml').iter('node')}
 assert 'Valider · Ajouter à « Mon deck »' in texts and 'Annuler' in texts,texts
+assert '0 ajout(s) à la collection en attente · validation à l’enregistrement du deck' in texts,texts
+for capture in Path('smoke').glob('deck-scan-summary-*.xml'):
+    texts.update(n.attrib.get('text','') for n in ET.parse(capture).iter('node'))
+assert any('JTL 788' in t for t in texts),texts
 assert any('Cote' in t for t in texts),texts
 PYUNCONFIRMED
 tap_label "Annuler"
