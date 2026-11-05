@@ -1,3 +1,9 @@
+## Version 0.8.17
+
+- Boutons d’accueil : léger enfoncement pendant l’appui et retour souple au relâchement, inspirés de l’aperçu validé.
+- Un éclat doré parcourt brièvement leur bordure au toucher. Les visuels, titres et destinations restent conservés, ainsi que le reflet lié à l’inclinaison du téléphone.
+- Les effets respectent la désactivation des animations Android, ne tournent pas en continu et ne retardent pas l’ouverture des pages. Un appui annulé en faisant défiler la liste arrête l’éclat sans ouvrir de page.
+
 ## Version 0.8.16
 
 - Scanner : une langue momentanément illisible ne fait plus recommencer la confirmation d’une même référence. Deux lectures réelles de la langue restent nécessaires ; une langue contradictoire, une autre référence ou une interruption annule la confirmation partielle.

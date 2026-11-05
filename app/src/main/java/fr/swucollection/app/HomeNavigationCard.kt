@@ -5,6 +5,7 @@ import android.graphics.RectF
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -50,8 +51,10 @@ internal fun HomeNavigationCard(symbol: String, title: String, subtitle: String,
     val artwork = remember(resources, drawable) { BitmapFactory.decodeResource(resources, drawable) }
     val gold = Color(0xFFE6C17A)
     val navy = Color(0xFF030D19)
+    val interactions = remember { MutableInteractionSource() }
     Surface(onClick = onClick,
-        modifier = Modifier.fillMaxWidth().goldBorderReflection(reflection),
+        interactionSource = interactions,
+        modifier = Modifier.fillMaxWidth().homeButtonMotion(interactions).goldBorderReflection(reflection),
         shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, gold.copy(alpha = 0.8f)), color = navy) {
         Box(Modifier.fillMaxWidth().heightIn(min = 76.dp)) {
             Canvas(Modifier.matchParentSize()) {
