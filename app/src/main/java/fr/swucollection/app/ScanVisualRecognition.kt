@@ -10,6 +10,21 @@ internal data class VisualIndexEntry(
     val landscape: Boolean, val signature: ByteArray
 )
 
+/** Skipped image analyses are neutral; conflicting or absent evidence breaks a read. */
+internal class StableVisualScanEvidence(private val maxGapMs: Long = 6000) {
+    private var candidate: Pair<ScanReference, String>? = null
+    private var lastSeen = 0L
+
+    fun interrupt() { candidate = null; lastSeen = 0L }
+
+    fun observe(evidence: Pair<ScanReference, String>?, now: Long): Pair<ScanReference, String>? {
+        if (evidence == null) { interrupt(); return null }
+        val stable = evidence == candidate && now - lastSeen in 0..maxGapMs
+        candidate = evidence; lastSeen = now
+        return evidence.takeIf { stable }
+    }
+}
+
 /** Compact, brightness-normalized full-card signatures. Results are suggestions only. */
 internal object ScanVisualRecognition {
     const val WIDTH = 8

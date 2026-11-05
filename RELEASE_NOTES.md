@@ -1,5 +1,6 @@
 ## Version 0.8.9
 
+- Reconnaissance croisée image/texte : deux lectures cohérentes de la référence et de la langue sont exigées ; un changement de langue, une lecture contradictoire ou une pause annule la lecture partielle.
 - Mise au point automatique régulière sur la carte, avec mise au point au toucher conservée.
 - Lecture en série par défaut et analyse plus rapprochée, avec protection contre les doubles lectures conservée.
 - Bouton « Terminer » visible pour passer au récapitulatif du lot ou retrouver son deck avant enregistrement.

@@ -33,6 +33,7 @@ internal class LiveScanAnalyzer(
     @Volatile private var rejected: ScanReference? = null
     private val orientation = ScanOrientation()
     private var lastVisualAnalysis = 0L
+    private val visualEvidence = StableVisualScanEvidence()
     private var visualKey: List<ScanReference> = emptyList()
     private var visualReads = 0
     private var lastVisualRead = 0L
@@ -42,7 +43,7 @@ internal class LiveScanAnalyzer(
     fun readAgain() { generation.incrementAndGet(); force.set(true) }
     fun interrupt() {
         generation.incrementAndGet()
-        gate.interrupt(); visualKey = emptyList(); visualReads = 0; visualAbsentSince = null
+        gate.interrupt(); visualEvidence.interrupt(); visualKey = emptyList(); visualReads = 0; visualAbsentSince = null
     }
     fun close() { closed.set(true); releaseIfIdle() }
     private fun releaseIfIdle() {
@@ -68,7 +69,7 @@ internal class LiveScanAnalyzer(
             if (retry) {
                 orientation.reset()
                 callbackExecutor.execute {
-                    gate.reset(); rejected = null; visualKey = emptyList(); visualReads = 0; blockedVisualKey = emptyList()
+                    gate.reset(); visualEvidence.interrupt(); rejected = null; visualKey = emptyList(); visualReads = 0; blockedVisualKey = emptyList()
                 }
             }
             val currentViewport = viewport()
@@ -97,6 +98,20 @@ internal class LiveScanAnalyzer(
                         } else emptyList()
                         callbackExecutor.execute {
                         if (closed.get() || paused() || generation.get() != frameGeneration) return@execute
+                        if (reference != null) visualEvidence.interrupt()
+                        val corroborated = if (visualAttempted) visualEvidence.observe(
+                            ScanVisualRecognition.corroborated(raw, visual), SystemClock.elapsedRealtime()
+                        ) else null
+                        if (corroborated != null && gate.blockedReference != corroborated.first) {
+                            val (exact, language) = corroborated
+                            if (onDetected(exact, "${exact.set} $language ${exact.number}")) {
+                                gate.block(exact)
+                                visualEvidence.interrupt()
+                                rejected = null
+                                onMessage("Carte reconnue par l’image et sa référence")
+                                return@execute
+                            }
+                        }
                         if (visual.isNotEmpty()) {
                             visualAbsentSince = null
                             val key = visual.map { it.reference }.sortedBy { it.set + it.number }
@@ -105,15 +120,6 @@ internal class LiveScanAnalyzer(
                             visualKey = key; lastVisualRead = visualNow
                             if (visualReads >= 2 && key != blockedVisualKey && gate.blockedReference !in key) {
                                 onVisualCandidates(visual)
-                                val corroborated = ScanVisualRecognition.corroborated(raw, visual)
-                                if (corroborated != null && gate.blockedReference != corroborated.first) {
-                                    val (exact, language) = corroborated
-                                    if (onDetected(exact, "${exact.set} $language ${exact.number}")) {
-                                        gate.block(exact)
-                                        onMessage("Carte reconnue par l’image et sa référence")
-                                        return@execute
-                                    }
-                                }
                             }
                         } else if (reference != null || visualAttempted) {
                             visualKey = emptyList(); visualReads = 0
