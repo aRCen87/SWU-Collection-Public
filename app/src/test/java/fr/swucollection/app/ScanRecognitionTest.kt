@@ -60,5 +60,17 @@ class ScanRecognitionTest {
         assertNull(ScanRecognition.extract("JTL FR R 000"))
         assertNull(ScanRecognition.extract("JTL FR C 12345"))
     }
+    @Test fun identifiesRulesTextLanguageWithoutAssigningItFromTheCardName() {
+        assertEquals("FR", ScanRecognition.language("R2-D2 — Quand vous jouez cette unite, piochez une carte."))
+        assertEquals("EN", ScanRecognition.language("R2-D2 — When you play this unit, draw a card."))
+        assertEquals("DE", ScanRecognition.language("Wenn deine Einheit Schaden verursacht, ziehe eine Karte."))
+        assertEquals("ES", ScanRecognition.language("Cuando esta unidad entra, roba una carta y agota tu adversario."))
+        assertEquals("IT", ScanRecognition.language("Quando questa unita entra, pesca una carta e sconfiggi un avversario."))
+        assertNull(ScanRecognition.language("Luke Skywalker — Jedi"))
+        assertNull(ScanRecognition.language("BASE 30"))
+        assertNull(ScanRecognition.language("you your this vous votre cette"))
+        assertEquals("FR", ScanRecognition.language("SOR FR 236\nWhen you play this unit, draw a card."))
+        assertNull(ScanRecognition.language("SOR FR 236\nSHD EN 012\nWhen you play this unit, draw a card."))
+    }
 }
 

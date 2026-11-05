@@ -25,6 +25,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,12 +43,16 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import coil.compose.AsyncImage
+import java.util.concurrent.atomic.AtomicReference
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -60,6 +65,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.min
+import kotlinx.coroutines.delay
 
 private val ScanInk = Color(0xFF050D1A)
 private val ScanGold = Color(0xFFFFD47D)
@@ -87,7 +93,8 @@ fun CardScannerDialog(
     controls: (@Composable () -> Unit)? = null,
     title: String? = null,
     hint: String? = null,
-    inlineControls: (@Composable () -> Unit)? = null
+    inlineControls: (@Composable () -> Unit)? = null,
+    destinationControls: (@Composable () -> Unit)? = null
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
@@ -105,20 +112,24 @@ fun CardScannerDialog(
     var manualEntry by remember { mutableStateOf(false) }
     var landscapeCard by remember { mutableStateOf(false) }
     var optionsOpen by remember { mutableStateOf(false) }
+    val visualViewport = remember { AtomicReference(ScanViewport(0,0,false)) }
+    val visualMatcher = remember(context) { ScanVisualMatcher(context.applicationContext) }
     var restart by remember { mutableIntStateOf(0) }
     var message by remember { mutableStateOf("Initialisation de la caméra…") }
     // Camera bindings may change when folding/rotating; a held card is still the
     // same scan session and must not be counted a second time in batch mode.
-    val scanGate = remember { StableScanGate() }
+    val scanGate = remember { StableScanGate(unknownLanguageReads = 5) }
     val externalPause = rememberUpdatedState(paused)
     val pauseCheck = { externalPause.value || userPaused || manualEntry || optionsOpen }
     val effectivelyPaused = paused || userPaused || manualEntry || optionsOpen
+    LaunchedEffect(effectivelyPaused) { if (effectivelyPaused) { scanGate.interrupt(); analyzer?.interrupt() } }
     val previewView = remember(context) {
         PreviewView(context).apply {
             scaleType = PreviewView.ScaleType.FILL_CENTER
             implementationMode = PreviewView.ImplementationMode.PERFORMANCE
         }
     }
+    SideEffect { visualViewport.set(ScanViewport(previewView.width,previewView.height,landscapeCard)) }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         hasPermission = granted; permissionAsked = true
     }
@@ -131,7 +142,8 @@ fun CardScannerDialog(
             val active = AtomicBoolean(true)
             val main = ContextCompat.getMainExecutor(context)
             val executor = Executors.newSingleThreadExecutor()
-            val reader = LiveScanAnalyzer(main, pauseCheck, { if (active.get()) message = it }, scanGate) { reference, raw ->
+            val reader = LiveScanAnalyzer(main, executor, visualMatcher, { visualViewport.get() },
+                { matches -> if (active.get() && !pauseCheck()) matches.firstOrNull()?.let { landscapeCard = it.landscape } }, pauseCheck, { if (active.get()) message = it }, scanGate) { reference, raw ->
                 if (!active.get() || pauseCheck()) false
                 else latestDetected.value(reference.set, reference.number, raw).also { found ->
                     if (found) previewView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
@@ -167,11 +179,29 @@ fun CardScannerDialog(
             onDispose {
                 active.set(false)
                 analysis.clearAnalyzer()
+                reader.interrupt()
                 reader.close()
                 runCatching { provider?.unbind(preview, analysis) }
-                executor.shutdown()
                 camera = null; analyzer = null; ready = false; torch = false
             }
+        }
+    }
+
+    // Refresh focus on the card while scanning, then release it back to continuous AF.
+    // Do not meter while a confirmation or a destination chooser covers the camera.
+    LaunchedEffect(camera, ready, effectivelyPaused) {
+        val current = camera ?: return@LaunchedEffect
+        while (ready && !effectivelyPaused) {
+            if (previewView.width > 0 && previewView.height > 0) {
+                val point = previewView.meteringPointFactory.createPoint(
+                    previewView.width / 2f, previewView.height * 0.60f)
+                val action = FocusMeteringAction.Builder(point, FocusMeteringAction.FLAG_AF)
+                    .setAutoCancelDuration(2, TimeUnit.SECONDS).build()
+                if (current.cameraInfo.isFocusMeteringSupported(action)) {
+                    runCatching { current.cameraControl.startFocusAndMetering(action) }
+                }
+            }
+            delay(4000)
         }
     }
 
@@ -179,10 +209,11 @@ fun CardScannerDialog(
         Surface(color = ScanInk, modifier = Modifier.fillMaxSize()) {
           ScannerAdaptiveLayout(
               header = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("SWU COLLECTION", color = ScanCyan, fontSize = 10.sp, letterSpacing = 2.sp)
-                        Text(title ?: if (batchCount != null) "Scanner en série" else "Scanner", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 27.sp)
+                        Text(title ?: if (batchCount != null) "Scanner en série" else "Scanner", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     if (controls != null) IconButton(onClick = { optionsOpen = true }) {
                         Icon(Icons.Default.Settings, "Options du scanner", tint = ScanGold)
@@ -199,12 +230,22 @@ fun CardScannerDialog(
                             if (torch) "Éteindre la lampe" else "Allumer la lampe", tint = if (torch) ScanGold else Color.White)
                     }
                     Spacer(Modifier.width(8.dp))
-                    IconButton(onClick = onDismiss) { Icon(Icons.Default.Close, "Fermer le scanner", tint = Color.White) }
+                    TextButton(onClick = onDismiss) { Text("Terminer", color = ScanGold) }
+                }
+                destinationControls?.invoke()
                 }
               },
               preview = { paneModifier ->
                 Box(paneModifier.clip(RoundedCornerShape(26.dp))
                     .background(Color(0xFF0B1B2D)).border(1.dp, ScanGold.copy(alpha = 0.3f), RoundedCornerShape(26.dp))
+                    .pointerInput(camera, ready) {
+                        detectTransformGestures { _, _, zoom, _ ->
+                            val activeCamera = camera
+                            val state = activeCamera?.cameraInfo?.zoomState?.value
+                            if (state != null && zoom != 1f) activeCamera?.cameraControl?.setZoomRatio(
+                                (state.zoomRatio * zoom).coerceIn(state.minZoomRatio,state.maxZoomRatio))
+                        }
+                    }
                     .pointerInput(camera, ready) {
                         detectTapGestures { tap ->
                             camera?.cameraControl?.startFocusAndMetering(FocusMeteringAction.Builder(
@@ -213,7 +254,9 @@ fun CardScannerDialog(
                         }
                     }, contentAlignment = Alignment.Center) {
                     if (hasPermission && owner != null) {
-                        AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
+                        AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize().onSizeChanged {
+                            visualViewport.set(ScanViewport(it.width,it.height,landscapeCard))
+                        })
                         ScannerGuide(active = ready && !effectivelyPaused, landscape = landscapeCard)
                         Surface(color = ScanInk.copy(alpha = 0.78f), shape = RoundedCornerShape(50.dp),
                             modifier = Modifier.align(Alignment.TopCenter).padding(top = 16.dp)) {
@@ -231,7 +274,7 @@ fun CardScannerDialog(
                                 if (failed) OutlinedButton(onClick = { restart++ }) { Text("Réessayer") }
                             }
                         }
-                        Text("Touche l’image pour faire le point", color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp,
+                        Text("Touche pour faire le point · pince pour zoomer", color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp,
                             modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp))
                     } else {
                         Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally,
@@ -250,10 +293,8 @@ fun CardScannerDialog(
               },
               actions = { paneModifier ->
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp), modifier = paneModifier) {
-                    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(selected = !landscapeCard, onClick = { landscapeCard = false }, label = { Text("Carte verticale") })
-                        FilterChip(selected = landscapeCard, onClick = { landscapeCard = true }, label = { Text("Leader / base") })
-                    }
+                    Text("Cartes, leaders et bases · format automatique", color = ScanCyan, fontSize = 12.sp,
+                        modifier = Modifier.align(Alignment.CenterHorizontally))
                     Crossfade(targetState = if (userPaused) "Lecture en pause · reprends quand tu es prêt" else message, label = "scan-status") { status ->
                         Text(status, color = Color(0xFFE7EDF7), fontSize = 13.sp, textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth().heightIn(min = 38.dp))
@@ -275,7 +316,7 @@ fun CardScannerDialog(
                     TextButton(onClick = { manualEntry = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                         Text("Saisir une référence", color = ScanCyan, fontSize = 12.sp)
                     }
-                    Text(hint ?: if (batchCount != null) "$batchCount carte(s) en attente · fermer pour vérifier le lot" else "Chaque carte est à confirmer avant l’ajout.", color = Color(0xFF879AB6), fontSize = 11.sp,
+                    Text(hint ?: if (batchCount != null) "$batchCount carte(s) en attente · Terminer pour vérifier le lot" else "Chaque carte est à confirmer avant l’ajout.", color = Color(0xFF879AB6), fontSize = 11.sp,
                         modifier = Modifier.align(Alignment.CenterHorizontally))
                 }
               }
@@ -288,7 +329,9 @@ fun CardScannerDialog(
         text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { controls() } },
         confirmButton = { TextButton(onClick = { optionsOpen = false }) { Text("Reprendre le scan") } })
     if (manualEntry) ManualScanReference(onDismiss = { manualEntry = false }) { reference, language ->
-        latestDetected.value(reference.set, reference.number, "${reference.set} $language ${reference.number}").also { found -> if (found) manualEntry = false }
+        latestDetected.value(reference.set, reference.number, "${reference.set} $language ${reference.number}").also { found ->
+            if (found) { scanGate.block(reference); manualEntry = false }
+        }
     }
 }
 

@@ -35,7 +35,9 @@ internal fun DeckBuilderPanel(
     catalog: List<CatalogCard>, owned: List<CollectionCard>, initial: PortableDeck,
     initialName: String = "Mon deck", newDeck: Boolean = false, draftKey: String = "new", details: CardDetails, rules: LegalityRules,
     onCancel: () -> Unit, onSave: (String, PortableDeck, String, List<ScanBatchEntry>) -> Unit,
-    onPreview: (CatalogCard, List<CatalogCard>) -> Unit
+    onPreview: (CatalogCard, List<CatalogCard>) -> Unit,
+    startScanning: Boolean = false, onScanStarted: () -> Unit = {},
+    onScanCollection: (() -> Unit)? = null
 ) {
     val draftContext = LocalContext.current.applicationContext
     val draftStore = remember(draftContext) { DeckDraftStore(draftContext) }
@@ -118,13 +120,14 @@ internal fun DeckBuilderPanel(
     val largeText = LocalDensity.current.fontScale > 1.3f
     var exportMenu by remember { mutableStateOf(false) }
     var scanning by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(startScanning) {
+        if (startScanning) { scanning = true; onScanStarted() }
+    }
     var scanReserve by rememberSaveable { mutableStateOf(false) }
     var scanMessage by remember { mutableStateOf<String?>(null) }
     var scanLast by remember { mutableStateOf<String?>(null) }
     var scanUndo by remember { mutableStateOf<List<DeckDraft>>(emptyList()) }
     var pendingIdentity by remember { mutableStateOf<CatalogCard?>(null) }
-    var pendingPrint by remember { mutableStateOf<CatalogCard?>(null) }
-    var pendingLanguage by remember { mutableStateOf(CardLanguages.UNKNOWN) }
     fun saveDeck() {
         closing = true
         runCatching { onSave(name.trim(), deck, collectionBatchId, collectionEntries); draftStore.clear(draftKey) }
@@ -341,17 +344,12 @@ internal fun DeckBuilderPanel(
             })
         }
         fun scanWithPrint(card: CatalogCard) {
-            if (!collectScans) applyScan(card)
-            else {
-                val print = ScanVariants.detect(card)
-                if (print.variant != null && card.language in CardLanguages.supported)
-                    applyScan(CardLanguageArtwork.localized(draftContext,card,card.language,print.variant), print.variant)
-                else { pendingLanguage = card.language; pendingPrint = card }
-            }
+            val variant = ScanVariants.detect(card).variant
+            applyScan(CardLanguageArtwork.localized(draftContext, card, card.language, variant), variant)
         }
         CardScannerDialog(
             onDismiss = {
-                scanning = false; pendingIdentity = null; pendingPrint = null
+                scanning = false; pendingIdentity = null
                 tab = if (scanReserve) "Réserve" else "Deck"; catalogueOpen = false; query = ""
             },
             onDetected = { set, number, raw ->
@@ -367,7 +365,7 @@ internal fun DeckBuilderPanel(
                     if (replacing) { pendingIdentity = card; true } else { scanWithPrint(card); true }
                 }
             },
-            paused = pendingIdentity != null || pendingPrint != null,
+            paused = pendingIdentity != null,
             lastAdded = scanLast,
             onUndoLast = if (scanUndo.isEmpty()) null else ({
                 val previous = scanUndo.last(); scanUndo = scanUndo.dropLast(1)
@@ -376,8 +374,15 @@ internal fun DeckBuilderPanel(
                 collectionEntries = previous.collectionEntries; collectionBatchId = previous.collectionBatchId.ifBlank { collectionBatchId }
                 scanLast = null; scanMessage = "Dernier ajout annulé."
             }),
+            destinationControls = {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(false, onClick = { scanning = false; onScanCollection?.invoke() },
+                        enabled = onScanCollection != null, label = { Text("Collection") })
+                    FilterChip(true, onClick = {}, label = { Text(name.ifBlank { "Mon deck" }) })
+                }
+            },
             title = "Scanner mon deck",
-            hint = "Une carte à la fois. Retire-la du cadre avant de scanner un autre exemplaire. Ferme pour vérifier puis enregistrer.",
+            hint = "Une carte à la fois. Retire-la du cadre avant de scanner un autre exemplaire. Terminer pour vérifier puis enregistrer.",
             inlineControls = {
                 Row(Modifier.fillMaxWidth().toggleable(value = collectScans, role = Role.Checkbox, onValueChange = { collectScans = it }), verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(collectScans, onCheckedChange = null)
@@ -394,22 +399,6 @@ internal fun DeckBuilderPanel(
                 scanMessage?.let { Text(it, color = gold, style = MaterialTheme.typography.labelSmall) }
             }
         )
-        pendingPrint?.let { card ->
-            AlertDialog(onDismissRequest = { pendingPrint = null },
-                title = { Text("Vérifier la carte pour la collection") },
-                text = {
-                    LazyColumn(Modifier.heightIn(max = 360.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        item { Text(card.name) }
-                        item { CardArtwork(CardLanguageArtwork.localized(draftContext,card,pendingLanguage).imageUrl,Modifier.fillMaxWidth().height(140.dp)) }
-                        item { CardLanguageChoices(pendingLanguage, { pendingLanguage = it }) }
-                        item { Text(ScanVariants.detect(card).message) }
-                        items(ScanVariants.detect(card).choices) { variant ->
-                            OutlinedButton(onClick = { applyScan(CardLanguageArtwork.localized(draftContext,card,pendingLanguage,variant), variant); pendingPrint = null }, enabled = pendingLanguage in CardLanguages.supported, modifier = Modifier.fillMaxWidth()) { Text(variant) }
-                        }
-                    }
-                },
-                confirmButton = { TextButton(onClick = { pendingPrint = null }) { Text("Ignorer ce scan") } })
-        }
         pendingIdentity?.let { card ->
             AlertDialog(onDismissRequest = { pendingIdentity = null },
                 title = { Text(if (DeckConstruction.type(card) == "base") "Remplacer la base ?" else "Remplacer le leader ?") },
@@ -423,10 +412,18 @@ internal fun DeckBuilderPanel(
         text = {
             LazyColumn(Modifier.heightIn(max = 360.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 item { Text("${collectionEntries.sumOf { it.quantity }} exemplaire(s) seront ajoutés à ta collection.") }
-                items(collectionEntries) { Text("${it.quantity} × ${it.card.name} · ${it.card.setCode} ${it.card.number} · ${it.variant} · ${CardLanguages.label(it.card.language)}") }
+                items(collectionEntries) { entry ->
+                    Text("${entry.quantity} × ${entry.card.name} · ${entry.card.setCode} ${entry.card.number} · ${entry.variant.ifBlank { "Finition à vérifier" }} · ${CardLanguages.label(entry.card.language)}")
+                    if (!entry.resolved) ScanEntryReview(entry) { language, variant, quantity ->
+                        runCatching {
+                            val next = resolveScanEntries(collectionEntries, entry, language, variant, quantity)
+                            checkpoint(); collectionEntries = next
+                        }.onFailure { error = it.message }
+                    }
+                }
             }
         },
-        confirmButton = { TextButton(onClick = { confirmingSave = false; saveDeck() }) { Text("Tout enregistrer") } },
+        confirmButton = { TextButton(enabled = collectionEntries.all { it.resolved }, onClick = { confirmingSave = false; saveDeck() }) { Text("Tout enregistrer") } },
         dismissButton = { TextButton(onClick = { confirmingSave = false }) { Text("Vérifier encore") } })
     if (preparing) DeckPreparationDialog(name, deck, owned, catalog, details, onDismiss = { preparing = false })
     if (showingInsights) DeckInsightsDialog(deck, owned, catalog, details, onDismiss = { showingInsights = false })

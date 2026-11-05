@@ -52,4 +52,44 @@ class StableScanGateTest {
         assertNull(gate.observe(first, 3000));assertNull(gate.observe(first, 6000))
         assertEquals(first, gate.observe(first, 6500))
     }
+    @Test fun burstCadenceKeepsHeldCardsBlockedAndAcceptsTheNextCard() {
+        val gate = StableScanGate()
+        assertNull(gate.observe(first, 1000, "FR"))
+        assertEquals(first, gate.observe(first, 1300, "FR"))
+        assertNull(gate.observe(first, 1600, "FR"))
+        assertNull(gate.observe(null, 1900))
+        assertNull(gate.observe(first, 2200, "FR"))
+        assertNull(gate.observe(second, 2500, "EN"))
+        assertEquals(second, gate.observe(second, 2800, "EN"))
+        assertNull(gate.observe(second, 3100, "EN"))
+    }
+    @Test fun pauseDiscardsPartialReadsAndNeverUsesPausedTimeAsRemoval() {
+        val gate = StableScanGate()
+        gate.observe(first, 1000)
+        gate.interrupt()
+        assertNull(gate.observe(first, 1500))
+        assertEquals(first, gate.observe(first, 2000))
+        gate.observe(null, 2500)
+        gate.interrupt()
+        gate.observe(null, 30000)
+        assertNull(gate.observe(first, 30500))
+        assertNull(gate.observe(first, 31000))
+    }
+    @Test fun manualConfirmationBlocksTheSameCardUntilRemovalOrExplicitRetry() {
+        val gate = StableScanGate()
+        gate.block(first)
+        assertNull(gate.observe(first, 1000))
+        assertNull(gate.observe(first, 1500))
+        gate.reset()
+        assertNull(gate.observe(first, 2000))
+        assertEquals(first, gate.observe(first, 2500))
+    }
+    @Test fun anInterveningBlockedCardDiscardsAPartialReadOfTheNextCard() {
+        val gate = StableScanGate()
+        gate.observe(first,1000);gate.observe(first,1500)
+        assertNull(gate.observe(second,2000))
+        assertNull(gate.observe(first,2450))
+        assertNull(gate.observe(second,2900))
+        assertEquals(second,gate.observe(second,3350))
+    }
 }

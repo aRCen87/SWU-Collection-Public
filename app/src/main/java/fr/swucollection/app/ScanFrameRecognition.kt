@@ -10,6 +10,7 @@ internal data class ScanOcrWord(val text: String, val left: Int, val top: Int, v
 }
 
 internal object ScanFrameRecognition {
+    private val numericFragment = Regex("[0-9OIL]+")
     fun text(raw: String, words: List<ScanOcrWord>): String {
         val rows = mutableListOf<MutableList<ScanOcrWord>>()
         words.filter { it.height > 0 && it.right > it.left && it.text.isNotBlank() }
@@ -20,15 +21,36 @@ internal object ScanFrameRecognition {
                 }
                 if (row == null) rows.add(mutableListOf(word)) else row.add(word)
             }
+        var correctedRaw = raw
         val stitched = rows.flatMap { row ->
             val parts = mutableListOf<String>()
             var previous: ScanOcrWord? = null
-            val segment = mutableListOf<String>()
+            val segment = mutableListOf<ScanOcrWord>()
             fun flush() {
                 if (segment.isNotEmpty()) {
-                    parts.add(segment.joinToString(" "))
-                    // Small footer letters can each become a separate OCR word.
-                    parts.add(segment.joinToString(""))
+                    val spaced = segment.joinToString(" ") { it.text }
+                    val compact = segment.joinToString("") { it.text }
+                    val compactReferences = ScanRecognition.references(compact)
+                    // A split collector number ("1 0 9 3") otherwise contributes
+                    // both 001 from raw OCR and 1093 from the reconstructed row.
+                    // Correct only this exact spatially verified sequence; keep
+                    // unrelated references elsewhere in the frame as conflicts.
+                    val numericPairs = segment.zipWithNext().filter { (a, b) ->
+                        a.text.matches(numericFragment) && b.text.matches(numericFragment)
+                    }
+                    val splitDigits = numericPairs.isNotEmpty() && numericPairs.all { (a,b) ->
+                        b.left-a.right <= min(a.height,b.height)*.75
+                    }
+                    if (splitDigits && compactReferences.size == 1) {
+                        val sequence = Regex("(?<![A-Za-z0-9])" +
+                            segment.joinToString("\\s+") { Regex.escape(it.text) } + "(?![A-Za-z0-9])")
+                        correctedRaw = sequence.replace(correctedRaw) { compact }
+                        parts.add(compact)
+                    } else {
+                        parts.add(spaced)
+                        // Small footer letters can each become a separate OCR word.
+                        parts.add(compact)
+                    }
                     segment.clear()
                 }
             }
@@ -38,7 +60,7 @@ internal object ScanFrameRecognition {
                 if (last != null && word.left - last.right > min(last.height, word.height) * 12) {
                     flush()
                 }
-                segment.add(word.text); previous = word
+                segment.add(word); previous = word
             }
             flush()
             parts
@@ -47,7 +69,7 @@ internal object ScanFrameRecognition {
         // still be rejected, rather than picking the first reconstructed footer.
         // Append complete references only. Appending bare fragments would put
         // unrelated rows next to each other again (e.g. "SOR FR" above a stat).
-        return (listOf(raw) + stitched.filter { ScanRecognition.references(it).isNotEmpty() }).joinToString("\n")
+        return (listOf(correctedRaw) + stitched.filter { ScanRecognition.references(it).isNotEmpty() }).joinToString("\n")
     }
 }
 

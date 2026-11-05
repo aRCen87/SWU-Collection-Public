@@ -12,3 +12,7 @@ local.properties
 
 __pycache__/
 *.py[cod]
+
+.art-source-cache/
+.visual-image-cache/
+*scan-visual-index*.missing.json
