@@ -1,5 +1,6 @@
 package fr.swucollection.app
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -18,6 +19,7 @@ internal fun AdaptiveWorkspace(enabled: Boolean, hasDetail: Boolean, onClose: ()
     detail: @Composable () -> Unit, content: @Composable BoxScope.() -> Unit) {
     BoxWithConstraints(Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {
         val wide = enabled && maxWidth >= 720.dp && maxHeight >= 480.dp
+        BackHandler(enabled = wide && hasDetail, onBack = onClose)
         if (wide) Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(Modifier.weight(.56f).fillMaxHeight(), content = content)
             Box(Modifier.weight(.44f).fillMaxHeight().testTag("swu_detail_pane"), contentAlignment = Alignment.Center) {
