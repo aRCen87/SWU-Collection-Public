@@ -1,11 +1,11 @@
 {
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "versionCode": 66,
-  "versionName": "0.8.19-test.7",
-  "notes": "Nouveau bandeau avec planète, Coruscant et Faucon Millenium. Affichage adapté aux écrans pliables : accueil centré, proportions des images conservées, menu et navigation à largeur maîtrisée. Vérifié sur émulateur en format étroit, classique, déplié et paysage, avec conservation de la page ouverte.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_2161602271b081919f6edf3339af4025&account_id=personal",
-  "sha256": "d755bd72b46f9d712f79c791afd49a3a28d90b3b0626fbfaa80755ee7c6e01b3",
-  "size": 85250024,
-  "sourceSha": "a0adff44395ecfdb74d9fc3b350185b42d566561"
+  "versionCode": 67,
+  "versionName": "0.8.19-test.8",
+  "notes": "Nouveautés Test : collection et decks à deux panneaux sur grand écran, sauvegarde privée manuelle du compte avec vérification avant restauration, suggestions d’échanges entre amis avec partage volontaire, accueil personnalisable et extension épinglée, correction rapide de la langue ou de la finition après scan. Contrôles de sécurité, conservation des données et essais sur émulateur réussis.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_d1634750662c81918843ae1b5c95fb0b&account_id=personal",
+  "sha256": "e53a7f08d79889e2471ef56351a8f73090949a4c21bdf145c463b130cc41676f",
+  "size": 85282797,
+  "sourceSha": "36e9380e2407af40a1d8236bdd4ae99e8c82b40c"
 }

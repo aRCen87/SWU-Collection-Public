@@ -52,4 +52,4 @@ Les sauvegardes manuelles utilisent `accountBackups/{uid}/snapshots/{id}/chunks/
 
 Le partage d’échange est volontaire : `tradeInventories/{uid}` contient uniquement un profil d’offres et de recherches compressé, sans collection complète ni coordonnées. Lecture uniquement par le propriétaire ou des amis acceptés, autorisés et non bloqués. La suppression de ce document révoque le partage. Les suggestions sont des brouillons modifiables ; aucun message ni proposition n’est envoyé sans validation de l’utilisateur.
 
-Déployer les règles `social/firestore.rules` sur le projet Test après réussite des tests de sécurité. Les règles de sauvegarde ne rendent aucune collection publique et n’autorisent aucun nouveau compte.
+Les règles `social/firestore.rules` de cette version ont été déployées sur **swu-collection-test uniquement**, le 6 novembre 2026 à 19 h 25 (Paris), après réussite des tests de sécurité. Les règles de sauvegarde ne rendent aucune collection publique et n’autorisent aucun nouveau compte.
