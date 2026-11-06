@@ -5,11 +5,14 @@ import org.json.JSONArray
 /** Deck-only scan operations. The caller confirms identity replacement before applying. */
 internal object DeckScan {
     fun addCollectionCopy(entries: List<ScanBatchEntry>, card: CatalogCard, variant: String): List<ScanBatchEntry> {
-        require(variant.isEmpty() || variant in ScanVariants.options) { "Finition de carte invalide." }
+        require(variant.isEmpty() || variant in ScanVariants.detect(card).choices) { "Finition de carte invalide." }
         val index = entries.indexOfFirst { DeckConstruction.reference(it.card) == DeckConstruction.reference(card) && it.variant == variant && it.card.language == card.language }
         return entries.toMutableList().apply {
             if (index < 0) add(ScanBatchEntry(card, variant, 1))
-            else this[index] = this[index].copy(quantity = this[index].quantity + 1)
+            else {
+                require(this[index].quantity < 9999) { "Maximum 9 999 exemplaires pour cette langue et cette finition." }
+                this[index] = this[index].copy(quantity = this[index].quantity + 1)
+            }
         }
     }
 

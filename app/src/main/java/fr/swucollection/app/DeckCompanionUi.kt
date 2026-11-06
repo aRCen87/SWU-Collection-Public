@@ -1,6 +1,8 @@
 package fr.swucollection.app
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
@@ -32,13 +34,15 @@ internal fun PinnedDecksPanel(decks: List<DeckStore.SavedDeck>, owned: List<Coll
 @Composable
 internal fun CardDeckUsagePanel(card: CatalogCard, decks: List<DeckStore.SavedDeck>, catalog: List<CatalogCard>, details: CardDetails, enabled: Boolean, onAdd: () -> Unit, onOpen: (DeckStore.SavedDeck) -> Unit) {
     val usages = remember(card, decks, catalog, details) { DeckCompanion.usages(card, decks, catalog, details) }
+    val supported = DeckConstruction.isDraw(card) || DeckConstruction.type(card) in listOf("leader", "chef", "base")
     OutlinedCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("Utilisée dans mes decks", color = ListPalette.Gold)
             if (usages.isEmpty()) Text("Aucun deck pour le moment.", style = MaterialTheme.typography.bodySmall)
             usages.forEach { (saved, count) -> TextButton(onClick = { onOpen(saved) }, modifier = Modifier.fillMaxWidth()) { Text("${saved.name} · ×$count ›") } }
-            Button(onClick = onAdd, enabled = enabled, modifier = Modifier.fillMaxWidth()) { Text("Ajouter à un deck") }
-            if (!enabled) Text("Utilise les quantités du constructeur pour modifier le deck ouvert.", style = MaterialTheme.typography.bodySmall)
+            Button(onClick = onAdd, enabled = enabled && supported, modifier = Modifier.fillMaxWidth()) { Text("Ajouter à un deck") }
+            if (!supported) Text("Ce type de carte ne peut pas être ajouté à un deck.", style = MaterialTheme.typography.bodySmall)
+            else if (!enabled) Text("Utilise les quantités du constructeur pour modifier le deck ouvert.", style = MaterialTheme.typography.bodySmall)
             Text("Les versions et réimpressions reconnues sont comptées ensemble.", style = MaterialTheme.typography.bodySmall)
         }
     }
@@ -52,7 +56,7 @@ internal fun AddCardToDeckDialog(card: CatalogCard, decks: List<DeckStore.SavedD
     val type = DeckConstruction.type(card)
     val identity = type in listOf("leader", "chef", "base")
     AlertDialog(onDismissRequest = onDismiss, title = { Text("Ajouter à un deck") }, text = {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.heightIn(max = 440.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(card.name, color = ListPalette.Gold)
             if (identity) Text("Le ${if (type == "base") "choix de base" else "leader"} du deck choisi sera remplacé après confirmation.")
             if (decks.isEmpty()) Text("Crée d’abord ton premier deck.")
@@ -65,6 +69,7 @@ internal fun AddCardToDeckDialog(card: CatalogCard, decks: List<DeckStore.SavedD
                     FilterChip(selected?.id == saved.id, onClick = { selected = saved; error = null }, label = { Text(saved.name) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp))
                 }
             }
+            if (decks.isNotEmpty()) TextButton(onClick = onCreate) { Text("Créer un nouveau deck avec cette carte") }
             error?.let { Text(it, color = ListPalette.Danger) }
         }
     }, confirmButton = {

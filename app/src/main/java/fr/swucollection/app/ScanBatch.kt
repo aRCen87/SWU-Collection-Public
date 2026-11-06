@@ -13,7 +13,7 @@ import org.json.JSONObject
 import java.util.UUID
 
 internal data class ScanBatchEntry(val card: CatalogCard, val variant: String, val quantity: Int) {
-    val resolved get() = card.language in CardLanguages.supported && variant in ScanVariants.options
+    val resolved get() = card.language in CardLanguages.supported && variant in ScanVariants.detect(card).choices
 }
 
 /** Resolve copies explicitly; mixed foil/normal copies need not be assigned the same finish. */
@@ -52,6 +52,7 @@ internal class ScanBatchStore(context: Context) {
         id = nextId; entries = next
     }
     fun add(card: CatalogCard, variant: String) {
+        require(variant.isEmpty() || variant in ScanVariants.detect(card).choices) { "Cette finition ne correspond pas à la référence." }
         val index = entries.indexOfFirst { MarketPricing.key(it.card.setCode, it.card.number) == MarketPricing.key(card.setCode, card.number) && it.variant == variant && it.card.language == card.language }
         val next = entries.toMutableList()
         if (index < 0) next += ScanBatchEntry(card, variant, 1)
@@ -145,7 +146,7 @@ internal fun ScanEntryReview(entry: ScanBatchEntry, onResolve: (String, String, 
     var variant by remember(entry) { mutableStateOf(entry.variant) }
     var variantMenu by remember(entry) { mutableStateOf(false) }
     if (entry.card.language !in CardLanguages.supported) CardLanguageChoices(language, { language = it })
-    if (entry.variant !in ScanVariants.options) Box {
+    if (entry.variant !in ScanVariants.detect(entry.card).choices) Box {
         OutlinedButton(onClick = { variantMenu = true }) { Text(variant.ifBlank { "Choisir la finition" }) }
         DropdownMenu(expanded = variantMenu, onDismissRequest = { variantMenu = false }) {
             ScanVariants.detect(entry.card).choices.forEach { option ->

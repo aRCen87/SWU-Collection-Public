@@ -196,6 +196,7 @@ private fun CollectionScreen(
     }
     var editingDeck by remember { mutableStateOf<DeckStore.SavedDeck?>(null) }
     var creatingDeck by remember { mutableStateOf(false) }
+    var creatingSeed by rememberSaveable { mutableStateOf<String?>(null) }
     var creatingDraftKey by rememberSaveable { mutableStateOf("new") }
     var proxyBuilderOpen by rememberSaveable { mutableStateOf(false) }
     var importingDeck by remember { mutableStateOf(false) }
@@ -250,6 +251,7 @@ private fun CollectionScreen(
     val groupVersions = groupVersionsValue == "true"
     var collectionScope by rememberCollectionFilter("collectionScope", "Possédées")
     var previewSession by remember { mutableStateOf<CardPreviewSession?>(null) }
+    var previewPrint by remember { mutableStateOf<CatalogCard?>(null) }
     var previewVariant by remember { mutableStateOf("Normale") }
     var previewLanguage by remember { mutableStateOf("FR") }
     var collectionLanguage by rememberCollectionFilter("language", "Toutes")
@@ -258,6 +260,7 @@ private fun CollectionScreen(
     var showReverse by remember { mutableStateOf(false) }
 
     fun openPreview(card: CatalogCard, visible: List<CardPreviewEntry>, variant: String? = null, language: String = card.language) {
+        previewPrint = null
         previewSession = CardPreviewSession.open(CardPreviewEntry(card, variant, language), visible)
         previewLanguage = language
         previewVariant = variant ?: ScanVariants.detect(card).let { it.variant ?: it.choices.firstOrNull() ?: "Normale" }
@@ -268,9 +271,17 @@ private fun CollectionScreen(
         val next = previous.move(delta)
         if (next.index == previous.index) return
         previewSession = next
+        previewPrint = null
         previewLanguage = next.current.language
         previewVariant = next.current.variant ?: ScanVariants.detect(next.current.card).let { it.variant ?: it.choices.firstOrNull() ?: "Normale" }
         showReverse = false
+    }
+
+    fun beginNewDeck(card: CatalogCard? = null) {
+        creatingDraftKey = "new:" + java.util.UUID.randomUUID().toString()
+        creatingSeed = card?.let(DeckConstruction::reference)
+        editingDeck = null
+        creatingDeck = true
     }
 
     fun openSavedDeck(saved: DeckStore.SavedDeck) {
@@ -540,6 +551,7 @@ private fun CollectionScreen(
                         startScanning = startDeckScan,
                         onScanStarted = { startDeckScan = false },
                         onScanCollection = { openScanner() },
+                        seedCard = allCatalog.firstOrNull { DeckConstruction.reference(it) == creatingSeed },
                         onCancel = { editingDeck = null; creatingDeck = false },
                         onSave = { title, deck, batchId, entries ->
                             deckStore.saveWithScans(title, editingDeck?.format ?: "Premier", deck, editingDeck?.id ?: java.util.UUID.randomUUID().toString(), batchId, entries, cardDetails)
@@ -559,8 +571,8 @@ private fun CollectionScreen(
                     }
                     deckMessage?.let { Text(it, color = Color(0xFFFFD47D)) }
                     if (deckLibraryVisible) DeckLibraryPanel(savedDecks, Modifier.weight(1f), catalog = allCatalog, owned = cards, details = cardDetails,
-                        onCreate = { creatingDraftKey = "new:" + java.util.UUID.randomUUID().toString(); creatingDeck = true },
-                        onResumeDraft = { key -> creatingDraftKey = key; creatingDeck = true },
+                        onCreate = { beginNewDeck() },
+                        onResumeDraft = { key -> creatingSeed = null; creatingDraftKey = key; creatingDeck = true },
                         onImport = { importingDeck = true },
                         onOpen = ::openSavedDeck, pinned = pinnedDecks.toSet(),
                         onPin = { saved ->
@@ -1084,7 +1096,7 @@ private fun CollectionScreen(
             dismissButton = { TextButton(onClick = { editingOwnedLanguage = null }) { Text("Annuler") } })
     }
     previewSession?.let { session ->
-        val card = CardLanguageArtwork.localized(deckContext,session.current.card,previewLanguage,previewVariant)
+        val card = CardLanguageArtwork.localized(deckContext,previewPrint ?: session.current.card,previewLanguage,previewVariant)
         val swipeThreshold = with(LocalDensity.current) { 64.dp.toPx() }
         val swipeCardModifier = Modifier.pointerInput(session.index, swipeThreshold) {
             var distance = 0f
@@ -1159,8 +1171,11 @@ private fun CollectionScreen(
                         Text("$familyStock exemplaire(s) possédé(s), versions reconnues comprises", color = ListPalette.Gold)
                         CardDeckUsagePanel(card, savedDecks, allCatalog, cardDetails, enabled = !deckWorkspace,
                             onAdd = { addingToDeck = card }, onOpen = ::openSavedDeck)
-                        RelatedPrintsPanel(card, allCatalog, cards, cardDetails) { related, visible ->
-                            openPreview(related, visible.map { CardPreviewEntry(it,language=previewLanguage) }, language=previewLanguage)
+                        RelatedPrintsPanel(card, allCatalog, cards, cardDetails, previewVariant, previewLanguage) { related, finish, language ->
+                            previewPrint = related
+                            previewVariant = finish
+                            previewLanguage = language
+                            showReverse = false
                         }
                         val inLists = personalLists.count { list -> list.entries.any {
                             it.card.setCode == card.setCode && it.card.number == card.number
@@ -1175,7 +1190,7 @@ private fun CollectionScreen(
                         if (card.imageUrl.isBlank() && previewLanguage in CardLanguages.supported) Text("Le visuel ${CardLanguages.label(previewLanguage).lowercase(java.util.Locale.FRANCE)} n’est pas publié pour cette référence. Un visuel disponible est affiché avec sa langue.", color = ListPalette.Secondary)
                         Text("Ma collection — choisir une variante", fontWeight = FontWeight.SemiBold)
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            ScanVariants.options.forEach { option ->
+                            ScanVariants.detect(card).choices.forEach { option ->
                                 FilterChip(selected = previewVariant == option,
                                     onClick = { previewVariant = option },
                                     label = { Text(option, fontSize = 11.sp) })
@@ -1196,7 +1211,7 @@ private fun CollectionScreen(
                             Button(onClick = {
                                 database.addOrIncrement(card.name, card.setCode, card.number, previewVariant, previewLanguage)
                                 refresh()
-                            }) { Text("+") }
+                            }, enabled = previewLanguage in CardLanguages.supported && previewVariant in ScanVariants.detect(card).choices) { Text("+") }
                         }
                         OutlinedButton(onClick = { previewSession = null }) { Text("Fermer") }
                         }
@@ -1209,7 +1224,7 @@ private fun CollectionScreen(
     }
     addingToDeck?.let { card ->
         AddCardToDeckDialog(card, savedDecks, onDismiss = { addingToDeck = null },
-            onCreate = { addingToDeck = null; previewSession = null; navigation.navigateTo("Mes listes"); creatingDeck = true },
+            onCreate = { beginNewDeck(card); addingToDeck = null; previewSession = null; navigation.navigateTo("Mes listes") },
             onAdd = { saved, zone ->
                 runCatching {
                     val latest = deckStore.all().firstOrNull { it.id == saved.id } ?: error("Ce deck a été supprimé.")
@@ -1330,14 +1345,14 @@ private fun CollectionScreen(
                 } else {
                     Button(onClick = {
                         scanDeckPicker = false; closeScanner()
-                        creatingDraftKey = "new:" + java.util.UUID.randomUUID().toString()
-                        creatingDeck = true; startDeckScan = true
+                        beginNewDeck()
+                        startDeckScan = true
                         navigation.navigateTo("Mes listes")
                     }, modifier = Modifier.fillMaxWidth()) { Text("Créer un deck") }
                     DeckDraftStore(deckContext).newDrafts().forEach { (key, draft) ->
                         OutlinedButton(onClick = {
                             scanDeckPicker = false; closeScanner()
-                            creatingDraftKey = key; creatingDeck = true; startDeckScan = true
+                            creatingSeed = null; creatingDraftKey = key; creatingDeck = true; startDeckScan = true
                             navigation.navigateTo("Mes listes")
                         }, modifier = Modifier.fillMaxWidth()) { Text("${draft.name} · brouillon") }
                     }

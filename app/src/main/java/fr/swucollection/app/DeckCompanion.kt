@@ -27,6 +27,16 @@ internal class DeckPins(context: Context) {
 }
 
 internal object DeckCompanion {
+    /** Keep the selected reference when starting a new deck. */
+    fun seed(deck: PortableDeck, card: CatalogCard): PortableDeck = when (DeckConstruction.type(card)) {
+        "leader", "chef" -> deck.copy(leader = DeckConstruction.reference(card))
+        "base" -> deck.copy(base = DeckConstruction.reference(card))
+        else -> {
+            require(DeckConstruction.isDraw(card)) { "Ce type de carte ne peut pas être ajouté au deck." }
+            DeckEditor.setQuantity(deck, DeckConstruction.reference(card), 1, DeckEditor.Zone.MAIN)
+        }
+    }
+
     fun rows(deck: PortableDeck) = listOf(DeckEntry(deck.leader, 1), DeckEntry(deck.base, 1)) + deck.deck + deck.sideboard
     fun usages(card: CatalogCard, decks: List<DeckStore.SavedDeck>, catalog: List<CatalogCard>, details: CardDetails): List<Pair<DeckStore.SavedDeck, Int>> {
         val byId = catalog.associateBy(DeckConstruction::reference)

@@ -1,3 +1,11 @@
+## Version 0.8.18
+
+- Fiche carte : versions, finitions et réimpressions réunies avec miniature, cote et quantités par langue. Choisir une version conserve la navigation précédente/suivante de la liste d’origine.
+- Les finitions proposées correspondent à la référence exacte. Les anciens exemplaires enregistrés restent visibles ; une finition incompatible ou une langue inconnue ne peut plus être ajoutée depuis la fiche.
+- Créer un deck depuis une carte conserve cette carte, qu’il s’agisse d’une unité, d’un événement, d’une amélioration, d’un leader ou d’une base. Cette action reste disponible même avec des decks existants ; chaque création a son propre brouillon.
+- Lots du scanner : contrôle de compatibilité de la finition avant validation et correction possible des anciens lots incompatibles. Les scans vers un deck refusent un dépassement de 9 999 exemplaires sans perdre les ajouts en attente.
+- Comptage des versions dans la collection corrigé : deux langues d’une même référence et finition ne comptent plus comme deux versions. Aucune migration de base ni modification des quantités existantes.
+
 ## Version 0.8.17
 
 - Boutons d’accueil : léger enfoncement pendant l’appui et retour souple au relâchement, inspirés de l’aperçu validé.
