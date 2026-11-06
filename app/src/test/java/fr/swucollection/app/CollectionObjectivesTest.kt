@@ -64,5 +64,18 @@ class CollectionObjectivesTest {
         assertEquals(profile,TradeProfile.parse(profile.json()))
         assertTrue(profile.needs.isEmpty())
     }
+    @Test fun groupedCollectionArrowsBrowseOtherCardsWhileRetainingTheClickedPrintAndLanguage() {
+        val clicked = owned[1].copy(language = "EN")
+        val other = classic.copy(number = "002", name = "Autre carte")
+        val otherStock = owned[0].copy(id = 3, number = "002", name = "Autre carte")
+        val groups = listOf(listOf(owned[0], clicked), listOf(otherStock))
+        val entries = familyPreviewEntries(groups, clicked, listOf(classic, foil, other).associateBy { MarketPricing.key(it.setCode, it.number) })
+        assertEquals(2, entries.size)
+        val session = CardPreviewSession.open(CardPreviewEntry(foil, "Foil", "EN"), entries)
+        assertEquals("Foil", session.current.variant)
+        assertEquals("EN", session.current.language)
+        assertEquals(other, session.move(1).current.card)
+        assertEquals(clicked.quantity + owned[0].quantity + otherStock.quantity, groups.flatten().sumOf { it.quantity })
+    }
 
 }

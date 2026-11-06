@@ -9,7 +9,14 @@ PACKAGE = "fr.swucollection.app.test"
 OUT = Path("smoke-private")
 
 def adb(*args):
-    return subprocess.check_output(["adb", *map(str, args)], text=True, stderr=subprocess.STDOUT, timeout=45)
+    command = ["adb", *map(str, args)]
+    try:
+        return subprocess.check_output(command, text=True, stderr=subprocess.STDOUT, timeout=45)
+    except subprocess.CalledProcessError as error:
+        read_only = args[0] == "pull" or args[:2] in (("shell", "uiautomator"), ("shell", "screencap"))
+        if not read_only or "offline" not in error.output: raise
+        subprocess.check_call(["adb", "wait-for-device"], timeout=30)
+        return subprocess.check_output(command, text=True, stderr=subprocess.STDOUT, timeout=45)
 
 def snapshot(name):
     adb("shell", "uiautomator", "dump", "/sdcard/fold-check.xml")
@@ -42,7 +49,7 @@ def capture(name):
 
 def page(root):
     pages = [n.attrib.get("text", "") for n in root.iter("node") if re.fullmatch(r"\d+ / \d+", n.attrib.get("text", ""))]
-    assert len(pages) == 1, pages
+    assert len(pages) == 1, (pages, [n.attrib.get("text", "") for n in root.iter("node") if n.attrib.get("text")][:60])
     return pages[0]
 
 original_keyboard = adb("shell", "settings", "get", "secure", "show_ime_with_hard_keyboard").strip()
@@ -84,7 +91,7 @@ try:
     assert page(root).startswith("2 / ")
     capture("card")
     resize(1680,756,294)
-    root = snapshot("card-landscape"); assert page(root).startswith("2 / ")
+    root = snapshot("card-landscape"); capture("card-landscape"); assert page(root).startswith("2 / ")
     tap(find(root,"Carte précédente")); root = snapshot("card-previous")
     assert page(root) == first
     tap(find(root,"Fermer la carte")); root = snapshot("closed")
@@ -103,6 +110,10 @@ try:
     crashes = adb("logcat", "-d", "-s", "AndroidRuntime:E")
     assert "FATAL EXCEPTION" not in crashes, crashes
     print("Fold interaction checks passed: keyboard query retained; open card retained; next/previous retained; CameraX survives cover/unfolded/landscape.")
+except Exception:
+    capture("failure")
+    print(adb("logcat", "-d", "-s", "AndroidRuntime:E"), flush=True)
+    raise
 finally:
     if original_keyboard == "null": adb("shell", "settings", "delete", "secure", "show_ime_with_hard_keyboard")
     else: adb("shell", "settings", "put", "secure", "show_ime_with_hard_keyboard", original_keyboard)

@@ -633,7 +633,8 @@ private fun CollectionScreen(
     }
     }
     AdaptiveWorkspace(enabled = privateLayout && selectedSection in listOf("Collection", "Extensions", "Recherche"),
-        hasDetail = previewSession != null, onClose = { previewSession = null }, detail = previewPane) {
+        hasDetail = previewSession != null, onClose = { previewSession = null }, detail = previewPane,
+        dismissOnOutside = !privateLayout) {
     Box(Modifier.fillMaxSize().background(Color(0xFF030A17)).safeDrawingPadding().imePadding()
         .then(if (privateLayout) Modifier.semantics { testTagsAsResourceId = true }
             .testTag("swu_content_window") else Modifier)) {
@@ -878,6 +879,9 @@ private fun CollectionScreen(
                     initialSetCode = selectedSet, database = database, onGoalChanged = { refresh() }, details = cardDetails)
             }
             if (selectedSection == "Échanges") {
+                if (privateLayout) OutlinedButton(onClick = {
+                    communityInitialTab = "Échanges"; navigation.navigateTo("Communauté")
+                }, modifier = Modifier.fillMaxWidth()) { Text("Échanges avec mes amis") }
                 ExchangePanel(sets, catalogBySet, cards, Modifier.weight(1f), database, cardDetails)
             }
             if (selectedSection == "Historique") {
@@ -1280,9 +1284,8 @@ private fun CollectionScreen(
                     LazyColumn(Modifier.fillMaxWidth().weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(groups, key = { it.first().id }) { rows ->
                             GroupedOwnedCard(rows, allCatalog, collectionQuotes,
-                                onPreview = { owned, card -> openPreview(card, rows.mapNotNull { row ->
-                                    catalogByKey[MarketPricing.key(row.setCode,row.number)]?.let { CardPreviewEntry(it,row.variant,row.language) }
-                                }, owned.variant, owned.language) },
+                                onPreview = { owned, card -> openPreview(card,
+                                    familyPreviewEntries(groups, owned, catalogByKey), owned.variant, owned.language) },
                                 onQuantity = { id, delta -> database.changeQuantity(id, delta); refresh() },
                                 onLanguage = { editingOwnedLanguage = it; languageError = null }, openDirect = privateLayout)
                         }

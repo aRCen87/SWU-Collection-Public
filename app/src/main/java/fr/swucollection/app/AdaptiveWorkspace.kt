@@ -18,7 +18,7 @@ import androidx.compose.ui.window.DialogProperties
 @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 internal fun AdaptiveWorkspace(enabled: Boolean, hasDetail: Boolean, onClose: () -> Unit,
-    detail: @Composable () -> Unit, content: @Composable BoxScope.() -> Unit) {
+    detail: @Composable () -> Unit, dismissOnOutside: Boolean = true, content: @Composable BoxScope.() -> Unit) {
     BoxWithConstraints(Modifier.fillMaxSize().background(Color(0xFF030A17)).semantics { testTagsAsResourceId = true }) {
         val wide = enabled && maxWidth >= 720.dp && maxHeight >= 480.dp
         BackHandler(enabled = wide && hasDetail, onBack = onClose)
@@ -34,7 +34,8 @@ internal fun AdaptiveWorkspace(enabled: Boolean, hasDetail: Boolean, onClose: ()
             }
         } else {
             Box(Modifier.fillMaxSize(), content = content)
-            if (hasDetail) Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) { detail() }
+            if (hasDetail) Dialog(onDismissRequest = onClose, properties = DialogProperties(
+                usePlatformDefaultWidth = false, dismissOnClickOutside = dismissOnOutside)) { detail() }
         }
     }
 }

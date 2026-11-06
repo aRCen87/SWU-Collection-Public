@@ -120,6 +120,13 @@ internal fun groupOwnedVersions(cards: List<CollectionCard>, catalog: List<Catal
 internal fun groupOwnedPrints(rows: List<CollectionCard>): List<List<CollectionCard>> =
     rows.groupBy { Triple(it.setCode, it.number, it.variant) }.values.toList()
 
+/** Top arrows browse distinct cards; print selection stays inside the family sheet. */
+internal fun familyPreviewEntries(groups: List<List<CollectionCard>>, clicked: CollectionCard,
+    catalogByKey: Map<String, CatalogCard>): List<CardPreviewEntry> = groups.mapNotNull { group ->
+    val row = group.firstOrNull { it.id == clicked.id } ?: group.first()
+    catalogByKey[MarketPricing.key(row.setCode, row.number)]?.let { CardPreviewEntry(it, row.variant, row.language) }
+}
+
 @Composable
 internal fun GroupedOwnedCard(rows: List<CollectionCard>, catalog: List<CatalogCard>, quotes: Map<String, MarketQuote>,
     onPreview: (CollectionCard, CatalogCard) -> Unit, onQuantity: (Long, Int) -> Unit, onLanguage: (CollectionCard) -> Unit = {}, openDirect: Boolean = false) {
