@@ -17,7 +17,9 @@ for package in fr.swucollection.app fr.swucollection.app.test; do
   adb pull /sdcard/private-preview.xml "smoke-private/$package.xml"
   python3 - "$package" <<'PYUI'
 import sys,xml.etree.ElementTree as ET
-nodes=list(ET.parse('smoke-private/'+sys.argv[1]+'.xml').iter('node'))
+root=ET.parse('smoke-private/'+sys.argv[1]+'.xml').getroot()
+nodes=list(root.iter('node'))
+parents={child:parent for parent in root.iter() for child in parent}
 texts={n.attrib.get('text','') for n in nodes}
 assert 'SCANNER' in texts,texts
 assert any(n.attrib.get('package')==sys.argv[1] for n in nodes)
@@ -26,10 +28,14 @@ if sys.argv[1]=='fr.swucollection.app.test':
  def rect(label):
   found=[n for n in nodes if label in n.attrib.get('content-desc','').split('\n')]
   assert found,label
-  return list(map(int,re.findall(r'\d+',found[-1].attrib['bounds'])))
+  node=found[-1]
+  while node.attrib.get('clickable')!='true' and node in parents: node=parents[node]
+  assert node.attrib.get('clickable')=='true',label
+  return list(map(int,re.findall(r'\d+',node.attrib['bounds'])))
  avatar=rect('Mon profil');menu=rect('Ouvrir le menu');mail=rect('Courrier, 0 en attente')
  assert avatar[3]<=menu[1] and menu[3]<=mail[1],(avatar,menu,mail)
- assert abs(avatar[0]-menu[0])<=4 and abs(menu[0]-mail[0])<=4,(avatar,menu,mail)
+ assert abs((avatar[0]+avatar[2])-(menu[0]+menu[2]))<=4 and abs((menu[0]+menu[2])-(mail[0]+mail[2]))<=4,(avatar,menu,mail)
+ assert all(r[2]-r[0]>=48 and r[3]-r[1]>=48 for r in [avatar,menu,mail]),(avatar,menu,mail)
  assert 'Mon compte · Communauté · Messages' not in texts
 PYUI
   adb logcat -d -s AndroidRuntime:E > "smoke-private/$package-crashes.txt"
