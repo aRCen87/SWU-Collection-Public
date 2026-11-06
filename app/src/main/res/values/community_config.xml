@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="swu_test_project_id" translatable="false" />
+  <string name="swu_test_api_key" translatable="false" />
+  <string name="swu_test_app_id" translatable="false" />
+</resources>

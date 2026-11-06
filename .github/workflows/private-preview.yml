@@ -9,7 +9,26 @@ concurrency:
   group: private-swu-preview
   cancel-in-progress: true
 jobs:
+  security:
+    if: github.repository == 'aRCen87/SWU-Collection-Public' && github.actor == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Verify private profiles and conversation access
+        working-directory: social
+        run: |
+          npm ci --no-audit --no-fund
+          npm test
   build:
+    needs: security
     if: github.repository == 'aRCen87/SWU-Collection-Public' && github.actor == github.repository_owner
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -36,6 +55,10 @@ jobs:
           test -n "$KEYSTORE_BASE64"
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/swu-preview.jks"
           echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/swu-preview.jks" >> "$GITHUB_ENV"
+      - name: Prepare the isolated test backend configuration
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: java .github/scripts/DecryptPreviewConfig.java docs/test-backend-config.enc.properties
       - run: python3 -m pip install 'cryptography>=44,<47'
       - name: Test stable code and the isolated preview
         env:

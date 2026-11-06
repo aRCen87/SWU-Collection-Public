@@ -71,6 +71,7 @@ import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.drawscope.clipRect
@@ -502,6 +503,11 @@ private fun CollectionScreen(
                 if (!internetAvailable) OutlinedButton(onClick = { navigation.navigateTo("Hors connexion") }, modifier = Modifier.fillMaxWidth()) {
                     Text("Hors connexion · données disponibles sur ce téléphone ›")
                 }
+                if (deckContext.packageName == "fr.swucollection.app.test") {
+                    OutlinedButton(onClick = { navigation.navigateTo("Communauté") }, modifier = Modifier.fillMaxWidth()) {
+                        Text("Mon compte · Communauté · Messages")
+                    }
+                }
                 HomeNavigationCard("◈", "SCANNER", "Scanner vos cartes", reflection = borderTilt, onClick = {
                     openScanner()
                 })
@@ -676,6 +682,14 @@ private fun CollectionScreen(
                     searchFacets, { searchFacets = it }, Modifier.fillMaxWidth().weight(1f), legality = premierLegality,
                     onCard = { card, visible -> openPreview(card, visible.map { CardPreviewEntry(it) }) },
                     onDeck = ::openSavedDeck, onSet = { navigation.navigateTo("Extensions", it) })
+            }
+            if (selectedSection == "Communauté" && deckContext.packageName == "fr.swucollection.app.test") {
+                CommunityPanel(savedDecks, badgeProgress.filter { it.earned }, badgeBook?.definitions.orEmpty(), allCatalog,
+                    onImportDeck = { title, imported ->
+                        editingDeck = DeckStore.SavedDeck(java.util.UUID.randomUUID().toString(), title, "Premier", imported, System.currentTimeMillis())
+                        creatingDeck = false
+                        navigation.navigateTo("Mes listes")
+                    })
             }
             if (selectedSection == "Hauts faits") BadgesPanel(badgeProgress, allCatalog,
                 initialSelection = badgeFocus, onSelectionConsumed = { badgeFocus = null }, onCard = { card ->
@@ -1432,7 +1446,9 @@ private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) 
                             }
                         }
                         Spacer(Modifier.height(24.dp))
-                        val entries = listOf(
+                        val communityEntries = if (LocalContext.current.packageName == "fr.swucollection.app.test")
+                            listOf(Triple(Icons.Default.Person, "Compte et communauté", "Communauté")) else emptyList()
+                        val entries = communityEntries + listOf(
                             Triple(Icons.Default.PhotoCamera, "Scanner", "Scanner"),
                             Triple(Icons.Default.CollectionsBookmark, "Compléter mon set", "Compléter mon set"),
                             Triple(Icons.Default.EmojiEvents, "Tournois & Méta", "Tournois & Méta"),

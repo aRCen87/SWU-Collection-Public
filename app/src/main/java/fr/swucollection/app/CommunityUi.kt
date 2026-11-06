@@ -1,0 +1,360 @@
+package fr.swucollection.app
+
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.Base64
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.UUID
+
+private fun communityError(error: Throwable): String = when ((error as? FirebaseAuthException)?.errorCode) {
+    "ERROR_INVALID_EMAIL" -> "Cette adresse e-mail n’est pas valide."
+    "ERROR_EMAIL_ALREADY_IN_USE" -> "Cette adresse possède déjà un compte. Essaie de te connecter."
+    "ERROR_WRONG_PASSWORD", "ERROR_INVALID_CREDENTIAL", "ERROR_USER_NOT_FOUND" -> "Connexion impossible. Vérifie l’e-mail et le mot de passe."
+    "ERROR_TOO_MANY_REQUESTS" -> "Trop de tentatives. Patiente avant de réessayer."
+    else -> if (error is IllegalArgumentException) error.message ?: "Vérifie les informations saisies."
+        else "Opération impossible. Vérifie ta connexion et l’autorisation de ton compte de test, puis réessaie."
+}
+
+@Composable
+internal fun ColumnScope.CommunityPanel(decks: List<DeckStore.SavedDeck>, earned: List<BadgeProgress>,
+    definitions: List<BadgeDefinition>, catalog: List<CatalogCard>, onImportDeck: (String, PortableDeck) -> Unit) {
+    val context = LocalContext.current
+    val service = remember(context) { CommunityService.create(context) }
+    Text("Communauté", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+    Text("Profils, messages et decks · essais privés", color = MaterialTheme.colorScheme.primary)
+    if (service == null) {
+        Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("Les comptes de test ne sont pas encore activés", fontWeight = FontWeight.Bold)
+            Text("Le service privé doit être connecté avant de créer un compte ou d’envoyer des messages. Ta collection et tes decks restent disponibles sur ce téléphone.")
+            Text("À l’activation : pseudo, avatar modifiable, profils et badges, messages privés et partage de decks.")
+        } }
+        return
+    }
+    var user by remember(service) { mutableStateOf<FirebaseUser?>(service.auth.currentUser) }
+    var identityRevision by remember { mutableIntStateOf(0) }
+    DisposableEffect(service) {
+        val listener = FirebaseAuth.AuthStateListener { user = it.currentUser; identityRevision++ }
+        service.auth.addAuthStateListener(listener)
+        onDispose { service.auth.removeAuthStateListener(listener) }
+    }
+    key(user?.uid, identityRevision) {
+        CommunitySession(service, user, decks, earned, definitions, catalog, { identityRevision++ }, onImportDeck)
+    }
+}
+
+@Composable
+private fun ColumnScope.CommunitySession(service: CommunityService, user: FirebaseUser?, decks: List<DeckStore.SavedDeck>,
+    earned: List<BadgeProgress>, definitions: List<BadgeDefinition>, catalog: List<CatalogCard>, refresh: () -> Unit,
+    onImportDeck: (String, PortableDeck) -> Unit) {
+    val scope = rememberCoroutineScope()
+    var busy by remember { mutableStateOf(false) }
+    var status by remember { mutableStateOf<String?>(null) }
+    fun action(block: suspend () -> Unit) { if (!busy) scope.launch {
+        busy = true; status = null
+        try { block() } catch (error: Exception) { status = communityError(error) } finally { busy = false }
+    } }
+    status?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
+    if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+    if (user == null) {
+        var create by remember { mutableStateOf(false) }
+        var email by remember { mutableStateOf("") }
+        var password by remember { mutableStateOf("") }
+        var confirm by remember { mutableStateOf("") }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(!create, { create = false; password = ""; confirm = "" }, label = { Text("Connexion") })
+            FilterChip(create, { create = true; password = ""; confirm = "" }, label = { Text("Créer un compte") })
+        }
+        OutlinedTextField(email, { email = it.take(254) }, label = { Text("Adresse e-mail") }, singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(password, { password = it.take(128) }, label = { Text("Mot de passe") }, singleLine = true,
+            visualTransformation = PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), modifier = Modifier.fillMaxWidth())
+        if (create) {
+            Text("12 caractères minimum. L’adresse e-mail ne sera pas affichée sur le profil.", fontSize = 12.sp)
+            OutlinedTextField(confirm, { confirm = it.take(128) }, label = { Text("Confirmer le mot de passe") }, singleLine = true,
+                visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+        }
+        Button(onClick = { action {
+            if (create) { require(password == confirm) { "Les mots de passe sont différents." }; service.register(email, password) }
+            else service.login(email, password)
+            password = ""; confirm = ""; refresh()
+        } }, enabled = !busy && email.isNotBlank() && password.isNotBlank(), modifier = Modifier.fillMaxWidth()) {
+            Text(if (create) "Créer mon compte de test" else "Me connecter")
+        }
+        TextButton(onClick = { action { service.resetPassword(email); status = "Si un compte correspond à cette adresse, un e-mail de récupération sera envoyé." } }, enabled = !busy && email.isNotBlank()) { Text("Mot de passe oublié") }
+        Text("Le compte est facultatif. La connexion ne remplace pas ta collection et n’envoie aucune carte automatiquement.", fontSize = 12.sp)
+        return
+    }
+    if (!user.isEmailVerified) {
+        Text("Confirme ton adresse e-mail avec le lien reçu avant de continuer.")
+        Button(onClick = { action { service.refreshIdentity(); refresh() } }, enabled = !busy) { Text("J’ai confirmé mon e-mail") }
+        OutlinedButton(onClick = { action { service.resendVerification(); status = "E-mail de confirmation envoyé." } }, enabled = !busy) { Text("Renvoyer l’e-mail") }
+        TextButton(onClick = { service.signOut() }) { Text("Me déconnecter") }
+        return
+    }
+    var allowed by remember { mutableStateOf<Boolean?>(null) }
+    LaunchedEffect(user.uid) { try { allowed = service.allowed() } catch (error: Exception) { status = communityError(error) } }
+    if (allowed != true) {
+        Text(if (allowed == false) "Ce compte attend l’autorisation pour les essais privés." else "Vérification de l’accès au test…")
+        OutlinedButton(onClick = { action { allowed = service.allowed() } }, enabled = !busy) { Text("Vérifier mon accès") }
+        TextButton(onClick = { service.signOut() }) { Text("Me déconnecter") }
+        return
+    }
+    var profile by remember { mutableStateOf<PlayerProfile?>(null) }
+    var profileLoaded by remember { mutableStateOf(false) }
+    var profiles by remember { mutableStateOf<List<PlayerProfile>>(emptyList()) }
+    var conversations by remember { mutableStateOf<List<PlayerConversation>>(emptyList()) }
+    var tab by remember { mutableStateOf("Mon profil") }
+    var editing by remember { mutableStateOf(false) }
+    var selectedProfile by remember { mutableStateOf<PlayerProfile?>(null) }
+    var conversation by remember { mutableStateOf<PlayerConversation?>(null) }
+    var peerName by remember { mutableStateOf("") }
+    var blocked by remember { mutableStateOf(false) }
+    DisposableEffect(service, user.uid) {
+        val subscriptions = listOf(service.ownProfile({ profile = it; profileLoaded = true }, { status = communityError(it) }),
+            service.profiles({ profiles = it.filter { p -> p.id != user.uid } }, { status = communityError(it) }),
+            service.conversations({ conversations = it }, { status = communityError(it) }))
+        onDispose { subscriptions.forEach { it.remove() } }
+    }
+    fun talk(peer: PlayerProfile) { action {
+        val id = service.openConversation(peer.id)
+        conversation = PlayerConversation(id, listOf(user.uid, peer.id), 0L); peerName = peer.name
+        selectedProfile = null; tab = "Messages"
+    } }
+    if (!profileLoaded) { Text("Chargement du profil…"); return }
+    if (profile == null || editing) {
+        ProfileEditor(profile ?: PlayerProfile(user.uid, ""), earned.map { it.badge.id }, busy, { saved -> action {
+            service.saveProfile(saved, earned.map { it.badge.id }); editing = false
+        } }, if (profile == null) null else { { editing = false } })
+        TextButton(onClick = { service.signOut() }) { Text("Me déconnecter") }
+        return
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        listOf("Mon profil", "Joueurs", "Messages").forEach { label ->
+            FilterChip(tab == label, { tab = label; conversation = null }, label = { Text(label, fontSize = 12.sp) })
+        }
+    }
+    when (tab) {
+        "Mon profil" -> {
+            PlayerHeading(profile!!)
+            if (profile!!.bio.isNotBlank()) Text(profile!!.bio)
+            Text(if (profile!!.discoverable) "Profil visible aux joueurs autorisés du test" else "Profil non listé parmi les joueurs")
+            OutlinedButton(onClick = { editing = true }) { Text("Modifier mon profil et mon avatar") }
+            ProfileBadges(profile!!, definitions, catalog)
+            if (profile!!.shareBadges) OutlinedButton(onClick = { action { service.saveProfile(profile!!, earned.map { it.badge.id }); status = "Badges du profil actualisés." } }, enabled = !busy) { Text("Actualiser mes badges") }
+            TextButton(onClick = { service.signOut() }) { Text("Me déconnecter") }
+        }
+        "Joueurs" -> {
+            var search by remember { mutableStateOf("") }
+            OutlinedTextField(search, { search = it.take(32) }, label = { Text("Rechercher un pseudo") }, modifier = Modifier.fillMaxWidth())
+            val visible = profiles.filter { it.name.contains(search, true) }
+            if (visible.isEmpty()) Text("Aucun autre profil visible pour le moment.")
+            visible.forEach { player -> Card(onClick = { selectedProfile = player }, modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(12.dp)) { PlayerHeading(player); Text("Voir le profil et les badges ›") }
+            } }
+        }
+        "Messages" -> {
+            val selected = conversation
+            if (selected == null) {
+                if (conversations.isEmpty()) Text("Aucune conversation. Ouvre un profil dans Joueurs pour commencer.")
+                conversations.forEach { thread ->
+                    val peer = thread.members.firstOrNull { it != user.uid }.orEmpty()
+                    val known = profiles.firstOrNull { it.id == peer }
+                    OutlinedButton(onClick = { conversation = thread; peerName = known?.name ?: "Conversation privée" }, modifier = Modifier.fillMaxWidth()) { Text(known?.name ?: "Conversation privée") }
+                }
+            } else {
+                OutlinedButton(onClick = { conversation = null }) { Text("‹ Mes conversations") }
+                Text(peerName, fontWeight = FontWeight.Bold)
+                CommunityChat(service, selected, decks, catalog, onImportDeck)
+            }
+        }
+    }
+    selectedProfile?.let { player ->
+        LaunchedEffect(player.id) { blocked = runCatching { service.isBlocked(player.id) }.getOrDefault(false) }
+        AlertDialog(onDismissRequest = { selectedProfile = null }, title = { Text("Profil du joueur") }, text = {
+            Column(Modifier.heightIn(max = 430.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                PlayerHeading(player); if (player.bio.isNotBlank()) Text(player.bio)
+                ProfileBadges(player, definitions, catalog)
+                OutlinedButton(onClick = { action { service.block(player.id, !blocked); blocked = !blocked } }, enabled = !busy) { Text(if (blocked) "Débloquer ce joueur" else "Bloquer ce joueur") }
+            }
+        }, confirmButton = { Button(onClick = { talk(player) }, enabled = !busy && !blocked) { Text("Envoyer un message") } },
+            dismissButton = { TextButton(onClick = { selectedProfile = null }) { Text("Fermer") } })
+    }
+}
+
+@Composable
+private fun ColumnScope.ProfileEditor(initial: PlayerProfile, earnedIds: List<String>, busy: Boolean,
+    onSave: (PlayerProfile) -> Unit, onCancel: (() -> Unit)?) {
+    var name by remember(initial.id) { mutableStateOf(initial.name) }
+    var bio by remember(initial.id) { mutableStateOf(initial.bio) }
+    var avatar by remember(initial.id) { mutableStateOf(initial.avatar) }
+    var visible by remember(initial.id) { mutableStateOf(initial.discoverable) }
+    var badges by remember(initial.id) { mutableStateOf(initial.shareBadges) }
+    var photoError by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current; val scope = rememberCoroutineScope()
+    val photo = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> if (uri != null) scope.launch {
+        runCatching { readCommunityAvatar(context, uri) }.onSuccess { avatar = it; photoError = null }.onFailure { photoError = "Cette image ne peut pas être utilisée. Choisis une autre photo." }
+    } }
+    Text(if (initial.name.isBlank()) "Créer mon profil" else "Modifier mon profil", fontWeight = FontWeight.Bold)
+    CommunityAvatar(avatar, Modifier.size(72.dp))
+    CommunityValidation.avatars.keys.toList().chunked(4).forEach { row -> Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        row.forEach { id -> FilterChip(avatar == "preset:$id", { avatar = "preset:$id" }, label = { Text(CommunityValidation.avatars.getValue(id)) }) }
+    } }
+    OutlinedButton(onClick = { photo.launch("image/*") }, enabled = !busy) { Text("Choisir une photo") }
+    photoError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+    OutlinedTextField(name, { name = it.take(32) }, label = { Text("Pseudo") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+    OutlinedTextField(bio, { bio = it.take(200) }, label = { Text("À propos de moi · facultatif") }, modifier = Modifier.fillMaxWidth())
+    Row(verticalAlignment = Alignment.CenterVertically) { Switch(visible, { visible = it }); Text("Afficher mon profil parmi les joueurs", Modifier.padding(start = 8.dp)) }
+    Row(verticalAlignment = Alignment.CenterVertically) { Switch(badges, { badges = it }); Text("Afficher mes badges débloqués", Modifier.padding(start = 8.dp)) }
+    Text("Seuls les joueurs autorisés aux essais pourront consulter le profil. Ni ton e-mail ni ta collection ne sont affichés.", fontSize = 12.sp)
+    Button(onClick = { onSave(PlayerProfile(initial.id, name, bio, avatar, visible, badges, if (badges) earnedIds else emptyList())) }, enabled = !busy && name.trim().length >= 2) { Text("Enregistrer mon profil") }
+    onCancel?.let { TextButton(onClick = it) { Text("Annuler") } }
+}
+
+@Composable
+private fun CommunityAvatar(raw: String, modifier: Modifier = Modifier) {
+    val photo = remember(raw) { if (raw.startsWith("jpeg:") && raw.length <= 18000) runCatching {
+        val bytes = Base64.decode(raw.removePrefix("jpeg:"), Base64.NO_WRAP)
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+        require(bounds.outWidth > 0 && bounds.outHeight > 0)
+        var sample = 1
+        while (bounds.outWidth / sample > 128 || bounds.outHeight / sample > 128) sample *= 2
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })?.asImageBitmap()
+    }.getOrNull() else null }
+    Box(modifier.clip(CircleShape).background(badgeNavy), contentAlignment = Alignment.Center) {
+        if (photo != null) Image(photo, "Avatar du joueur", Modifier.fillMaxSize())
+        else Text(CommunityValidation.avatars[raw.removePrefix("preset:")] ?: "✦", fontSize = 28.sp, color = badgeGold)
+    }
+}
+@Composable private fun PlayerHeading(profile: PlayerProfile) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        CommunityAvatar(profile.avatar, Modifier.size(52.dp)); Text(profile.name, fontWeight = FontWeight.Bold)
+    }
+}
+@Composable private fun ProfileBadges(profile: PlayerProfile, definitions: List<BadgeDefinition>, catalog: List<CatalogCard>) {
+    if (!profile.shareBadges) { Text("Les badges de ce profil sont privés."); return }
+    val badges = definitions.filter { it.id in profile.badgeIds }
+    Text("${badges.size} badges affichés", fontWeight = FontWeight.SemiBold)
+    badges.chunked(3).forEach { row -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        row.forEach { badge -> Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+            BadgePin(badge, catalog, Modifier.fillMaxWidth()); Text(badge.title, fontSize = 11.sp)
+        } }
+        repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+    } }
+}
+
+@Composable
+private fun ColumnScope.CommunityChat(service: CommunityService, conversation: PlayerConversation, decks: List<DeckStore.SavedDeck>,
+    catalog: List<CatalogCard>, onImportDeck: (String, PortableDeck) -> Unit) {
+    var messages by remember(conversation.id) { mutableStateOf<List<PlayerMessage>>(emptyList()) }
+    var draft by remember(conversation.id) { mutableStateOf("") }
+    var pendingId by remember(conversation.id) { mutableStateOf(UUID.randomUUID().toString()) }
+    var busy by remember { mutableStateOf(false) }
+    var status by remember { mutableStateOf<String?>(null) }
+    var share by remember { mutableStateOf(false) }
+    var received by remember { mutableStateOf<PlayerMessage?>(null) }
+    val scope = rememberCoroutineScope(); val online = rememberInternetAvailable()
+    DisposableEffect(service.uid, conversation.id) {
+        val subscription = service.messages(conversation.id, { rows ->
+            messages = rows
+        }, { status = communityError(it) })
+        onDispose { subscription.remove() }
+    }
+    fun send(deck: DeckStore.SavedDeck? = null) { if (!busy && online) scope.launch {
+        busy = true; status = null
+        try { service.send(conversation.id, pendingId, draft, deck); draft = ""; pendingId = UUID.randomUUID().toString(); share = false }
+        catch (error: Exception) { status = communityError(error) }
+        finally { busy = false }
+    } }
+    Text("Les 50 derniers messages sont affichés.", fontSize = 12.sp)
+    messages.forEach { message -> Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = if (message.senderId == service.uid) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant)) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            Text(if (message.senderId == service.uid) "Moi" else "Joueur", fontSize = 11.sp)
+            if (message.text.isNotBlank()) Text(message.text)
+            if (message.kind == "deck") {
+                Text(message.deckName, fontWeight = FontWeight.Bold)
+                OutlinedButton(onClick = { received = message }) { Text("Voir le deck partagé") }
+            }
+        }
+    } }
+    status?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
+    if (!online) Text("Hors connexion · les nouveaux messages seront disponibles à ton retour.")
+    OutlinedTextField(draft, { if (it.length <= 2000) draft = it }, enabled = !busy, label = { Text("Ton message") }, modifier = Modifier.fillMaxWidth(), maxLines = 5)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Button(onClick = { send() }, enabled = !busy && online && draft.isNotBlank()) { Text(if (busy) "Envoi…" else "Envoyer") }
+        OutlinedButton(onClick = { share = true }, enabled = !busy && online) { Text("Partager un deck") }
+    }
+    if (share) AlertDialog(onDismissRequest = { if (!busy) share = false }, title = { Text("Partager un de mes decks") }, text = {
+        Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Une copie du deck sera envoyée. Tes cartes et le deck d’origine restent conservés.")
+            if (decks.isEmpty()) Text("Tu n’as pas encore de deck enregistré.")
+            decks.forEach { deck -> OutlinedButton(onClick = { send(deck) }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text(deck.name) } }
+        }
+    }, confirmButton = { TextButton(onClick = { share = false }, enabled = !busy) { Text("Fermer") } })
+    received?.let { message ->
+        val parsed = remember(message.id) { runCatching { CommunityValidation.deck(message.deckJson) }.getOrNull() }
+        AlertDialog(onDismissRequest = { received = null }, title = { Text(message.deckName) }, text = {
+            Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                if (parsed == null) Text("Ce deck est invalide et ne peut pas être importé.") else {
+                    Text("Le deck s’ouvrira dans l’éditeur pour vérification avant enregistrement. Aucun ajout à ta collection.")
+                    val cards = listOf(DeckEntry(parsed.leader, 1), DeckEntry(parsed.base, 1)) + parsed.deck + parsed.sideboard
+                    cards.forEach { entry ->
+                        val card = catalog.firstOrNull { DeckConstruction.reference(it) == entry.cardId }
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            card?.let { AsyncImage(it.imageUrl, it.name, Modifier.size(38.dp, 50.dp)) }
+                            Text("${entry.count} × ${card?.name ?: entry.cardId}", fontSize = 12.sp)
+                        }
+                    }
+                }
+            }
+        }, confirmButton = { Button(onClick = { if (parsed != null) { received = null; onImportDeck(message.deckName, parsed) } }, enabled = parsed != null) { Text("Ouvrir dans Mes decks") } },
+            dismissButton = { TextButton(onClick = { received = null }) { Text("Fermer") } })
+    }
+}
+
+private suspend fun readCommunityAvatar(context: Context, uri: Uri): String = withContext(Dispatchers.IO) {
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
+    require(bounds.outWidth > 0 && bounds.outHeight > 0)
+    var sample = 1
+    while (bounds.outWidth / sample > 256 || bounds.outHeight / sample > 256) sample *= 2
+    val source = context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample }) } ?: error("Image illisible")
+    val side = minOf(source.width, source.height)
+    val crop = Bitmap.createBitmap(source, (source.width - side) / 2, (source.height - side) / 2, side, side)
+    val scaled = Bitmap.createScaledBitmap(crop, 96, 96, true)
+    val bytes = java.io.ByteArrayOutputStream().use { output -> scaled.compress(Bitmap.CompressFormat.JPEG, 72, output); output.toByteArray() }
+    require(bytes.size <= 13000)
+    if (scaled !== crop) scaled.recycle()
+    if (crop !== source) crop.recycle()
+    source.recycle()
+    CommunityValidation.avatar("jpeg:" + Base64.encodeToString(bytes, Base64.NO_WRAP))
+}

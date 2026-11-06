@@ -20,3 +20,6 @@ __pycache__/
 .kotlin/
 
 .competitive-cache/
+
+social/node_modules/
+app/src/preview/res/values/community_config.xml

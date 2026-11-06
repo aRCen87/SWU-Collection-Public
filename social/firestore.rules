@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function enabled(uid) {
+      return exists(/databases/$(database)/documents/testMembers/$(uid)) &&
+        get(/databases/$(database)/documents/testMembers/$(uid)).data.enabled == true;
+    }
+    function verified() { return request.auth != null && request.auth.token.email_verified == true; }
+    function allowed() { return verified() && enabled(request.auth.uid); }
+    function unblocked(a, b) {
+      return !exists(/databases/$(database)/documents/blocks/$(a)/users/$(b)) &&
+        !exists(/databases/$(database)/documents/blocks/$(b)/users/$(a));
+    }
+    function validMembers(m) {
+      return m is list && m.size() == 2 && m[0] is string && m[1] is string && m[0] != m[1] &&
+        request.auth.uid in m && enabled(m[0]) && enabled(m[1]) && unblocked(m[0], m[1]);
+    }
+    function validProfile(d) {
+      return d.keys().hasAll(['name','bio','avatar','discoverable','shareBadges','badgeIds','updatedAt']) &&
+        d.keys().hasOnly(['name','bio','avatar','discoverable','shareBadges','badgeIds','updatedAt']) &&
+        d.name is string && d.name.size() >= 2 && d.name.size() <= 32 &&
+        d.bio is string && d.bio.size() <= 200 &&
+        d.avatar is string && d.avatar.size() <= 18000 &&
+        (d.avatar.matches('preset:(star|moon|planet|robot|ship|comet|sun|crystal)') || d.avatar.matches('jpeg:[A-Za-z0-9+/=]+')) &&
+        d.discoverable is bool && d.shareBadges is bool && d.badgeIds is list && d.badgeIds.size() <= 500 &&
+        (d.shareBadges || d.badgeIds.size() == 0) && d.updatedAt == request.time;
+    }
+    match /testMembers/{uid} {
+      // Only an administrator may grant access. Users cannot approve themselves.
+      allow get: if verified() && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+    match /profiles/{uid} {
+      allow get: if allowed() && (request.auth.uid == uid || resource.data.discoverable == true);
+      allow list: if allowed() && resource.data.discoverable == true && request.query.limit != null && request.query.limit <= 50;
+      allow create, update: if allowed() && request.auth.uid == uid && validProfile(request.resource.data);
+      allow delete: if allowed() && request.auth.uid == uid;
+    }
+    match /blocks/{uid}/users/{peer} {
+      allow read: if allowed() && request.auth.uid == uid;
+      allow create, update: if allowed() && request.auth.uid == uid && peer != uid &&
+        request.resource.data.keys().hasOnly(['createdAt']) && request.resource.data.createdAt == request.time;
+      allow delete: if allowed() && request.auth.uid == uid;
+    }
+    match /conversations/{conversation} {
+      allow get: if allowed() && request.auth.uid in resource.data.members;
+      allow list: if allowed() && request.auth.uid in resource.data.members && request.query.limit != null && request.query.limit <= 100;
+      allow create: if allowed() && request.resource.data.keys().hasOnly(['members','updatedAt']) &&
+        validMembers(request.resource.data.members) && request.resource.data.updatedAt == request.time;
+      allow update: if allowed() && validMembers(resource.data.members) &&
+        request.resource.data.members == resource.data.members &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['updatedAt']) && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+      match /messages/{message} {
+        function participant() {
+          return allowed() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversation)).data.members;
+        }
+        function validMessage(d) {
+          let m = getAfter(/databases/$(database)/documents/conversations/$(conversation)).data.members;
+          return allowed() && validMembers(m) &&
+            d.keys().hasAll(['senderId','kind','text','deckName','deckJson','createdAt']) &&
+            d.keys().hasOnly(['senderId','kind','text','deckName','deckJson','createdAt']) &&
+            d.senderId == request.auth.uid && d.text is string && d.text.size() <= 2000 &&
+            d.deckName is string && d.deckName.size() <= 120 && d.deckJson is string && d.deckJson.size() <= 40000 &&
+            ((d.kind == 'text' && d.text.size() >= 1 && d.deckJson == '' && d.deckName == '') ||
+             (d.kind == 'deck' && d.deckName.size() >= 1 && d.deckJson.size() >= 2)) && d.createdAt == request.time;
+        }
+        allow get: if participant();
+        allow list: if participant() && request.query.limit != null && request.query.limit <= 50;
+        allow create: if validMessage(request.resource.data);
+        allow update, delete: if false;
+      }
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}
