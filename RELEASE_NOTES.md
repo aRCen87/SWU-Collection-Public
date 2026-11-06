@@ -1,6 +1,6 @@
 ## Test 0.8.19-test.8
 
-- Grand écran : collection et fiche côte à côte ; catalogue et sélection du deck visibles simultanément à partir de 840 dp.
+- Grand écran : collection et fiche côte à côte ; catalogue et sélection du deck visibles simultanément sur les fenêtres larges (720 dp pour la collection).
 - Compte : sauvegardes privées manuelles, vérification d’intégrité, aperçu avant restauration et copie de récupération locale. Une connexion reprend les données présentes sans restauration automatique.
 - Amis : partage volontaire des seuls doublons proposés et recherches, suggestions d’échanges puis proposition modifiable à confirmer.
 - Accueil : ordre des raccourcis personnalisable, extension épinglée et conservation des decks épinglés dans la sauvegarde du compte.

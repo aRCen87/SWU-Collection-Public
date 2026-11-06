@@ -17,7 +17,7 @@ import androidx.compose.ui.window.DialogProperties
 internal fun AdaptiveWorkspace(enabled: Boolean, hasDetail: Boolean, onClose: () -> Unit,
     detail: @Composable () -> Unit, content: @Composable BoxScope.() -> Unit) {
     BoxWithConstraints(Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {
-        val wide = enabled && maxWidth >= 840.dp && maxHeight >= 480.dp
+        val wide = enabled && maxWidth >= 720.dp && maxHeight >= 480.dp
         if (wide) Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(Modifier.weight(.56f).fillMaxHeight(), content = content)
             Box(Modifier.weight(.44f).fillMaxHeight().testTag("swu_detail_pane"), contentAlignment = Alignment.Center) {

@@ -316,11 +316,13 @@ private fun CollectionScreen(
     fun openScanner() {
         navigation.navigateTo("Scanner")
         batchMessage = null
+        scanLastCard = null; scanCorrection = null
         scannerOpen = true
     }
     fun closeScanner() {
         scannerOpen = false
         scanCandidate = null
+        scanCorrection = null
         scanVariantMenuOpen = false
         if (scanBatch.entries.isEmpty() && navigation.current.section == "Scanner") navigation.back()
     }
@@ -686,7 +688,6 @@ private fun CollectionScreen(
                     Text("Hors connexion · données disponibles sur ce téléphone ›")
                 }
                 if (privateLayout) {
-                    TextButton(onClick = { homeEditing = true }) { Text("Personnaliser mon accueil") }
                     sets.firstOrNull { it.code == homeLayout.set }?.let { pinned ->
                         OutlinedButton(onClick = { navigation.navigateTo("Compléter mon set", pinned.code) }, modifier = Modifier.fillMaxWidth()) {
                             Text("★ ${pinned.name} · Compléter mon extension")
@@ -730,6 +731,7 @@ private fun CollectionScreen(
 
                     }
                 }
+                if (privateLayout) TextButton(onClick = { homeEditing = true }) { Text("Personnaliser mon accueil") }
                 ResumeCollectionPanel(database, cards, catalogBySet, sets, cardDetails, collectionQuotes, scanBatch,
                     onScan = { navigation.navigateTo("Scanner"); scannerOpen = false },
                     onSet = { navigation.navigateTo("Compléter mon set", it) })
@@ -898,6 +900,7 @@ private fun CollectionScreen(
                 SettingsOverview(onNavigate = { navigation.navigateTo(it) }, updateAvailable = appUpdates.release?.version)
             }
             if (selectedSection == "Apparence") {
+                if (privateLayout) OutlinedButton(onClick = { homeEditing = true }) { Text("Personnaliser mon accueil") }
                 BorderReflectionSettings(reflectionsEnabled) { enabled ->
                     reflectionsEnabled = enabled
                     reflectionPreferences.edit().putBoolean(REFLECTION_ENABLED, enabled).apply()

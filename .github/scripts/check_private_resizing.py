@@ -115,8 +115,14 @@ try:
         touch(root,"Collection")
         root = snapshot(name + "-collection")
         find(root,"Ma collection")
+        panes = [n for n in root.iter("node") if n.attrib.get("resource-id") == "swu_detail_pane"]
         if name == "unfolded":
+            assert len(panes) == 1, "Unfolded collection must keep its detail pane visible"
+            px1,py1,px2,py2 = rect(panes[0])
+            assert px2 > px1 and py2 > py1
             capture("home-test-unfolded-collection")
+        else:
+            assert not panes, "Compact or short windows must keep the single-pane layout"
     touch(root,"Accueil")
 finally:
     adb("shell","wm","size","reset")
