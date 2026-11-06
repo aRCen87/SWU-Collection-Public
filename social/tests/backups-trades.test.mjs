@@ -35,9 +35,9 @@ test('friends, strangers and unverified accounts cannot access private backups',
 });
 test('invalid head pointers and oversized chunks are rejected',async()=>{
  await assertFails(setDoc(doc(db('alice'),'accountBackups/alice'),{head:id,updatedAt:serverTimestamp()}));
- const b=writeBatch(db('alice'));
- b.set(doc(db('alice'),`accountBackups/alice/snapshots/${id}`),{parts:1,bytes:10,hash:'a'.repeat(64),createdAt:serverTimestamp()});
- b.set(doc(db('alice'),`accountBackups/alice/snapshots/${id}/chunks/0`),{index:0,data:'x'.repeat(200001)});
+ const store=db('alice');const b=writeBatch(store);
+ b.set(doc(store,`accountBackups/alice/snapshots/${id}`),{parts:1,bytes:10,hash:'a'.repeat(64),createdAt:serverTimestamp()});
+ b.set(doc(store,`accountBackups/alice/snapshots/${id}/chunks/0`),{index:0,data:'x'.repeat(200001)});
  await assertFails(b.commit());
 });
 const inventory=()=>({encoded:'encoded',hash:'a'.repeat(64),updatedAt:serverTimestamp()});
