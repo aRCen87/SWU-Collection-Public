@@ -456,6 +456,9 @@ private fun CollectionScreen(
                 }
             }
             if (selectedSection == "Accueil") {
+            if (deckContext.packageName == "fr.swucollection.app.test") {
+                CommunityHomeHeader { tab -> communityInitialTab = tab; navigation.navigateTo("Communauté") }
+            }
             Box(Modifier.fillMaxWidth()) {
                 HomeHeaderArtwork(homeHeaderProgress, headerReflection,
                     Modifier.fillMaxWidth().aspectRatio(475f / 185f))
@@ -520,9 +523,6 @@ private fun CollectionScreen(
                 }
                 if (!internetAvailable) OutlinedButton(onClick = { navigation.navigateTo("Hors connexion") }, modifier = Modifier.fillMaxWidth()) {
                     Text("Hors connexion · données disponibles sur ce téléphone ›")
-                }
-                if (deckContext.packageName == "fr.swucollection.app.test") {
-                    CommunityHomeHeader { tab -> communityInitialTab = tab; navigation.navigateTo("Communauté") }
                 }
                 HomeNavigationCard("◈", "SCANNER", "Scanner vos cartes", reflection = borderTilt, onClick = {
                     openScanner()
