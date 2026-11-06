@@ -128,7 +128,7 @@ internal fun ColumnScope.FriendPanel(service: CommunityService, friendships: Lis
     if (friendships.isEmpty()) Text("Tes amis et demandes apparaîtront ici.")
     val ordered = friendships.sortedBy { if (it.status == "pending" && it.requester != service.uid) 0 else if (it.status == "accepted") 1 else 2 }
     ordered.forEach { friend ->
-        val player = profiles.firstOrNull { it.id == friend.peer(service.uid) } ?: PlayerProfile(friend.peer(service.uid), "Joueur du test")
+        val player = profiles.firstOrNull { it.id == friend.peer(service.uid) } ?: PlayerProfile(friend.peer(service.uid), if (friend.requester != service.uid) friend.requesterName.ifBlank { "Joueur du test" } else "Joueur du test", avatar = if (friend.requester != service.uid) friend.requesterAvatar else "preset:star")
         Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             PlayerHeading(player)
             if (friend.status == "accepted") {

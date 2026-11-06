@@ -3,7 +3,7 @@ package fr.swucollection.app
 import org.json.JSONArray
 import org.json.JSONObject
 
-internal data class PlayerFriendship(val id: String, val members: List<String>, val requester: String, val status: String) {
+internal data class PlayerFriendship(val id: String, val members: List<String>, val requester: String, val status: String, val requesterName: String = "", val requesterAvatar: String = "preset:star") {
     fun peer(uid: String) = members.firstOrNull { it != uid }.orEmpty()
 }
 internal data class PlayerTrade(val id: String, val members: List<String>, val requester: String, val status: String,

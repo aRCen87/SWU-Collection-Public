@@ -133,3 +133,26 @@ test('shared decks respect visibility and blocking prevents friend requests',asy
  await setDoc(doc(b,'blocks','bob','users','alice'),{createdAt:serverTimestamp()});
  await assertFails(setDoc(doc(a,'friendships','alice__bob'),{members:['alice','bob'],requester:'alice',status:'pending',updatedAt:serverTimestamp()}));
 });
+
+test('a new conversation can be checked before creation and old clients can still reply',async()=>{
+ const a=db('alice'),b=db('bob');
+ await assertSucceeds(getDoc(doc(a,'conversations','alice__bob')));
+ await thread();
+ const batch=writeBatch(a);
+ batch.set(doc(a,'conversations','alice__bob','messages','new-client'),message('alice'));
+ batch.update(doc(a,'conversations','alice__bob'),{updatedAt:serverTimestamp(),lastSenderId:'alice'});
+ await assertSucceeds(batch.commit());
+ const old=writeBatch(b);
+ old.set(doc(b,'conversations','alice__bob','messages','old-client'),message('bob'));
+ old.update(doc(b,'conversations','alice__bob'),{updatedAt:serverTimestamp()});
+ await assertSucceeds(old.commit());
+});
+
+test('friend invitation identity matches its sender and cannot impersonate another profile',async()=>{
+ const a=db('alice');await setDoc(doc(a,'profiles','alice'),profile({name:'Alice'}));
+ const request={members:['alice','bob'],requester:'alice',status:'pending',requesterName:'Alice',requesterAvatar:'preset:star',updatedAt:serverTimestamp()};
+ await assertFails(setDoc(doc(a,'friendships','alice__bob'),{...request,requesterName:'Bob'}));
+ await assertFails(setDoc(doc(a,'friendships','alice__bob'),{...request,requesterAvatar:'https://tracker.example'}));
+ await assertSucceeds(setDoc(doc(a,'friendships','alice__bob'),request));
+ await assertSucceeds(getDoc(doc(db('bob'),'friendships','alice__bob')));
+});

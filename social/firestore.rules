@@ -68,8 +68,11 @@ service cloud.firestore {
       allow list: if allowed() && request.auth.uid in resource.data.members && request.query.limit != null && request.query.limit <= 100;
       allow create: if allowed() && validMembers(request.resource.data.members) &&
         pair == request.resource.data.members[0] + '__' + request.resource.data.members[1] &&
-        request.resource.data.keys().hasAll(['members','requester','status','updatedAt']) && request.resource.data.keys().hasOnly(['members','requester','status','updatedAt']) &&
-        request.resource.data.requester == request.auth.uid && request.resource.data.status == 'pending' && request.resource.data.updatedAt == request.time;
+        request.resource.data.keys().hasAll(['members','requester','status','updatedAt']) && request.resource.data.keys().hasOnly(['members','requester','status','updatedAt','requesterName','requesterAvatar']) &&
+        request.resource.data.requester == request.auth.uid && request.resource.data.status == 'pending' &&
+        (!('requesterName' in request.resource.data) || request.resource.data.requesterName == get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.name) &&
+        (!('requesterAvatar' in request.resource.data) || request.resource.data.requesterAvatar == get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.avatar) &&
+        request.resource.data.updatedAt == request.time;
       allow update: if allowed() && validMembers(resource.data.members) && request.auth.uid != resource.data.requester &&
         resource.data.status == 'pending' && request.resource.data.status == 'accepted' && request.resource.data.updatedAt == request.time &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','updatedAt']);
@@ -108,7 +111,7 @@ service cloud.firestore {
       allow delete: if allowed() && request.auth.uid == uid;
     }
     match /conversations/{conversation} {
-      allow get: if allowed() && request.auth.uid in resource.data.members;
+      allow get: if allowed() && (resource == null || request.auth.uid in resource.data.members);
       allow list: if allowed() && request.auth.uid in resource.data.members && request.query.limit != null && request.query.limit <= 100;
       allow create: if allowed() && request.resource.data.keys().hasOnly(['members','updatedAt']) &&
         validMembers(request.resource.data.members) && acceptsMessages(request.auth.uid,
@@ -117,7 +120,8 @@ service cloud.firestore {
         acceptsMessages(request.auth.uid, resource.data.members[resource.data.members[0] == request.auth.uid ? 1 : 0]) &&
         request.resource.data.members == resource.data.members &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['updatedAt','lastSenderId']) &&
-        request.resource.data.get('lastSenderId', request.auth.uid) == request.auth.uid && request.resource.data.updatedAt == request.time;
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['lastSenderId']) ||
+          request.resource.data.lastSenderId == request.auth.uid) && request.resource.data.updatedAt == request.time;
       allow delete: if false;
       match /messages/{message} {
         function participant() {

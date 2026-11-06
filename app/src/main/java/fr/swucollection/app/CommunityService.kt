@@ -129,14 +129,15 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
         db.collection("friendships").whereArrayContains("members", uid).limit(100).addSnapshotListener { rows, error ->
             if (error != null) onError(error) else onValue(rows?.documents.orEmpty().map { row ->
                 PlayerFriendship(row.id, (row.get("members") as? List<*>)?.filterIsInstance<String>().orEmpty(),
-                    row.getString("requester").orEmpty(), row.getString("status").orEmpty())
+                    row.getString("requester").orEmpty(), row.getString("status").orEmpty(), row.getString("requesterName").orEmpty(), row.getString("requesterAvatar") ?: "preset:star")
             })
         }
     suspend fun requestFriend(peer: String) {
         val me = uid; val ref = db.collection("friendships").document(CommunityValidation.pair(me, peer))
+        val own = profile(me) ?: error("Crée d’abord ton profil.")
         db.runTransaction { tx ->
             if (!tx.get(ref).exists()) tx.set(ref, mapOf("members" to listOf(me, peer).sorted(), "requester" to me,
-                "status" to "pending", "updatedAt" to FieldValue.serverTimestamp()))
+                "status" to "pending", "requesterName" to own.name, "requesterAvatar" to own.avatar, "updatedAt" to FieldValue.serverTimestamp()))
         }.communityAwait()
     }
     suspend fun acceptFriend(friendship: PlayerFriendship) {
