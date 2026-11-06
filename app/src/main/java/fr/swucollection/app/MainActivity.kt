@@ -224,13 +224,6 @@ private fun CollectionScreen(
     var personalLists by remember { mutableStateOf(database.cardLists()) }
     val deckContext = LocalContext.current
     val privateLayout = deckContext.packageName == AppChannel.TEST_PACKAGE
-    remember(privateLayout) {
-        if (privateLayout) {
-            val preferences = deckContext.getSharedPreferences("collection_filters", 0)
-            if (!preferences.getBoolean("visual_family_default", false)) preferences.edit()
-                .putString("groupVersions", "true").putBoolean("visual_family_default", true).apply()
-        }
-    }
     val homeStore = remember(deckContext) { HomeLayoutStore(deckContext) }
     var homeLayout by remember { mutableStateOf(homeStore.read()) }
     var homeEditing by remember { mutableStateOf(false) }
