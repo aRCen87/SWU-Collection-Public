@@ -54,4 +54,21 @@ class ScanPendingReviewTest {
         val restored = DeckScan.collectionFromJson(DeckScan.collectionJson(listOf(pending)))
         assertEquals(listOf(pending),restored)
     }
+    @Test fun incompatibleKnownFinishIsRejectedAtomicallyAndCanBeCorrected() {
+        val context = RuntimeEnvironment.getApplication()
+        val db = CollectionDatabase(context)
+        try {
+            val exact = CatalogCard("JTL", "552", "Gold Leader", "Unité", "Rare", "https://example.com/card_04310552_EN.webp")
+            val incompatible = ScanBatchEntry(exact, "Normale", 2)
+            val before = db.exportJson()
+            assertThrows(IllegalArgumentException::class.java) { db.commitScanBatch("incompatible", listOf(incompatible)) }
+            assertEquals(before, db.exportJson())
+            assertFalse(db.isScanBatchCommitted("incompatible"))
+            val corrected = resolveScanEntries(listOf(incompatible), incompatible, "FR", "Foil", 2)
+            db.commitScanBatch("incompatible", corrected)
+            assertEquals(2, db.allCards().first { it.setCode == "JTL" && it.number == "552" && it.variant == "Foil" }.quantity)
+            db.commitScanBatch("incompatible", corrected)
+            assertEquals(2, db.allCards().first { it.setCode == "JTL" && it.number == "552" && it.variant == "Foil" }.quantity)
+        } finally { db.close() }
+    }
 }

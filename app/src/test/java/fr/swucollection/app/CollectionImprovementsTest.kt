@@ -31,9 +31,9 @@ class CollectionImprovementsTest {
         db.addOrIncrement(card.name,card.setCode,card.number,"Foil")
         val original=db.allCards().single();db.changeQuantity(original.id,-1);assertTrue(db.allCards().isEmpty())
         db.undoLastChange();assertEquals(original,db.allCards().single())
-        db.commitScanBatch("batch",listOf(ScanBatchEntry(card,"Foil",3),ScanBatchEntry(card.copy(number="055"),"Normale",2)))
+        db.commitScanBatch("batch",listOf(ScanBatchEntry(card,"Normale",3),ScanBatchEntry(card.copy(number="055"),"Normale",2)))
         assertEquals(6,db.allCards().sumOf {it.quantity});db.undoLastChange();assertEquals(listOf(original),db.allCards())
-        db.commitScanBatch("batch",listOf(ScanBatchEntry(card,"Foil",3)));assertEquals(listOf(original),db.allCards())
+        db.commitScanBatch("batch",listOf(ScanBatchEntry(card,"Normale",3)));assertEquals(listOf(original),db.allCards())
         db.undoLastChange();assertTrue(db.allCards().isEmpty())
     }
     @Test fun backupRoundTripsGoalsFormatsAndBlocksStaleUndo() {
