@@ -5,6 +5,7 @@ adb install -r distribution/SWU-Collection-Official.apk
 adb install -r distribution/SWU-Collection-Test.apk
 for package in fr.swucollection.app fr.swucollection.app.test; do
   adb shell pm path "$package"
+  adb shell pm grant "$package" android.permission.POST_NOTIFICATIONS
   adb logcat -c
   for launch in 1 2; do
     adb shell am force-stop "$package"
