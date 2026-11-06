@@ -42,6 +42,7 @@ PYUI
   if grep -q 'FATAL EXCEPTION' "smoke-private/$package-crashes.txt"; then exit 1; fi
 done
 # The empty test account contains no private user data; keep its home capture encrypted.
+adb shell am force-stop fr.swucollection.app
 python3 .github/scripts/check_private_resizing.py
 adb shell screencap -p /sdcard/test-home.png
 adb pull /sdcard/test-home.png smoke-private/home-test.png >/dev/null

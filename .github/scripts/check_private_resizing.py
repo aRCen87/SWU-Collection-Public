@@ -7,7 +7,18 @@ from pathlib import Path
 
 
 def adb(*args):
-    return subprocess.check_output(["adb", *map(str, args)], text=True)
+    command = ["adb", *map(str, args)]
+    try:
+        return subprocess.check_output(command, text=True, stderr=subprocess.STDOUT, timeout=30)
+    except subprocess.CalledProcessError as error:
+        read_only = args[0] == "pull" or args[:2] in (
+            ("shell", "uiautomator"), ("shell", "screencap"))
+        if not read_only or "offline" not in error.output:
+            raise
+        # A density change can reconnect the transport. Retry only reads;
+        # never replay a tap or other mutation with an uncertain outcome.
+        subprocess.check_call(["adb", "wait-for-device"], timeout=30)
+        return subprocess.check_output(command, text=True, stderr=subprocess.STDOUT, timeout=30)
 
 
 def snapshot(name):
@@ -72,8 +83,11 @@ def home(root, width, height, density):
     assert max((r[0]+r[2])/2 for r in controls) - min((r[0]+r[2])/2 for r in controls) < 3, controls
 
 
-profiles = [("cover",1080,2340,480), ("phone",1080,2400,420),
-            ("unfolded",2208,1840,420), ("landscape",2400,1080,420)]
+# Preserve the original phone/Fold sizes in dp while keeping the framebuffer
+# below the emulator's 1920px limit. Larger wm requests were silently clamped
+# and could disconnect adb during screenshot transfer.
+profiles = [("cover",720,1560,320), ("phone",756,1680,294),
+            ("unfolded",1766,1472,336), ("landscape",1680,756,294)]
 try:
     for index, (name,width,height,dpi) in enumerate(profiles):
         # Remain on Collection while resizing: folding must retain the destination.
