@@ -1,3 +1,8 @@
+## Test 0.8.19-test.7
+
+- Bandeau : proportions conservées même si la fenêtre impose une hauteur supplémentaire ; les animations suivent la même échelle.
+- Validation des pliants : centrage contrôlé dans la fenêtre réellement disponible, après les marges système, plutôt que dans la résolution demandée à l’émulateur. Boutons de 48 dp vérifiés dans cette même zone.
+
 ## Test 0.8.19-test.6
 
 - Accueil : nouveau bandeau validé avec planète, ville galactique et Faucon Millenium. Avatar, menu et courrier restent de vrais boutons ; aucun ancien menu ne dépasse derrière l’avatar.

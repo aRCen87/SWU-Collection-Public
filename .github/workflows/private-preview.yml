@@ -108,17 +108,21 @@ jobs:
           disable-animations: true
           script: bash .github/scripts/smoke_private_preview.sh
       - name: Encrypt the empty-account layout check for private review
+        if: always()
         run: |
+          mkdir -p distribution-layout-private
           for image in smoke-private/home-test*.png; do
+            test -f "$image" || continue
             name=$(basename "$image" .png)
             python3 .github/scripts/encrypt_private_preview.py docs/preview-recipient-public.pem "$image" "distribution-layout-private/$name"
           done
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: SWU-Collection-Test-layout-encrypted
           retention-days: 7
           path: distribution-layout-private/
-          if-no-files-found: error
+          if-no-files-found: ignore
       - name: Encrypt the validated test APK for private delivery
         run: python3 .github/scripts/encrypt_private_preview.py docs/preview-recipient-public.pem distribution/SWU-Collection-Test.apk distribution-private
       - uses: actions/upload-artifact@v4

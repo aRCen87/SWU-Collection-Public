@@ -1,6 +1,9 @@
 package fr.swucollection.app
 
 import android.os.Bundle
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -180,6 +183,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 private fun CollectionScreen(
     details: CardDetails,
@@ -454,7 +458,9 @@ private fun CollectionScreen(
     }
 
     val deckWorkspace = selectedSection == "Mes listes" && (creatingDeck || editingDeck != null)
-    Box(Modifier.fillMaxSize().background(Color(0xFF030A17)).safeDrawingPadding().imePadding()) {
+    Box(Modifier.fillMaxSize().background(Color(0xFF030A17)).safeDrawingPadding().imePadding()
+        .then(if (privateLayout) Modifier.semantics { testTagsAsResourceId = true }
+            .testTag("swu_content_window") else Modifier)) {
         Box(Modifier.fillMaxSize().background(Color(0xFF02090F)))
         Column(
             Modifier.align(androidx.compose.ui.Alignment.TopCenter)

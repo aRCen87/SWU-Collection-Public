@@ -147,7 +147,13 @@ internal fun HomeHeaderArtwork(progress: State<Float>, reflection: State<Float>,
         val canvas = drawContext.canvas.nativeCanvas
         val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
         val saved = canvas.save()
-        canvas.scale(size.width / 475f, size.height / 185f)
+        if (compactControls) {
+            // Keep one scale even if Android gives the canvas extra height.
+            // Artwork and its animated highlights share the same transform.
+            val fit = minOf(size.width / 475f, size.height / 185f)
+            canvas.translate((size.width - 475f * fit) / 2f, (size.height - 185f * fit) / 2f)
+            canvas.scale(fit, fit)
+        } else canvas.scale(size.width / 475f, size.height / 185f)
         canvas.clipRect(0f, 0f, 475f, 185f)
         val arrived = frame.star == target
         val display = artwork.display
