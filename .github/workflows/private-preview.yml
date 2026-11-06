@@ -48,6 +48,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.13"
+          cache-read-only: false
       - name: Load permanent signing identity privately
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -68,18 +69,21 @@ jobs:
           gradle --no-daemon testDebugUnitTest lintDebug assembleDebug testPreviewUnitTest lintPreview assemblePreview
           python3 .github/scripts/verify_packaged_card_details.py app/build/outputs/apk/preview/app-preview.apk
       - name: Verify identity and prepare coexistence checks
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p distribution
           cp app/build/outputs/apk/preview/app-preview.apk distribution/SWU-Collection-Test.apk
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose distribution/SWU-Collection-Test.apk
           "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging distribution/SWU-Collection-Test.apk > distribution/preview-identity.txt
           python3 - <<'PY'
-          import json,re,hashlib,urllib.request
+          import json,re,hashlib,urllib.request,os
           from pathlib import Path
           text=Path('distribution/preview-identity.txt').read_text()
           assert "package: name='fr.swucollection.app.test'" in text
           assert "application-label:'SWU Collection Test'" in text
-          data=json.load(urllib.request.urlopen('https://api.github.com/repos/aRCen87/SWU-Collection-Releases/releases/latest'))
+          request=urllib.request.Request('https://api.github.com/repos/aRCen87/SWU-Collection-Releases/releases/latest',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          data=json.load(urllib.request.urlopen(request,timeout=30))
           asset=next(a for a in data['assets'] if a['name']=='SWU-Collection.apk')
           path=Path('distribution/SWU-Collection-Official.apk')
           urllib.request.urlretrieve(asset['browser_download_url'],path)
