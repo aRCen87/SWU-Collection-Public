@@ -31,6 +31,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -39,6 +40,7 @@ private fun communityError(error: Throwable): String = when ((error as? Firebase
     "ERROR_INVALID_EMAIL" -> "Cette adresse e-mail n’est pas valide."
     "ERROR_EMAIL_ALREADY_IN_USE" -> "Cette adresse possède déjà un compte. Essaie de te connecter."
     "ERROR_WRONG_PASSWORD", "ERROR_INVALID_CREDENTIAL", "ERROR_USER_NOT_FOUND" -> "Connexion impossible. Vérifie l’e-mail et le mot de passe."
+    "ERROR_OPERATION_NOT_ALLOWED" -> "La connexion par e-mail et mot de passe n’est pas encore activée pour les essais."
     "ERROR_TOO_MANY_REQUESTS" -> "Trop de tentatives. Patiente avant de réessayer."
     else -> if (error is IllegalArgumentException) error.message ?: "Vérifie les informations saisies."
         else "Opération impossible. Vérifie ta connexion et l’autorisation de ton compte de test, puis réessaie."
@@ -80,7 +82,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
     var status by remember { mutableStateOf<String?>(null) }
     fun action(block: suspend () -> Unit) { if (!busy) scope.launch {
         busy = true; status = null
-        try { block() } catch (error: Exception) { status = communityError(error) } finally { busy = false }
+        try { block() } catch (cancelled: CancellationException) { throw cancelled } catch (error: Exception) { status = communityError(error) } finally { busy = false }
     } }
     status?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
     if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -292,6 +294,7 @@ private fun ColumnScope.CommunityChat(service: CommunityService, conversation: P
     fun send(deck: DeckStore.SavedDeck? = null) { if (!busy && online) scope.launch {
         busy = true; status = null
         try { service.send(conversation.id, pendingId, draft, deck); draft = ""; pendingId = UUID.randomUUID().toString(); share = false }
+        catch (cancelled: CancellationException) { throw cancelled }
         catch (error: Exception) { status = communityError(error) }
         finally { busy = false }
     } }

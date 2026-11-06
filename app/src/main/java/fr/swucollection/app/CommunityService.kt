@@ -84,7 +84,7 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
         }
     fun messages(conversation: String, onValue: (List<PlayerMessage>) -> Unit, onError: (Exception) -> Unit): ListenerRegistration =
         db.collection("conversations").document(conversation).collection("messages").orderBy("createdAt", Query.Direction.ASCENDING).limitToLast(50)
-            .addSnapshotListener { rows, error ->
+            .addSnapshotListener(MetadataChanges.INCLUDE) { rows, error ->
                 if (error != null) onError(error) else onValue(rows?.documents.orEmpty().filterNot { it.metadata.hasPendingWrites() }.map { row ->
                     PlayerMessage(row.id, row.getString("senderId").orEmpty(), row.getString("kind").orEmpty(),
                         row.getString("text").orEmpty(), row.getString("deckName").orEmpty(), row.getString("deckJson").orEmpty(),

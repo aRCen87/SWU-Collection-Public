@@ -60,6 +60,9 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.6.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    // CameraX exposes ListenableFuture in its API. Firestore also brings Guava's
+    // empty compatibility artifact, so keep the actual Android classes explicit.
+    implementation("com.google.guava:guava:33.4.8-android")
     implementation(platform("androidx.compose:compose-bom:2025.10.00"))
     implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.activity:activity-compose:1.11.0")
