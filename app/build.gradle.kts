@@ -55,6 +55,12 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 }
+// The private app has its own update sequence; the official release stays frozen.
+androidComponents {
+    onVariants(selector().withBuildType("preview")) { variant ->
+        variant.outputs.forEach { it.versionCode.set(61) }
+    }
+}
 kotlin { jvmToolchain(17) }
 dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.6.0"))

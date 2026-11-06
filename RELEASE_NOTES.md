@@ -1,3 +1,11 @@
+## Version privée 0.8.19-test.2 (code 61)
+
+- Comptes de test par e-mail et mot de passe, confirmation de l’adresse et accès réservé aux comptes autorisés.
+- Profil avec pseudo, bio et avatar modifiable : photo réduite ou avatar prédéfini. Affichage du profil et des badges au choix du joueur.
+- Conversations privées, blocage de joueurs et partage d’une copie de deck à consulter avant enregistrement.
+- Collection et decks locaux conservés. Aucune synchronisation cloud des collections ni notification de messagerie téléphone fermé dans cette version.
+- Application Test séparée de l’application officielle ; cette version ne modifie pas sa distribution.
+
 ## Version 0.8.19
 
 - Bandeau d’accueil : une lumière dorée suit le contour de chacune des lettres S, W et U, pendant le passage du reflet métallique, selon l’aperçu validé.
