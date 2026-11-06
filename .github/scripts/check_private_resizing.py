@@ -42,9 +42,15 @@ def capture(name):
 
 def home(root, width, height, density):
     x1, y1, x2, y2 = rect(find(root, "SWU Collection"))
-    assert x2-x1 <= 569 * density, (width, x1, x2)
-    assert abs((x2-x1)/(y2-y1) - 475/185) < .035, (x1,y1,x2,y2)
-    assert abs((x1+x2)/2 - width/2) < 3, (width,x1,x2)
+    # UIAutomator trims the banner's accessibility bounds where the real
+    # avatar/menu/mail targets overlap it. Its right bound is therefore not
+    # the painted image edge. Recover that edge from the measured height and
+    # verify it against the centered, padded content width independently.
+    painted_width = (y2-y1) * 475/185
+    expected_width = min(width - 32*density, 568*density)
+    assert abs(painted_width - expected_width) < 3, (width,density,x1,y1,x2,y2)
+    assert abs(x1 + painted_width/2 - width/2) < 3, (width,x1,painted_width)
+    assert x1 < x2 <= x1 + painted_width + 2, (x1,x2,painted_width)
     parents = {c:p for p in root.iter() for c in p}
     controls = []
     for label in ("Mon profil", "Ouvrir le menu", "Courrier, 0 en attente"):
