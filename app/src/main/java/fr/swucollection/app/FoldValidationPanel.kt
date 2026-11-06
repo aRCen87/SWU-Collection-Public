@@ -26,15 +26,15 @@ internal fun ColumnScope.FoldValidationPanel(onCollection: () -> Unit, onScan: (
         "Utiliser l’appli à côté d’une autre fenêtre sans texte ou boutons coupés")
     var checked by remember(version) { mutableStateOf(checks.indices.filter { prefs.getBoolean("$version.$it", false) }.toSet()) }
     var copied by remember { mutableStateOf(false) }
-    Text("Vérification sur mon écran pliant", style = MaterialTheme.typography.titleLarge)
-    Text("Les formats simulés sont contrôlés automatiquement. Cette liste permet de vérifier la charnière, le clavier et la caméra sur ton vrai téléphone.", style = MaterialTheme.typography.bodySmall)
-    Text("${Build.MODEL} · $version · fenêtre ${configuration.screenWidthDp} × ${configuration.screenHeightDp}")
-    Text("${checked.size} / ${checks.size} vérifications cochées par toi")
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    item { Text("Vérification sur mon écran pliant", style = MaterialTheme.typography.titleLarge) }
+    item { Text("Les formats simulés sont contrôlés automatiquement. Cette liste permet de vérifier la charnière, le clavier et la caméra sur ton vrai téléphone.", style = MaterialTheme.typography.bodySmall) }
+    item { Text("${Build.MODEL} · $version · fenêtre ${configuration.screenWidthDp} × ${configuration.screenHeightDp}") }
+    item { Text("${checked.size} / ${checks.size} vérifications cochées par toi") }
+    item { FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         OutlinedButton(onClick = onCollection) { Text("Essayer la collection") }
         OutlinedButton(onClick = onScan) { Text("Essayer le scanner") }
-    }
-    LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    } }
         items(checks.size) { i -> OutlinedCard(Modifier.fillMaxWidth()) {
             Row(Modifier.padding(8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                 Checkbox(i in checked, { value ->
