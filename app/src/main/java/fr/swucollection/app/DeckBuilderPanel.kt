@@ -39,6 +39,8 @@ internal fun DeckBuilderPanel(
     startScanning: Boolean = false, onScanStarted: () -> Unit = {},
     onScanCollection: (() -> Unit)? = null, seedCard: CatalogCard? = null
 ) {
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+    val dualPane = LocalContext.current.packageName == AppChannel.TEST_PACKAGE && maxWidth >= 840.dp && maxHeight >= 480.dp
     val draftContext = LocalContext.current.applicationContext
     val draftStore = remember(draftContext) { DeckDraftStore(draftContext) }
     val baseline = remember(initial, initialName) { DeckInterchange.exportJson(initial, initialName) }
@@ -132,6 +134,8 @@ internal fun DeckBuilderPanel(
     var scanPending by remember { mutableStateOf<CatalogCard?>(null) }
     var scanReadToken by remember { mutableIntStateOf(0) }
     var scanLastCard by remember { mutableStateOf<ScanBatchEntry?>(null) }
+    var correctingScan by remember { mutableStateOf<ScanBatchEntry?>(null) }
+    var lastScanCollected by remember { mutableStateOf(false) }
     var pendingFinish by remember { mutableStateOf<String?>(null) }
     fun saveDeck() {
         closing = true
@@ -155,8 +159,8 @@ internal fun DeckBuilderPanel(
     val entries = if (zone == DeckEditor.Zone.MAIN) deck.deck else deck.sideboard
     fun requestBack() { if (dirty(snapshot())) leaving = true else { closing = true; onCancel() } }
     BackHandler { requestBack() }
-    val filtered = remember(catalog, query, tab, catalogueOpen, deck, details, filters, sort, ownedByFamily, affinityOnly, affinityPool) {
-        val candidates = if (tab == "Leader" || tab == "Base" || catalogueOpen) catalog else entries.mapNotNull { byId[it.cardId] }
+    val filtered = remember(catalog, query, tab, catalogueOpen, deck, details, filters, sort, ownedByFamily, affinityOnly, affinityPool, dualPane) {
+        val candidates = if (tab == "Leader" || tab == "Base" || catalogueOpen || dualPane) catalog else entries.mapNotNull { byId[it.cardId] }
         candidates.filter { card ->
             val type = DeckConstruction.type(card)
             val correctType = when (tab) {
@@ -199,8 +203,9 @@ internal fun DeckBuilderPanel(
             FilterChip(visual, onClick = { visual = true }, label = { Text("Cartes") })
             FilterChip(!visual, onClick = { visual = false }, label = { Text("Liste") })
         }
+        Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         LazyVerticalGrid(state = gridState, columns = if (visual) GridCells.Adaptive(if (largeText) 168.dp else 128.dp) else GridCells.Fixed(1),
-            modifier = Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.weight(1f).fillMaxHeight(), horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 12.dp)) {
             item(key = "deck-scanner", span = { GridItemSpan(maxLineSpan) }) {
             OutlinedButton(onClick = {
@@ -298,6 +303,11 @@ internal fun DeckBuilderPanel(
                 }
             }
         }
+        if (dualPane) DeckSelectionPane(name, deck, catalog, details, zone, leaderChosen, baseChosen,
+            Modifier.weight(.8f).fillMaxHeight(), onZone = { tab = if (it == DeckEditor.Zone.MAIN) "Deck" else "Réserve"; query = "" },
+            onQuantity = { id, count, target -> runCatching { checkpoint(); deck = DeckEditor.setQuantity(deck, id, count, target) }.onFailure { error = it.message } },
+            onPreview = onPreview)
+        }
         error?.let { Text(it, color = ListPalette.Danger) }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TextButton(onClick = { preparing = true }, enabled = leaderChosen && baseChosen) { Text("Préparer") }
@@ -316,6 +326,16 @@ internal fun DeckBuilderPanel(
             }) { Text("Annuler", style = MaterialTheme.typography.labelMedium) }
         }
     }
+    correctingScan?.let { entry -> QuickScanCorrection(entry, { correctingScan = null }) { language, finish ->
+        if (lastScanCollected) {
+            val source = collectionEntries.firstOrNull { it.card.setCode == entry.card.setCode && it.card.number == entry.card.number && it.card.language == entry.card.language && it.variant == entry.variant }
+                ?: error("Cet ajout a changé. Vérifie les cartes en attente.")
+            val next = resolveScanEntries(collectionEntries, source, language, finish, 1)
+            checkpoint(); collectionEntries = next
+        }
+        scanLastCard = entry.copy(card = entry.card.copy(language = language), variant = finish)
+        correctingScan = null; scanReadToken++
+    } }
     if (restoring && recoverable != null) AlertDialog(onDismissRequest = { closing = true; onCancel() }, title = { Text("Reprendre le brouillon ?") },
         text = { Text("${recoverable.name} · ${recoverable.deck.deck.sumOf { it.count }} cartes. Le deck enregistré reste inchangé tant que tu n’appuies pas sur Enregistrer.") },
         confirmButton = { TextButton(onClick = {
@@ -339,6 +359,7 @@ internal fun DeckBuilderPanel(
                         "leader", "chef" -> leaderChosen = true
                         "base" -> baseChosen = true
                     }
+                    lastScanCollected = collectScans
                     scanLastCard = ScanBatchEntry(card, variant.orEmpty(), 1)
                     scanLast = "${card.name} · ${CardLanguages.label(card.language)}"
                     scanMessage = null
@@ -359,7 +380,7 @@ internal fun DeckBuilderPanel(
                 tab = if (scanReserve) "Réserve" else "Deck"; catalogueOpen = false; query = ""
             },
             onDetected = detected@{ set, number, raw ->
-                if (scanPending != null || pendingIdentity != null) return@detected false
+                if (scanPending != null || pendingIdentity != null || correctingScan != null) return@detected false
                 val card = DeckScan.find(catalog, set, number)?.copy(language = ScanRecognition.language(raw) ?: CardLanguages.UNKNOWN)
                 if (card == null) { scanMessage = "Référence introuvable : $set $number."; false }
                 else {
@@ -374,7 +395,7 @@ internal fun DeckBuilderPanel(
                     else scanWithPrint(card)
                 }
             },
-            paused = pendingIdentity != null || scanPending != null,
+            paused = pendingIdentity != null || scanPending != null || correctingScan != null,
             rescanToken = scanReadToken,
             onUndoLast = if (scanUndo.isEmpty()) null else ({
                 val previous = scanUndo.last(); scanUndo = scanUndo.dropLast(1)
@@ -410,7 +431,10 @@ internal fun DeckBuilderPanel(
                             if (replacing) { pendingFinish = finish; pendingIdentity = card; scanPending = null }
                             else if (applyScan(card, finish)) { scanPending = null; scanReadToken++ }
                         })
-                } else scanLastCard?.let { ScannerCardSummary(it.card, it.variant, "Ajoutée à « $name » · brouillon") }
+                } else scanLastCard?.let { last ->
+                    ScannerCardSummary(last.card, last.variant, "Ajoutée à « $name » · brouillon")
+                    TextButton(onClick = { correctingScan = last }) { Text("Corriger ce scan") }
+                }
                 Row(Modifier.fillMaxWidth().toggleable(value = collectScans, role = Role.Checkbox, onValueChange = { collectScans = it }), verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(collectScans, onCheckedChange = null)
                     Text("Ajouter aussi à ma collection", color = gold, style = MaterialTheme.typography.labelMedium)
@@ -483,6 +507,7 @@ internal fun DeckBuilderPanel(
         title = { Text("Quitter le deck ?") }, text = { Text("La création est conservée comme brouillon sur ce téléphone. Le deck enregistré reste inchangé.") },
         confirmButton = { TextButton(onClick = { if (storeDraft(snapshot())) { closing = true; onCancel() } else { leaving = false; error = "Le brouillon n’a pas pu être sauvegardé. Le deck reste ouvert." } }) { Text("Conserver et quitter") } },
         dismissButton = { TextButton(onClick = { leaving = false }) { Text("Continuer") } })
+    }
 }
 
 

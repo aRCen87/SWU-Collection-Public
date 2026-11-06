@@ -15,9 +15,9 @@ import coil.compose.AsyncImage
 
 @Composable
 internal fun TradeComposer(peer: PlayerProfile, catalog: List<CatalogCard>, busy: Boolean, onClose: () -> Unit,
-    onSend: (List<TradeSelection>, List<TradeSelection>) -> Unit) {
-    var offer by remember { mutableStateOf<List<TradeSelection>>(emptyList()) }
-    var wanted by remember { mutableStateOf<List<TradeSelection>>(emptyList()) }
+    onSend: (List<TradeSelection>, List<TradeSelection>) -> Unit, initialOffer: List<TradeSelection> = emptyList(), initialWanted: List<TradeSelection> = emptyList()) {
+    var offer by remember(peer.id, initialOffer) { mutableStateOf(initialOffer) }
+    var wanted by remember(peer.id, initialWanted) { mutableStateOf(initialWanted) }
     var offering by remember { mutableStateOf(true) }; var search by remember { mutableStateOf("") }
     var language by remember { mutableStateOf("FR") }; var finish by remember { mutableStateOf("Classique") }
     val candidates = remember(search, catalog) { if (search.trim().length < 2) emptyList() else catalog.asSequence()

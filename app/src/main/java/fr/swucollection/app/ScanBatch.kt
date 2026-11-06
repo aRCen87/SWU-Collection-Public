@@ -106,6 +106,7 @@ internal fun CollectionDatabase.commitScanBatch(id: String, entries: List<ScanBa
 @Composable
 internal fun ScanBatchPanel(batch: ScanBatchStore, committed: Boolean, onCommit: () -> Unit) {
     var discard by remember { mutableStateOf(false) }
+    var correction by remember { mutableStateOf<ScanBatchEntry?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
     if (batch.entries.isNotEmpty()) Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -118,6 +119,7 @@ internal fun ScanBatchPanel(batch: ScanBatchStore, committed: Boolean, onCommit:
                         if (!entry.resolved && !committed) ScanEntryReview(entry) { language, variant, quantity ->
                             runCatching { batch.resolve(entry, language, variant, quantity) }.onFailure { message = it.message }
                         }
+                        if (!committed) TextButton(onClick = { correction = entry }) { Text("Corriger langue / finition") }
                         Row {
                             TextButton(enabled = !committed, onClick = { runCatching { batch.change(entry, -1) }.onFailure { message = it.message } }) { Text("−") }
                             Text("${entry.quantity}", modifier = Modifier.padding(top = 12.dp))
@@ -132,6 +134,9 @@ internal fun ScanBatchPanel(batch: ScanBatchStore, committed: Boolean, onCommit:
             message?.let { Text(it) }
         }
     }
+    correction?.let { entry -> QuickScanCorrection(entry, { correction = null }) { language, finish ->
+        batch.resolve(entry, language, finish, 1); correction = null
+    } }
     if (discard) AlertDialog(onDismissRequest = { discard = false }, title = { Text("Abandonner le lot ?") },
         text = { Text("Les cartes en attente seront retirées du lot. Ta collection reste conservée.") },
         confirmButton = { TextButton(onClick = { runCatching { batch.clear() }.onFailure { message = it.message }; discard = false }) { Text("Abandonner") } },

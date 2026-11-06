@@ -10,6 +10,10 @@ internal class DeckPins(context: Context) {
         val values = JSONArray(prefs.getString("ids", "[]"))
         (0 until values.length()).map { values.getString(it) }.distinct().take(3)
     }.getOrDefault(emptyList())
+    fun restore(ids: List<String>, saved: Set<String>) {
+        require(ids.size <= 3)
+        check(prefs.edit().putString("ids", JSONArray(ids.distinct().filter { it in saved }).toString()).commit())
+    }
     fun toggle(id: String): List<String> {
         val current = all()
         val next = if (id in current) current - id else {

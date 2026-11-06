@@ -49,7 +49,7 @@ internal fun communityError(error: Throwable): String = when ((error as? Firebas
 
 @Composable
 internal fun ColumnScope.CommunityPanel(decks: List<DeckStore.SavedDeck>, earned: List<BadgeProgress>,
-    definitions: List<BadgeDefinition>, catalog: List<CatalogCard>, initialTab: String = "Mon profil", onImportDeck: (String, PortableDeck) -> Unit) {
+    definitions: List<BadgeDefinition>, catalog: List<CatalogCard>, database: CollectionDatabase, details: CardDetails, initialTab: String = "Mon profil", onRestored: () -> Unit, onImportDeck: (String, PortableDeck) -> Unit) {
     val context = LocalContext.current
     val service = remember(context) { CommunityService.create(context) }
     Text("Communauté", fontSize = 24.sp, fontWeight = FontWeight.Bold)
@@ -70,14 +70,14 @@ internal fun ColumnScope.CommunityPanel(decks: List<DeckStore.SavedDeck>, earned
         onDispose { service.auth.removeAuthStateListener(listener) }
     }
     key(user?.uid, identityRevision) {
-        CommunitySession(service, user, decks, earned, definitions, catalog, initialTab, { identityRevision++ }, onImportDeck)
+        CommunitySession(service, user, decks, earned, definitions, catalog, database, details, initialTab, { identityRevision++ }, onRestored, onImportDeck)
     }
 }
 
 @Composable
 private fun ColumnScope.CommunitySession(service: CommunityService, user: FirebaseUser?, decks: List<DeckStore.SavedDeck>,
-    earned: List<BadgeProgress>, definitions: List<BadgeDefinition>, catalog: List<CatalogCard>, initialTab: String, refresh: () -> Unit,
-    onImportDeck: (String, PortableDeck) -> Unit) {
+    earned: List<BadgeProgress>, definitions: List<BadgeDefinition>, catalog: List<CatalogCard>, database: CollectionDatabase, details: CardDetails, initialTab: String, refresh: () -> Unit,
+    onRestored: () -> Unit, onImportDeck: (String, PortableDeck) -> Unit) {
     val scope = rememberCoroutineScope()
     var busy by remember { mutableStateOf(false) }
     var status by remember { mutableStateOf<String?>(null) }
@@ -141,6 +141,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
     var receipts by remember { mutableStateOf<Map<String, Long>>(emptyMap()) }
     var friendsProfiles by remember { mutableStateOf<Map<String, PlayerProfile>>(emptyMap()) }
     var proposingTrade by remember { mutableStateOf<PlayerProfile?>(null) }
+    var suggestedTrade by remember { mutableStateOf<SuggestedTrade?>(null) }
     LaunchedEffect(friendships) {
         friendsProfiles = emptyMap()
         friendsProfiles = friendships.mapNotNull { f -> runCatching { service.profile(f.peer(user.uid)) }.getOrNull()?.let { it.id to it } }.toMap()
@@ -176,7 +177,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
     val requests = friendships.count { it.status == "pending" && it.requester != user.uid }
     val exchangeRequests = trades.count { it.status == "pending" && it.requester != user.uid }
     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        listOf("Mon profil", "Amis", "Joueurs", "Messages", "Échanges").forEach { label ->
+        listOf("Mon profil", "Amis", "Joueurs", "Messages", "Échanges", "Sauvegarde").forEach { label ->
             FilterChip(tab == label, { tab = label; conversation = null }, label = { Text(label + when {
                 label == "Amis" && requests > 0 -> " · $requests"
                 label == "Messages" && unread > 0 -> " · $unread"
@@ -186,6 +187,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
         }
     }
     when (tab) {
+        "Sauvegarde" -> AccountBackupPanel(database, {}, onRestored)
         "Mon profil" -> {
             PlayerHeading(profile!!)
             if (profile!!.bio.isNotBlank()) Text(profile!!.bio)
@@ -203,6 +205,8 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
                 { selectedProfile = it }, { talk(it) }, { proposingTrade = it })
         }
         "Échanges" -> {
+            FriendTradeSuggestionPanel(service, database, catalog, details,
+                friendships.filter { it.status == "accepted" }.mapNotNull { friendsProfiles[it.peer(user.uid)] }, { suggestedTrade = it })
             TradeRequestsPanel(service, trades, profiles + friendsProfiles.values, catalog, busy,
                 { trade, answer -> action { service.answerTrade(trade, answer) } },
                 { id -> talk((profiles + friendsProfiles.values).firstOrNull { it.id == id } ?: PlayerProfile(id, "Ami")) })
@@ -250,6 +254,9 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
         }, confirmButton = { Button(onClick = { talk(player) }, enabled = !busy && !blocked) { Text("Envoyer un message") } },
             dismissButton = { TextButton(onClick = { selectedProfile = null }) { Text("Fermer") } })
     }
+    suggestedTrade?.let { suggestion -> TradeComposer(suggestion.peer, catalog, busy, { suggestedTrade = null }, { offer, wanted -> action {
+        service.proposeTrade(suggestion.peer.id, offer, wanted); suggestedTrade = null; tab = "Échanges"; status = "Proposition envoyée."
+    } }, initialOffer = suggestion.offer, initialWanted = suggestion.wanted) }
     proposingTrade?.let { peer -> TradeComposer(peer, catalog, busy, { proposingTrade = null }, { offer, wanted -> action {
         service.proposeTrade(peer.id, offer, wanted); proposingTrade = null; tab = "Échanges"; status = "Proposition envoyée."
     } }) }

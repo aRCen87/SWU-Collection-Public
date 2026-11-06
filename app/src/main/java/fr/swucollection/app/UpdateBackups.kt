@@ -17,6 +17,10 @@ internal object UpdateBackups {
             .put("appVersion", context.packageManager.getPackageInfo(context.packageName, 0).versionName)
             .put("settings", JSONObject().put("leaderView",
                 context.getSharedPreferences("leader_view", Context.MODE_PRIVATE).getString("mode", "flip")))
+        if (context.packageName == AppChannel.TEST_PACKAGE) {
+            root.put("homeLayout", JSONObject(HomeLayoutStore.json(HomeLayoutStore(context).read())))
+            root.put("deckPins", org.json.JSONArray(DeckPins(context).all()))
+        }
         val target = file(context)
         check(target.parentFile!!.isDirectory || target.parentFile!!.mkdirs()) { "Impossible de créer la sauvegarde. Installation annulée." }
         val atomic = AtomicFile(target)
@@ -38,7 +42,12 @@ internal object UpdateBackups {
         val root = JSONObject(json)
         val mode = root.optJSONObject("settings")?.optString("leaderView")
         require(mode == null || mode in listOf("flip", "stack")) { "Réglage de sauvegarde invalide." }
+        root.optJSONObject("homeLayout")?.let { HomeLayoutStore.parse(it.toString()) }
         val count = database.importJson(json, replace = true)
+        if (context.packageName == AppChannel.TEST_PACKAGE) {
+            root.optJSONObject("homeLayout")?.let { HomeLayoutStore(context).write(HomeLayoutStore.parse(it.toString())) }
+            root.optJSONArray("deckPins")?.let { pins -> DeckPins(context).restore((0 until pins.length()).map { pins.getString(it) }, DeckStore(context).all().map { it.id }.toSet()) }
+        }
         if (mode != null) context.getSharedPreferences("leader_view", Context.MODE_PRIVATE)
             .edit().putString("mode", mode).apply()
         return count

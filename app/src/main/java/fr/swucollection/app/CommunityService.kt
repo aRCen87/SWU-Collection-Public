@@ -45,6 +45,7 @@ internal suspend fun <T> Task<T>.communityAwait(): T = suspendCancellableCorouti
 
 /** The named test backend is never initialized for the official application. */
 internal class CommunityService private constructor(val auth: FirebaseAuth, private val db: FirebaseFirestore) {
+    internal fun accountStore(): FirebaseFirestore = db
     val uid: String get() = auth.currentUser?.uid ?: error("Connecte-toi d’abord.")
     suspend fun register(email: String, password: String) {
         require(password.length in 12..128) { "Utilise un mot de passe de 12 caractères minimum." }

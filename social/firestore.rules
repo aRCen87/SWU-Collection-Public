@@ -143,6 +143,48 @@ service cloud.firestore {
         allow update, delete: if false;
       }
     }
+    // Account snapshots are private, immutable and available only to their owner.
+    match /accountBackups/{uid} {
+      function owner() { return allowed() && request.auth.uid == uid; }
+      allow get: if owner();
+      allow list, delete: if false;
+      allow create, update: if owner() && request.resource.data.keys().hasAll(['head','updatedAt']) &&
+        request.resource.data.keys().hasOnly(['head','updatedAt']) && request.resource.data.head is string &&
+        request.resource.data.head.matches('[a-f0-9-]{36}') && request.resource.data.updatedAt == request.time &&
+        existsAfter(/databases/$(database)/documents/accountBackups/$(uid)/snapshots/$(request.resource.data.head));
+      match /snapshots/{snapshot} {
+        allow get: if owner();
+        allow list: if owner() && request.query.limit != null && request.query.limit <= 3;
+        allow create: if owner() && snapshot.matches('[a-f0-9-]{36}') &&
+          request.resource.data.keys().hasAll(['parts','bytes','hash','createdAt']) &&
+          request.resource.data.keys().hasOnly(['parts','bytes','hash','createdAt']) &&
+          request.resource.data.parts is int && request.resource.data.parts >= 1 && request.resource.data.parts <= 32 &&
+          request.resource.data.bytes is int && request.resource.data.bytes >= 1 && request.resource.data.bytes <= 16777216 &&
+          request.resource.data.hash is string && request.resource.data.hash.matches('[a-f0-9]{64}') &&
+          request.resource.data.createdAt == request.time;
+        allow update, delete: if false;
+        match /chunks/{part} {
+          allow get: if owner();
+          allow list, update, delete: if false;
+          allow create: if owner() && part.matches('[0-9]{1,2}') &&
+            request.resource.data.keys().hasAll(['index','data']) && request.resource.data.keys().hasOnly(['index','data']) &&
+            request.resource.data.index is int && request.resource.data.index >= 0 && request.resource.data.index <
+              getAfter(/databases/$(database)/documents/accountBackups/$(uid)/snapshots/$(snapshot)).data.parts &&
+            request.resource.data.data is string && request.resource.data.data.size() >= 1 && request.resource.data.data.size() <= 200000;
+        }
+      }
+    }
+    // A voluntarily published list exposes offers/wants, never the full collection.
+    match /tradeInventories/{uid} {
+      function owner() { return allowed() && request.auth.uid == uid; }
+      allow get: if allowed() && (request.auth.uid == uid || (enabled(uid) && friends(request.auth.uid,uid) && unblocked(request.auth.uid,uid)));
+      allow list: if false;
+      allow create, update: if owner() && request.resource.data.keys().hasAll(['encoded','hash','updatedAt']) &&
+        request.resource.data.keys().hasOnly(['encoded','hash','updatedAt']) && request.resource.data.encoded is string &&
+        request.resource.data.encoded.size() >= 1 && request.resource.data.encoded.size() <= 600000 &&
+        request.resource.data.hash is string && request.resource.data.hash.matches('[a-f0-9]{64}') && request.resource.data.updatedAt == request.time;
+      allow delete: if owner();
+    }
     match /{document=**} { allow read, write: if false; }
   }
 }

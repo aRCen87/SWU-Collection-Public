@@ -1,3 +1,11 @@
+## Test 0.8.19-test.8
+
+- Grand écran : collection et fiche côte à côte ; catalogue et sélection du deck visibles simultanément à partir de 840 dp.
+- Compte : sauvegardes privées manuelles, vérification d’intégrité, aperçu avant restauration et copie de récupération locale. Une connexion reprend les données présentes sans restauration automatique.
+- Amis : partage volontaire des seuls doublons proposés et recherches, suggestions d’échanges puis proposition modifiable à confirmer.
+- Accueil : ordre des raccourcis personnalisable, extension épinglée et conservation des decks épinglés dans la sauvegarde du compte.
+- Scanner : correction rapide d’un exemplaire après scan, en rafale, dans le récapitulatif ou dans le brouillon d’un deck, sans quitter la caméra.
+
 ## Test 0.8.19-test.7
 
 - Bandeau : proportions conservées même si la fenêtre impose une hauteur supplémentaire ; les animations suivent la même échelle.
