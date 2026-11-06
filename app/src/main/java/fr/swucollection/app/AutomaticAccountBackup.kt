@@ -62,7 +62,7 @@ internal object AutomaticAccountBackup {
         val raw = CollectionDatabase(context.applicationContext).use { accountBackupJson(context, it) }
         val hash = PrivatePayload.hash(raw.toByteArray(Charsets.UTF_8))
         if (p.getBoolean("$uid.initialized", false) && hash == p.getString("$uid.hash", null)) return@withLock
-        check(service.allowed()) { "Ce compte est désactivé." }
+        if (!service.allowed()) { status("Compte désactivé : sauvegarde automatique en pause."); return@withLock }
         check(service.auth.currentUser?.uid == uid)
         val remote = service.backupHead()
         when (AutomaticBackupPolicy.decide(p.getBoolean("$uid.initialized", false), p.getString("$uid.head", null), remote, p.getString("$uid.hash", null), hash)) {

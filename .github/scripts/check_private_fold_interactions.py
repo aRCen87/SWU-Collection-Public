@@ -45,6 +45,7 @@ def page(root):
     assert len(pages) == 1, pages
     return pages[0]
 
+original_keyboard = adb("shell", "settings", "get", "secure", "show_ime_with_hard_keyboard").strip()
 try:
     adb("shell", "settings", "put", "secure", "show_ime_with_hard_keyboard", "1")
     resize(720,1560,320)
@@ -93,6 +94,7 @@ try:
     for name,w,h,d in [("cover",720,1560,320),("unfolded",1766,1472,336),("landscape",1680,756,294)]:
         resize(w,h,d)
         root = snapshot("scanner-" + name)
+        assert not any("Caméra indisponible" in n.attrib.get("text", "") or "Impossible d’ouvrir la caméra" in n.attrib.get("text", "") for n in root.iter("node")), "CameraX failed during resize"
         button = find(root,"Terminer"); x1,y1,x2,y2 = bounds(button)
         assert x2>x1 and y2>y1, "Scanner close control lost during resize"
         assert adb("shell", "pidof", PACKAGE).strip(), "App stopped while scanner resized"
@@ -102,6 +104,8 @@ try:
     assert "FATAL EXCEPTION" not in crashes, crashes
     print("Fold interaction checks passed: keyboard query retained; open card retained; next/previous retained; CameraX survives cover/unfolded/landscape.")
 finally:
+    if original_keyboard == "null": adb("shell", "settings", "delete", "secure", "show_ime_with_hard_keyboard")
+    else: adb("shell", "settings", "put", "secure", "show_ime_with_hard_keyboard", original_keyboard)
     adb("shell", "wm", "size", "reset"); adb("shell", "wm", "density", "reset")
     adb("shell", "am", "force-stop", PACKAGE)
     adb("shell", "am", "start", "-W", "-n", PACKAGE + "/fr.swucollection.app.MainActivity")

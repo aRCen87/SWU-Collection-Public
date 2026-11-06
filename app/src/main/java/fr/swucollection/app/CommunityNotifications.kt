@@ -103,7 +103,7 @@ internal object CommunityNotifications {
         val uid = service.auth.currentUser?.takeIf { it.isEmailVerified }?.uid ?: return
         if (!permission(context)) return
         if (!enabled(context, uid, "Messages") && !enabled(context, uid, "Amis")) return
-        check(service.allowed())
+        if (!service.allowed()) return
         val db = service.accountStore()
         if (enabled(context, uid, "Messages")) {
             val conversations = db.collection("conversations").whereArrayContains("members", uid).limit(100).get(Source.SERVER).communityAwait().documents.map {

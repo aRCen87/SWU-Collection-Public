@@ -113,7 +113,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
             Text(if (create) "Créer mon compte de test" else "Me connecter")
         }
         TextButton(onClick = { action { service.resetPassword(email); status = "Si un compte correspond à cette adresse, un e-mail de récupération sera envoyé." } }, enabled = !busy && email.isNotBlank()) { Text("Mot de passe oublié") }
-        Text("Le compte est facultatif. La connexion ne remplace pas ta collection et n’envoie aucune carte automatiquement.", fontSize = 12.sp)
+        Text("Le compte est facultatif. Après confirmation de l’e-mail, la sauvegarde privée est automatique et peut être désactivée dans Sauvegarde. La connexion ne remplace jamais les données de ce téléphone sans ton choix.", fontSize = 12.sp)
         return
     }
     if (!user.isEmailVerified) {
