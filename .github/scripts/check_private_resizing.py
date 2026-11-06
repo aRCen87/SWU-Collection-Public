@@ -1,0 +1,97 @@
+"""Exercise live phone/foldable window changes without cloud accounts or data."""
+import re
+import subprocess
+import time
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+
+def adb(*args):
+    return subprocess.check_output(["adb", *map(str, args)], text=True)
+
+
+def snapshot(name):
+    adb("shell", "uiautomator", "dump", "/sdcard/layout.xml")
+    path = Path("smoke-private") / (name + ".xml")
+    adb("pull", "/sdcard/layout.xml", path)
+    return ET.parse(path).getroot()
+
+
+def rect(node):
+    return list(map(int, re.findall(r"\d+", node.attrib["bounds"])))
+
+
+def find(root, label):
+    found = [n for n in root.iter("node") if label in
+             n.attrib.get("content-desc", "").split("\n") or n.attrib.get("text") == label]
+    assert found, label
+    return found[-1]
+
+
+def touch(root, label):
+    x1, y1, x2, y2 = rect(find(root, label))
+    assert x2 > x1 and y2 > y1, label
+    adb("shell", "input", "tap", (x1+x2)//2, (y1+y2)//2)
+    time.sleep(2)
+
+
+def capture(name):
+    adb("shell", "screencap", "-p", "/sdcard/layout.png")
+    adb("pull", "/sdcard/layout.png", "smoke-private/" + name + ".png")
+
+
+def home(root, width, height, density):
+    x1, y1, x2, y2 = rect(find(root, "SWU Collection"))
+    assert x2-x1 <= 569 * density, (width, x1, x2)
+    assert abs((x2-x1)/(y2-y1) - 475/185) < .035, (x1,y1,x2,y2)
+    assert abs((x1+x2)/2 - width/2) < 3, (width,x1,x2)
+    parents = {c:p for p in root.iter() for c in p}
+    controls = []
+    for label in ("Mon profil", "Ouvrir le menu", "Courrier, 0 en attente"):
+        node = find(root, label)
+        while node.attrib.get("clickable") != "true" and node in parents:
+            node = parents[node]
+        assert node.attrib.get("clickable") == "true", label
+        r = rect(node)
+        assert r[2]-r[0] >= 47*density and r[3]-r[1] >= 47*density, (label,r)
+        assert 0 <= r[0] < r[2] <= width and 0 <= r[1] < r[3] <= height, (label,r)
+        controls.append(r)
+    assert controls[0][3] <= controls[1][1] and controls[1][3] <= controls[2][1], controls
+    assert max((r[0]+r[2])/2 for r in controls) - min((r[0]+r[2])/2 for r in controls) < 3, controls
+
+
+profiles = [("cover",1080,2340,480), ("phone",1080,2400,420),
+            ("unfolded",2208,1840,420), ("landscape",2400,1080,420)]
+try:
+    for index, (name,width,height,dpi) in enumerate(profiles):
+        # Remain on Collection while resizing: folding must retain the destination.
+        adb("shell", "wm", "size", f"{width}x{height}")
+        adb("shell", "wm", "density", dpi)
+        time.sleep(4)
+        root = snapshot(name)
+        if index:
+            find(root, "Ma collection")
+            touch(root, "Accueil")
+            root = snapshot(name + "-home")
+        home(root,width,height,dpi/160)
+        capture("home-test-" + name)
+        if name == "unfolded":
+            touch(root,"Ouvrir le menu")
+            menu = snapshot("unfolded-menu")
+            x1,_,_,_ = rect(find(menu,"Compte et communauté"))
+            assert x1 >= width - 400*dpi/160, (width,x1)
+            capture("home-test-unfolded-menu")
+            touch(menu,"Fermer le menu")
+            root = snapshot("unfolded-home-restored")
+        touch(root,"Collection")
+        root = snapshot(name + "-collection")
+        find(root,"Ma collection")
+        if name == "unfolded":
+            capture("home-test-unfolded-collection")
+    touch(root,"Accueil")
+finally:
+    adb("shell","wm","size","reset")
+    adb("shell","wm","density","reset")
+    time.sleep(3)
+
+print("Live resize checks passed: cover, phone, unfolded, landscape; navigation and 48dp targets retained.")

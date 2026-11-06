@@ -37,3 +37,11 @@ La pastille d’accueil et les compteurs des onglets indiquent les conversations
 Les raccourcis sont intégrés au visuel d’accueil : avatar, menu puis courrier dans la colonne de droite, avec des cibles tactiles de 48 dp. Le bandeau de profil est retiré. Le menu dessiné dans l’image est masqué uniquement pour cette disposition Test ; les vrais boutons restent accessibles avec un lecteur d’écran.
 
 Le bandeau des mises à jour tient compte du flux privé. Son clic et celui de la notification demandent directement le fichier Library via le navigateur compatible Custom Tabs. La connexion privée reste gérée par ChatGPT dans le navigateur, sans mot de passe, cookie ni jeton intégré dans l’application. L’autorisation des notifications et les restrictions Android restent applicables. Le déclenchement depuis une notification utilise un jeton local à usage unique afin qu’une application externe ne puisse pas lancer arbitrairement le téléchargement. Une sauvegarde est créée avant l’ouverture ; l’installation reste confirmée par Android.
+
+## Bandeau et écrans pliants — Test 0.8.19-test.6
+
+Le nouveau décor d’accueil est une ressource indépendante sans commandes imprimées : planète, ville et Faucon Millenium, dans le style de l’aperçu approuvé. L’officielle conserve son ancien visuel. Les trois raccourcis Test gardent leurs cibles tactiles de 48 dp.
+
+La colonne d’accueil est centrée et plafonnée à 600 dp ; les pages de collection, extensions, decks et badges disposent de 1 000 dp, les autres formulaires de 760 dp. La navigation est plafonnée à 640 dp et le menu à 400 dp. Ces plafonds suivent les contraintes de la fenêtre, y compris le multi-fenêtrage ; ils ne supposent pas un modèle de téléphone. Les illustrations des boutons utilisent une échelle uniforme et un recadrage, sans déformation. Les images de cartes gardent leur rendu existant et le scanner possède déjà sa disposition adaptative avec reconnexion caméra au changement de taille.
+
+Les vérifications d’émulateur couvrent plusieurs dimensions et leur changement pendant la navigation. Elles simulent les surfaces d’un pliant ; la charnière physique et le comportement spécifique du constructeur restent à essayer sur un vrai Z Fold.

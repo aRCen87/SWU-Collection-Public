@@ -5,6 +5,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.Rect
+import android.graphics.RectF
 import android.graphics.RadialGradient
 import android.graphics.Canvas as AndroidCanvas
 import android.graphics.Path
@@ -69,47 +71,48 @@ internal fun rememberHeaderReflectionProgress(active: Boolean): State<Float> {
     return progress.asState()
 }
 
+private data class HomeHeaderBitmaps(
+    val first: Bitmap, val second: Bitmap, val third: Bitmap, val display: Bitmap?
+)
+
 @Composable
 internal fun HomeHeaderArtwork(progress: State<Float>, reflection: State<Float>, modifier: Modifier = Modifier, compactControls: Boolean = false) {
-    val logoContour = remember { HomeLogoContour() }
+    val target = if (compactControls) HeaderPoint(155f, 114f) else HomeHeaderTimeline.target
     val resources = LocalContext.current.resources
     val artwork = remember(resources, compactControls) {
-        val sheet = BitmapFactory.decodeResource(resources, R.drawable.collection_design_reference)
-        val crop = Bitmap.createBitmap(sheet, 550, 80, 475, 185)
-        val original = if (compactControls) crop.copy(Bitmap.Config.ARGB_8888, true).also { crop.recycle() } else crop
-        // The Test controls draw a real menu below the avatar. Remove the baked-in
-        // gold menu strokes using the sky on either side, preserving the artwork.
-        if (compactControls) for (y in 10..50) for (x in 414..454) {
-            val pixel = original.getPixel(x, y)
-            val red = (pixel ushr 16) and 255
-            val green = (pixel ushr 8) and 255
-            val blue = pixel and 255
-            if (red > 100 && red > blue * 1.2f && green > blue) {
-                val left = original.getPixel(412, y)
-                val right = original.getPixel(456, y)
-                val t = (x - 412) / 44f
-                var color = 0xFF000000.toInt()
-                for (shift in intArrayOf(16, 8, 0)) {
-                    val l = (left ushr shift) and 255
-                    val r = (right ushr shift) and 255
-                    color = color or ((l + (r - l) * t).roundToInt() shl shift)
-                }
-                original.setPixel(x, y, color)
+        val display = if (compactControls) BitmapFactory.decodeResource(resources, R.drawable.home_test_header_art) else null
+        val original = if (display != null) {
+            val source = display
+            // One scale factor preserves the approved artwork. Only the outer
+            // fraction of the skyline is cropped to the existing banner ratio.
+            Bitmap.createBitmap(475, 185, Bitmap.Config.ARGB_8888).also { bitmap ->
+                val scale = maxOf(475f / source.width, 185f / source.height)
+                val width = source.width * scale
+                val height = source.height * scale
+                AndroidCanvas(bitmap).drawBitmap(source, null,
+                    RectF((475f - width) / 2f, (185f - height) / 2f,
+                        (475f + width) / 2f, (185f + height) / 2f),
+                    Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
             }
+        } else {
+            val sheet = BitmapFactory.decodeResource(resources, R.drawable.collection_design_reference)
+            Bitmap.createBitmap(sheet, 550, 80, 475, 185).also { sheet.recycle() }
         }
+        val starDx = (target.x - HomeHeaderTimeline.target.x).roundToInt()
+        val starDy = (target.y - HomeHeaderTimeline.target.y).roundToInt()
         val withoutStar = original.copy(Bitmap.Config.ARGB_8888, true)
         // Repair only the gold star pixels, using the background at the same height.
         // The complete untouched artwork is restored at arrival: no rectangular patch.
-        for (y in 107..127) {
-            val left = original.getPixel(142, y)
-            val right = original.getPixel(163, y)
-            for (x in 144..161) {
+        for (y in (107 + starDy)..(127 + starDy)) {
+            val left = original.getPixel(142 + starDx, y)
+            val right = original.getPixel(163 + starDx, y)
+            for (x in (144 + starDx)..(161 + starDx)) {
                 val pixel = original.getPixel(x, y)
                 val red = (pixel ushr 16) and 255
                 val green = (pixel ushr 8) and 255
                 val blue = pixel and 255
                 if (red > 65 && red > blue * 1.2f && green > blue) {
-                    val t = (x - 142) / 21f
+                    val t = (x - 142 - starDx) / 21f
                     var color = 0xFF000000.toInt()
                     for (shift in intArrayOf(16, 8, 0)) {
                         val l = (left ushr shift) and 255
@@ -120,7 +123,6 @@ internal fun HomeHeaderArtwork(progress: State<Float>, reflection: State<Float>,
                 }
             }
         }
-        sheet.recycle()
         val logoMask = Bitmap.createBitmap(475, 185, Bitmap.Config.ARGB_8888)
         for (y in 10..126) for (x in 38..272) {
             val pixel = original.getPixel(x, y)
@@ -132,17 +134,36 @@ internal fun HomeHeaderArtwork(progress: State<Float>, reflection: State<Float>,
                 logoMask.setPixel(x, y, (alpha shl 24) or 0x00FFFFFF)
             }
         }
-        Triple(original, withoutStar, logoMask)
+        HomeHeaderBitmaps(original, withoutStar, logoMask, display)
     }
+    val logoContour = remember(artwork, compactControls) { HomeLogoContour(if (compactControls) artwork.first else null) }
     Canvas(modifier.clipToBounds().semantics { contentDescription = "SWU Collection" }) {
-        val frame = HomeHeaderTimeline.frame(progress.value)
+        val timelineFrame = HomeHeaderTimeline.frame(progress.value)
+        val dx = target.x - HomeHeaderTimeline.target.x
+        val dy = target.y - HomeHeaderTimeline.target.y
+        val frame = timelineFrame.copy(
+            star = HeaderPoint(timelineFrame.star.x + dx, timelineFrame.star.y + dy),
+            tail = HeaderPoint(timelineFrame.tail.x + dx, timelineFrame.tail.y + dy))
         val canvas = drawContext.canvas.nativeCanvas
         val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
         val saved = canvas.save()
         canvas.scale(size.width / 475f, size.height / 185f)
         canvas.clipRect(0f, 0f, 475f, 185f)
-        val arrived = frame.star == HomeHeaderTimeline.target
-        canvas.drawBitmap(if (arrived) artwork.first else artwork.second, 0f, 0f, paint)
+        val arrived = frame.star == target
+        val display = artwork.display
+        if (display != null) {
+            val scale = maxOf(475f / display.width, 185f / display.height)
+            val width = display.width * scale
+            val height = display.height * scale
+            canvas.drawBitmap(display, null, RectF((475f - width) / 2f, (185f - height) / 2f,
+                (475f + width) / 2f, (185f + height) / 2f), paint)
+            if (!arrived) {
+                val starDx = (target.x - HomeHeaderTimeline.target.x).roundToInt()
+                val starDy = (target.y - HomeHeaderTimeline.target.y).roundToInt()
+                val patch = Rect(144 + starDx, 107 + starDy, 162 + starDx, 128 + starDy)
+                canvas.drawBitmap(artwork.second, patch, RectF(patch), paint)
+            }
+        } else canvas.drawBitmap(if (arrived) artwork.first else artwork.second, 0f, 0f, paint)
 
         // Light is added only to existing gold pixels; the original logo is never recolored.
         if (reflection.value > 0f && reflection.value < 1f) {
@@ -191,10 +212,10 @@ internal fun HomeHeaderArtwork(progress: State<Float>, reflection: State<Float>,
             paint.alpha = 255
         }
         if (frame.glow > 0f) {
-            paint.shader = RadialGradient(HomeHeaderTimeline.target.x, HomeHeaderTimeline.target.y, 24f,
+            paint.shader = RadialGradient(target.x, target.y, 24f,
                 intArrayOf(((frame.glow * 140).roundToInt() shl 24) or 0x00FFE8B0, 0x00FFE8B0),
                 null, Shader.TileMode.CLAMP)
-            canvas.drawCircle(HomeHeaderTimeline.target.x, HomeHeaderTimeline.target.y, 24f, paint)
+            canvas.drawCircle(target.x, target.y, 24f, paint)
             paint.shader = null
         }
         canvas.restoreToCount(saved)

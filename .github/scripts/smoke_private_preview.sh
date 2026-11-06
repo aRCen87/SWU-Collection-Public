@@ -42,6 +42,7 @@ PYUI
   if grep -q 'FATAL EXCEPTION' "smoke-private/$package-crashes.txt"; then exit 1; fi
 done
 # The empty test account contains no private user data; keep its home capture encrypted.
+python3 .github/scripts/check_private_resizing.py
 adb shell screencap -p /sdcard/test-home.png
 adb pull /sdcard/test-home.png smoke-private/home-test.png >/dev/null
 # Both identities still exist after launching each application.
@@ -105,7 +106,7 @@ python3 - <<'PYUPDATES'
 import xml.etree.ElementTree as ET
 texts={n.attrib.get('text','') for n in ET.parse('smoke-private/private-updates.xml').iter('node')}
 assert 'Mise à jour de l’application' in texts,texts
-assert any('0.8.19-test.5' in text for text in texts),texts
+assert any('0.8.19-test.6' in text for text in texts),texts
 PYUPDATES
 adb logcat -d -s AndroidRuntime:E > smoke-private/private-updates-crashes.txt
 if grep -q 'FATAL EXCEPTION' smoke-private/private-updates-crashes.txt; then exit 1; fi

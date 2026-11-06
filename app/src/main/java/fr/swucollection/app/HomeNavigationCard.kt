@@ -48,6 +48,7 @@ internal fun HomeNavigationCard(symbol: String, title: String, subtitle: String,
         else -> Icons.Default.BarChart
     }
     val resources = LocalContext.current.resources
+    val privateLayout = LocalContext.current.packageName == AppChannel.TEST_PACKAGE
     val artwork = remember(resources, drawable) { BitmapFactory.decodeResource(resources, drawable) }
     val gold = Color(0xFFE6C17A)
     val navy = Color(0xFF030D19)
@@ -59,8 +60,21 @@ internal fun HomeNavigationCard(symbol: String, title: String, subtitle: String,
         Box(Modifier.fillMaxWidth().heightIn(min = 76.dp)) {
             Canvas(Modifier.matchParentSize()) {
                 val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG or android.graphics.Paint.FILTER_BITMAP_FLAG)
-                drawContext.canvas.nativeCanvas.drawBitmap(artwork, null,
-                    RectF(size.width * 0.53f, 0f, size.width, size.height), paint)
+                val canvas = drawContext.canvas.nativeCanvas
+                val area = RectF(size.width * 0.53f, 0f, size.width, size.height)
+                if (privateLayout) {
+                    // Crop to the available area with one scale factor, never
+                    // stretch a card/display when the phone opens or rotates.
+                    val scale = maxOf(area.width() / artwork.width, area.height() / artwork.height)
+                    val width = artwork.width * scale
+                    val height = artwork.height * scale
+                    val saved = canvas.save()
+                    canvas.clipRect(area)
+                    canvas.drawBitmap(artwork, null, RectF(area.centerX() - width / 2f,
+                        area.centerY() - height / 2f, area.centerX() + width / 2f,
+                        area.centerY() + height / 2f), paint)
+                    canvas.restoreToCount(saved)
+                } else canvas.drawBitmap(artwork, null, area, paint)
             }
             Box(Modifier.matchParentSize().background(Brush.horizontalGradient(
                 0f to navy, 0.48f to navy, 0.68f to navy.copy(alpha = 0.7f), 1f to Color.Transparent)))

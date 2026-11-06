@@ -1,13 +1,15 @@
 package fr.swucollection.app
 
+import android.graphics.Bitmap
+import android.graphics.Region
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PathMeasure
 
-/** Traces the three letters from the unchanged 475 x 185 home artwork. */
-internal class HomeLogoContour {
-    private val contours = listOf(
+/** Traces the actual letters; the official artwork retains its original paths. */
+internal class HomeLogoContour(artwork: Bitmap? = null) {
+    private val contours = (if (artwork != null) traceLogo(artwork) else listOf(
         Path().apply {
             moveTo(58.00f, 17.75f)
             lineTo(90.50f, 17.75f)
@@ -155,7 +157,36 @@ internal class HomeLogoContour {
             lineTo(250.25f, 18.50f)
             close()
         }
-    ).map { PathMeasure(it, true) }
+    )).map { PathMeasure(it, true) }
+    private fun traceLogo(artwork: Bitmap): List<Path> {
+        val region = Region()
+        // Only the three large letters, above COLLECTION and away from the city.
+        for (y in 10..74) {
+            var start = -1
+            for (x in 35..281) {
+                val pixel = artwork.getPixel(x.coerceAtMost(280), y)
+                val red = (pixel ushr 16) and 255
+                val green = (pixel ushr 8) and 255
+                val blue = pixel and 255
+                val gold = x <= 280 && red > 110 && red > blue * 1.3f && green > blue * 1.1f
+                if (gold && start < 0) start = x
+                if (!gold && start >= 0) {
+                    region.op(start, y, x, y + 1, Region.Op.UNION)
+                    start = -1
+                }
+            }
+        }
+        val measure = PathMeasure(region.boundaryPath, false)
+        val paths = mutableListOf<Path>()
+        do {
+            if (measure.length > 30f) paths += Path().also {
+                measure.getSegment(0f, measure.length, it, true)
+                it.close()
+            }
+        } while (measure.nextContour())
+        return paths
+    }
+
     private val segment = Path()
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE

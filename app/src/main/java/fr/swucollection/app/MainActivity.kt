@@ -194,6 +194,7 @@ private fun CollectionScreen(
     var cards by remember { mutableStateOf(database.allCards()) }
     var personalLists by remember { mutableStateOf(database.cardLists()) }
     val deckContext = LocalContext.current
+    val privateLayout = deckContext.packageName == AppChannel.TEST_PACKAGE
     val deckStore = remember(deckContext) { DeckStore(deckContext) }
     var savedDecks by remember { mutableStateOf(deckStore.all()) }
     val deckPins = remember(deckContext) { DeckPins(deckContext) }
@@ -456,7 +457,13 @@ private fun CollectionScreen(
     Box(Modifier.fillMaxSize().background(Color(0xFF030A17)).safeDrawingPadding().imePadding()) {
         Box(Modifier.fillMaxSize().background(Color(0xFF02090F)))
         Column(
-            Modifier.fillMaxSize().padding(bottom = if (deckWorkspace) 0.dp else 82.dp).then(
+            Modifier.align(androidx.compose.ui.Alignment.TopCenter)
+                .then(if (privateLayout) Modifier.widthIn(max = when (selectedSection) {
+                    "Accueil" -> 600.dp
+                    "Collection", "Extensions", "Mes listes", "Hauts faits" -> 1000.dp
+                    else -> 760.dp
+                }) else Modifier)
+                .fillMaxSize().padding(bottom = if (deckWorkspace) 0.dp else 82.dp).then(
                 if (selectedSection in listOf("Collection", "Extensions", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta"))
                     Modifier else Modifier.verticalScroll(rememberScrollState())
             ).padding(horizontal = 16.dp, vertical = 10.dp),
@@ -1118,7 +1125,8 @@ private fun CollectionScreen(
                 }
             }
         }
-        if (!deckWorkspace) Box(Modifier.align(androidx.compose.ui.Alignment.BottomCenter).fillMaxWidth()) {
+        if (!deckWorkspace) Box(Modifier.align(androidx.compose.ui.Alignment.BottomCenter)
+            .then(if (privateLayout) Modifier.widthIn(max = 640.dp) else Modifier).fillMaxWidth()) {
             CollectionBottomBar(selectedSection) { section -> navigation.navigateTo(section) }
         }
     }
@@ -1460,10 +1468,12 @@ private fun ReferenceArtwork(x: Int, y: Int, width: Int, height: Int,
 
 @Composable
 private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) {
+    val privateLayout = LocalContext.current.packageName == AppChannel.TEST_PACKAGE
     Dialog(onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Box(Modifier.fillMaxSize().safeDrawingPadding(), contentAlignment = androidx.compose.ui.Alignment.CenterEnd) {
-            Surface(Modifier.fillMaxHeight().fillMaxWidth(0.88f),
+        BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding(), contentAlignment = androidx.compose.ui.Alignment.CenterEnd) {
+            val menuWidth = (maxWidth * 0.88f).coerceAtMost(400.dp)
+            Surface(Modifier.fillMaxHeight().then(if (privateLayout) Modifier.width(menuWidth) else Modifier.fillMaxWidth(0.88f)),
                 color = Color(0xFF030B12), shape = RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp)) {
                 Box(Modifier.fillMaxSize()) {
                     ReferenceArtwork(1152, 754, 350, 180, null,

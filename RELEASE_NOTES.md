@@ -1,3 +1,8 @@
+## Test 0.8.19-test.6
+
+- Accueil : nouveau bandeau validé avec planète, ville galactique et Faucon Millenium. Avatar, menu et courrier restent de vrais boutons ; aucun ancien menu ne dépasse derrière l’avatar.
+- Écrans pliants : accueil centré avec largeur maîtrisée, illustrations des boutons recadrées sans étirement, pages de collection et decks adaptées à l’espace disponible, menu latéral et navigation moins larges sur écran déplié. Redimensionnement contrôlé en formats fermé, déplié et paysage.
+
 ## Test 0.8.19-test.5
 
 - Accueil : avatar seul en haut à droite, menu en dessous et courrier sous le menu. Suppression du bandeau de profil supplémentaire.
