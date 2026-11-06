@@ -621,7 +621,8 @@ private fun CollectionScreen(
             val privateHome = deckContext.packageName == AppChannel.TEST_PACKAGE
             Box(Modifier.fillMaxWidth().then(if (privateHome) Modifier.heightIn(min = 144.dp) else Modifier)) {
                 HomeHeaderArtwork(homeHeaderProgress, headerReflection,
-                    Modifier.fillMaxWidth().aspectRatio(475f / 185f), compactControls = privateHome)
+                    Modifier.fillMaxWidth().aspectRatio(475f / 185f), compactControls = privateHome,
+                    ambientActive = homeArtworkActive && reflectionsEnabled)
                 if (privateHome) CommunityHomeControls(
                     onOpen = { tab -> communityInitialTab = tab; navigation.navigateTo("Communauté") },
                     onMenu = { menuOpen = true }, modifier = Modifier.align(androidx.compose.ui.Alignment.TopEnd))

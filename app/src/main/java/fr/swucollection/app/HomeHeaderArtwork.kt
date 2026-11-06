@@ -76,7 +76,9 @@ private data class HomeHeaderBitmaps(
 )
 
 @Composable
-internal fun HomeHeaderArtwork(progress: State<Float>, reflection: State<Float>, modifier: Modifier = Modifier, compactControls: Boolean = false) {
+internal fun HomeHeaderArtwork(progress: State<Float>, reflection: State<Float>, modifier: Modifier = Modifier, compactControls: Boolean = false, ambientActive: Boolean = false) {
+    val ambientTime = rememberHeaderAmbientTime(compactControls && ambientActive)
+    val ambientLights = remember(compactControls) { if (compactControls) HomeHeaderAmbientLights() else null }
     val target = if (compactControls) HeaderPoint(155f, 114f) else HomeHeaderTimeline.target
     val resources = LocalContext.current.resources
     val artwork = remember(resources, compactControls) {
@@ -170,6 +172,8 @@ internal fun HomeHeaderArtwork(progress: State<Float>, reflection: State<Float>,
                 canvas.drawBitmap(artwork.second, patch, RectF(patch), paint)
             }
         } else canvas.drawBitmap(if (arrived) artwork.first else artwork.second, 0f, 0f, paint)
+
+        if (display != null) ambientLights?.draw(canvas, ambientTime.value)
 
         // Light is added only to existing gold pixels; the original logo is never recolored.
         if (reflection.value > 0f && reflection.value < 1f) {

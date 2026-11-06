@@ -57,3 +57,7 @@ Les règles `social/firestore.rules` de cette version ont été déployées sur 
 ## Inscription autonome — Test 0.8.19-test.9
 
 L’approbation manuelle a été supprimée à la demande de Romain. `CommunityService.allowed()` crée le document du compte vérifié dans une transaction, uniquement s’il n’existe pas. Les règles autorisent cette création initiale avec un schéma strict et l’identifiant du propriétaire ; toute modification ou suppression reste réservée à l’administration. Une désactivation existante ne peut donc être contournée par le client. Aucune sauvegarde ni conversation n’est rendue publique par cette activation. Déployer les règles Test 9 après réussite des tests de sécurité et distribuer l’APK Test 9 pour que les nouveaux joueurs bénéficient de l’activation autonome.
+
+## Bandeau vivant — Test 0.8.19-test.10
+
+Les fenêtres déjà éclairées scintillent à des rythmes indépendants ; les éclairages avant et moteur du Faucon Millenium pulsent doucement. Le décor reste fixe et le même cadrage uniforme est partagé par l’image et ses lumières, y compris sur les écrans pliants. L’animation tourne uniquement sur l’accueil Test au premier plan, respecte le réglage des reflets et les animations système, et réutilise ses halos sans allocation par image.

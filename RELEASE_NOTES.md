@@ -1,3 +1,9 @@
+## Test 0.8.19-test.10
+
+- Scintillement indépendant des lumières de la ville et pulsation des éclairages du Faucon Millenium, selon l’aperçu approuvé.
+- Animation limitée à l’accueil Test, suspendue en arrière-plan et désactivée avec les animations/reflets.
+- Inclut l’activation automatique des comptes après confirmation de l’e-mail ; les comptes désactivés restent bloqués.
+
 ## Test 0.8.19-test.9
 
 - Inscription autonome : après confirmation de l’e-mail, le compte est activé automatiquement. Aucune approbation manuelle de chaque nouveau joueur n’est nécessaire.
