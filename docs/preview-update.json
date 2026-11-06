@@ -1,0 +1,10 @@
+{
+  "channel": "private-test",
+  "applicationId": "fr.swucollection.app.test",
+  "versionCode": 61,
+  "versionName": "0.8.19-test.2",
+  "notes": "Comptes, profils, avatars, badges, messages privés et partage de decks pour les essais autorisés.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_dafc7de2819881918d1f83488af89dd2&account_id=personal",
+  "sha256": "119ae4442c1180525e0b5d9bf11a9514bf0f8465437d0ffe64d7eb13d4bc957e",
+  "size": 83693199
+}

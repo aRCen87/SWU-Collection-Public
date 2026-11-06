@@ -725,7 +725,8 @@ private fun CollectionScreen(
                 AppUpdatePanel(appUpdates,
                     onCheck = { updateScope.launch { appUpdates.check() } },
                     onInstall = { updateScope.launch {
-                        if (appUpdates.readyToInstall) appUpdates.install()
+                        if (appUpdates.previewRelease != null) appUpdates.openPrivateDownload()
+                        else if (appUpdates.readyToInstall) appUpdates.install()
                         else { appUpdates.download(); if (appUpdates.readyToInstall) appUpdates.install() }
                     } })
                 Card(Modifier.fillMaxWidth()) {
@@ -1605,6 +1606,14 @@ private fun AppUpdatePanel(updates: AppUpdates, onCheck: () -> Unit, onInstall: 
             }
             updates.message?.let { Text(it, fontSize = 13.sp) }
             if (updates.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+            updates.previewRelease?.let { release ->
+                Text("Nouvelle version Test : ${release.version}", fontWeight = FontWeight.SemiBold)
+                if (release.notes.isNotBlank()) Text(release.notes, fontSize = 13.sp)
+                Text("Le téléchargement s’ouvre dans ton compte ChatGPT privé. Une copie de récupération est créée avant son ouverture. Installe le fichier par-dessus l’application Test.", fontSize = 12.sp)
+                Button(onClick = onInstall, enabled = !updates.busy, modifier = Modifier.fillMaxWidth()) {
+                    Text("Télécharger la version Test")
+                }
+            }
             updates.release?.let { release ->
                 Text("Nouvelle version : ${release.version}", fontWeight = FontWeight.SemiBold)
                 if (release.notes.isNotBlank()) Text(release.notes, fontSize = 13.sp)

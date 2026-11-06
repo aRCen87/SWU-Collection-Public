@@ -2,6 +2,7 @@ name: Encrypted SWU Collection Test
 on:
   push:
     branches: ["preview/private-sandbox"]
+    paths-ignore: ["docs/preview-update.json"]
   workflow_dispatch:
 permissions:
   contents: read

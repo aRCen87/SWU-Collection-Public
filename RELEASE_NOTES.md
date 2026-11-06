@@ -1,3 +1,10 @@
+## Version privée 0.8.19-test.3 (code 62)
+
+- Notifications de mise à jour propres à l’application Test, à l’ouverture et périodiquement en arrière-plan selon les autorisations Android.
+- La notification ouvre Mises à jour ; le bouton mène au téléchargement privé dans le compte ChatGPT du destinataire. Une copie de récupération est créée avant son ouverture.
+- Les annonces Test sont séparées du flux officiel. Une même version n’est signalée qu’une fois ; une version déjà installée ou antérieure n’est pas proposée.
+- Ce mécanisme nécessite une première installation de cette version Test. Le téléchargement privé s’ouvre dans le navigateur, et non dans l’installateur intégré de l’application officielle.
+
 ## Version privée 0.8.19-test.2 (code 61)
 
 - Comptes de test par e-mail et mot de passe, confirmation de l’adresse et accès réservé aux comptes autorisés.

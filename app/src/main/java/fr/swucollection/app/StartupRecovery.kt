@@ -63,6 +63,11 @@ internal fun StartupRecoveryPanel(database: CollectionDatabase, reason: String, 
         else OutlinedButton(onClick = { archive.launch("SWU-recuperation.zip") }, enabled = !busy) { Text("Conserver une copie de récupération") }
         OutlinedButton(onClick = { scope.launch { updates.check() } }, enabled = !updates.busy) { Text("Rechercher une mise à jour") }
         updates.message?.let { Text(it) }
+        if (updates.previewRelease != null && canContinue) {
+            Button(enabled = !updates.busy, onClick = { scope.launch { updates.openPrivateDownload() } }) {
+                Text("Télécharger le correctif Test")
+            }
+        }
         if (updates.release != null) {
             if (canContinue) Button(enabled = !updates.busy, onClick = { scope.launch {
                 if (updates.readyToInstall) updates.install() else { updates.download(); if (updates.readyToInstall) updates.install() }

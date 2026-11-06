@@ -97,6 +97,8 @@ internal class AppUpdates(private val context: Context, private val database: Co
     val installedVersion: String = installed.versionName ?: "0.0.0"
     var release by mutableStateOf<AppRelease?>(null)
         private set
+    var previewRelease by mutableStateOf<PreviewRelease?>(null)
+        private set
     var busy by mutableStateOf(false)
         private set
     var message by mutableStateOf<String?>(null)
@@ -106,6 +108,7 @@ internal class AppUpdates(private val context: Context, private val database: Co
     val readyToInstall get() = readyFile?.isFile == true && readyRelease == release
 
     suspend fun check() {
+        if (context.packageName == AppChannel.TEST_PACKAGE) { checkPreview(); return }
         if (!AppChannel.allowsOfficialUpdates(context.packageName)) {
             release = null
             message = "Version de test privée. Les mises à jour sont fournies séparément après validation."
@@ -128,6 +131,33 @@ internal class AppUpdates(private val context: Context, private val database: Co
         } catch (cancelled: CancellationException) { throw cancelled
         } catch (error: Exception) {
             message = "Vérification impossible. Réessaie avec une connexion Internet."
+        } finally { busy = false }
+    }
+
+    private suspend fun checkPreview() {
+        if (busy) return
+        busy = true
+        message = "Recherche d’une mise à jour Test…"
+        try {
+            if (previewRelease == null) previewRelease = PreviewUpdateNotifications.cached(context, PreviewUpdateNotifications.installedCode(context))
+            previewRelease = withContext(Dispatchers.IO) { PreviewUpdateNotifications.check(context) }
+            message = previewRelease?.let { "Version Test ${it.version} disponible." } ?: "Ton application Test est à jour."
+        } catch (cancelled: CancellationException) { throw cancelled
+        } catch (_: Exception) { message = "Vérification impossible. Réessaie avec une connexion Internet."
+        } finally { busy = false }
+    }
+
+    suspend fun openPrivateDownload() {
+        if (context.packageName != AppChannel.TEST_PACKAGE || busy) return
+        val target = previewRelease ?: return
+        if (!PreviewUpdateFeed.isPrivateDownload(target.url)) return
+        busy = true
+        try {
+            withContext(Dispatchers.IO) { UpdateBackups.create(context, database) }
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(target.url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            message = "Téléchargement privé ouvert. Connecte-toi à ton compte ChatGPT, puis installe le fichier par-dessus l’application Test."
+        } catch (cancelled: CancellationException) { throw cancelled
+        } catch (_: Exception) { message = "Impossible d’ouvrir le téléchargement privé. Réessaie."
         } finally { busy = false }
     }
 
