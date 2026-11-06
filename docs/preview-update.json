@@ -1,11 +1,11 @@
 {
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "versionCode": 69,
-  "versionName": "0.8.19-test.10",
-  "notes": "Ville scintillante et éclairages du Faucon Millenium animés selon l’aperçu approuvé. Transition fluide avec glissement et fondu entre les cartes, sans refermer la fiche. Activation automatique des comptes après confirmation de l’e-mail, sans approbation manuelle ; les comptes désactivés restent bloqués. Tests de sécurité, tests Android, lint et essais téléphone/pliant réussis.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_2801968e24bc8191b2194265104df9d1&account_id=personal",
-  "sha256": "1d973c6af26a47907837ca350d9ba9dffa6b9e8d824c91716c454dee02e6a163",
-  "size": 85299180,
-  "sourceSha": "7a5c76564e8b504936d41bfd64e64eef1cf11a0d"
+  "versionCode": 70,
+  "versionName": "0.8.19-test.11",
+  "notes": "Correctif de l’erreur d’ouverture des mises à jour privées : le bouton ouvre la page du fichier dans le navigateur normal, puis le téléchargement se lance depuis cette page après connexion à ChatGPT si nécessaire. Les anciennes versions doivent installer ce correctif une fois depuis la conversation. Bandeau scintillant, transitions entre cartes et inscription automatique conservés. Tests Android, sécurité, lint et essais téléphone/pliant réussis.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_c38ea56e97a881919c3cacf0922c0cd7&account_id=personal",
+  "sha256": "66fc07f42a4b95493edf1733827e3fa2d78523570d45b5b693331e9a94d39362",
+  "size": 85299184,
+  "sourceSha": "ab084342e7a5822efe6a4bcfadcb92033c229d3c"
 }
