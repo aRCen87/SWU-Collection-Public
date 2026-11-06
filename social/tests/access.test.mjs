@@ -22,7 +22,7 @@ test('anonymous, unverified and unapproved users cannot read or write profiles',
   await assertFails(getDocs(query(collection(store,'profiles'),where('discoverable','==',true),limit(50))));
  }
 });
-test('test membership is administrator-only and not enumerable',async()=>{
+test('membership updates stay administrator-only and the member list is not enumerable',async()=>{
  await assertFails(setDoc(doc(db('outsider'),'testMembers','outsider'),{enabled:true}));
  await assertFails(setDoc(doc(db('alice'),'testMembers','bob'),{enabled:true}));
  await assertFails(getDocs(collection(db('alice'),'testMembers')));
@@ -155,4 +155,19 @@ test('friend invitation identity matches its sender and cannot impersonate anoth
  await assertFails(setDoc(doc(a,'friendships','alice__bob'),{...request,requesterAvatar:'https://tracker.example'}));
  await assertSucceeds(setDoc(doc(a,'friendships','alice__bob'),request));
  await assertSucceeds(getDoc(doc(db('bob'),'friendships','alice__bob')));
+});
+
+
+test('verified self-registration admits only its owner and never permits reactivation',async()=>{
+ const newcomer=db('newcomer');const path=doc(newcomer,'testMembers','newcomer');
+ const join=()=>({enabled:true,selfRegistered:true,joinedAt:serverTimestamp()});
+ await assertFails(setDoc(doc(db('newcomer',false),'testMembers','newcomer'),join()));
+ await assertFails(setDoc(doc(db('newcomer'),'testMembers','someone-else'),join()));
+ await assertFails(setDoc(path,{...join(),role:'admin'}));
+ await assertSucceeds(setDoc(path,join()));
+ await assertSucceeds(setDoc(doc(newcomer,'profiles','newcomer'),profile({discoverable:false})));
+ await assertFails(setDoc(path,join()));
+ await env.withSecurityRulesDisabled(c=>setDoc(doc(c.firestore(),'testMembers','newcomer'),{enabled:false}));
+ await assertFails(setDoc(path,join()));
+ await assertFails(setDoc(doc(newcomer,'profiles','newcomer'),profile()));
 });

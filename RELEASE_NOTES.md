@@ -1,3 +1,8 @@
+## Test 0.8.19-test.9
+
+- Inscription autonome : après confirmation de l’e-mail, le compte est activé automatiquement. Aucune approbation manuelle de chaque nouveau joueur n’est nécessaire.
+- Un compte désactivé par l’administrateur ne peut pas se réactiver lui-même. Les sauvegardes restent privées et les blocages et paramètres de messagerie sont conservés.
+
 ## Test 0.8.19-test.8
 
 - Grand écran : collection et fiche côte à côte ; catalogue et sélection du deck visibles simultanément sur les fenêtres larges (720 dp pour la collection).

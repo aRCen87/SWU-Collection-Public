@@ -41,9 +41,15 @@ service cloud.firestore {
         d.get('shareDecks', false) is bool && d.updatedAt == request.time;
     }
     match /testMembers/{uid} {
-      // Only an administrator may grant access. Users cannot approve themselves.
+      // A verified account may join once. Only an administrator may change or
+      // remove membership, so a disabled account cannot re-enable itself.
       allow get: if verified() && request.auth.uid == uid;
-      allow list, create, update, delete: if false;
+      allow create: if verified() && request.auth.uid == uid &&
+        request.resource.data.keys().hasAll(['enabled','selfRegistered','joinedAt']) &&
+        request.resource.data.keys().hasOnly(['enabled','selfRegistered','joinedAt']) &&
+        request.resource.data.enabled == true && request.resource.data.selfRegistered == true &&
+        request.resource.data.joinedAt == request.time;
+      allow list, update, delete: if false;
     }
     match /profiles/{uid} {
       allow get: if allowed() && (request.auth.uid == uid || resource.data.discoverable == true || friends(request.auth.uid, uid));

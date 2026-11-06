@@ -124,7 +124,7 @@ private fun AccountBackupSession(service: CommunityService, database: Collection
     var busy by remember { mutableStateOf(true) }; var allowed by remember { mutableStateOf(false) }
     var status by remember { mutableStateOf<String?>(null) }; var head by remember { mutableStateOf<String?>(null) }
     var rows by remember { mutableStateOf<List<AccountSnapshot>>(emptyList()) }; var pending by remember { mutableStateOf<String?>(null) }
-    suspend fun load() { allowed = service.allowed(); check(allowed) { "Ce compte attend son autorisation de test." }; head = service.backupHead(); rows = service.accountSnapshots() }
+    suspend fun load() { allowed = service.allowed(); check(allowed) { "Ce compte est désactivé." }; head = service.backupHead(); rows = service.accountSnapshots() }
     fun action(block: suspend () -> Unit) { if (!busy) scope.launch {
         busy = true; status = null
         try { check(service.uid == owner); block() } catch (cancelled: CancellationException) { throw cancelled }

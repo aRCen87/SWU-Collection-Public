@@ -4,7 +4,7 @@ Le projet Firebase est `swu-collection-test`, avec l’application Android `fr.s
 
 La configuration client fournie par Romain est chiffrée avec la clé publique du certificat Android. Le job privé de distribution déchiffre uniquement dans `app/src/preview/res/values/community_config.xml`, fichier ignoré par Git. La variante officielle contient une configuration vide et l’accès Communauté est masqué hors du paquet Test.
 
-Les comptes nécessitent confirmation d’e-mail ET une autorisation administrative `testMembers/{uid}` avec le booléen `enabled: true`. Ne pas ouvrir la liste à la communauté pendant les essais de Romain. Les clients ne peuvent ni se donner cette autorisation, ni consulter la liste des membres autorisés. Les règles validées sont dans `social/firestore.rules` ; les installer sur le projet Test seulement.
+Depuis la demande de Romain du 6 novembre 2026, les comptes Test s’activent automatiquement après confirmation d’e-mail. La première activation crée uniquement leur propre document `testMembers/{uid}` avec `enabled: true`, `selfRegistered: true` et `joinedAt` fourni par le serveur. Un document existant, notamment `enabled: false`, ne peut pas être modifié ou supprimé par un client. Les comptes existants restent compatibles. La liste des membres n’est jamais consultable. Les règles sont appliquées au projet Test seulement.
 
 Profils : pseudo, bio, avatar prédéfini ou photo réduite à 96×96, stockée dans le profil Firestore pour éviter tout stockage payant. Visibilité et affichage des badges désactivés par défaut. Aucun e-mail, collection, quantité ni preuve privée de badge dans les profils.
 
@@ -14,7 +14,7 @@ Les mots de passe sont gérés par Firebase Authentication et ne sont jamais con
 
 Notifications téléphone fermé : non activées par cette première version. Le relais Cloudflare/FCM reste à développer et à configurer séparément. La synchronisation automatique des collections n’est pas activée. Les sauvegardes privées manuelles du compte sont décrites dans la section Test 0.8.19-test.8.
 
-Validation : `cd social && npm ci && npm test` utilise exclusivement le projet d’émulation `demo-swu-community-test`, sans accès aux vraies données. Les scénarios vérifient notamment un véritable parcours Auth émulé : inscription, confirmation de l’e-mail, autorisation administrative puis déconnexion. Aucun compte réel ni e-mail externe n’est créé par ces tests. Tests Android, lint, compilation et coexistence via le workflow de distribution chiffrée. La publication officielle reste soumise à l’accord explicite de Romain.
+Validation : `cd social && npm ci && npm test` utilise exclusivement le projet d’émulation `demo-swu-community-test`, sans accès aux vraies données. Les scénarios vérifient notamment un véritable parcours Auth émulé : inscription, confirmation de l’e-mail, activation autonome puis déconnexion. Aucun compte réel ni e-mail externe n’est créé par ces tests. Tests Android, lint, compilation et coexistence via le workflow de distribution chiffrée. La publication officielle reste soumise à l’accord explicite de Romain.
 
 ## Mises à jour privées
 
@@ -53,3 +53,7 @@ Les sauvegardes manuelles utilisent `accountBackups/{uid}/snapshots/{id}/chunks/
 Le partage d’échange est volontaire : `tradeInventories/{uid}` contient uniquement un profil d’offres et de recherches compressé, sans collection complète ni coordonnées. Lecture uniquement par le propriétaire ou des amis acceptés, autorisés et non bloqués. La suppression de ce document révoque le partage. Les suggestions sont des brouillons modifiables ; aucun message ni proposition n’est envoyé sans validation de l’utilisateur.
 
 Les règles `social/firestore.rules` de cette version ont été déployées sur **swu-collection-test uniquement**, le 6 novembre 2026 à 19 h 25 (Paris), après réussite des tests de sécurité. Les règles de sauvegarde ne rendent aucune collection publique et n’autorisent aucun nouveau compte.
+
+## Inscription autonome — Test 0.8.19-test.9
+
+L’approbation manuelle a été supprimée à la demande de Romain. `CommunityService.allowed()` crée le document du compte vérifié dans une transaction, uniquement s’il n’existe pas. Les règles autorisent cette création initiale avec un schéma strict et l’identifiant du propriétaire ; toute modification ou suppression reste réservée à l’administration. Une désactivation existante ne peut donc être contournée par le client. Aucune sauvegarde ni conversation n’est rendue publique par cette activation. Déployer les règles Test 9 après réussite des tests de sécurité et distribuer l’APK Test 9 pour que les nouveaux joueurs bénéficient de l’activation autonome.

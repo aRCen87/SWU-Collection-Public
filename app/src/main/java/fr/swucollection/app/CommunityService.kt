@@ -61,7 +61,23 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
     suspend fun refreshIdentity() { auth.currentUser?.reload()?.communityAwait(); auth.currentUser?.getIdToken(true)?.communityAwait() }
     suspend fun resendVerification() { auth.currentUser?.sendEmailVerification()?.communityAwait() }
     fun signOut() { auth.signOut() }
-    suspend fun allowed(): Boolean = db.collection("testMembers").document(uid).get(Source.SERVER).communityAwait().getBoolean("enabled") == true
+    suspend fun allowed(): Boolean {
+        val user = auth.currentUser ?: return false
+        if (!user.isEmailVerified) return false
+        val owner = user.uid
+        val ref = db.collection("testMembers").document(owner)
+        // An existing disabled record is never overwritten by self-registration.
+        val result = db.runTransaction { transaction ->
+            val member = transaction.get(ref)
+            if (member.exists()) member.getBoolean("enabled") == true
+            else {
+                transaction.set(ref, mapOf("enabled" to true, "selfRegistered" to true,
+                    "joinedAt" to FieldValue.serverTimestamp()))
+                true
+            }
+        }.communityAwait()
+        return auth.currentUser?.uid == owner && result
+    }
 
     fun ownProfile(onValue: (PlayerProfile?) -> Unit, onError: (Exception) -> Unit): ListenerRegistration =
         db.collection("profiles").document(uid).addSnapshotListener { row, error ->

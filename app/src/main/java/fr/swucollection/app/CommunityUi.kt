@@ -44,7 +44,7 @@ internal fun communityError(error: Throwable): String = when ((error as? Firebas
     "ERROR_OPERATION_NOT_ALLOWED" -> "La connexion par e-mail et mot de passe n’est pas encore activée pour les essais."
     "ERROR_TOO_MANY_REQUESTS" -> "Trop de tentatives. Patiente avant de réessayer."
     else -> if (error is IllegalArgumentException) error.message ?: "Vérifie les informations saisies."
-        else "Opération impossible. Vérifie ta connexion et l’autorisation de ton compte de test, puis réessaie."
+        else "Opération impossible. Vérifie ta connexion, la confirmation de ton e-mail et le statut de ton compte, puis réessaie."
 }
 
 @Composable
@@ -101,7 +101,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
         OutlinedTextField(password, { password = it.take(128) }, label = { Text("Mot de passe") }, singleLine = true,
             visualTransformation = PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), modifier = Modifier.fillMaxWidth())
         if (create) {
-            Text("12 caractères minimum. L’adresse e-mail ne sera pas affichée sur le profil.", fontSize = 12.sp)
+            Text("12 caractères minimum. Confirme ensuite ton e-mail pour accéder automatiquement à la communauté. L’adresse ne sera pas affichée sur ton profil.", fontSize = 12.sp)
             OutlinedTextField(confirm, { confirm = it.take(128) }, label = { Text("Confirmer le mot de passe") }, singleLine = true,
                 visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
         }
@@ -126,7 +126,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
     var allowed by remember { mutableStateOf<Boolean?>(null) }
     LaunchedEffect(user.uid) { try { allowed = service.allowed() } catch (error: Exception) { status = communityError(error) } }
     if (allowed != true) {
-        Text(if (allowed == false) "Ce compte attend l’autorisation pour les essais privés." else "Vérification de l’accès au test…")
+        Text(if (allowed == false) "Ce compte est désactivé. Contacte l’administrateur si tu penses qu’il s’agit d’une erreur." else "Activation de ton compte…")
         OutlinedButton(onClick = { action { allowed = service.allowed() } }, enabled = !busy) { Text("Vérifier mon accès") }
         TextButton(onClick = { service.signOut() }) { Text("Me déconnecter") }
         return

@@ -4,10 +4,10 @@ import { readFileSync } from 'node:fs';
 import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, sendEmailVerification,
  applyActionCode, reload, getIdToken, signOut } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator, doc, setDoc, serverTimestamp, terminate } from 'firebase/firestore';
+import { getFirestore, connectFirestoreEmulator, doc, setDoc, serverTimestamp, terminate, runTransaction, getDoc } from 'firebase/firestore';
 import { initializeTestEnvironment, assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
 
-test('real emulator authentication requires both verified email and administrator approval',async()=>{
+test('real emulator authentication activates a new account after email verification without administrator approval',async()=>{
  const project='demo-swu-community-test';
  const app=initializeApp({projectId:project,apiKey:'demo-api-key',appId:'demo-community-client'},'auth-integration');
  const auth=getAuth(app);connectAuthEmulator(auth,'http://127.0.0.1:9099',{disableWarnings:true});
@@ -19,6 +19,8 @@ test('real emulator authentication requires both verified email and administrato
   const profile=doc(store,'profiles',user.uid);
   const data=()=>({name:'Test privé',bio:'',avatar:'preset:robot',discoverable:false,shareBadges:false,badgeIds:[],updatedAt:serverTimestamp()});
   await assertFails(setDoc(profile,data()));
+  const member=doc(store,'testMembers',user.uid);
+  await assertFails(setDoc(member,{enabled:true,selfRegistered:true,joinedAt:serverTimestamp()}));
   await sendEmailVerification(user);
   const response=await fetch('http://127.0.0.1:9099/emulator/v1/projects/'+project+'/oobCodes');
   assert.equal(response.ok,true);
@@ -27,7 +29,8 @@ test('real emulator authentication requires both verified email and administrato
   await applyActionCode(auth,code.oobCode);await reload(user);await getIdToken(user,true);
   assert.equal(user.emailVerified,true);
   await assertFails(setDoc(profile,data()));
-  await env.withSecurityRulesDisabled(c=>setDoc(doc(c.firestore(),'testMembers',user.uid),{enabled:true}));
+  await assertSucceeds(runTransaction(store,async tx=>{const existing=await tx.get(member);assert.equal(existing.exists(),false);tx.set(member,{enabled:true,selfRegistered:true,joinedAt:serverTimestamp()});}));
+  assert.equal((await getDoc(member)).data().enabled,true);
   await assertSucceeds(setDoc(profile,data()));
   await signOut(auth);
   await assertFails(setDoc(profile,data()));
