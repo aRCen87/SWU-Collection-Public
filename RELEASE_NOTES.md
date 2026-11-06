@@ -1,3 +1,9 @@
+## Test 0.8.19-test.11
+
+- Correction de l’ouverture des mises à jour privées : page du fichier dans le navigateur normal, sans appel direct au téléchargement qui provoquait le message « Cross-site file URL requests are not allowed ».
+- Les indications précisent de se connecter à son compte ChatGPT puis de télécharger depuis la page privée. Copie de récupération conservée avant l’ouverture.
+- Conserve le bandeau scintillant, les transitions entre cartes et l’activation automatique des comptes vérifiés.
+
 ## Test 0.8.19-test.10
 
 - Transition courte avec glissement et fondu entre les cartes, dans le sens de navigation, sans refermer la fiche agrandie.

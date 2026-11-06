@@ -624,7 +624,7 @@ private fun CollectionScreen(
                 }, enabled = !appUpdates.busy, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Default.Download, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Mise à jour ${appUpdates.availableVersion} disponible · Télécharger")
+                    Text("Mise à jour ${appUpdates.availableVersion} disponible · ${if (deckContext.packageName == AppChannel.TEST_PACKAGE) "Ouvrir" else "Télécharger"}")
                 }
             }
             if (selectedSection == "Accueil") {
@@ -1718,9 +1718,9 @@ private fun AppUpdatePanel(updates: AppUpdates, onCheck: () -> Unit, onInstall: 
             updates.previewRelease?.let { release ->
                 Text("Nouvelle version Test : ${release.version}", fontWeight = FontWeight.SemiBold)
                 if (release.notes.isNotBlank()) Text(release.notes, fontSize = 13.sp)
-                Text("Le clic demande directement le téléchargement privé dans ton navigateur. Une connexion à ChatGPT peut être nécessaire. Une copie de récupération est créée avant son ouverture.", fontSize = 12.sp)
+                Text("Ouvre la page privée dans ton navigateur, puis télécharge le fichier depuis cette page. Connecte-toi à ton compte ChatGPT si nécessaire. Une copie de récupération est créée avant l’ouverture.", fontSize = 12.sp)
                 Button(onClick = onInstall, enabled = !updates.busy, modifier = Modifier.fillMaxWidth()) {
-                    Text("Télécharger la mise à jour")
+                    Text("Ouvrir la mise à jour privée")
                 }
             }
             updates.release?.let { release ->

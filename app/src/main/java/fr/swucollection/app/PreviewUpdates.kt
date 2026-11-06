@@ -16,10 +16,11 @@ internal data class PreviewRelease(val code: Long, val version: String, val note
 
 /** Public announcement metadata only; APK access stays with the owner's private Library. */
 internal object PreviewUpdateFeed {
-    fun directDownloadUrl(pageUrl: String): String {
+    fun downloadPageUrl(pageUrl: String): String {
         require(isPrivateDownload(pageUrl)) { "Lien de téléchargement privé invalide." }
-        val file = pageUrl.substringAfter("file_id=").substringBefore('&')
-        return "https://chatgpt.com/api/library/files/$file/download"
+        // The file API rejects requests opened from another application. Let the
+        // authenticated first-party page initiate its own download instead.
+        return pageUrl
     }
     private const val ENDPOINT = "https://raw.githubusercontent.com/aRCen87/SWU-Collection-Public/preview/private-sandbox/docs/preview-update.json"
     private const val MAX_FEED_BYTES = 64 * 1024

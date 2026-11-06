@@ -11,7 +11,6 @@ import androidx.compose.runtime.setValue
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.content.FileProvider
 import androidx.browser.customtabs.CustomTabsClient
-import androidx.browser.customtabs.CustomTabsIntent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.CancellationException
@@ -175,13 +174,8 @@ internal class AppUpdates(private val context: Context, private val database: Co
         try {
             withContext(Dispatchers.IO) { UpdateBackups.create(context, database) }
             val browser = CustomTabsClient.getPackageName(context, null)
-                ?: error("Aucun navigateur compatible disponible.")
-            val customTab = CustomTabsIntent.Builder().build().apply {
-                intent.setPackage(browser)
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            customTab.launchUrl(context, Uri.parse(PreviewUpdateFeed.directDownloadUrl(target.url)))
-            message = "Téléchargement demandé dans ton navigateur. ChatGPT peut demander une connexion. Une fois le fichier reçu, ouvre-le pour mettre à jour l’application Test."
+            context.startActivity(PrivateUpdateBrowser.intent(target.url, browser))
+            message = "Page privée ouverte dans ton navigateur. Connecte-toi à ton compte ChatGPT si besoin, puis télécharge le fichier et ouvre-le pour mettre à jour Test. La copie de récupération a été créée."
         } catch (cancelled: CancellationException) { throw cancelled
         } catch (_: Exception) { message = "Impossible d’ouvrir le téléchargement privé. Réessaie."
         } finally { busy = false }

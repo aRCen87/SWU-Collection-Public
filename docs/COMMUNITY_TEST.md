@@ -61,3 +61,7 @@ L’approbation manuelle a été supprimée à la demande de Romain. `CommunityS
 ## Bandeau vivant — Test 0.8.19-test.10
 
 Les fenêtres déjà éclairées scintillent à des rythmes indépendants ; les éclairages avant et moteur du Faucon Millenium pulsent doucement. Le décor reste fixe et le même cadrage uniforme est partagé par l’image et ses lumières, y compris sur les écrans pliants. L’animation tourne uniquement sur l’accueil Test au premier plan, respecte le réglage des reflets et les animations système, et réutilise ses halos sans allocation par image.
+
+## Téléchargement privé corrigé — Test 0.8.19-test.11
+
+Le client conserve le lien de page privé complet, y compris le compte personnel, et ouvre un navigateur normal avec ACTION_VIEW. Il ne transforme plus le lien en appel direct à `/api/library/files/.../download`, qui est refusé depuis une autre origine. Le téléchargement est lancé par le joueur depuis la page ChatGPT authentifiée, sans copie de session dans l’application. Les tests de régression vérifient l’URL de page, l’absence de session Custom Tabs et de référent ajouté, ainsi que le refus des URL API directes et d’autres domaines. Les anciennes versions gardant l’ancien routage doivent installer une fois ce correctif depuis un lien fourni dans la conversation ; l’annonce seule ne peut pas changer le code installé.
