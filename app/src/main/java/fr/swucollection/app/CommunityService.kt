@@ -12,9 +12,10 @@ import kotlin.coroutines.resumeWithException
 
 internal data class PlayerProfile(
     val id: String, val name: String, val bio: String = "", val avatar: String = "preset:star",
-    val discoverable: Boolean = false, val shareBadges: Boolean = false, val badgeIds: List<String> = emptyList()
+    val discoverable: Boolean = false, val shareBadges: Boolean = false, val badgeIds: List<String> = emptyList(),
+    val messagePolicy: String = "testers", val shareDecks: Boolean = false
 )
-internal data class PlayerConversation(val id: String, val members: List<String>, val updatedAt: Long)
+internal data class PlayerConversation(val id: String, val members: List<String>, val updatedAt: Long, val lastSenderId: String = "")
 internal data class PlayerMessage(val id: String, val senderId: String, val kind: String, val text: String,
     val deckName: String, val deckJson: String, val createdAt: Long)
 
@@ -77,13 +78,14 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
             "name" to CommunityValidation.name(profile.name), "bio" to profile.bio.trim(),
             "avatar" to CommunityValidation.avatar(profile.avatar), "discoverable" to profile.discoverable,
             "shareBadges" to profile.shareBadges, "badgeIds" to if (profile.shareBadges) earnedIds.distinct().take(500) else emptyList<String>(),
-            "updatedAt" to FieldValue.serverTimestamp()
+            "messagePolicy" to profile.messagePolicy.also { require(it in listOf("testers", "friends", "nobody")) },
+            "shareDecks" to profile.shareDecks, "updatedAt" to FieldValue.serverTimestamp()
         )).communityAwait()
     }
     fun conversations(onValue: (List<PlayerConversation>) -> Unit, onError: (Exception) -> Unit): ListenerRegistration =
         db.collection("conversations").whereArrayContains("members", uid).limit(100).addSnapshotListener { rows, error ->
             if (error != null) onError(error) else onValue(rows?.documents.orEmpty().map { row ->
-                PlayerConversation(row.id, (row.get("members") as? List<*>)?.filterIsInstance<String>().orEmpty(), row.getTimestamp("updatedAt")?.toDate()?.time ?: 0L)
+                PlayerConversation(row.id, (row.get("members") as? List<*>)?.filterIsInstance<String>().orEmpty(), row.getTimestamp("updatedAt")?.toDate()?.time ?: 0L, row.getString("lastSenderId").orEmpty())
             }.sortedByDescending { it.updatedAt })
         }
     fun messages(conversation: String, onValue: (List<PlayerMessage>) -> Unit, onError: (Exception) -> Unit): ListenerRegistration =
@@ -99,6 +101,7 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
         val me = uid
         val id = CommunityValidation.pair(me, peer)
         val ref = db.collection("conversations").document(id)
+        if (ref.get().communityAwait().exists()) return id
         ref.set(mapOf("members" to listOf(me, peer).sorted(), "updatedAt" to FieldValue.serverTimestamp()), SetOptions.merge()).communityAwait()
         return id
     }
@@ -111,7 +114,7 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
         batch.set(ref.collection("messages").document(messageId), mapOf(
             "senderId" to uid, "kind" to if (deck == null) "text" else "deck", "text" to content,
             "deckName" to (deck?.name?.take(120) ?: ""), "deckJson" to raw, "createdAt" to FieldValue.serverTimestamp()))
-        batch.update(ref, "updatedAt", FieldValue.serverTimestamp())
+        batch.update(ref, mapOf("updatedAt" to FieldValue.serverTimestamp(), "lastSenderId" to uid))
         batch.commit().communityAwait()
     }
     suspend fun block(peer: String, blocked: Boolean) {
@@ -121,9 +124,65 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
     }
     suspend fun isBlocked(peer: String): Boolean = db.collection("blocks").document(uid).collection("users").document(peer).get().communityAwait().exists()
 
+
+    fun friendships(onValue: (List<PlayerFriendship>) -> Unit, onError: (Exception) -> Unit): ListenerRegistration =
+        db.collection("friendships").whereArrayContains("members", uid).limit(100).addSnapshotListener { rows, error ->
+            if (error != null) onError(error) else onValue(rows?.documents.orEmpty().map { row ->
+                PlayerFriendship(row.id, (row.get("members") as? List<*>)?.filterIsInstance<String>().orEmpty(),
+                    row.getString("requester").orEmpty(), row.getString("status").orEmpty())
+            })
+        }
+    suspend fun requestFriend(peer: String) {
+        val me = uid; val ref = db.collection("friendships").document(CommunityValidation.pair(me, peer))
+        db.runTransaction { tx ->
+            if (!tx.get(ref).exists()) tx.set(ref, mapOf("members" to listOf(me, peer).sorted(), "requester" to me,
+                "status" to "pending", "updatedAt" to FieldValue.serverTimestamp()))
+        }.communityAwait()
+    }
+    suspend fun acceptFriend(friendship: PlayerFriendship) {
+        require(friendship.requester != uid && uid in friendship.members && friendship.status == "pending")
+        db.collection("friendships").document(friendship.id).update(mapOf("status" to "accepted", "updatedAt" to FieldValue.serverTimestamp())).communityAwait()
+    }
+    suspend fun removeFriend(friendship: PlayerFriendship) { db.collection("friendships").document(friendship.id).delete().communityAwait() }
+    fun receipts(onValue: (Map<String, Long>) -> Unit, onError: (Exception) -> Unit): ListenerRegistration =
+        db.collection("reads").document(uid).collection("threads").limit(100).addSnapshotListener { rows, error ->
+            if (error != null) onError(error) else onValue(rows?.documents.orEmpty().associate { it.id to (it.getTimestamp("seenAt")?.toDate()?.time ?: 0L) })
+        }
+    suspend fun markRead(conversation: String) {
+        db.collection("reads").document(uid).collection("threads").document(conversation)
+            .set(mapOf("seenAt" to FieldValue.serverTimestamp())).communityAwait()
+    }
+    fun trades(onValue: (List<PlayerTrade>) -> Unit, onError: (Exception) -> Unit): ListenerRegistration =
+        db.collection("trades").whereArrayContains("members", uid).limit(100).addSnapshotListener { rows, error ->
+            if (error != null) onError(error) else onValue(rows?.documents.orEmpty().map { row ->
+                PlayerTrade(row.id, (row.get("members") as? List<*>)?.filterIsInstance<String>().orEmpty(), row.getString("requester").orEmpty(),
+                    row.getString("status").orEmpty(), row.getString("offer").orEmpty(), row.getString("wanted").orEmpty(),
+                    row.getTimestamp("updatedAt")?.toDate()?.time ?: 0L)
+            }.sortedByDescending { it.updatedAt })
+        }
+    suspend fun proposeTrade(peer: String, offer: List<TradeSelection>, wanted: List<TradeSelection>) {
+        val me = uid
+        db.collection("trades").document().set(mapOf("members" to listOf(me, peer).sorted(), "requester" to me,
+            "status" to "pending", "offer" to CommunitySocial.encodeTrade(offer), "wanted" to CommunitySocial.encodeTrade(wanted),
+            "createdAt" to FieldValue.serverTimestamp(), "updatedAt" to FieldValue.serverTimestamp())).communityAwait()
+    }
+    suspend fun answerTrade(trade: PlayerTrade, status: String) {
+        require(status in if (trade.requester == uid) listOf("cancelled") else listOf("accepted", "declined"))
+        db.collection("trades").document(trade.id).update(mapOf("status" to status, "updatedAt" to FieldValue.serverTimestamp())).communityAwait()
+    }
+    suspend fun sharedDecks(peer: String): List<PlayerSharedDeck> = db.collection("profiles").document(peer).collection("decks")
+        .limit(20).get().communityAwait().documents.map { PlayerSharedDeck(it.id, it.getString("name").orEmpty(), it.getString("deckJson").orEmpty()) }
+    suspend fun shareDeck(deck: DeckStore.SavedDeck) {
+        val raw = DeckInterchange.exportJson(deck.deck, deck.name); CommunityValidation.deck(raw)
+        db.collection("profiles").document(uid).collection("decks").document(deck.id).set(mapOf(
+            "name" to deck.name.take(120), "deckJson" to raw, "updatedAt" to FieldValue.serverTimestamp())).communityAwait()
+    }
+    suspend fun unshareDeck(id: String) { db.collection("profiles").document(uid).collection("decks").document(id).delete().communityAwait() }
+
     private fun DocumentSnapshot.profile() = PlayerProfile(id, getString("name").orEmpty(), getString("bio").orEmpty(),
         getString("avatar") ?: "preset:star", getBoolean("discoverable") == true, getBoolean("shareBadges") == true,
-        (get("badgeIds") as? List<*>)?.filterIsInstance<String>().orEmpty())
+        (get("badgeIds") as? List<*>)?.filterIsInstance<String>().orEmpty(),
+        getString("messagePolicy") ?: "testers", getBoolean("shareDecks") == true)
 
     companion object {
         fun create(context: Context): CommunityService? {

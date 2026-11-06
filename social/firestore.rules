@@ -11,19 +11,34 @@ service cloud.firestore {
       return !exists(/databases/$(database)/documents/blocks/$(a)/users/$(b)) &&
         !exists(/databases/$(database)/documents/blocks/$(b)/users/$(a));
     }
+    function friends(a, b) {
+      return (exists(/databases/$(database)/documents/friendships/$(a + '__' + b)) &&
+        get(/databases/$(database)/documents/friendships/$(a + '__' + b)).data.status == 'accepted') ||
+        (exists(/databases/$(database)/documents/friendships/$(b + '__' + a)) &&
+        get(/databases/$(database)/documents/friendships/$(b + '__' + a)).data.status == 'accepted');
+    }
+    function acceptsMessages(a, b) {
+      return !exists(/databases/$(database)/documents/profiles/$(b)) ||
+        get(/databases/$(database)/documents/profiles/$(b)).data.get('messagePolicy', 'testers') == 'testers' ||
+        (get(/databases/$(database)/documents/profiles/$(b)).data.get('messagePolicy', 'testers') == 'friends' && friends(a, b));
+    }
+    function visibleProfile(uid) {
+      return request.auth.uid == uid || get(/databases/$(database)/documents/profiles/$(uid)).data.discoverable == true || friends(request.auth.uid, uid);
+    }
     function validMembers(m) {
       return m is list && m.size() == 2 && m[0] is string && m[1] is string && m[0] != m[1] &&
         request.auth.uid in m && enabled(m[0]) && enabled(m[1]) && unblocked(m[0], m[1]);
     }
     function validProfile(d) {
       return d.keys().hasAll(['name','bio','avatar','discoverable','shareBadges','badgeIds','updatedAt']) &&
-        d.keys().hasOnly(['name','bio','avatar','discoverable','shareBadges','badgeIds','updatedAt']) &&
+        d.keys().hasOnly(['name','bio','avatar','discoverable','shareBadges','badgeIds','updatedAt','messagePolicy','shareDecks']) &&
         d.name is string && d.name.size() >= 2 && d.name.size() <= 32 &&
         d.bio is string && d.bio.size() <= 200 &&
         d.avatar is string && d.avatar.size() <= 18000 &&
         (d.avatar.matches('preset:(star|moon|planet|robot|ship|comet|sun|crystal)') || d.avatar.matches('jpeg:[A-Za-z0-9+/=]+')) &&
         d.discoverable is bool && d.shareBadges is bool && d.badgeIds is list && d.badgeIds.size() <= 500 &&
-        (d.shareBadges || d.badgeIds.size() == 0) && d.updatedAt == request.time;
+        (d.shareBadges || d.badgeIds.size() == 0) && d.get('messagePolicy', 'testers') in ['testers','friends','nobody'] &&
+        d.get('shareDecks', false) is bool && d.updatedAt == request.time;
     }
     match /testMembers/{uid} {
       // Only an administrator may grant access. Users cannot approve themselves.
@@ -31,10 +46,60 @@ service cloud.firestore {
       allow list, create, update, delete: if false;
     }
     match /profiles/{uid} {
-      allow get: if allowed() && (request.auth.uid == uid || resource.data.discoverable == true);
+      allow get: if allowed() && (request.auth.uid == uid || resource.data.discoverable == true || friends(request.auth.uid, uid));
       allow list: if allowed() && resource.data.discoverable == true && request.query.limit != null && request.query.limit <= 50;
       allow create, update: if allowed() && request.auth.uid == uid && validProfile(request.resource.data);
       allow delete: if allowed() && request.auth.uid == uid;
+      match /decks/{deck} {
+        function mayRead() { return allowed() && (request.auth.uid == uid ||
+          (visibleProfile(uid) && get(/databases/$(database)/documents/profiles/$(uid)).data.get('shareDecks', false) == true)); }
+        allow get: if mayRead();
+        allow list: if mayRead() && request.query.limit != null && request.query.limit <= 20;
+        allow create, update: if allowed() && request.auth.uid == uid &&
+          request.resource.data.keys().hasAll(['name','deckJson','updatedAt']) && request.resource.data.keys().hasOnly(['name','deckJson','updatedAt']) &&
+          request.resource.data.name is string && request.resource.data.name.size() >= 1 && request.resource.data.name.size() <= 120 &&
+          request.resource.data.deckJson is string && request.resource.data.deckJson.size() >= 2 && request.resource.data.deckJson.size() <= 40000 &&
+          request.resource.data.updatedAt == request.time;
+        allow delete: if allowed() && request.auth.uid == uid;
+      }
+    }
+    match /friendships/{pair} {
+      allow get: if allowed() && (resource == null || request.auth.uid in resource.data.members);
+      allow list: if allowed() && request.auth.uid in resource.data.members && request.query.limit != null && request.query.limit <= 100;
+      allow create: if allowed() && validMembers(request.resource.data.members) &&
+        pair == request.resource.data.members[0] + '__' + request.resource.data.members[1] &&
+        request.resource.data.keys().hasAll(['members','requester','status','updatedAt']) && request.resource.data.keys().hasOnly(['members','requester','status','updatedAt']) &&
+        request.resource.data.requester == request.auth.uid && request.resource.data.status == 'pending' && request.resource.data.updatedAt == request.time;
+      allow update: if allowed() && validMembers(resource.data.members) && request.auth.uid != resource.data.requester &&
+        resource.data.status == 'pending' && request.resource.data.status == 'accepted' && request.resource.data.updatedAt == request.time &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','updatedAt']);
+      allow delete: if allowed() && request.auth.uid in resource.data.members;
+    }
+    match /reads/{uid}/threads/{thread} {
+      allow get: if allowed() && request.auth.uid == uid;
+      allow list: if allowed() && request.auth.uid == uid && request.query.limit != null && request.query.limit <= 100;
+      allow create, update: if allowed() && request.auth.uid == uid &&
+        uid in get(/databases/$(database)/documents/conversations/$(thread)).data.members &&
+        request.resource.data.keys().hasOnly(['seenAt']) && request.resource.data.seenAt == request.time;
+      allow delete: if allowed() && request.auth.uid == uid;
+    }
+    match /trades/{trade} {
+      allow get: if allowed() && request.auth.uid in resource.data.members;
+      allow list: if allowed() && request.auth.uid in resource.data.members && request.query.limit != null && request.query.limit <= 100;
+      allow create: if allowed() && validMembers(request.resource.data.members) &&
+        friends(request.resource.data.members[0], request.resource.data.members[1]) &&
+        request.resource.data.keys().hasAll(['members','requester','status','offer','wanted','createdAt','updatedAt']) &&
+        request.resource.data.keys().hasOnly(['members','requester','status','offer','wanted','createdAt','updatedAt']) &&
+        request.resource.data.requester == request.auth.uid && request.resource.data.status == 'pending' &&
+        request.resource.data.offer is string && request.resource.data.offer.size() >= 2 && request.resource.data.offer.size() <= 8000 &&
+        request.resource.data.wanted is string && request.resource.data.wanted.size() >= 2 && request.resource.data.wanted.size() <= 8000 &&
+        request.resource.data.createdAt == request.time && request.resource.data.updatedAt == request.time;
+      allow update: if allowed() && request.auth.uid in resource.data.members && resource.data.status == 'pending' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','updatedAt']) && request.resource.data.updatedAt == request.time &&
+        ((request.auth.uid == resource.data.requester && request.resource.data.status == 'cancelled') ||
+         (request.auth.uid != resource.data.requester && (request.resource.data.status == 'declined' ||
+          (request.resource.data.status == 'accepted' && validMembers(resource.data.members) && friends(resource.data.members[0], resource.data.members[1])))));
+      allow delete: if false;
     }
     match /blocks/{uid}/users/{peer} {
       allow read: if allowed() && request.auth.uid == uid;
@@ -46,10 +111,13 @@ service cloud.firestore {
       allow get: if allowed() && request.auth.uid in resource.data.members;
       allow list: if allowed() && request.auth.uid in resource.data.members && request.query.limit != null && request.query.limit <= 100;
       allow create: if allowed() && request.resource.data.keys().hasOnly(['members','updatedAt']) &&
-        validMembers(request.resource.data.members) && request.resource.data.updatedAt == request.time;
+        validMembers(request.resource.data.members) && acceptsMessages(request.auth.uid,
+          request.resource.data.members[request.resource.data.members[0] == request.auth.uid ? 1 : 0]) && request.resource.data.updatedAt == request.time;
       allow update: if allowed() && validMembers(resource.data.members) &&
+        acceptsMessages(request.auth.uid, resource.data.members[resource.data.members[0] == request.auth.uid ? 1 : 0]) &&
         request.resource.data.members == resource.data.members &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['updatedAt']) && request.resource.data.updatedAt == request.time;
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['updatedAt','lastSenderId']) &&
+        request.resource.data.get('lastSenderId', request.auth.uid) == request.auth.uid && request.resource.data.updatedAt == request.time;
       allow delete: if false;
       match /messages/{message} {
         function participant() {
@@ -57,7 +125,7 @@ service cloud.firestore {
         }
         function validMessage(d) {
           let m = getAfter(/databases/$(database)/documents/conversations/$(conversation)).data.members;
-          return allowed() && validMembers(m) &&
+          return allowed() && validMembers(m) && acceptsMessages(request.auth.uid, m[m[0] == request.auth.uid ? 1 : 0]) &&
             d.keys().hasAll(['senderId','kind','text','deckName','deckJson','createdAt']) &&
             d.keys().hasOnly(['senderId','kind','text','deckName','deckJson','createdAt']) &&
             d.senderId == request.auth.uid && d.text is string && d.text.size() <= 2000 &&

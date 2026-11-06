@@ -201,6 +201,7 @@ private fun CollectionScreen(
     var creatingDraftKey by rememberSaveable { mutableStateOf("new") }
     var proxyBuilderOpen by rememberSaveable { mutableStateOf(false) }
     var importingDeck by remember { mutableStateOf(false) }
+    var communityInitialTab by remember { mutableStateOf("Mon profil") }
     var deckLibraryVisible by remember { mutableStateOf(true) }
     var deckMessage by remember { mutableStateOf<String?>(null) }
     var favoriteCard by remember { mutableStateOf<CatalogCard?>(null) }
@@ -521,9 +522,7 @@ private fun CollectionScreen(
                     Text("Hors connexion · données disponibles sur ce téléphone ›")
                 }
                 if (deckContext.packageName == "fr.swucollection.app.test") {
-                    OutlinedButton(onClick = { navigation.navigateTo("Communauté") }, modifier = Modifier.fillMaxWidth()) {
-                        Text("Mon compte · Communauté · Messages")
-                    }
+                    CommunityHomeHeader { tab -> communityInitialTab = tab; navigation.navigateTo("Communauté") }
                 }
                 HomeNavigationCard("◈", "SCANNER", "Scanner vos cartes", reflection = borderTilt, onClick = {
                     openScanner()
@@ -701,7 +700,7 @@ private fun CollectionScreen(
                     onDeck = ::openSavedDeck, onSet = { navigation.navigateTo("Extensions", it) })
             }
             if (selectedSection == "Communauté" && deckContext.packageName == "fr.swucollection.app.test") {
-                CommunityPanel(savedDecks, badgeProgress.filter { it.earned }, badgeBook?.definitions.orEmpty(), allCatalog,
+                CommunityPanel(savedDecks, badgeProgress.filter { it.earned }, badgeBook?.definitions.orEmpty(), allCatalog, initialTab = communityInitialTab,
                     onImportDeck = { title, imported ->
                         editingDeck = DeckStore.SavedDeck(java.util.UUID.randomUUID().toString(), title, "Premier", imported, System.currentTimeMillis())
                         creatingDeck = false

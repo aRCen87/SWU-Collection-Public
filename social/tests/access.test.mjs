@@ -78,3 +78,58 @@ test('bounded participant queries and a valid message batch succeed',async()=>{
  await assertFails(getDocs(collection(a,'conversations','alice__bob','messages')));
  await assertFails(setDoc(doc(a,'conversations','alice__outsider'),{members:['alice','outsider'],updatedAt:serverTimestamp()}));
 });
+
+test('friendship needs recipient consent and keeps private profiles hidden until accepted',async()=>{
+ const a=db('alice'),b=db('bob'),c=db('carol'),ref=doc(a,'friendships','alice__bob');
+ await setDoc(doc(b,'profiles','bob'),profile({discoverable:false}));
+ await assertSucceeds(getDoc(ref));
+ const request={members:['alice','bob'],requester:'alice',status:'pending',updatedAt:serverTimestamp()};
+ await assertFails(setDoc(ref,{...request,status:'accepted'}));
+ await assertSucceeds(setDoc(ref,request));
+ await assertFails(getDoc(doc(a,'profiles','bob')));
+ await assertFails(updateDoc(ref,{status:'accepted',updatedAt:serverTimestamp()}));
+ await assertFails(getDoc(doc(c,'friendships','alice__bob')));
+ await assertSucceeds(updateDoc(doc(b,'friendships','alice__bob'),{status:'accepted',updatedAt:serverTimestamp()}));
+ await assertSucceeds(getDoc(doc(a,'profiles','bob')));
+ await assertSucceeds(getDocs(query(collection(a,'friendships'),where('members','array-contains','alice'),limit(100))));
+ await assertFails(getDocs(collection(c,'friendships')));
+});
+test('message privacy applies to existing conversations and read receipts stay private',async()=>{
+ await thread();const a=db('alice'),b=db('bob');
+ await setDoc(doc(b,'profiles','bob'),profile({messagePolicy:'friends'}));
+ await assertFails(setDoc(doc(a,'conversations','alice__bob','messages','no-friend'),message('alice')));
+ await setDoc(doc(a,'friendships','alice__bob'),{members:['alice','bob'],requester:'alice',status:'pending',updatedAt:serverTimestamp()});
+ await updateDoc(doc(b,'friendships','alice__bob'),{status:'accepted',updatedAt:serverTimestamp()});
+ const batch=writeBatch(a);batch.set(doc(a,'conversations','alice__bob','messages','friend'),message('alice'));
+ batch.update(doc(a,'conversations','alice__bob'),{updatedAt:serverTimestamp(),lastSenderId:'alice'});await assertSucceeds(batch.commit());
+ await assertSucceeds(setDoc(doc(b,'reads','bob','threads','alice__bob'),{seenAt:serverTimestamp()}));
+ await assertFails(getDoc(doc(a,'reads','bob','threads','alice__bob')));
+ await assertFails(setDoc(doc(a,'reads','alice','threads','foreign'),{seenAt:serverTimestamp()}));
+ await updateDoc(doc(b,'profiles','bob'),{messagePolicy:'nobody',updatedAt:serverTimestamp()});
+ await assertFails(setDoc(doc(a,'conversations','alice__bob','messages','nobody'),message('alice')));
+});
+test('only friends propose trades, only recipient accepts, and card snapshots cannot change',async()=>{
+ const a=db('alice'),b=db('bob'),c=db('carol');
+ const trade={members:['alice','bob'],requester:'alice',status:'pending',offer:'[{"card":"SOR-005","quantity":1,"language":"FR","finish":"Foil"}]',wanted:'[{"card":"SOR-010","quantity":1,"language":"FR","finish":"Classique"}]',createdAt:serverTimestamp(),updatedAt:serverTimestamp()};
+ await assertFails(setDoc(doc(a,'trades','one'),trade));
+ await setDoc(doc(a,'friendships','alice__bob'),{members:['alice','bob'],requester:'alice',status:'pending',updatedAt:serverTimestamp()});
+ await updateDoc(doc(b,'friendships','alice__bob'),{status:'accepted',updatedAt:serverTimestamp()});
+ await assertSucceeds(setDoc(doc(a,'trades','one'),trade));
+ await assertFails(getDoc(doc(c,'trades','one')));
+ await assertFails(updateDoc(doc(a,'trades','one'),{status:'accepted',updatedAt:serverTimestamp()}));
+ await assertFails(updateDoc(doc(b,'trades','one'),{offer:'[]',status:'accepted',updatedAt:serverTimestamp()}));
+ await assertSucceeds(updateDoc(doc(b,'trades','one'),{status:'accepted',updatedAt:serverTimestamp()}));
+ await assertFails(updateDoc(doc(b,'trades','one'),{status:'declined',updatedAt:serverTimestamp()}));
+});
+test('shared decks respect visibility and blocking prevents friend requests',async()=>{
+ const a=db('alice'),b=db('bob');
+ await setDoc(doc(a,'profiles','alice'),profile({shareDecks:false}));
+ const deck={name:'Deck partagé',deckJson:'{"deck":[]}',updatedAt:serverTimestamp()};
+ await assertSucceeds(setDoc(doc(a,'profiles','alice','decks','one'),deck));
+ await assertFails(getDoc(doc(b,'profiles','alice','decks','one')));
+ await updateDoc(doc(a,'profiles','alice'),{shareDecks:true,updatedAt:serverTimestamp()});
+ await assertSucceeds(getDocs(query(collection(b,'profiles','alice','decks'),limit(20))));
+ await assertFails(setDoc(doc(b,'profiles','alice','decks','bad'),deck));
+ await setDoc(doc(b,'blocks','bob','users','alice'),{createdAt:serverTimestamp()});
+ await assertFails(setDoc(doc(a,'friendships','alice__bob'),{members:['alice','bob'],requester:'alice',status:'pending',updatedAt:serverTimestamp()}));
+});

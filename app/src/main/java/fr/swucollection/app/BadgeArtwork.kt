@@ -141,7 +141,7 @@ internal fun BadgePin(badge: BadgeDefinition, catalog: List<CatalogCard>, modifi
 
 /** Load the full face; crop in source coordinates before fitting it into a pin segment. */
 @Composable
-private fun BadgeIllustration(card: CatalogCard, locked: Boolean, modifier: Modifier) {
+internal fun BadgeIllustration(card: CatalogCard, locked: Boolean, modifier: Modifier) {
     val context = LocalContext.current
     val model = remember(context, card.imageUrl) {
         ImageRequest.Builder(context).data(OfflineImages.source(context, card.imageUrl))

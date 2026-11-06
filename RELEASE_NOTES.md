@@ -1,3 +1,13 @@
+## Test 0.8.19-test.4
+
+- Avatar et pseudo accessibles depuis l’accueil, avec pastille pour les messages et demandes.
+- Amis : recherche parmi les joueurs visibles, demandes à accepter/refuser, retrait et code QR.
+- Galerie de 16 portraits recadrés depuis les illustrations des cartes.
+- Confidentialité des messages : joueurs du test, amis uniquement ou personne.
+- Decks publiés volontairement sur le profil, aperçu avec miniatures et copie dans Mes decks.
+- Propositions d’échange entre amis avec quantités, langues et variantes, acceptation/refus/annulation et accès à la messagerie.
+- Les collections locales ne sont jamais modifiées par une demande d’ami, un partage ou une acceptation d’échange.
+
 ## Version privée 0.8.19-test.3 (code 62)
 
 - Notifications de mise à jour propres à l’application Test, à l’ouverture et périodiquement en arrière-plan selon les autorisations Android.
