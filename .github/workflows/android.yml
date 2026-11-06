@@ -4,6 +4,16 @@ on:
     branches: [ "main" ]
   pull_request:
   workflow_dispatch:
+    inputs:
+      publish_official:
+        description: "Publier officiellement après accord explicite de Romain"
+        required: true
+        type: boolean
+        default: false
+      approved_sha:
+        description: "SHA complet des sources approuvées (requis pour publier)"
+        required: false
+        type: string
 permissions:
   contents: read
 concurrency:
@@ -132,7 +142,7 @@ jobs:
 
   publish:
     name: Publish finalized application update
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.publish_official == true && inputs.approved_sha == github.sha
     needs: [build, startup]
     runs-on: ubuntu-latest
     timeout-minutes: 15
