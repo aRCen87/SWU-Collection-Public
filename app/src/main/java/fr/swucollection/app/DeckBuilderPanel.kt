@@ -37,7 +37,7 @@ internal fun DeckBuilderPanel(
     onCancel: () -> Unit, onSave: (String, PortableDeck, String, List<ScanBatchEntry>) -> Unit,
     onPreview: (CatalogCard, List<CatalogCard>) -> Unit,
     startScanning: Boolean = false, onScanStarted: () -> Unit = {},
-    onScanCollection: (() -> Unit)? = null
+    onScanCollection: (() -> Unit)? = null, seedCard: CatalogCard? = null
 ) {
     val draftContext = LocalContext.current.applicationContext
     val draftStore = remember(draftContext) { DeckDraftStore(draftContext) }
@@ -45,18 +45,18 @@ internal fun DeckBuilderPanel(
     val recoverable = remember(draftKey, baseline) { draftStore.read(draftKey, baseline) }
     var restoring by rememberSaveable { mutableStateOf(recoverable != null) }
     var closing by remember { mutableStateOf(false) }
-    var draftStarted by rememberSaveable { mutableStateOf(recoverable != null) }
+    var draftStarted by rememberSaveable { mutableStateOf(recoverable != null || seedCard != null) }
     var draftMessage by remember { mutableStateOf<String?>(null) }
     var undo by remember { mutableStateOf<List<DeckDraft>>(emptyList()) }
     var name by rememberSaveable(initialName) { mutableStateOf(initialName) }
     var deck by rememberSaveable(initial, stateSaver = Saver<PortableDeck, String>(
         save = { DeckInterchange.exportJson(it) }, restore = { DeckInterchange.importJson(it) }
-    )) { mutableStateOf(initial) }
+    )) { mutableStateOf(if (newDeck && seedCard != null) DeckCompanion.seed(initial, seedCard) else initial) }
     var naming by rememberSaveable { mutableStateOf(newDeck && recoverable == null) }
     var resetting by remember { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
-    var leaderChosen by rememberSaveable { mutableStateOf(!newDeck) }
-    var baseChosen by rememberSaveable { mutableStateOf(!newDeck) }
+    var leaderChosen by rememberSaveable { mutableStateOf(!newDeck || seedCard?.let { DeckConstruction.type(it) in listOf("leader", "chef") } == true) }
+    var baseChosen by rememberSaveable { mutableStateOf(!newDeck || seedCard?.let { DeckConstruction.type(it) == "base" } == true) }
     var collectionEntries by rememberSaveable(stateSaver = Saver<List<ScanBatchEntry>, String>(
         save = { DeckScan.collectionJson(it).toString() },
         restore = { DeckScan.collectionFromJson(org.json.JSONArray(it)) }
@@ -92,7 +92,7 @@ internal fun DeckBuilderPanel(
             }
         }
     }
-    var tab by rememberSaveable { mutableStateOf(if (newDeck) "Leader" else "Deck") }
+    var tab by rememberSaveable { mutableStateOf(if (!newDeck) "Deck" else if (leaderChosen) "Base" else "Leader") }
     var catalogueOpen by rememberSaveable { mutableStateOf(initial.deck.isEmpty()) }
     var filters by rememberSaveable(stateSaver = Saver<DeckBrowserFilters, ArrayList<String>>(
         save = { arrayListOf(it.aspect, it.type, it.set, it.rarity, it.cost, it.arena, it.trait, it.stock) },

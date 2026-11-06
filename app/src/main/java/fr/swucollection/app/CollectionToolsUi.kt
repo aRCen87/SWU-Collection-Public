@@ -59,19 +59,35 @@ internal fun CollectionHistoryPanel(database: CollectionDatabase,onChanged:()->U
     }
 }
 @Composable
-internal fun RelatedPrintsPanel(card: CatalogCard,catalog: List<CatalogCard>,owned: List<CollectionCard>,details: CardDetails,onOpen:(CatalogCard,List<CatalogCard>)->Unit) {
-    var expanded by remember(card.setCode,card.number){mutableStateOf(false)}
-    val related=remember(card,catalog,details){details.related(card,catalog)}
-    TextButton(onClick={expanded=!expanded}) {Text("Versions et réimpressions (${related.size}) ${if(expanded)"▴" else "▾"}")}
-    if(expanded) {
-        if(details.get(card)==null)Text("Les liens de cette référence ne sont pas encore identifiés.")
-        LazyColumn(Modifier.fillMaxWidth().heightIn(max=240.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
-            items(related,key={MarketPricing.key(it.setCode,it.number)}) {c->
-                val stock=owned.filter {it.setCode==c.setCode&&it.number==c.number}
-                OutlinedCard(onClick={onOpen(c,related)},modifier=Modifier.fillMaxWidth()) {Column(Modifier.padding(8.dp)) {
-                    Text("${c.setCode} ${c.number} · ${ScanVariants.detect(c).variant?:"Finitions disponibles"}",fontWeight=FontWeight.SemiBold)
-                    Text(if(stock.isEmpty())"Non possédée" else stock.joinToString {"${it.quantity} ${it.variant}"},style=MaterialTheme.typography.bodySmall)
-                }}
+internal fun RelatedPrintsPanel(card: CatalogCard, catalog: List<CatalogCard>, owned: List<CollectionCard>,
+    details: CardDetails, selectedVariant: String, selectedLanguage: String,
+    onOpen: (CatalogCard, String, String) -> Unit) {
+    var expanded by remember(details.family(card)) { mutableStateOf(false) }
+    val prints = remember(card.setCode, card.number, catalog, owned, details) { familyPrints(card, catalog, owned, details) }
+    TextButton(onClick = { expanded = !expanded }) {
+        Text("Versions et réimpressions (${prints.size}) ${if (expanded) "▴" else "▾"}")
+    }
+    if (expanded) {
+        if (details.get(card) == null) Text("Les liens de cette référence ne sont pas encore identifiés.")
+        Text("Choisis une version pour voir son illustration, sa cote et modifier sa quantité.",
+            style = MaterialTheme.typography.bodySmall)
+        LazyColumn(Modifier.fillMaxWidth().heightIn(max = 320.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            items(prints, key = { MarketPricing.key(it.card.setCode, it.card.number) + ":" + it.variant }) { print ->
+                val selected = MarketPricing.key(card.setCode, card.number) == MarketPricing.key(print.card.setCode, print.card.number) && selectedVariant == print.variant
+                OutlinedCard(onClick = { onOpen(print.card, print.variant, selectedLanguage) }, modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        ScannerCardSummary(print.card.copy(language = selectedLanguage), print.variant,
+                            if (selected) "Version affichée · ${print.quantity} possédé(s)" else "${print.quantity} possédé(s)")
+                        if (print.owned.isEmpty()) Text("Non possédée", style = MaterialTheme.typography.bodySmall)
+                        print.owned.forEach { copy ->
+                            TextButton(onClick = { onOpen(print.card, print.variant, copy.language) },
+                                modifier = Modifier.fillMaxWidth()) {
+                                Text("${CardLanguages.label(copy.language)} · ${copy.quantity} exemplaire(s)" +
+                                    if (selected && selectedLanguage == copy.language) " · affichée" else " ›")
+                            }
+                        }
+                    }
+                }
             }
         }
     }

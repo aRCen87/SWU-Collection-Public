@@ -51,4 +51,14 @@ class DeckCompanionTest {
         assertEquals("SOR-025", changed.base); assertEquals(deck.deck, changed.deck); assertEquals(deck.sideboard, changed.sideboard)
         assertThrows(IllegalArgumentException::class.java) { DeckCompanion.shopping(deck.copy(leader = "SOR-999"), owned, catalog, details) }
     }
+    @Test fun creatingFromACardKeepsTheSelectedReferenceAndDoesNotChangeInventory() {
+        val empty = PortableDeck("SOR-001", "SOR-024", emptyList())
+        assertEquals(listOf(DeckEntry("HMW-100", 1)), DeckCompanion.seed(empty, reprint).deck)
+        val selectedLeader = leader.copy(number = "005")
+        assertEquals("SOR-005", DeckCompanion.seed(empty, selectedLeader).leader)
+        assertEquals("SOR-025", DeckCompanion.seed(empty, base.copy(number = "025")).base)
+        assertTrue(empty.deck.isEmpty())
+        assertEquals(2, owned.first().quantity)
+        assertThrows(IllegalArgumentException::class.java) { DeckCompanion.seed(empty, unit.copy(type = "Jeton")) }
+    }
 }

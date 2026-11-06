@@ -134,7 +134,7 @@ internal fun GroupedOwnedCard(rows: List<CollectionCard>, catalog: List<CatalogC
                 CardArtwork(image, Modifier.size(48.dp,68.dp), language=first.language, variant=first.variant)
                 Column(Modifier.weight(1f)) {
                     Text(first.name, fontWeight = FontWeight.Bold)
-                    Text("${first.setCode} · ${rows.size} versions · ${rows.sumOf { it.quantity }} exemplaires")
+                    Text("${first.setCode} · ${prints.size} versions · ${rows.sumOf { it.quantity }} exemplaires")
                     val prices = rows.mapNotNull { quotes[collectionPriceKey(it.setCode,it.number,it.variant)]?.amount?.takeIf { price -> price.isFinite() && price > 0 } }
                     if (prices.isNotEmpty()) {
                         val money = java.text.NumberFormat.getCurrencyInstance(java.util.Locale.FRANCE)

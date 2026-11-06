@@ -1,6 +1,8 @@
 package fr.swucollection.app
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
@@ -52,7 +54,7 @@ internal fun AddCardToDeckDialog(card: CatalogCard, decks: List<DeckStore.SavedD
     val type = DeckConstruction.type(card)
     val identity = type in listOf("leader", "chef", "base")
     AlertDialog(onDismissRequest = onDismiss, title = { Text("Ajouter à un deck") }, text = {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.heightIn(max = 440.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(card.name, color = ListPalette.Gold)
             if (identity) Text("Le ${if (type == "base") "choix de base" else "leader"} du deck choisi sera remplacé après confirmation.")
             if (decks.isEmpty()) Text("Crée d’abord ton premier deck.")
@@ -65,6 +67,7 @@ internal fun AddCardToDeckDialog(card: CatalogCard, decks: List<DeckStore.SavedD
                     FilterChip(selected?.id == saved.id, onClick = { selected = saved; error = null }, label = { Text(saved.name) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp))
                 }
             }
+            if (decks.isNotEmpty()) TextButton(onClick = onCreate) { Text("Créer un nouveau deck avec cette carte") }
             error?.let { Text(it, color = ListPalette.Danger) }
         }
     }, confirmButton = {
