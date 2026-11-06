@@ -219,9 +219,6 @@ private fun CollectionScreen(
     val selectedSection = navigation.current.section
     val selectedSet = navigation.current.setCode
     val catalogSearch = navigation.current.catalogSearch
-    LaunchedEffect(updateNavigationRequest) {
-        if (updateNavigationRequest > 0) navigation.navigateTo("Mises à jour")
-    }
     var menuOpen by remember { mutableStateOf(false) }
     var collectionFiltersOpen by remember { mutableStateOf(false) }
     var catalogSyncMessage by remember { mutableStateOf<String?>(null) }
@@ -305,6 +302,26 @@ private fun CollectionScreen(
         scanCandidate = null
         scanVariantMenuOpen = false
         if (scanBatch.entries.isEmpty() && navigation.current.section == "Scanner") navigation.back()
+    }
+
+    LaunchedEffect(updateNavigationRequest) {
+        if (updateNavigationRequest > 0) {
+            if (deckContext.packageName == AppChannel.TEST_PACKAGE) {
+                // A notification may arrive while a modal is open. Keep stored batches and drafts.
+                scannerOpen = false
+                scanCandidate = null
+                scanVariantMenuOpen = false
+                scanDeckPicker = false
+                menuOpen = false
+                previewSession = null
+                previewPrint = null
+                favoriteCard = null
+                addingToDeck = null
+                importingDeck = false
+                proxyBuilderOpen = false
+            }
+            navigation.navigateTo("Mises à jour")
+        }
     }
 
     // Dialogs (menu, card preview and camera) dismiss themselves before screen navigation.

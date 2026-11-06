@@ -78,7 +78,7 @@ adb logcat -d -s AndroidRuntime:E > smoke-private/community-and-camera-crashes.t
 if grep -q 'FATAL EXCEPTION' smoke-private/community-and-camera-crashes.txt; then exit 1; fi
 
 # Notification navigation opens the Test update screen, with its own installed version.
-adb shell am start -W -n "$package/fr.swucollection.app.MainActivity" -a fr.swucollection.app.OPEN_UPDATES >/dev/null
+adb shell am start -W -n "$package/fr.swucollection.app.MainActivity" -a fr.swucollection.app.OPEN_UPDATES -f 0x24000000 >/dev/null
 sleep 4
 adb shell uiautomator dump /sdcard/private-updates.xml >/dev/null
 adb pull /sdcard/private-updates.xml smoke-private/private-updates.xml >/dev/null
