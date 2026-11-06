@@ -523,17 +523,27 @@ private fun CollectionScreen(
                             Column(Modifier.heightIn(max = 430.dp).verticalScroll(rememberScrollState()),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text("Recto")
-                                CardArtwork(card, Modifier.fillMaxWidth().height(280.dp).then(swipeCardModifier), variant = previewVariant)
+                                TransitioningCardArtwork(card, previewVariant, index = session.index,
+                                    enabled = deckContext.packageName == AppChannel.TEST_PACKAGE,
+                                    modifier = Modifier.fillMaxWidth().height(280.dp).then(swipeCardModifier))
                                 Text("Verso")
-                                CardArtwork(card, Modifier.fillMaxWidth().height(280.dp).then(swipeCardModifier), variant = previewVariant, reverse = true)
+                                TransitioningCardArtwork(card, previewVariant, reverse = true, index = session.index,
+                                    enabled = deckContext.packageName == AppChannel.TEST_PACKAGE,
+                                    modifier = Modifier.fillMaxWidth().height(280.dp).then(swipeCardModifier))
                             }
                         } else if (hasReverse) {
-                            Crossfade(targetState = showReverse, label = "Retourner le leader") { reverse ->
+                            if (deckContext.packageName == AppChannel.TEST_PACKAGE) {
+                                TransitioningCardArtwork(card, previewVariant, reverse = showReverse, index = session.index,
+                                    enabled = true, modifier = Modifier.fillMaxWidth().height(artworkHeight)
+                                        .then(swipeCardModifier).clickable { showReverse = !showReverse })
+                            } else Crossfade(targetState = showReverse, label = "Retourner le leader") { reverse ->
                                 CardArtwork(card, Modifier.fillMaxWidth().height(artworkHeight).then(swipeCardModifier).clickable { showReverse = !showReverse }, variant = previewVariant, reverse = reverse)
                             }
                             Text("Toucher la carte pour la retourner", fontSize = 12.sp)
                         } else {
-                            CardArtwork(card, Modifier.fillMaxWidth().height(artworkHeight).then(swipeCardModifier), variant = previewVariant)
+                            TransitioningCardArtwork(card, previewVariant, index = session.index,
+                                enabled = deckContext.packageName == AppChannel.TEST_PACKAGE,
+                                modifier = Modifier.fillMaxWidth().height(artworkHeight).then(swipeCardModifier))
                         }
                         Text(card.name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         val familyStock = remember(card, cards, allCatalog, cardDetails) { DeckCompanion.stock(card, cards, allCatalog, cardDetails) }

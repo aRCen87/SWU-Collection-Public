@@ -56,7 +56,7 @@ Les règles `social/firestore.rules` de cette version ont été déployées sur 
 
 ## Inscription autonome — Test 0.8.19-test.9
 
-L’approbation manuelle a été supprimée à la demande de Romain. `CommunityService.allowed()` crée le document du compte vérifié dans une transaction, uniquement s’il n’existe pas. Les règles autorisent cette création initiale avec un schéma strict et l’identifiant du propriétaire ; toute modification ou suppression reste réservée à l’administration. Une désactivation existante ne peut donc être contournée par le client. Aucune sauvegarde ni conversation n’est rendue publique par cette activation. Déployer les règles Test 9 après réussite des tests de sécurité et distribuer l’APK Test 9 pour que les nouveaux joueurs bénéficient de l’activation autonome.
+L’approbation manuelle a été supprimée à la demande de Romain. `CommunityService.allowed()` crée le document du compte vérifié dans une transaction, uniquement s’il n’existe pas. Les règles autorisent cette création initiale avec un schéma strict et l’identifiant du propriétaire ; toute modification ou suppression reste réservée à l’administration. Une désactivation existante ne peut donc être contournée par le client. Aucune sauvegarde ni conversation n’est rendue publique par cette activation. Les règles d’inscription autonome ont été déployées sur **swu-collection-test uniquement**, le 6 novembre 2026 à 21 h 01 (Paris), après réussite des tests de sécurité. La version Test 10 inclut le parcours client ; aucun accès aux sauvegardes ou conversations d’autres comptes n’a été ajouté.
 
 ## Bandeau vivant — Test 0.8.19-test.10
 

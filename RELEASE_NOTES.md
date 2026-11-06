@@ -1,5 +1,6 @@
 ## Test 0.8.19-test.10
 
+- Transition courte avec glissement et fondu entre les cartes, dans le sens de navigation, sans refermer la fiche agrandie.
 - Scintillement indépendant des lumières de la ville et pulsation des éclairages du Faucon Millenium, selon l’aperçu approuvé.
 - Animation limitée à l’accueil Test, suspendue en arrière-plan et désactivée avec les animations/reflets.
 - Inclut l’activation automatique des comptes après confirmation de l’e-mail ; les comptes désactivés restent bloqués.
