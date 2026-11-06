@@ -1,11 +1,11 @@
 {
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "versionCode": 63,
-  "versionName": "0.8.19-test.4",
-  "notes": "Amis et demandes par pseudo ou QR code, avatar et pseudo sur l’accueil, galerie de 16 personnages issus des cartes, pastilles pour les messages et demandes, decks partagés sur les profils, propositions d’échange et réglages de confidentialité.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_5af48edc03788191a8102f1d19c1926d&account_id=personal",
-  "sha256": "d0e68b6987d25581c0561b5a39a5975e5e4f3ef541f064903fb65344271fe270",
-  "size": 83742351,
-  "sourceSha": "bd2f97f6952908ba882143078d4c3caf6f04bc80"
+  "versionCode": 64,
+  "versionName": "0.8.19-test.5",
+  "notes": "Accueil allégé : avatar en haut à droite, menu puis courrier en dessous, sans bandeau de profil. Bandeau de mise à jour et notification Android reliés au téléchargement privé au toucher. Une connexion ChatGPT peut être demandée dans le navigateur ; Android demande ensuite la confirmation d’installation.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_1b7dc1ec22fc8191b90735b341048fee&account_id=personal",
+  "sha256": "8eec9c3b98191498fdb93f62ea88307f1c32644db90ecb558e6cc55636cb973c",
+  "size": 83742419,
+  "sourceSha": "32d6c3fc19a1f0bbb1fd8b15a03646006b3214ec"
 }
