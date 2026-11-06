@@ -76,3 +76,17 @@ sleep 5
 adb shell pidof "$package"
 adb logcat -d -s AndroidRuntime:E > smoke-private/community-and-camera-crashes.txt
 if grep -q 'FATAL EXCEPTION' smoke-private/community-and-camera-crashes.txt; then exit 1; fi
+
+# Notification navigation opens the Test update screen, with its own installed version.
+adb shell am start -W -n "$package/fr.swucollection.app.MainActivity" -a fr.swucollection.app.OPEN_UPDATES >/dev/null
+sleep 4
+adb shell uiautomator dump /sdcard/private-updates.xml >/dev/null
+adb pull /sdcard/private-updates.xml smoke-private/private-updates.xml >/dev/null
+python3 - <<'PYUPDATES'
+import xml.etree.ElementTree as ET
+texts={n.attrib.get('text','') for n in ET.parse('smoke-private/private-updates.xml').iter('node')}
+assert 'Mise à jour de l’application' in texts,texts
+assert any('0.8.19-test.3' in text for text in texts),texts
+PYUPDATES
+adb logcat -d -s AndroidRuntime:E > smoke-private/private-updates-crashes.txt
+if grep -q 'FATAL EXCEPTION' smoke-private/private-updates-crashes.txt; then exit 1; fi
