@@ -71,6 +71,7 @@ internal fun rememberHeaderReflectionProgress(active: Boolean): State<Float> {
 
 @Composable
 internal fun HomeHeaderArtwork(progress: State<Float>, reflection: State<Float>, modifier: Modifier = Modifier) {
+    val logoContour = remember { HomeLogoContour() }
     val resources = LocalContext.current.resources
     val artwork = remember(resources) {
         val sheet = BitmapFactory.decodeResource(resources, R.drawable.collection_design_reference)
@@ -136,6 +137,7 @@ internal fun HomeHeaderArtwork(progress: State<Float>, reflection: State<Float>,
             paint.xfermode = null
             canvas.restoreToCount(layer)
         }
+        logoContour.draw(canvas, reflection.value)
         if (frame.starVisible && (!arrived || frame.trailAlpha > 0f)) {
             val star = frame.star
             val dx = frame.tail.x - star.x

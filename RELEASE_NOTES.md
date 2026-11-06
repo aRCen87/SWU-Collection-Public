@@ -1,3 +1,9 @@
+## Version 0.8.19
+
+- Bandeau d’accueil : une lumière dorée suit le contour de chacune des lettres S, W et U, pendant le passage du reflet métallique, selon l’aperçu validé.
+- Le bandeau d’origine, ses illustrations et les animations existantes sont conservés. Le nouvel effet utilise le même rythme que le reflet, respecte la désactivation des animations et s’arrête lorsque l’accueil est inactif.
+- Cette version reprend aussi les améliorations 0.8.18 des fiches regroupées, des brouillons de decks et des rafales du scanner décrites ci-dessous.
+
 ## Version 0.8.18
 
 - Fiche carte : versions, finitions et réimpressions réunies avec miniature, cote et quantités par langue. Choisir une version conserve la navigation précédente/suivante de la liste d’origine.
