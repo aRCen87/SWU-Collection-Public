@@ -98,6 +98,7 @@ internal object UpdateNotifications {
 class UpdateCheckWorker(context: Context, parameters: WorkerParameters) : CoroutineWorker(context, parameters) {
     @Suppress("DEPRECATION")
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+        if (!AppChannel.allowsOfficialUpdates(applicationContext.packageName)) return@withContext Result.success()
         try {
             val installed = applicationContext.packageManager.getPackageInfo(applicationContext.packageName, 0).versionName ?: "0.0.0"
             UpdateNotifications.clearInstalled(applicationContext, installed)
@@ -112,6 +113,11 @@ class UpdateCheckWorker(context: Context, parameters: WorkerParameters) : Corout
     companion object {
         private fun constraints() = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         fun schedule(context: Context) {
+            if (!AppChannel.allowsOfficialUpdates(context.packageName)) {
+                WorkManager.getInstance(context).cancelUniqueWork("application-update-check")
+                WorkManager.getInstance(context).cancelUniqueWork("application-update-check-now")
+                return
+            }
             UpdateNotifications.createChannel(context)
             val request = PeriodicWorkRequestBuilder<UpdateCheckWorker>(1, TimeUnit.HOURS)
                 .setInitialDelay(1, TimeUnit.HOURS).setConstraints(constraints())
@@ -120,6 +126,7 @@ class UpdateCheckWorker(context: Context, parameters: WorkerParameters) : Corout
                 ExistingPeriodicWorkPolicy.KEEP, request)
         }
         fun checkNow(context: Context) {
+            if (!AppChannel.allowsOfficialUpdates(context.packageName)) return
             val request = OneTimeWorkRequestBuilder<UpdateCheckWorker>().setConstraints(constraints()).build()
             WorkManager.getInstance(context).enqueueUniqueWork("application-update-check-now", ExistingWorkPolicy.KEEP, request)
         }

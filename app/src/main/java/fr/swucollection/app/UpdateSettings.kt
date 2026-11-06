@@ -22,6 +22,7 @@ import kotlinx.coroutines.withContext
 
 @Composable
 internal fun UpdateNotificationPermissionRequest() {
+    if (!AppChannel.allowsOfficialUpdates(LocalContext.current.packageName)) return
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) UpdateCheckWorker.checkNow(context)

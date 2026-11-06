@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application android:label="SWU Collection Test" android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher_test" android:roundIcon="@mipmap/ic_launcher_test"
+        tools:replace="android:label,android:allowBackup,android:icon,android:roundIcon" />
+</manifest>

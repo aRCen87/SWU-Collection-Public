@@ -106,6 +106,11 @@ internal class AppUpdates(private val context: Context, private val database: Co
     val readyToInstall get() = readyFile?.isFile == true && readyRelease == release
 
     suspend fun check() {
+        if (!AppChannel.allowsOfficialUpdates(context.packageName)) {
+            release = null
+            message = "Version de test privée. Les mises à jour sont fournies séparément après validation."
+            return
+        }
         if (busy) return
         busy = true
         message = "Recherche d’une mise à jour…"
@@ -127,6 +132,7 @@ internal class AppUpdates(private val context: Context, private val database: Co
     }
 
     suspend fun download() {
+        if (!AppChannel.allowsOfficialUpdates(context.packageName)) return
         if (busy) return
         val target = release ?: return
         busy = true
@@ -174,6 +180,7 @@ internal class AppUpdates(private val context: Context, private val database: Co
     }
 
     suspend fun install() {
+        if (!AppChannel.allowsOfficialUpdates(context.packageName)) return
         if (busy || !readyToInstall) return
         val apk = readyFile ?: return
         busy = true
