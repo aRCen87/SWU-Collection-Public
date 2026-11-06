@@ -45,6 +45,17 @@ class CollectionObjectivesTest {
         assertEquals(1,matches.sumOf { it.quantity })
         assertTrue(matches.all { it.wanted.acceptVariants })
     }
+    @Test fun uniqueVisualFamiliesCanIncludeReprintsWithoutMergingLanguagesOrFinishes() {
+        val reprint = classic.copy(setCode = "ASH", number = "009")
+        val linked = CardDetails.parse("""{"format":"SWU_CARD_DETAILS","version":1,"cards":{"JTL:001":{"family":"same","en":"Scout","cost":2,"aspects":[],"traits":[]},"JTL:501":{"family":"same","en":"Scout","cost":2,"aspects":[],"traits":[]},"ASH:009":{"family":"same","en":"Scout","cost":2,"aspects":[],"traits":[]}}}""")
+        val rows = owned + CollectionCard(3, "Éclaireur", "ASH", "009", "Normale", 1, "EN")
+        val grouped = groupOwnedVersions(rows, listOf(classic, foil, reprint), linked, acrossSets = true)
+        assertEquals(1, grouped.size)
+        assertEquals(rows.toSet(), grouped.single().toSet())
+        assertEquals(5, grouped.single().sumOf { it.quantity })
+        assertEquals(setOf("FR", "EN"), grouped.single().map { it.language }.toSet())
+        assertEquals(3, groupOwnedPrints(grouped.single()).size)
+    }
     @Test fun paddedReferencesUseOneRetentionTargetWhenVersionsArePooled() {
         val stock = listOf(owned[0].copy(number="1",quantity=3),owned[0].copy(id=2,number="001",quantity=3))
         val profile = TradeProfile.build(listOf(classic),stock,mapOf("JTL" to true),details,variantsBySet=mapOf("JTL" to true))

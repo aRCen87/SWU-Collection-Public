@@ -10,6 +10,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.Alignment
 import java.text.NumberFormat
 import java.text.DateFormat
 import java.util.Date
@@ -62,7 +64,8 @@ internal fun CollectionHistoryPanel(database: CollectionDatabase,onChanged:()->U
 internal fun RelatedPrintsPanel(card: CatalogCard, catalog: List<CatalogCard>, owned: List<CollectionCard>,
     details: CardDetails, selectedVariant: String, selectedLanguage: String,
     onOpen: (CatalogCard, String, String) -> Unit) {
-    var expanded by remember(details.family(card)) { mutableStateOf(false) }
+    val visual = LocalContext.current.packageName == AppChannel.TEST_PACKAGE
+    var expanded by remember(details.family(card)) { mutableStateOf(visual) }
     val prints = remember(card.setCode, card.number, catalog, owned, details) { familyPrints(card, catalog, owned, details) }
     TextButton(onClick = { expanded = !expanded }) {
         Text("Versions et réimpressions (${prints.size}) ${if (expanded) "▴" else "▾"}")
@@ -75,6 +78,18 @@ internal fun RelatedPrintsPanel(card: CatalogCard, catalog: List<CatalogCard>, o
             items(prints, key = { MarketPricing.key(it.card.setCode, it.card.number) + ":" + it.variant }) { print ->
                 val selected = MarketPricing.key(card.setCode, card.number) == MarketPricing.key(print.card.setCode, print.card.number) && selectedVariant == print.variant
                 OutlinedCard(onClick = { onOpen(print.card, print.variant, selectedLanguage) }, modifier = Modifier.fillMaxWidth()) {
+                    if (visual) Row(Modifier.fillMaxWidth().padding(10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        CardArtwork(print.card, Modifier.size(64.dp, 90.dp), language = selectedLanguage, variant = print.variant)
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(print.variant, style = MaterialTheme.typography.titleSmall)
+                            Text("${print.card.setCode} · N° ${print.card.number}", style = MaterialTheme.typography.bodySmall)
+                            Text(if (print.quantity > 0) "${print.quantity} possédé(s)" else "Non possédée", color = MaterialTheme.colorScheme.primary)
+                            if (selected) Text("Version affichée", style = MaterialTheme.typography.labelMedium)
+                            print.owned.forEach { copy -> TextButton(onClick = { onOpen(print.card, print.variant, copy.language) }) {
+                                Text("${CardLanguages.label(copy.language)} · ${copy.quantity} exemplaire(s)")
+                            } }
+                        }
+                    } else {
                     Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         ScannerCardSummary(print.card.copy(language = selectedLanguage), print.variant,
                             if (selected) "Version affichée · ${print.quantity} possédé(s)" else "${print.quantity} possédé(s)")
@@ -86,6 +101,7 @@ internal fun RelatedPrintsPanel(card: CatalogCard, catalog: List<CatalogCard>, o
                                     if (selected && selectedLanguage == copy.language) " · affichée" else " ›")
                             }
                         }
+                    }
                     }
                 }
             }

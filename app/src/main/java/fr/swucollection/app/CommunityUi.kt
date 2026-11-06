@@ -193,6 +193,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
             if (profile!!.bio.isNotBlank()) Text(profile!!.bio)
             Text(if (profile!!.discoverable) "Profil visible aux joueurs autorisés du test" else "Profil non listé parmi les joueurs")
             OutlinedButton(onClick = { editing = true }) { Text("Modifier mon profil et mon avatar") }
+            CommunityNotificationControls(user.uid)
             ProfileBadges(profile!!, definitions, catalog)
             SharedProfileDecks(service, profile!!, true, decks, catalog, onImportDeck)
             if (profile!!.shareBadges) OutlinedButton(onClick = { action { service.saveProfile(profile!!, earned.map { it.badge.id }); status = "Badges du profil actualisés." } }, enabled = !busy) { Text("Actualiser mes badges") }

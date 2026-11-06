@@ -203,6 +203,7 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
         getString("messagePolicy") ?: "testers", getBoolean("shareDecks") == true)
 
     companion object {
+        @Synchronized
         fun create(context: Context): CommunityService? {
             if (context.packageName != "fr.swucollection.app.test") return null
             val project = context.getString(R.string.swu_test_project_id)

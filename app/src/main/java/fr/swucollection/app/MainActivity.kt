@@ -10,6 +10,9 @@ import android.graphics.BitmapFactory
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.collect
@@ -92,10 +95,23 @@ class MainActivity : ComponentActivity() {
     private val updateNavigationRequest = mutableIntStateOf(0)
     private val previewDownloadRequest = mutableIntStateOf(0)
     private val foregroundRequest = mutableIntStateOf(0)
+    private val communityRequest = mutableStateOf<Pair<Int, String>?>(null)
+
+    private fun handleCommunityIntent(intent: Intent) {
+        CommunityNotifications.destination(this, intent)?.let { tab ->
+            communityRequest.value = ((communityRequest.value?.first ?: 0) + 1) to tab
+        }
+    }
+
+    override fun onStop() {
+        if (packageName == AppChannel.TEST_PACKAGE) AutomaticBackupWorker.enqueue(applicationContext)
+        super.onStop()
+    }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        handleCommunityIntent(intent)
         if (intent.action == UpdateNotifications.ACTION_OPEN_UPDATES) updateNavigationRequest.intValue++
         if (PreviewUpdateNotifications.consumeDownloadRequest(this, intent)) {
             updateNavigationRequest.intValue++
@@ -110,6 +126,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (packageName == AppChannel.TEST_PACKAGE) {
+            CommunityBackground.install(applicationContext)
+            lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (true) { CommunityBackground.refresh(applicationContext); delay(30_000) }
+            } }
+        }
+        handleCommunityIntent(intent)
         val database = CollectionDatabase(this)
         runCatching {
             database.readableDatabase
@@ -163,6 +186,7 @@ class MainActivity : ComponentActivity() {
                         updateNavigationRequest = updateNavigationRequest.intValue,
                         previewDownloadRequest = previewDownloadRequest.intValue,
                         foregroundRequest = foregroundRequest.intValue,
+                        communityNavigationRequest = communityRequest.value,
                         onExport = { uri ->
                             if (uri != null) contentResolver.openOutputStream(uri)?.use { output ->
                                 OutputStreamWriter(output, Charsets.UTF_8).use { it.write(database.exportCsv()) }
@@ -192,13 +216,21 @@ private fun CollectionScreen(
     onSyncCatalog: (onResult: (Boolean) -> Unit) -> Unit,
     updateNavigationRequest: Int = 0,
     previewDownloadRequest: Int = 0,
-    foregroundRequest: Int = 0
+    foregroundRequest: Int = 0,
+    communityNavigationRequest: Pair<Int, String>? = null
 ) {
     val compactHeader = LocalConfiguration.current.screenWidthDp < 400
     var cards by remember { mutableStateOf(database.allCards()) }
     var personalLists by remember { mutableStateOf(database.cardLists()) }
     val deckContext = LocalContext.current
     val privateLayout = deckContext.packageName == AppChannel.TEST_PACKAGE
+    remember(privateLayout) {
+        if (privateLayout) {
+            val preferences = deckContext.getSharedPreferences("collection_filters", 0)
+            if (!preferences.getBoolean("visual_family_default", false)) preferences.edit()
+                .putString("groupVersions", "true").putBoolean("visual_family_default", true).apply()
+        }
+    }
     val homeStore = remember(deckContext) { HomeLayoutStore(deckContext) }
     var homeLayout by remember { mutableStateOf(homeStore.read()) }
     var homeEditing by remember { mutableStateOf(false) }
@@ -266,7 +298,7 @@ private fun CollectionScreen(
     var collectionView by rememberCollectionFilter("collectionView", "Visuel")
     var savedCollectionSort by rememberCollectionFilter("sort", CollectionPriceSort.CATALOG.name)
     val collectionSort = CollectionPriceSort.entries.firstOrNull { it.name == savedCollectionSort } ?: CollectionPriceSort.CATALOG
-    var groupVersionsValue by rememberCollectionFilter("groupVersions", "false")
+    var groupVersionsValue by rememberCollectionFilter("groupVersions", privateLayout.toString())
     val groupVersions = groupVersionsValue == "true"
     var collectionScope by rememberCollectionFilter("collectionScope", "Possédées")
     var previewSession by remember { mutableStateOf<CardPreviewSession?>(null) }
@@ -277,6 +309,15 @@ private fun CollectionScreen(
     val displayPrefs = LocalContext.current.getSharedPreferences("leader_view", 0)
     var leaderMode by remember { mutableStateOf(displayPrefs.getString("mode", "flip") ?: "flip") }
     var showReverse by remember { mutableStateOf(false) }
+    LaunchedEffect(communityNavigationRequest) {
+        if (privateLayout && communityNavigationRequest != null) {
+            previewSession = null; favoriteCard = null; scanCandidate = null
+            scannerOpen = false; menuOpen = false
+            communityInitialTab = communityNavigationRequest.second
+            navigation.navigateTo("Communauté")
+        }
+    }
+
 
     fun openPreview(card: CatalogCard, visible: List<CardPreviewEntry>, variant: String? = null, language: String = card.language) {
         previewPrint = null
@@ -486,7 +527,7 @@ private fun CollectionScreen(
         }
         val artworkHeight = (LocalConfiguration.current.screenHeightDp.dp * .42f).coerceIn(180.dp, 350.dp)
             Card(modifier = Modifier.safeDrawingPadding().padding(12.dp).widthIn(max = 720.dp).fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
-                Column(Modifier.fillMaxWidth().fillMaxHeight(0.92f).padding(12.dp),
+                Column(Modifier.fillMaxWidth().testTag("swu_card_sheet").fillMaxHeight(0.92f).padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(Modifier.fillMaxWidth(),
                         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
@@ -612,7 +653,7 @@ private fun CollectionScreen(
                     else -> 760.dp
                 }) else Modifier)
                 .fillMaxSize().padding(bottom = if (deckWorkspace) 0.dp else 82.dp).then(
-                if (selectedSection in listOf("Collection", "Extensions", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta"))
+                if (selectedSection in listOf("Collection", "Extensions", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta", "Test écran pliant"))
                     Modifier else Modifier.verticalScroll(rememberScrollState())
             ).padding(horizontal = 16.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -894,6 +935,7 @@ private fun CollectionScreen(
                     onDeck = ::openSavedDeck, onSet = { navigation.navigateTo("Extensions", it) })
             }
             if (selectedSection == "Communauté" && deckContext.packageName == "fr.swucollection.app.test") {
+                key(communityNavigationRequest?.first) {
                 CommunityPanel(savedDecks, badgeProgress.filter { it.earned }, badgeBook?.definitions.orEmpty(), allCatalog, database, cardDetails, initialTab = communityInitialTab,
                     onRestored = { refresh(); homeLayout = homeStore.read(); pinnedDecks = deckPins.all() },
                     onImportDeck = { title, imported ->
@@ -901,6 +943,7 @@ private fun CollectionScreen(
                         creatingDeck = false
                         navigation.navigateTo("Mes listes")
                     })
+                }
             }
             if (selectedSection == "Hauts faits") BadgesPanel(badgeProgress, allCatalog,
                 initialSelection = badgeFocus, onSelectionConsumed = { badgeFocus = null }, onCard = { card ->
@@ -909,6 +952,10 @@ private fun CollectionScreen(
             if (selectedSection == "Hors connexion") OfflineImagesPanel(allCatalog, sets, savedDecks, internetAvailable)
             if (selectedSection == "Paramètres") {
                 SettingsOverview(onNavigate = { navigation.navigateTo(it) }, updateAvailable = appUpdates.release?.version)
+                if (privateLayout) OutlinedButton(onClick = { navigation.navigateTo("Test écran pliant") }, modifier = Modifier.fillMaxWidth()) { Text("Vérifier mon écran pliant") }
+            }
+            if (selectedSection == "Test écran pliant" && privateLayout) {
+                FoldValidationPanel(onCollection = { navigation.navigateTo("Collection") }, onScan = { openScanner() })
             }
             if (selectedSection == "Apparence") {
                 if (privateLayout) OutlinedButton(onClick = { homeEditing = true }) { Text("Personnaliser mon accueil") }
@@ -1236,7 +1283,7 @@ private fun CollectionScreen(
                     Text(if (cards.isEmpty()) "Ta collection est vide. Scanne ta première carte pour commencer." else "Aucune carte possédée ne correspond aux filtres.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (cards.isNotEmpty()) TextButton(onClick = { search = ""; collectionSetFilter = "Toutes"; collectionScope = "Possédées"; collectionLanguage = "Toutes"; savedCollectionSort = CollectionPriceSort.CATALOG.name }) { Text("Effacer les filtres") }
                 } else if (groupVersions) {
-                    val groups = groupOwnedVersions(selectedOwned, allCatalog, cardDetails)
+                    val groups = groupOwnedVersions(selectedOwned, allCatalog, cardDetails, acrossSets = privateLayout)
                     LazyColumn(Modifier.fillMaxWidth().weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(groups, key = { it.first().id }) { rows ->
                             GroupedOwnedCard(rows, allCatalog, collectionQuotes,
@@ -1244,7 +1291,7 @@ private fun CollectionScreen(
                                     catalogByKey[MarketPricing.key(row.setCode,row.number)]?.let { CardPreviewEntry(it,row.variant,row.language) }
                                 }, owned.variant, owned.language) },
                                 onQuantity = { id, delta -> database.changeQuantity(id, delta); refresh() },
-                                onLanguage = { editingOwnedLanguage = it; languageError = null })
+                                onLanguage = { editingOwnedLanguage = it; languageError = null }, openDirect = privateLayout)
                         }
                     }
                 } else {

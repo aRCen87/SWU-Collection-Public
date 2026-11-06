@@ -1,3 +1,11 @@
+## Test 0.8.19-test.12
+
+- Fiche unique par carte avec miniatures des versions, langues et quantités ; regroupement activé une fois par défaut, réimpressions reconnues incluses, sans fusionner les stocks.
+- Sauvegarde automatique privée du compte vérifié, modifications regroupées et copie vérifiée sur le serveur. Pause en cas de sauvegarde distante différente ou de changement de compte ; restauration et choix de conserver ce téléphone confirmés.
+- Alertes de messages privés et demandes d’amis par vérification Android périodique (15 minutes minimum, retards possibles), réglages séparés et test local. Les textes de messages restent masqués sur l’écran verrouillé.
+- Échanges : miniatures, recherches de chaque joueur, doublons partagés et correspondances détaillées ; brouillon modifiable avant envoi.
+- Validation des changements de fenêtre avec recherche/clavier ouvert, fiche et carte suivante/précédente conservées, scanner redimensionné. Liste de vérification du vrai téléphone dans Paramètres → Vérifier mon écran pliant.
+
 ## Test 0.8.19-test.11
 
 - Correction de l’ouverture des mises à jour privées : page du fichier dans le navigateur normal, sans appel direct au téléchargement qui provoquait le message « Cross-site file URL requests are not allowed ».

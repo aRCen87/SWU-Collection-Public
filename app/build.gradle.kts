@@ -36,7 +36,7 @@ android {
         create("preview") {
             initWith(getByName("release"))
             applicationIdSuffix = ".test"
-            versionNameSuffix = "-test.11"
+            versionNameSuffix = "-test.12"
             signingConfig = signingConfigs.getByName("release")
             matchingFallbacks += listOf("release")
         }
@@ -58,7 +58,7 @@ android {
 // The private app has its own update sequence; the official release stays frozen.
 androidComponents {
     onVariants(selector().withBuildType("preview")) { variant ->
-        variant.outputs.forEach { it.versionCode.set(70) }
+        variant.outputs.forEach { it.versionCode.set(71) }
     }
 }
 kotlin { jvmToolchain(17) }

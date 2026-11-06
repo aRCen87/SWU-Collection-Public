@@ -28,13 +28,12 @@ internal fun TradeComposer(peer: PlayerProfile, catalog: List<CatalogCard>, busy
     AlertDialog(onDismissRequest = { if (!busy) onClose() }, title = { Text("Échange avec ${peer.name}") }, text = {
         Column(Modifier.heightIn(max = 500.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Compose les deux côtés. L’acceptation confirme l’accord sans modifier les collections.", fontSize = 12.sp)
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 FilterChip(offering, { offering = true }, label = { Text("Je propose (${offer.size})") })
                 FilterChip(!offering, { offering = false }, label = { Text("Je recherche (${wanted.size})") })
             }
             selected.forEachIndexed { index, item -> Column {
-                Text(catalog.firstOrNull { DeckConstruction.reference(it) == item.cardId }?.name ?: item.cardId, fontWeight = FontWeight.SemiBold)
-                Text("${item.language} · ${item.finish}", fontSize = 11.sp)
+                TradePreviewRow(catalog.firstOrNull { DeckConstruction.reference(it) == item.cardId }, item.cardId, item.quantity, item.language, item.finish)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = { replace(selected.toMutableList().apply { if (item.quantity == 1) removeAt(index) else set(index, item.copy(quantity = item.quantity - 1)) }) }, enabled = !busy) { Text("−") }
                     Text("${item.quantity}")

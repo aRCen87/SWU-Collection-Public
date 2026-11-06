@@ -112,7 +112,7 @@ internal fun AccountBackupPanel(database: CollectionDatabase, onAccount: () -> U
     }
     Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Sauvegarde privée de mon compte", style = MaterialTheme.typography.titleMedium)
-        Text("Collection, langues, variantes, listes, decks, badges et accueil. Enregistre depuis ce téléphone, puis restaure sur le nouveau. Chaque restauration demande une confirmation.")
+        Text("Collection, langues, variantes, listes, decks, badges et accueil. Les modifications sont sauvegardées automatiquement après connexion. Sur un autre téléphone, choisis la sauvegarde à restaurer. Chaque remplacement demande confirmation.")
         if (owner == null || service.auth.currentUser?.isEmailVerified != true) {
             OutlinedButton(onClick = onAccount) { Text("Me connecter à mon compte") }
         } else key(owner) { AccountBackupSession(service, database, onRestored) }
@@ -124,6 +124,7 @@ private fun AccountBackupSession(service: CommunityService, database: Collection
     var busy by remember { mutableStateOf(true) }; var allowed by remember { mutableStateOf(false) }
     var status by remember { mutableStateOf<String?>(null) }; var head by remember { mutableStateOf<String?>(null) }
     var rows by remember { mutableStateOf<List<AccountSnapshot>>(emptyList()) }; var pending by remember { mutableStateOf<String?>(null) }
+    var pendingSave by remember { mutableStateOf<String?>(null) }
     suspend fun load() { allowed = service.allowed(); check(allowed) { "Ce compte est désactivé." }; head = service.backupHead(); rows = service.accountSnapshots() }
     fun action(block: suspend () -> Unit) { if (!busy) scope.launch {
         busy = true; status = null
@@ -133,12 +134,24 @@ private fun AccountBackupSession(service: CommunityService, database: Collection
     } }
     LaunchedEffect(owner) { try { load() } catch (e: Exception) { status = communityError(e) } finally { busy = false } }
     if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+    AutomaticBackupControls(owner)
     status?.let { Text(it) }
     OutlinedButton(onClick = { action { load() } }, enabled = !busy) { Text("Actualiser les sauvegardes du compte") }
     Button(onClick = { action {
-        val raw = withContext(Dispatchers.IO) { accountBackupJson(context, database) }
-        service.saveAccountBackup(raw, head, owner); load(); status = "Sauvegarde du compte enregistrée et vérifiée."
-    } }, enabled = !busy && allowed) { Text("Sauvegarder ce téléphone sur mon compte") }
+        pendingSave = withContext(Dispatchers.IO) { accountBackupJson(context, database) }
+    } }, enabled = !busy && allowed) { Text("Conserver ce téléphone et sauvegarder") }
+    pendingSave?.let { raw ->
+        val summary = remember(raw) { validateAccountBackup(raw) }
+        AlertDialog(onDismissRequest = { pendingSave = null }, title = { Text("Conserver les données de ce téléphone ?") }, text = {
+            Text("${summary.references} références, ${summary.copies} exemplaires, ${summary.lists} listes et ${summary.decks} decks. Cette copie deviendra la sauvegarde courante du compte. Les sauvegardes précédentes seront conservées. Aucun cumul de quantités ne sera effectué.")
+        }, confirmButton = { TextButton(onClick = { pendingSave = null; action {
+            AutomaticAccountBackup.exclusive {
+                val id = service.saveAccountBackup(raw, head, owner)
+                AutomaticAccountBackup.acknowledge(context, owner, id, raw)
+            }
+            load(); status = "Sauvegarde du compte enregistrée et vérifiée."
+        } }) { Text("Utiliser ce téléphone") } }, dismissButton = { TextButton(onClick = { pendingSave = null }) { Text("Annuler") } })
+    }
     if (rows.isEmpty() && !busy && allowed) Text("Aucune sauvegarde sur ce compte pour le moment.")
     rows.forEach { row -> OutlinedButton(onClick = { action { pending = service.readAccountBackup(row) } }, enabled = !busy) {
         Text("Restaurer · " + java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.FRANCE).format(java.util.Date(row.created)))
@@ -149,13 +162,14 @@ private fun AccountBackupSession(service: CommunityService, database: Collection
             Text("${summary.references} références, ${summary.copies} exemplaires, ${summary.lists} listes et ${summary.decks} decks.\n\nCette sauvegarde remplacera les données de ce téléphone, sans additionner les quantités. Une copie de récupération locale sera créée avant la restauration.")
         }, confirmButton = { TextButton(onClick = { pending = null; action {
             check(service.auth.currentUser?.uid == owner)
-            withContext(Dispatchers.IO) {
+            AutomaticAccountBackup.exclusive { withContext(Dispatchers.IO) {
                 validateAccountBackup(raw); UpdateBackups.create(context, database)
                 database.importJson(raw, replace = true)
                 val root = JSONObject(raw)
                 root.optJSONObject("homeLayout")?.let { HomeLayoutStore(context).write(HomeLayoutStore.parse(it.toString())) }
                 root.optJSONArray("deckPins")?.let { pins -> DeckPins(context).restore((0 until pins.length()).map { pins.getString(it) }, DeckStore(context).all().map { it.id }.toSet()) }
-            }
+                AutomaticAccountBackup.acknowledge(context, owner, head, accountBackupJson(context, database), pending = true)
+            } }
             onRestored(); status = "Sauvegarde restaurée sur ce téléphone."
         } }, enabled = !busy) { Text("Restaurer sur ce téléphone") } }, dismissButton = { TextButton(onClick = { pending = null }) { Text("Annuler") } })
     }

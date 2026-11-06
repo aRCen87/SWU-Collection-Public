@@ -110,9 +110,9 @@ internal fun ActiveCollectionFilters(set: String, scope: String, sort: Collectio
     }
 }
 
-internal fun groupOwnedVersions(cards: List<CollectionCard>, catalog: List<CatalogCard>, details: CardDetails): List<List<CollectionCard>> {
+internal fun groupOwnedVersions(cards: List<CollectionCard>, catalog: List<CatalogCard>, details: CardDetails, acrossSets: Boolean = false): List<List<CollectionCard>> {
     val byKey = catalog.associateBy { MarketPricing.key(it.setCode,it.number) }
-    return cards.groupBy { row -> byKey[MarketPricing.key(row.setCode,row.number)]?.let { CollectionObjectives.family(it,details) }
+    return cards.groupBy { row -> byKey[MarketPricing.key(row.setCode,row.number)]?.let { if (acrossSets) details.family(it) else CollectionObjectives.family(it,details) }
         ?: "unknown:${MarketPricing.key(row.setCode,row.number)}" }.values.toList()
 }
 
@@ -122,11 +122,12 @@ internal fun groupOwnedPrints(rows: List<CollectionCard>): List<List<CollectionC
 
 @Composable
 internal fun GroupedOwnedCard(rows: List<CollectionCard>, catalog: List<CatalogCard>, quotes: Map<String, MarketQuote>,
-    onPreview: (CollectionCard, CatalogCard) -> Unit, onQuantity: (Long, Int) -> Unit, onLanguage: (CollectionCard) -> Unit = {}) {
+    onPreview: (CollectionCard, CatalogCard) -> Unit, onQuantity: (Long, Int) -> Unit, onLanguage: (CollectionCard) -> Unit = {}, openDirect: Boolean = false) {
     val prints = remember(rows) { groupOwnedPrints(rows) }
     var expanded by remember(rows.first().id) { mutableStateOf(false) }
     val first = rows.first()
-    OutlinedCard(onClick = { expanded = !expanded }, modifier = Modifier.fillMaxWidth(),
+    val representative = catalog.firstOrNull { MarketPricing.key(it.setCode,it.number) == MarketPricing.key(first.setCode,first.number) }
+    OutlinedCard(onClick = { if (openDirect && representative != null) onPreview(first, representative) else expanded = !expanded }, modifier = Modifier.fillMaxWidth(),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -140,9 +141,10 @@ internal fun GroupedOwnedCard(rows: List<CollectionCard>, catalog: List<CatalogC
                         val money = java.text.NumberFormat.getCurrencyInstance(java.util.Locale.FRANCE)
                         Text("Cote unitaire : " + money.format(prices.minOrNull()) + if (prices.minOrNull() != prices.maxOrNull()) " à ${money.format(prices.maxOrNull())}" else "", style = MaterialTheme.typography.bodySmall)
                     }
-                    Text(if (expanded) "Masquer les versions ▴" else "Voir les versions ▾", color = MaterialTheme.colorScheme.primary)
+                    Text(if (openDirect) "Ouvrir la fiche et ses versions ›" else if (expanded) "Masquer les versions ▴" else "Voir les versions ▾", color = MaterialTheme.colorScheme.primary)
                 }
             }
+            if (openDirect) TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "Masquer les quantités par version" else "Modifier les quantités par version") }
             if (expanded) prints.forEach { languages ->
                 val print = languages.first()
                 val card = catalog.firstOrNull { MarketPricing.key(it.setCode,it.number) == MarketPricing.key(print.setCode,print.number) }
