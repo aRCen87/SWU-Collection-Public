@@ -1,3 +1,10 @@
+## Test 0.8.19-test.5
+
+- Accueil : avatar seul en haut à droite, menu en dessous et courrier sous le menu. Suppression du bandeau de profil supplémentaire.
+- Correction du bandeau des mises à jour : les nouvelles versions Test sont maintenant affichées en haut de l’application.
+- Le clic sur la notification ou le bandeau Test lance directement la demande de téléchargement privé, après sauvegarde, sans devoir appuyer sur un second bouton dans Mises à jour.
+- Le fichier reste réservé au compte ChatGPT du destinataire ; une authentification dans le navigateur peut être demandée. Android demande toujours la confirmation d’installation.
+
 ## Test 0.8.19-test.4
 
 - Avatar et pseudo accessibles depuis l’accueil, avec pastille pour les messages et demandes.

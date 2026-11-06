@@ -10,6 +10,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.content.FileProvider
+import androidx.browser.customtabs.CustomTabsClient
+import androidx.browser.customtabs.CustomTabsIntent
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -97,12 +101,15 @@ internal class AppUpdates(private val context: Context, private val database: Co
     val installedVersion: String = installed.versionName ?: "0.0.0"
     var release by mutableStateOf<AppRelease?>(null)
         private set
-    var previewRelease by mutableStateOf<PreviewRelease?>(null)
+    var previewRelease by mutableStateOf<PreviewRelease?>(
+        if (context.packageName == AppChannel.TEST_PACKAGE) PreviewUpdateNotifications.cached(context, PackageInfoCompat.getLongVersionCode(installed)) else null)
         private set
     var busy by mutableStateOf(false)
         private set
     var message by mutableStateOf<String?>(null)
         private set
+    val availableVersion: String? get() = previewRelease?.version ?: release?.version
+    private var previewDownloadRequested = false
     private var readyFile: File? = null
     private var readyRelease: AppRelease? = null
     val readyToInstall get() = readyFile?.isFile == true && readyRelease == release
@@ -147,6 +154,19 @@ internal class AppUpdates(private val context: Context, private val database: Co
         } finally { busy = false }
     }
 
+    suspend fun requestPrivateDownload() {
+        if (context.packageName != AppChannel.TEST_PACKAGE || previewDownloadRequested) return
+        previewDownloadRequested = true
+        try {
+            withTimeout(60000) {
+                while (busy) delay(50)
+                if (previewRelease == null) checkPreview()
+                openPrivateDownload()
+            }
+        } catch (cancelled: CancellationException) { throw cancelled
+        } finally { previewDownloadRequested = false }
+    }
+
     suspend fun openPrivateDownload() {
         if (context.packageName != AppChannel.TEST_PACKAGE || busy) return
         val target = previewRelease ?: return
@@ -154,8 +174,14 @@ internal class AppUpdates(private val context: Context, private val database: Co
         busy = true
         try {
             withContext(Dispatchers.IO) { UpdateBackups.create(context, database) }
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(target.url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            message = "Téléchargement privé ouvert. Connecte-toi à ton compte ChatGPT, puis installe le fichier par-dessus l’application Test."
+            val browser = CustomTabsClient.getPackageName(context, null)
+                ?: error("Aucun navigateur compatible disponible.")
+            val customTab = CustomTabsIntent.Builder().build().apply {
+                intent.setPackage(browser)
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            customTab.launchUrl(context, Uri.parse(PreviewUpdateFeed.directDownloadUrl(target.url)))
+            message = "Téléchargement demandé dans ton navigateur. ChatGPT peut demander une connexion. Une fois le fichier reçu, ouvre-le pour mettre à jour l’application Test."
         } catch (cancelled: CancellationException) { throw cancelled
         } catch (_: Exception) { message = "Impossible d’ouvrir le téléchargement privé. Réessaie."
         } finally { busy = false }

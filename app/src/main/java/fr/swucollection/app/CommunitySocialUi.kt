@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.util.Base64
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -13,6 +14,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MailOutline
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,10 +42,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-internal fun CommunityHomeHeader(onOpen: (String) -> Unit) {
+internal fun CommunityHomeControls(onOpen: (String) -> Unit, onMenu: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val service = remember(context) { CommunityService.create(context) }
-    if (service == null) return
+    if (service == null) {
+        CommunityHomeActions(null, 0, "Messages", onOpen, onMenu, modifier)
+        return
+    }
     var uid by remember { mutableStateOf(service.auth.currentUser?.uid) }
     DisposableEffect(service) {
         val listener = FirebaseAuth.AuthStateListener { uid = it.currentUser?.uid }
@@ -60,22 +68,32 @@ internal fun CommunityHomeHeader(onOpen: (String) -> Unit) {
                 service.conversations({ threads = it }, {}), service.receipts({ receipts = it }, {}), service.trades({ trades = it }, {})) else emptyList()
             onDispose { listeners.forEach { it.remove() } }
         }
-        if (uid == null || !ready) {
-            OutlinedButton(onClick = { onOpen("Mon profil") }, modifier = Modifier.fillMaxWidth()) { Text("Mon compte · Communauté · Messages") }
-        } else Card(Modifier.fillMaxWidth()) {
-            Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(Modifier.weight(1f).clickable { onOpen("Mon profil") }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    CommunityAvatar(profile?.avatar ?: "preset:star", Modifier.size(48.dp))
-                    Column { Text(profile?.name ?: "Créer mon profil", fontWeight = FontWeight.Bold); Text("Mon profil ›", fontSize = 12.sp) }
-                }
-                val count = CommunitySocial.unread(uid.orEmpty(), threads, receipts) + friendships.count { it.status == "pending" && it.requester != uid } + trades.count { it.status == "pending" && it.requester != uid }
-                BadgedBox(badge = { if (count > 0) Badge { Text(if (count > 99) "99+" else "$count") } }) {
-                    IconButton(onClick = { onOpen(when {
-                        friendships.any { it.status == "pending" && it.requester != uid } -> "Amis"
-                        trades.any { it.status == "pending" && it.requester != uid } -> "Échanges"
-                        else -> "Messages"
-                    }) }) { Icon(Icons.Default.MailOutline, "Messages et demandes, $count en attente", tint = badgeGold) }
-                }
+        val count = if (ready) CommunitySocial.unread(uid.orEmpty(), threads, receipts) +
+            friendships.count { it.status == "pending" && it.requester != uid } +
+            trades.count { it.status == "pending" && it.requester != uid } else 0
+        val destination = when {
+            friendships.any { it.status == "pending" && it.requester != uid } -> "Amis"
+            trades.any { it.status == "pending" && it.requester != uid } -> "Échanges"
+            else -> "Messages"
+        }
+        CommunityHomeActions(profile?.avatar, count, destination, onOpen, onMenu, modifier)
+    }
+
+}
+
+@Composable
+private fun CommunityHomeActions(avatar: String?, count: Int, destination: String,
+    onOpen: (String) -> Unit, onMenu: () -> Unit, modifier: Modifier) {
+    Column(modifier.width(48.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        IconButton(onClick = { onOpen("Mon profil") }, modifier = Modifier.size(48.dp).semantics { contentDescription = "Mon profil" }) {
+            CommunityAvatar(avatar ?: "preset:star", Modifier.size(34.dp).border(1.dp, badgeGold, CircleShape).clearAndSetSemantics {})
+        }
+        IconButton(onClick = onMenu, modifier = Modifier.size(48.dp)) {
+            Icon(Icons.Default.Menu, "Ouvrir le menu", tint = badgeGold)
+        }
+        BadgedBox(modifier = Modifier.size(48.dp), badge = { if (count > 0) Badge { Text(if (count > 99) "99+" else "$count") } }) {
+            IconButton(onClick = { onOpen(destination) }, modifier = Modifier.size(48.dp)) {
+                Icon(Icons.Default.MailOutline, "Courrier, $count en attente", tint = badgeGold)
             }
         }
     }

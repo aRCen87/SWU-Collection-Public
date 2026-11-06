@@ -16,6 +16,11 @@ internal data class PreviewRelease(val code: Long, val version: String, val note
 
 /** Public announcement metadata only; APK access stays with the owner's private Library. */
 internal object PreviewUpdateFeed {
+    fun directDownloadUrl(pageUrl: String): String {
+        require(isPrivateDownload(pageUrl)) { "Lien de téléchargement privé invalide." }
+        val file = pageUrl.substringAfter("file_id=").substringBefore('&')
+        return "https://chatgpt.com/api/library/files/$file/download"
+    }
     private const val ENDPOINT = "https://raw.githubusercontent.com/aRCen87/SWU-Collection-Public/preview/private-sandbox/docs/preview-update.json"
     private const val MAX_FEED_BYTES = 64 * 1024
     fun isPrivateDownload(url: String) = Regex("https://chatgpt\\.com/library\\?file_id=libfile_[A-Za-z0-9_-]+&account_id=personal").matches(url)
@@ -77,6 +82,16 @@ internal object PreviewUpdatePolicy {
 
 internal object PreviewUpdateNotifications {
     private const val ID = 4702
+    private const val DOWNLOAD_TOKEN = "private_download_token"
+    private const val TOKEN_EXTRA = "private_update_download_token"
+    @Synchronized
+    fun consumeDownloadRequest(context: Context, intent: Intent): Boolean {
+        if (context.packageName != AppChannel.TEST_PACKAGE || intent.action != UpdateNotifications.ACTION_DOWNLOAD_TEST_UPDATE) return false
+        val expected = prefs(context).getString(DOWNLOAD_TOKEN, null) ?: return false
+        if (intent.getStringExtra(TOKEN_EXTRA) != expected) return false
+        prefs(context).edit().remove(DOWNLOAD_TOKEN).commit()
+        return true
+    }
     private fun prefs(context: Context) = context.getSharedPreferences("private_preview_updates", Context.MODE_PRIVATE)
     @Suppress("DEPRECATION")
     fun installedCode(context: Context): Long = PackageInfoCompat.getLongVersionCode(
@@ -103,19 +118,21 @@ internal object PreviewUpdateNotifications {
         UpdateNotifications.createChannel(context)
         if (!UpdateNotifications.allowed(context) || !PreviewUpdatePolicy.shouldNotify(installed, release.code,
                 prefs(context).getLong("last_notified_code", 0))) return false
+        val token = java.util.UUID.randomUUID().toString()
         val intent = Intent(context, MainActivity::class.java).apply {
-            action = UpdateNotifications.ACTION_OPEN_UPDATES
+            action = UpdateNotifications.ACTION_DOWNLOAD_TEST_UPDATE
+            putExtra(TOKEN_EXTRA, token)
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
         val pending = PendingIntent.getActivity(context, ID, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val notification = NotificationCompat.Builder(context, UpdateNotifications.CHANNEL)
             .setSmallIcon(R.drawable.ic_update_notification)
             .setContentTitle("SWU Collection Test : mise à jour")
-            .setContentText("La version ${release.version} est disponible en téléchargement privé.")
+            .setContentText("La version ${release.version} est disponible. Touchez pour lancer le téléchargement privé.")
             .setContentIntent(pending).setAutoCancel(true).build()
         return try {
             NotificationManagerCompat.from(context).notify(ID, notification)
-            prefs(context).edit().putLong("last_notified_code", release.code).apply()
+            prefs(context).edit().putLong("last_notified_code", release.code).putString(DOWNLOAD_TOKEN, token).apply()
             true
         } catch (_: SecurityException) { false }
     }

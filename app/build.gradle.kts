@@ -36,7 +36,7 @@ android {
         create("preview") {
             initWith(getByName("release"))
             applicationIdSuffix = ".test"
-            versionNameSuffix = "-test.4"
+            versionNameSuffix = "-test.5"
             signingConfig = signingConfigs.getByName("release")
             matchingFallbacks += listOf("release")
         }
@@ -58,7 +58,7 @@ android {
 // The private app has its own update sequence; the official release stays frozen.
 androidComponents {
     onVariants(selector().withBuildType("preview")) { variant ->
-        variant.outputs.forEach { it.versionCode.set(63) }
+        variant.outputs.forEach { it.versionCode.set(64) }
     }
 }
 kotlin { jvmToolchain(17) }
@@ -71,6 +71,7 @@ dependencies {
     implementation("com.google.guava:guava:33.4.8-android")
     implementation(platform("androidx.compose:compose-bom:2025.10.00"))
     implementation("androidx.core:core-ktx:1.17.0")
+    implementation("androidx.browser:browser:1.10.0")
     implementation("androidx.activity:activity-compose:1.11.0")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")

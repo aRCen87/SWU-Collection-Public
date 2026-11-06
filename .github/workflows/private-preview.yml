@@ -107,6 +107,14 @@ jobs:
           emulator-boot-timeout: 300
           disable-animations: true
           script: bash .github/scripts/smoke_private_preview.sh
+      - name: Encrypt the empty-account layout check for private review
+        run: python3 .github/scripts/encrypt_private_preview.py docs/preview-recipient-public.pem smoke-private/home-test.png distribution-layout-private
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SWU-Collection-Test-layout-encrypted
+          retention-days: 7
+          path: distribution-layout-private/
+          if-no-files-found: error
       - name: Encrypt the validated test APK for private delivery
         run: python3 .github/scripts/encrypt_private_preview.py docs/preview-recipient-public.pem distribution/SWU-Collection-Test.apk distribution-private
       - uses: actions/upload-artifact@v4

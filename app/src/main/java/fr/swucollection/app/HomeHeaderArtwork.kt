@@ -70,12 +70,33 @@ internal fun rememberHeaderReflectionProgress(active: Boolean): State<Float> {
 }
 
 @Composable
-internal fun HomeHeaderArtwork(progress: State<Float>, reflection: State<Float>, modifier: Modifier = Modifier) {
+internal fun HomeHeaderArtwork(progress: State<Float>, reflection: State<Float>, modifier: Modifier = Modifier, compactControls: Boolean = false) {
     val logoContour = remember { HomeLogoContour() }
     val resources = LocalContext.current.resources
-    val artwork = remember(resources) {
+    val artwork = remember(resources, compactControls) {
         val sheet = BitmapFactory.decodeResource(resources, R.drawable.collection_design_reference)
-        val original = Bitmap.createBitmap(sheet, 550, 80, 475, 185)
+        val crop = Bitmap.createBitmap(sheet, 550, 80, 475, 185)
+        val original = if (compactControls) crop.copy(Bitmap.Config.ARGB_8888, true).also { crop.recycle() } else crop
+        // The Test controls draw a real menu below the avatar. Remove the baked-in
+        // gold menu strokes using the sky on either side, preserving the artwork.
+        if (compactControls) for (y in 10..50) for (x in 414..454) {
+            val pixel = original.getPixel(x, y)
+            val red = (pixel ushr 16) and 255
+            val green = (pixel ushr 8) and 255
+            val blue = pixel and 255
+            if (red > 100 && red > blue * 1.2f && green > blue) {
+                val left = original.getPixel(412, y)
+                val right = original.getPixel(456, y)
+                val t = (x - 412) / 44f
+                var color = 0xFF000000.toInt()
+                for (shift in intArrayOf(16, 8, 0)) {
+                    val l = (left ushr shift) and 255
+                    val r = (right ushr shift) and 255
+                    color = color or ((l + (r - l) * t).roundToInt() shl shift)
+                }
+                original.setPixel(x, y, color)
+            }
+        }
         val withoutStar = original.copy(Bitmap.Config.ARGB_8888, true)
         // Repair only the gold star pixels, using the background at the same height.
         // The complete untouched artwork is restored at arrival: no rectangular patch.

@@ -21,10 +21,23 @@ nodes=list(ET.parse('smoke-private/'+sys.argv[1]+'.xml').iter('node'))
 texts={n.attrib.get('text','') for n in nodes}
 assert 'SCANNER' in texts,texts
 assert any(n.attrib.get('package')==sys.argv[1] for n in nodes)
+if sys.argv[1]=='fr.swucollection.app.test':
+ import re
+ def rect(label):
+  found=[n for n in nodes if label in n.attrib.get('content-desc','').split('\n')]
+  assert found,label
+  return list(map(int,re.findall(r'\d+',found[-1].attrib['bounds'])))
+ avatar=rect('Mon profil');menu=rect('Ouvrir le menu');mail=rect('Courrier, 0 en attente')
+ assert avatar[3]<=menu[1] and menu[3]<=mail[1],(avatar,menu,mail)
+ assert abs(avatar[0]-menu[0])<=4 and abs(menu[0]-mail[0])<=4,(avatar,menu,mail)
+ assert 'Mon compte · Communauté · Messages' not in texts
 PYUI
   adb logcat -d -s AndroidRuntime:E > "smoke-private/$package-crashes.txt"
   if grep -q 'FATAL EXCEPTION' "smoke-private/$package-crashes.txt"; then exit 1; fi
 done
+# The empty test account contains no private user data; keep its home capture encrypted.
+adb shell screencap -p /sdcard/test-home.png
+adb pull /sdcard/test-home.png smoke-private/home-test.png >/dev/null
 # Both identities still exist after launching each application.
 adb shell pm path fr.swucollection.app
 adb shell pm path fr.swucollection.app.test
@@ -40,7 +53,7 @@ tap_private_label() {
   adb pull /sdcard/private-form.xml smoke-private/private-form.xml >/dev/null
   read -r x y < <(python3 - "$1" <<'PYCOORD'
 import re,sys,xml.etree.ElementTree as ET
-nodes=[n for n in ET.parse('smoke-private/private-form.xml').iter('node') if n.attrib.get('text')==sys.argv[1]]
+nodes=[n for n in ET.parse('smoke-private/private-form.xml').iter('node') if n.attrib.get('text')==sys.argv[1] or n.attrib.get('content-desc')==sys.argv[1]]
 assert nodes,sys.argv[1]
 x1,y1,x2,y2=map(int,re.findall(r'\d+',nodes[-1].attrib['bounds']))
 assert x2>x1 and y2>y1
@@ -50,7 +63,7 @@ PYCOORD
   adb shell input tap "$x" "$y"
   sleep 3
 }
-tap_private_label 'Mon compte · Communauté · Messages'
+tap_private_label 'Mon profil'
 adb shell uiautomator dump /sdcard/private-account.xml >/dev/null
 adb pull /sdcard/private-account.xml smoke-private/private-account.xml >/dev/null
 python3 - <<'PYACCOUNT'
@@ -86,7 +99,7 @@ python3 - <<'PYUPDATES'
 import xml.etree.ElementTree as ET
 texts={n.attrib.get('text','') for n in ET.parse('smoke-private/private-updates.xml').iter('node')}
 assert 'Mise à jour de l’application' in texts,texts
-assert any('0.8.19-test.4' in text for text in texts),texts
+assert any('0.8.19-test.5' in text for text in texts),texts
 PYUPDATES
 adb logcat -d -s AndroidRuntime:E > smoke-private/private-updates-crashes.txt
 if grep -q 'FATAL EXCEPTION' smoke-private/private-updates-crashes.txt; then exit 1; fi

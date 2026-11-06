@@ -10,6 +10,12 @@ class PreviewUpdateFeedTest {
         .put("versionName", "0.8.19-test.4").put("notes", "Essais privés")
         .put("privateDownloadUrl", "https://chatgpt.com/library?file_id=libfile_example&account_id=personal")
         .put("sha256", "a".repeat(64)).put("size", 83000000)
+    @Test fun directDownloadUsesOnlyTheValidatedPrivateFileAndCannotRedirect() {
+        assertEquals("https://chatgpt.com/api/library/files/libfile_example/download", PreviewUpdateFeed.directDownloadUrl("https://chatgpt.com/library?file_id=libfile_example&account_id=personal"))
+        for (url in listOf("https://evil.test/library?file_id=libfile_example&account_id=personal", "https://chatgpt.com/library?file_id=../secret&account_id=personal", "https://chatgpt.com/library?file_id=libfile_example&account_id=personal&redirect=evil")) {
+            assertTrue(runCatching { PreviewUpdateFeed.directDownloadUrl(url) }.isFailure)
+        }
+    }
     @Test fun onlyNewerAndroidCodesAreOffered() {
         assertEquals(63L, PreviewUpdateFeed.parse(announcement().toString(), 62)!!.code)
         assertNull(PreviewUpdateFeed.parse(announcement().toString(), 63))

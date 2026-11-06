@@ -87,12 +87,17 @@ class MainActivity : ComponentActivity() {
     private var optionalDetails: CardDetails? = null
     private var recoveryOnly by mutableStateOf(false)
     private val updateNavigationRequest = mutableIntStateOf(0)
+    private val previewDownloadRequest = mutableIntStateOf(0)
     private val foregroundRequest = mutableIntStateOf(0)
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         if (intent.action == UpdateNotifications.ACTION_OPEN_UPDATES) updateNavigationRequest.intValue++
+        if (PreviewUpdateNotifications.consumeDownloadRequest(this, intent)) {
+            updateNavigationRequest.intValue++
+            previewDownloadRequest.intValue++
+        }
     }
 
     override fun onResume() {
@@ -116,6 +121,10 @@ class MainActivity : ComponentActivity() {
             CardDetails.empty()
         }
         if (intent.action == UpdateNotifications.ACTION_OPEN_UPDATES) updateNavigationRequest.intValue++
+        if (PreviewUpdateNotifications.consumeDownloadRequest(this, intent)) {
+            updateNavigationRequest.intValue++
+            previewDownloadRequest.intValue++
+        }
         setContent {
             val swuColors = darkColorScheme(
                 primary = Color(0xFFFFD47D),
@@ -149,6 +158,7 @@ class MainActivity : ComponentActivity() {
                         details = optionalDetails ?: CardDetails.empty(),
                         database = database,
                         updateNavigationRequest = updateNavigationRequest.intValue,
+                        previewDownloadRequest = previewDownloadRequest.intValue,
                         foregroundRequest = foregroundRequest.intValue,
                         onExport = { uri ->
                             if (uri != null) contentResolver.openOutputStream(uri)?.use { output ->
@@ -177,6 +187,7 @@ private fun CollectionScreen(
     onExport: (Uri?) -> Unit,
     onSyncCatalog: (onResult: (Boolean) -> Unit) -> Unit,
     updateNavigationRequest: Int = 0,
+    previewDownloadRequest: Int = 0,
     foregroundRequest: Int = 0
 ) {
     val compactHeader = LocalConfiguration.current.screenWidthDp < 400
@@ -422,6 +433,9 @@ private fun CollectionScreen(
     val homeFilmQuote = rememberHomeFilmQuote(homeArtworkActive)
     val updateScope = rememberCoroutineScope()
     val appUpdates = remember(appContext, database) { AppUpdates(appContext, database) }
+    LaunchedEffect(previewDownloadRequest) {
+        if (previewDownloadRequest > 0 && appContext.packageName == AppChannel.TEST_PACKAGE) appUpdates.requestPrivateDownload()
+    }
     UpdateNotificationPermissionRequest()
     val latestForegroundRequest by rememberUpdatedState(foregroundRequest)
     LaunchedEffect(appUpdates) {
@@ -448,21 +462,25 @@ private fun CollectionScreen(
             ).padding(horizontal = 16.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (!deckWorkspace && appUpdates.release != null && selectedSection != "Mises à jour") {
-                OutlinedButton(onClick = { navigation.navigateTo("Mises à jour") }, modifier = Modifier.fillMaxWidth()) {
+            if (!deckWorkspace && appUpdates.availableVersion != null && selectedSection != "Mises à jour") {
+                OutlinedButton(onClick = {
+                    navigation.navigateTo("Mises à jour")
+                    if (deckContext.packageName == AppChannel.TEST_PACKAGE) updateScope.launch { appUpdates.requestPrivateDownload() }
+                }, enabled = !appUpdates.busy, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Default.Download, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Mise à jour ${appUpdates.release?.version} disponible")
+                    Text("Mise à jour ${appUpdates.availableVersion} disponible · Télécharger")
                 }
             }
             if (selectedSection == "Accueil") {
-            if (deckContext.packageName == "fr.swucollection.app.test") {
-                CommunityHomeHeader { tab -> communityInitialTab = tab; navigation.navigateTo("Communauté") }
-            }
-            Box(Modifier.fillMaxWidth()) {
+            val privateHome = deckContext.packageName == AppChannel.TEST_PACKAGE
+            Box(Modifier.fillMaxWidth().then(if (privateHome) Modifier.heightIn(min = 144.dp) else Modifier)) {
                 HomeHeaderArtwork(homeHeaderProgress, headerReflection,
-                    Modifier.fillMaxWidth().aspectRatio(475f / 185f))
-                IconButton(onClick = { menuOpen = true },
+                    Modifier.fillMaxWidth().aspectRatio(475f / 185f), compactControls = privateHome)
+                if (privateHome) CommunityHomeControls(
+                    onOpen = { tab -> communityInitialTab = tab; navigation.navigateTo("Communauté") },
+                    onMenu = { menuOpen = true }, modifier = Modifier.align(androidx.compose.ui.Alignment.TopEnd))
+                else IconButton(onClick = { menuOpen = true },
                     modifier = Modifier.align(androidx.compose.ui.Alignment.TopEnd)) {
                     Icon(Icons.Default.Menu, "Ouvrir le menu", tint = Color.Transparent)
                 }
@@ -741,7 +759,7 @@ private fun CollectionScreen(
                 AppUpdatePanel(appUpdates,
                     onCheck = { updateScope.launch { appUpdates.check() } },
                     onInstall = { updateScope.launch {
-                        if (appUpdates.previewRelease != null) appUpdates.openPrivateDownload()
+                        if (appUpdates.previewRelease != null) appUpdates.requestPrivateDownload()
                         else if (appUpdates.readyToInstall) appUpdates.install()
                         else { appUpdates.download(); if (appUpdates.readyToInstall) appUpdates.install() }
                     } })
@@ -1625,9 +1643,9 @@ private fun AppUpdatePanel(updates: AppUpdates, onCheck: () -> Unit, onInstall: 
             updates.previewRelease?.let { release ->
                 Text("Nouvelle version Test : ${release.version}", fontWeight = FontWeight.SemiBold)
                 if (release.notes.isNotBlank()) Text(release.notes, fontSize = 13.sp)
-                Text("Le téléchargement s’ouvre dans ton compte ChatGPT privé. Une copie de récupération est créée avant son ouverture. Installe le fichier par-dessus l’application Test.", fontSize = 12.sp)
+                Text("Le clic demande directement le téléchargement privé dans ton navigateur. Une connexion à ChatGPT peut être nécessaire. Une copie de récupération est créée avant son ouverture.", fontSize = 12.sp)
                 Button(onClick = onInstall, enabled = !updates.busy, modifier = Modifier.fillMaxWidth()) {
-                    Text("Télécharger la version Test")
+                    Text("Télécharger la mise à jour")
                 }
             }
             updates.release?.let { release ->

@@ -31,3 +31,9 @@ Le QR ami contient seulement l’identifiant du joueur, sans e-mail ni collectio
 La galerie propose Luke, Vador, Leia, Yoda, Han, Chewbacca, Ahsoka, Obi-Wan, R2-D2, C-3PO, Boba Fett, le Mandalorien, Maul, Palpatine, Rey et Sabine. Le portrait est extrait de l’illustration puis réduit et stocké comme les photos, sans lien distant ajouté au profil.
 
 La pastille d’accueil et les compteurs des onglets indiquent les conversations non lues, demandes d’amis et propositions reçues en attente pendant l’utilisation. Aucun nouveau relais push téléphone fermé n’est annoncé. Accepter un échange ne transfère aucune carte automatiquement ; les joueurs organisent la remise dans la messagerie puis ajustent leurs collections après l’échange.
+
+## Accueil compact et téléchargement — Test 0.8.19-test.5
+
+Les raccourcis sont intégrés au visuel d’accueil : avatar, menu puis courrier dans la colonne de droite, avec des cibles tactiles de 48 dp. Le bandeau de profil est retiré. Le menu dessiné dans l’image est masqué uniquement pour cette disposition Test ; les vrais boutons restent accessibles avec un lecteur d’écran.
+
+Le bandeau des mises à jour tient compte du flux privé. Son clic et celui de la notification demandent directement le fichier Library via le navigateur compatible Custom Tabs. La connexion privée reste gérée par ChatGPT dans le navigateur, sans mot de passe, cookie ni jeton intégré dans l’application. L’autorisation des notifications et les restrictions Android restent applicables. Le déclenchement depuis une notification utilise un jeton local à usage unique afin qu’une application externe ne puisse pas lancer arbitrairement le téléchargement. Une sauvegarde est créée avant l’ouverture ; l’installation reste confirmée par Android.

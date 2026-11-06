@@ -45,6 +45,7 @@ internal object UpdateReleaseCache {
 
 internal object UpdateNotifications {
     const val ACTION_OPEN_UPDATES = "fr.swucollection.app.OPEN_UPDATES"
+    const val ACTION_DOWNLOAD_TEST_UPDATE = "fr.swucollection.app.DOWNLOAD_TEST_UPDATE"
     internal const val CHANNEL = "application_updates"
     private const val NOTIFICATION_ID = 4701
     private fun prefs(context: Context) = context.getSharedPreferences("application_updates", Context.MODE_PRIVATE)
