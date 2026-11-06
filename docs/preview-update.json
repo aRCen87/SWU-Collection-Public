@@ -1,10 +1,11 @@
 {
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "versionCode": 61,
-  "versionName": "0.8.19-test.2",
-  "notes": "Comptes, profils, avatars, badges, messages privés et partage de decks pour les essais autorisés.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_dafc7de2819881918d1f83488af89dd2&account_id=personal",
-  "sha256": "119ae4442c1180525e0b5d9bf11a9514bf0f8465437d0ffe64d7eb13d4bc957e",
-  "size": 83693199
+  "versionCode": 62,
+  "versionName": "0.8.19-test.3",
+  "notes": "Notifications de mise à jour privées à l’ouverture et en arrière-plan. Le téléchargement reste réservé à ton compte ChatGPT. Une copie de récupération est créée avant son ouverture.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_3b753eabba888191980caa50424fdd65&account_id=personal",
+  "sha256": "ca1de29474dd71eea027cb6dfacc5023513580982bd41b69accd1d0875946e16",
+  "size": 83693199,
+  "sourceSha": "09c4774585c117950f897c8079e2ffbd91e2ea3e"
 }
