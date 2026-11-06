@@ -47,8 +47,12 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
     val uid: String get() = auth.currentUser?.uid ?: error("Connecte-toi d’abord.")
     suspend fun register(email: String, password: String) {
         require(password.length in 12..128) { "Utilise un mot de passe de 12 caractères minimum." }
-        val user = auth.createUserWithEmailAndPassword(email.trim(), password).communityAwait().user ?: error("Création impossible.")
-        user.sendEmailVerification().communityAwait()
+        // Auth listeners replace the login screen as soon as the account exists.
+        // Keep verification chained to the Firebase task even if that screen's coroutine is cancelled.
+        auth.createUserWithEmailAndPassword(email.trim(), password).continueWithTask { result ->
+            val user = result.result.user ?: error("Création impossible.")
+            user.sendEmailVerification()
+        }.communityAwait()
     }
     suspend fun login(email: String, password: String) { auth.signInWithEmailAndPassword(email.trim(), password).communityAwait() }
     suspend fun resetPassword(email: String) { require(email.trim().contains('@')); auth.sendPasswordResetEmail(email.trim()).communityAwait() }
