@@ -1,6 +1,8 @@
 package fr.swucollection.app
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -87,13 +89,13 @@ internal fun FriendTradeSuggestionPanel(service: CommunityService, database: Col
         } }
     } }
     preview?.let { profile -> AlertDialog(onDismissRequest = { preview = null }, title = { Text("Cartes visibles par mes amis") }, text = {
-        Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("${profile.offers.sumOf { it.quantity }} exemplaires proposés · ${profile.needs.sumOf { it.quantity }} recherchés")
-            Text("Doublons proposés", style = MaterialTheme.typography.titleSmall)
-            profile.offers.forEach { Text("${it.quantity} × ${it.name} · ${it.language} · ${it.variant}", style = MaterialTheme.typography.bodySmall) }
-            Text("Cartes recherchées", style = MaterialTheme.typography.titleSmall)
-            profile.needs.forEach { Text("${it.quantity} × ${it.name}", style = MaterialTheme.typography.bodySmall) }
-            Text("La liste est une copie : actualise-la après des changements dans ta collection. Aucune proposition n’est envoyée automatiquement.")
+        LazyColumn(Modifier.heightIn(max = 420.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            item { Text("${profile.offers.sumOf { it.quantity }} exemplaires proposés · ${profile.needs.sumOf { it.quantity }} recherchés") }
+            item { Text("Doublons proposés", style = MaterialTheme.typography.titleSmall) }
+            items(profile.offers, key = { "offer:" + it.key }) { Text("${it.quantity} × ${it.name} · ${it.language} · ${it.variant}", style = MaterialTheme.typography.bodySmall) }
+            item { Text("Cartes recherchées", style = MaterialTheme.typography.titleSmall) }
+            items(profile.needs, key = { "need:" + it.key }) { Text("${it.quantity} × ${it.name}", style = MaterialTheme.typography.bodySmall) }
+            item { Text("La liste est une copie : actualise-la après des changements dans ta collection. Aucune proposition n’est envoyée automatiquement.") }
         }
     }, confirmButton = { TextButton(onClick = { preview = null; action { service.shareTradeInventory(profile); status = "Cartes d’échange partagées avec tes amis acceptés." } }, enabled = !busy) { Text("Partager avec mes amis") } }, dismissButton = { TextButton(onClick = { preview = null }) { Text("Annuler") } }) }
 }

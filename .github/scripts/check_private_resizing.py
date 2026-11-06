@@ -121,6 +121,21 @@ try:
             px1,py1,px2,py2 = rect(panes[0])
             assert px2 > px1 and py2 > py1
             capture("home-test-unfolded-collection")
+            touch(root,"Mes listes")
+            library = snapshot("unfolded-deck-library")
+            touch(library,"+ Créer un deck")
+            naming = snapshot("unfolded-deck-name")
+            touch(naming,"Commencer")
+            builder = snapshot("unfolded-deck-builder")
+            deck_panes = [n for n in builder.iter("node") if n.attrib.get("resource-id") == "swu_deck_selection_pane"]
+            assert len(deck_panes) == 1, "Unfolded builder must show catalogue and deck together"
+            capture("home-test-unfolded-deck-builder")
+            touch(builder,"Retour à l’écran précédent")
+            leave = snapshot("unfolded-leave-deck")
+            touch(leave,"Conserver et quitter")
+            library = snapshot("unfolded-deck-preserved")
+            touch(library,"Collection")
+            root = snapshot("unfolded-collection-restored")
         else:
             assert not panes, "Compact or short windows must keep the single-pane layout"
     touch(root,"Accueil")
