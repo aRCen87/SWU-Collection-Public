@@ -2,6 +2,8 @@ package fr.swucollection.app
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,7 +19,7 @@ import androidx.compose.ui.window.DialogProperties
 @Composable
 internal fun AdaptiveWorkspace(enabled: Boolean, hasDetail: Boolean, onClose: () -> Unit,
     detail: @Composable () -> Unit, content: @Composable BoxScope.() -> Unit) {
-    BoxWithConstraints(Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {
+    BoxWithConstraints(Modifier.fillMaxSize().background(Color(0xFF030A17)).semantics { testTagsAsResourceId = true }) {
         val wide = enabled && maxWidth >= 720.dp && maxHeight >= 480.dp
         BackHandler(enabled = wide && hasDetail, onBack = onClose)
         if (wide) Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
