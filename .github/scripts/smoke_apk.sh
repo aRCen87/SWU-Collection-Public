@@ -498,7 +498,7 @@ python3 - <<'PYUNCONFIRMED'
 from pathlib import Path
 import xml.etree.ElementTree as ET
 texts={n.attrib.get('text','') for n in ET.parse('smoke/deck-scan-unconfirmed.xml').iter('node')}
-assert 'Valider · Ajouter à « Mon deck »' in texts and 'Annuler' in texts,texts
+assert 'Ajouter à « Mon deck »' in texts and 'Annuler' in texts,texts
 for capture in Path('smoke').glob('deck-scan-summary-*.xml'):
     texts.update(n.attrib.get('text','') for n in ET.parse(capture).iter('node'))
 assert any('JTL 788' in t for t in texts),texts
@@ -506,7 +506,7 @@ assert any('Cote' in t for t in texts),texts
 PYUNCONFIRMED
 tap_label "Annuler"
 scan_deck_reference JTL 788
-tap_label "Valider · Ajouter à « Mon deck »"
+tap_label "Ajouter à « Mon deck »"
 tap_label "Rafale"
 adb shell input swipe 160 440 160 610 300
 sleep 1
@@ -813,11 +813,11 @@ adb shell input keyevent 4
 tap_label "Rechercher"
 # The variant summary and confirmation can occupy separate viewports on 320dp.
 # Capture the unchanged pending card while revealing its confirmation buttons.
-capture_scanner_state smoke/scanner-variant.xml "JTL 788" "Hyperspace Foil" "Cote" "Valider · Ajouter à ma collection" "Annuler"
+capture_scanner_state smoke/scanner-variant.xml "JTL 788" "Hyperspace Foil" "Cote" "Ajouter à ma collection" "Annuler"
 python3 - <<'PYSCANVARIANT'
 import xml.etree.ElementTree as ET
 text=' '.join(n.attrib.get('text','') for n in ET.parse('smoke/scanner-variant.xml').iter('node'))
-assert 'JTL' in text and '788' in text and 'Hyperspace Foil' in text and 'Valider · Ajouter à ma collection' in text,text
+assert 'JTL' in text and '788' in text and 'Hyperspace Foil' in text and 'Ajouter à ma collection' in text,text
 PYSCANVARIANT
 adb exec-out screencap -p > smoke/scanner-variant.png
 tap_label "Terminer"
@@ -987,11 +987,11 @@ PYLANGUAGEKEYBOARD
   tap_label "Normale"
   sleep 3
   adb exec-out screencap -p > "smoke/scanner-language-$language.png"
-  tap_label "Valider · Ajouter à ma collection"
+  tap_label "Ajouter à ma collection"
 done
 tap_label "Terminer"
 tap_label "Collection"
-tap_label "Nom, extension ou numéro"
+tap_label "Rechercher dans ma collection"
 adb shell input text R2-D2
 adb shell input keyevent 4
 sleep 2
