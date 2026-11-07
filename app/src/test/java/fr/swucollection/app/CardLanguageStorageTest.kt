@@ -106,7 +106,7 @@ class CardLanguageStorageTest {
         db.addOrIncrement(r2.name,"SOR","236","Normale","FR")
         db.addOrIncrement(r2.name,"SOR","236","Normale","EN")
         val backup=db.exportJson()
-        assertEquals(7,JSONObject(backup).getInt("version"));assertEquals(2,validateBackup(backup).copies)
+        assertEquals(8,JSONObject(backup).getInt("version"));assertTrue(JSONObject(backup).has("tools"));assertEquals(2,validateBackup(backup).copies)
         db.importJson(backup,true)
         assertEquals(mapOf("FR" to 1,"EN" to 1),counts())
         for (language in listOf<Any>("XX",42,JSONObject.NULL)) {

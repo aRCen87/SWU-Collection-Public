@@ -113,7 +113,7 @@ internal fun MatchCounterPanel(database: CollectionDatabase, onClose: () -> Unit
             if(wide) Row(Modifier.fillMaxSize(),horizontalArrangement=Arrangement.spacedBy(8.dp)) { player(0,Modifier.weight(1f).fillMaxHeight()); player(1,Modifier.weight(1f).fillMaxHeight()) }
             else Column(Modifier.fillMaxSize(),verticalArrangement=Arrangement.spacedBy(8.dp)) { player(1,Modifier.weight(1f).fillMaxWidth()); player(0,Modifier.weight(1f).fillMaxWidth()) }
         }
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+        FlowRow(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick={ save(session.undoLast()) },enabled=session.undo.isNotEmpty() && !readOnly) { Text("Annuler") }
             OutlinedButton(onClick={ dialog="round" },enabled=!readOnly) { Text("Fin de manche") }
             OutlinedButton(onClick={ dialog="events" }) { Text("Journal") }
