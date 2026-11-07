@@ -3,9 +3,12 @@ package fr.swucollection.app
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -21,7 +24,7 @@ internal fun AdaptiveWorkspace(enabled: Boolean, hasDetail: Boolean, onClose: ()
     detail: @Composable () -> Unit, dismissOnOutside: Boolean = true, content: @Composable BoxScope.() -> Unit) {
     BoxWithConstraints(Modifier.fillMaxSize().background(Color(0xFF030A17)).semantics { testTagsAsResourceId = true }) {
         val wide = enabled && maxWidth >= 720.dp && maxHeight >= 480.dp
-        BackHandler(enabled = wide && hasDetail, onBack = onClose)
+        BackHandler(enabled = hasDetail && (wide || !dismissOnOutside), onBack = onClose)
         if (wide) Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(Modifier.weight(.56f).fillMaxHeight(), content = content)
             Box(Modifier.weight(.44f).fillMaxHeight().testTag("swu_detail_pane"), contentAlignment = Alignment.Center) {
@@ -34,8 +37,20 @@ internal fun AdaptiveWorkspace(enabled: Boolean, hasDetail: Boolean, onClose: ()
             }
         } else {
             Box(Modifier.fillMaxSize(), content = content)
-            if (hasDetail) Dialog(onDismissRequest = onClose, properties = DialogProperties(
-                usePlatformDefaultWidth = false, dismissOnClickOutside = dismissOnOutside)) { detail() }
+            if (hasDetail) {
+                if (!dismissOnOutside) {
+                    // Keep the Test sheet in the activity window. Moving between an
+                    // inline pane and a separate Dialog window can dismiss that
+                    // window during a live fold/rotation and close the session.
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Box(Modifier.matchParentSize().background(Color.Black.copy(alpha = .65f))
+                            .clickable(interactionSource = remember { MutableInteractionSource() },
+                                indication = null, onClick = {}))
+                        detail()
+                    }
+                } else Dialog(onDismissRequest = onClose, properties = DialogProperties(
+                    usePlatformDefaultWidth = false)) { detail() }
+            }
         }
     }
 }
