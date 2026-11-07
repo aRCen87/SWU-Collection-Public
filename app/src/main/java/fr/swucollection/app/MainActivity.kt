@@ -647,7 +647,7 @@ private fun CollectionScreen(
                     else -> 760.dp
                 }) else Modifier)
                 .fillMaxSize().padding(bottom = if (deckWorkspace) 0.dp else 82.dp).then(
-                if (selectedSection in listOf("Collection", "Extensions", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta", "Test écran pliant"))
+                if (selectedSection in listOf("Collection", "Extensions", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta"))
                     Modifier else Modifier.verticalScroll(rememberScrollState())
             ).padding(horizontal = 16.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -949,10 +949,6 @@ private fun CollectionScreen(
             if (selectedSection == "Hors connexion") OfflineImagesPanel(allCatalog, sets, savedDecks, internetAvailable)
             if (selectedSection == "Paramètres") {
                 SettingsOverview(onNavigate = { navigation.navigateTo(it) }, updateAvailable = appUpdates.release?.version)
-                if (privateLayout) OutlinedButton(onClick = { navigation.navigateTo("Test écran pliant") }, modifier = Modifier.fillMaxWidth()) { Text("Vérifier mon écran pliant") }
-            }
-            if (selectedSection == "Test écran pliant" && privateLayout) {
-                FoldValidationPanel(onCollection = { navigation.navigateTo("Collection") }, onScan = { openScanner() })
             }
             if (selectedSection == "Apparence") {
                 if (privateLayout) OutlinedButton(onClick = { homeEditing = true }) { Text("Personnaliser mon accueil") }
