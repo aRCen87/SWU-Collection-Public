@@ -90,13 +90,13 @@ internal fun ShowcasePanel(service: CommunityService, profile: PlayerProfile, da
             }
         } }
     }; if (pair.size == 1) Spacer(Modifier.weight(1f)) } }
-    removing?.let { row -> AlertDialog(onDismissRequest = { removing = null }, title = { Text("Retirer cette carte de la vitrine ?") }, text = { Text("Ta collection et ses quantités sont conservées.") }, confirmButton = { TextButton(onClick = { action { service.removeShowcase(row.id); removing = null } }) { Text("Retirer") } }, dismissButton = { TextButton(onClick = { removing = null }) { Text("Annuler") } }) }
+    removing?.let { row -> StableCollectorDialog(onDismissRequest = { removing = null }, title = { Text("Retirer cette carte de la vitrine ?") }, text = { Text("Ta collection et ses quantités sont conservées.") }, confirmButton = { TextButton(onClick = { action { service.removeShowcase(row.id); removing = null } }) { Text("Retirer") } }, dismissButton = { TextButton(onClick = { removing = null }) { Text("Annuler") } }) }
     if (adding) ShowcasePicker(database.allCards(), { adding = false }) { row, caption -> action { service.publishShowcase(row, caption); adding = false } }
 }
 @Composable
 private fun ShowcasePicker(owned: List<CollectionCard>, close: () -> Unit, publish: (CollectionCard, String) -> Unit) {
     var search by remember { mutableStateOf("") }; var selected by remember { mutableStateOf<CollectionCard?>(null) }; var caption by remember { mutableStateOf("") }
-    AlertDialog(onDismissRequest = close, title = { Text("Choisir une carte à exposer") }, text = { Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    StableCollectorDialog(onDismissRequest = close, title = { Text("Choisir une carte à exposer") }, text = { Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("La référence, la langue, la finition et ta légende seront visibles si tu actives la vitrine. Aucune quantité ni collection complète n’est partagée.")
         OutlinedTextField(search, { search = it.take(100) }, label = { Text("Rechercher dans ma collection") })
         owned.filter { it.name.contains(search, true) || "${it.setCode} ${it.number}".contains(search, true) }.take(30).forEach { row ->

@@ -120,5 +120,16 @@ internal fun CollectionWorkbench(database: CollectionDatabase, catalog: List<Cat
         }
     }
     }
-    if (confirmation) AlertDialog(onDismissRequest = { confirmation = false }, title = { Text("Modifier ${selected.size} lignes ?") }, text = { Text("Langue : ${language ?: "inchangée"}. Finition : ${finish ?: "inchangée"}. Le nombre total d’exemplaires est conservé, les lignes identiques sont regroupées.") }, confirmButton = { TextButton(onClick = { runCatching { database.bulkCorrect(selected, catalog, language, finish) }.onSuccess { rows = database.allCards(); selected = emptySet(); status = "Lot modifié. Tu peux annuler dans Historique."; changed() }.onFailure { status = it.message }; confirmation = false }) { Text("Confirmer") } }, dismissButton = { TextButton(onClick = { confirmation = false }) { Text("Annuler") } })
+    if (confirmation) StableCollectorDialog(onDismissRequest = { confirmation = false }, title = { Text("Modifier ${selected.size} lignes ?") }, text = { Text("Langue : ${language ?: "inchangée"}. Finition : ${finish ?: "inchangée"}. Le nombre total d’exemplaires est conservé, les lignes identiques sont regroupées.") }, confirmButton = { TextButton(onClick = { runCatching { database.bulkCorrect(selected, catalog, language, finish) }.onSuccess { rows = database.allCards(); selected = emptySet(); status = "Lot modifié. Tu peux annuler dans Historique."; changed() }.onFailure { status = it.message }; confirmation = false }) { Text("Confirmer") } }, dismissButton = { TextButton(onClick = { confirmation = false }) { Text("Annuler") } })
+}
+
+/** Keep form values in the caller while recreating only the native window on a fold. */
+@Composable
+internal fun StableCollectorDialog(onDismissRequest: () -> Unit, title: @Composable () -> Unit,
+    text: @Composable () -> Unit, confirmButton: @Composable () -> Unit, dismissButton: @Composable () -> Unit) {
+    val window = LocalConfiguration.current
+    key(window.screenWidthDp, window.screenHeightDp, window.orientation, window.densityDpi) {
+        AlertDialog(onDismissRequest = onDismissRequest, title = title, text = text, confirmButton = confirmButton,
+            dismissButton = dismissButton, properties = DialogProperties(dismissOnClickOutside = false))
+    }
 }

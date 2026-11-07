@@ -26,7 +26,7 @@ internal fun ScanBatchCorrection(entry: ScanBatchEntry, catalog: List<CatalogCar
     var selected by remember(entry) { mutableStateOf(entry.card) }; var query by remember { mutableStateOf("") }
     var language by remember { mutableStateOf(entry.card.language) }; var finish by remember { mutableStateOf(entry.variant) }
     var quantity by remember { mutableStateOf(entry.quantity.toString()) }; var menu by remember { mutableStateOf(false) }; var error by remember { mutableStateOf<String?>(null) }
-    AlertDialog(onDismissRequest = close, title = { Text(if (entry.needsIdentity) "Identifier la carte en attente" else "Corriger le scan") }, text = { Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    StableCollectorDialog(onDismissRequest = close, title = { Text(if (entry.needsIdentity) "Identifier la carte en attente" else "Corriger le scan") }, text = { Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         ScannerCardSummary(selected, finish)
         if (entry.needsIdentity) Text("L’image donne une suggestion, pas une identification certaine. Confirme la bonne référence avant l’ajout.")
         OutlinedTextField(query, { query = it.take(100) }, label = { Text("Autre carte : nom, extension ou numéro") }, singleLine = true, modifier = Modifier.fillMaxWidth())
