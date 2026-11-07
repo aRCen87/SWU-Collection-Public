@@ -1,11 +1,11 @@
 {
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "versionCode": 76,
-  "versionName": "0.8.19-test.17",
-  "notes": "Bouton renommé « Compteur point de vie ». Prénom facultatif dans le profil, masqué par défaut et visible uniquement aux amis acceptés si tu actives son affichage. Petits symboles retirés des choix d’avatar et 36 portraits de personnages intégrés, recadrés spécialement et disponibles hors connexion. Pour corriger un ancien avatar déjà enregistré, sélectionne à nouveau le personnage. Collection et données existantes conservées. Tests Android, sauvegardes, confidentialité, compilation, signature et essais sur émulateur validés.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_fe30f83023c88191bb2dc5f12db60e18&account_id=personal",
-  "sha256": "ef48d378b561d5b0f4129b0356c93d96634fd62925cd923319672c5de906377f",
-  "size": 64316703,
-  "sourceSha": "2efed81cbe02f31b8233733b9f8c83f82dcb8a35"
+  "versionCode": 77,
+  "versionName": "0.8.19-test.18",
+  "notes": "Messagerie séparée depuis l’enveloppe de l’accueil : discussions, recherche, nouveaux messages et onglet Amis pour rechercher, ajouter ou retirer un ami. Compteur accessible par le cœur près de la recherche, avec choix mémorisé 1 ou 2 joueurs. Citations aléatoires sans répétition consécutive. Choix illustré lors d’un scan hésitant ; rubrique À vérifier pour corriger la collection ; correspondances d’échange sur les profils d’amis ; date et état de sauvegarde ; guide des premiers pas. Revue des parcours : titres et boutons en double retirés et navigation simplifiée. Tests Android, sauvegardes, confidentialité, signature et essais sur émulateur validés. La reconnaissance sur de vraies cartes reste à essayer sur ton téléphone.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_5caeb8d213348191a2631eae33212107&account_id=personal",
+  "sha256": "900ecca9d5948bb5fbc281543b2bce3e4e8fcfa3fe37145f626db77d8b6f7b40",
+  "size": 64349471,
+  "sourceSha": "efd8be333bda9bc8750d015f790284846a895154"
 }
