@@ -102,7 +102,8 @@ try:
     resize(720,1560,320)
     root = snapshot("home-cover-restored")
     adb("shell", "pm", "grant", PACKAGE, "android.permission.CAMERA")
-    tap(find(root,"SCANNER")); time.sleep(4)
+    tap(find(root,"Ouvrir le menu")); root = snapshot("scanner-menu")
+    tap(find(root,"Scanner")); time.sleep(4)
     for name,w,h,d in [("cover",720,1560,320),("unfolded",1766,1472,336),("landscape",1680,756,294)]:
         resize(w,h,d)
         root = snapshot("scanner-" + name)
