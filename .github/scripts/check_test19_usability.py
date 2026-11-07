@@ -36,7 +36,9 @@ def capture(name):
     adb('shell', 'screencap', '-p', '/sdcard/usability.png')
     adb('pull', '/sdcard/usability.png', OUT / ('home-test-usability-' + name + '.png'))
 
+original_keyboard = adb('shell', 'settings', 'get', 'secure', 'show_ime_with_hard_keyboard').strip()
 try:
+    adb('shell', 'settings', 'put', 'secure', 'show_ime_with_hard_keyboard', 1)
     adb('shell', 'wm', 'size', '720x1560'); adb('shell', 'wm', 'density', 320)
     adb('shell', 'am', 'force-stop', PACKAGE)
     adb('shell', 'am', 'start', '-W', '-n', PACKAGE+'/fr.swucollection.app.MainActivity')
@@ -69,4 +71,6 @@ try:
     assert 'FATAL EXCEPTION' not in adb('logcat', '-d', '-s', 'AndroidRuntime:E')
     print('Test 19 usability passed: clear search, active/reset filters, visible actions on cover/unfolded/landscape.')
 finally:
+    if original_keyboard == 'null': adb('shell', 'settings', 'delete', 'secure', 'show_ime_with_hard_keyboard')
+    else: adb('shell', 'settings', 'put', 'secure', 'show_ime_with_hard_keyboard', original_keyboard)
     adb('shell', 'wm', 'size', 'reset'); adb('shell', 'wm', 'density', 'reset')
