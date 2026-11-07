@@ -1,4 +1,13 @@
-# SWU Collection Test 0.8.19-test.17
+# SWU Collection Test 0.8.19-test.18
+
+- Citations aléatoires dès le démarrage, puis toutes les 20 secondes, sans répétition consécutive.
+- Scan hésitant : jusqu’à deux suggestions illustrées à choisir avant de confirmer langue et finition ; aucun ajout par simple ressemblance visuelle.
+- Collection → Gérer → À vérifier : langues indéterminées, finitions incompatibles, références absentes du catalogue et quantités de 20 exemplaires ou plus à confirmer. Corrections explicites, atomiques, annulables et protégées contre les prêts et les données devenues obsolètes.
+- Fiche d’un ami : correspondances avec sa liste volontairement partagée et préparation d’un échange modifiable, avec les langues et finitions exactes.
+- Date de la dernière sauvegarde réussie vérifiée sur ce téléphone et état des modifications restant à sauvegarder, visibles sur l’accueil et dans Sauvegardes.
+- Guide des premiers pas en trois étapes, proposé aux collections vides et accessible depuis Paramètres.
+
+## Test 0.8.19-test.17
 
 - Bouton renommé « Compteur point de vie ».
 - Prénom facultatif, masqué par défaut, partageable aux amis acceptés seulement ; enregistré séparément du répertoire des joueurs.

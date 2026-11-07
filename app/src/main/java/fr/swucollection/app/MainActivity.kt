@@ -230,6 +230,7 @@ private fun CollectionScreen(
     val homeStore = remember(deckContext) { HomeLayoutStore(deckContext) }
     var homeLayout by remember { mutableStateOf(homeStore.read()) }
     var homeEditing by remember { mutableStateOf(false) }
+    var firstStepsOpen by rememberSaveable { mutableStateOf(false) }
     val deckStore = remember(deckContext) { DeckStore(deckContext) }
     var savedDecks by remember { mutableStateOf(deckStore.all()) }
     val deckPins = remember(deckContext) { DeckPins(deckContext) }
@@ -788,7 +789,11 @@ private fun CollectionScreen(
 
                     }
                 }
-                if (privateLayout) TextButton(onClick = { homeEditing = true }) { Text("Personnaliser mon accueil") }
+                if (privateLayout) {
+                    FirstStepsCard(cards.isEmpty()) { firstStepsOpen = true }
+                    TextButton(onClick = { homeEditing = true }) { Text("Personnaliser mon accueil") }
+                    HomeBackupStatus(database) { navigation.navigateTo("Sauvegardes") }
+                }
                 ResumeCollectionPanel(database, cards, catalogBySet, sets, cardDetails, collectionQuotes, scanBatch,
                     onScan = { navigation.navigateTo("Scanner"); scannerOpen = false },
                     onSet = { navigation.navigateTo("Compléter mon set", it) })
@@ -966,6 +971,7 @@ private fun CollectionScreen(
             if (selectedSection == "Hors connexion") OfflineImagesPanel(allCatalog, sets, savedDecks, internetAvailable)
             if (selectedSection == "Paramètres") {
                 SettingsOverview(onNavigate = { navigation.navigateTo(it) }, updateAvailable = appUpdates.release?.version)
+                if (privateLayout) OutlinedButton(onClick = { firstStepsOpen = true }) { Text("Revoir le guide des premiers pas") }
             }
             if (selectedSection == "Apparence") {
                 if (privateLayout) OutlinedButton(onClick = { homeEditing = true }) { Text("Personnaliser mon accueil") }
@@ -1400,6 +1406,7 @@ private fun CollectionScreen(
                 }.fold({ null }, { it.message ?: "Ajout impossible. Ton deck reste inchangé." })
             })
     }
+    if (firstStepsOpen) FirstStepsDialog(onClose = { firstStepsOpen = false }, onScan = { firstStepsOpen = false; openScanner() })
     if (collectionWorkbench) CollectionWorkbench(database, allCatalog, savedDecks, cardDetails, { collectionWorkbench = false }, { refresh() })
     scanCorrection?.let { entry -> QuickScanCorrection(entry, { scanCorrection = null }) { language, finish ->
         if (scanMode == "Rafale") {

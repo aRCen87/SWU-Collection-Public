@@ -20,6 +20,7 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
 internal enum class AutomaticBackupDecision { SAVE, UNCHANGED, CONFLICT }
+internal data class AccountBackupHealth(val verifiedAt: Long, val pending: Boolean, val ownerMatches: Boolean)
 internal object AutomaticBackupPolicy {
     fun canUpload(boundOwner: String?, uid: String) = boundOwner == null || boundOwner == uid
     fun remainingDelay(lastSaved: Long, now: Long) = if (now < lastSaved) 0L else (5 * 60_000L - (now - lastSaved)).coerceAtLeast(0L)
@@ -42,11 +43,20 @@ internal object AutomaticAccountBackup {
         if (enabled) AutomaticBackupWorker.enqueue(context)
     }
     fun status(context: Context, uid: String) = prefs(context).getString("$uid.status", "La sauvegarde automatique sera vérifiée quand tu seras connecté.").orEmpty()
+    fun health(context: Context, uid: String, raw: String): AccountBackupHealth {
+        val p = prefs(context)
+        val ownerMatches = p.getString("device_owner", null) == uid
+        val verifiedAt = p.getLong("$uid.verifiedAt", p.getLong("$uid.savedAt", 0L))
+        return AccountBackupHealth(verifiedAt, !ownerMatches || !p.getBoolean("$uid.initialized", false) ||
+            p.getString("$uid.hash", null) != PrivatePayload.hash(raw.toByteArray(Charsets.UTF_8)), ownerMatches)
+    }
     fun acknowledge(context: Context, uid: String, head: String?, raw: String, pending: Boolean = false) {
-        check(prefs(context).edit().putString("device_owner", uid).putBoolean("$uid.initialized", true)
+        val edit = prefs(context).edit().putString("device_owner", uid).putBoolean("$uid.initialized", true)
             .putString("$uid.head", head).putString("$uid.hash", if (pending) "" else PrivatePayload.hash(raw.toByteArray(Charsets.UTF_8)))
             .putLong("$uid.savedAt", if (pending) 0L else System.currentTimeMillis())
-            .putString("$uid.status", if (pending) "Restauration terminée ; sauvegarde automatique en attente." else "Sauvegarde du compte enregistrée et vérifiée.").commit())
+            .putString("$uid.status", if (pending) "Restauration terminée ; sauvegarde automatique en attente." else "Sauvegarde du compte enregistrée et vérifiée.")
+        if (!pending) edit.putLong("$uid.verifiedAt", System.currentTimeMillis())
+        check(edit.commit())
         if (pending) AutomaticBackupWorker.enqueue(context)
     }
     suspend fun run(context: Context, service: CommunityService) = mutex.withLock {
@@ -117,7 +127,7 @@ class AutomaticBackupWorker(context: Context, parameters: WorkerParameters) : Co
 }
 
 @Composable
-internal fun AutomaticBackupControls(uid: String) {
+internal fun AutomaticBackupControls(uid: String, database: CollectionDatabase) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var enabled by remember(uid) { mutableStateOf(AutomaticAccountBackup.enabled(context, uid)) }
@@ -130,5 +140,57 @@ internal fun AutomaticBackupControls(uid: String) {
         Switch(enabled, { enabled = it; AutomaticAccountBackup.setEnabled(context, uid, it) })
     }
     Text(if (enabled) status else "Sauvegarde automatique désactivée sur ce téléphone.", style = MaterialTheme.typography.bodySmall)
+    BackupHealthText(uid, database)
     Text("Les modifications sont regroupées avant l’envoi. Sur un autre téléphone, choisis une sauvegarde à restaurer : aucun remplacement ni cumul de quantités n’est automatique.", style = MaterialTheme.typography.bodySmall)
+}
+
+@Composable
+internal fun BackupHealthText(uid: String, database: CollectionDatabase) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var health by remember(uid) { mutableStateOf<AccountBackupHealth?>(null) }
+    var unavailable by remember(uid) { mutableStateOf(false) }
+    LaunchedEffect(uid, database, lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            while (true) {
+                try {
+                    health = withContext(Dispatchers.IO) { AutomaticAccountBackup.health(context, uid, accountBackupJson(context, database)) }
+                    unavailable = false
+                } catch (cancelled: CancellationException) { throw cancelled }
+                catch (_: Exception) { unavailable = true }
+                delay(5000)
+            }
+        }
+    }
+    val value = health
+    Text(when {
+        unavailable -> "État de sauvegarde momentanément indisponible."
+        value == null -> "Vérification des changements…"
+        value.verifiedAt <= 0 -> "Aucune sauvegarde réussie vérifiée sur ce téléphone pour ce compte."
+        else -> "Dernière sauvegarde réussie : " + java.text.SimpleDateFormat("dd/MM/yyyy à HH:mm", java.util.Locale.FRANCE).format(java.util.Date(value.verifiedAt))
+    }, style = MaterialTheme.typography.bodySmall)
+    if (!unavailable && value != null) Text(when {
+        !value.ownerMatches -> "Les données de ce téléphone ne sont pas encore associées à ce compte. Ouvre Sauvegardes pour choisir la copie à conserver."
+        value.pending -> "Modifications à sauvegarder · la copie actuelle du téléphone n’est pas encore entièrement sauvegardée."
+        else -> "Toutes les modifications sont sauvegardées dans la dernière copie vérifiée de ce téléphone."
+    }, style = MaterialTheme.typography.bodySmall, color = if (value.pending) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
+@Composable
+internal fun HomeBackupStatus(database: CollectionDatabase, onOpen: () -> Unit) {
+    val context = LocalContext.current
+    val service = remember(context) { CommunityService.create(context) } ?: return
+    var uid by remember(service) { mutableStateOf(service.auth.currentUser?.takeIf { it.isEmailVerified }?.uid) }
+    DisposableEffect(service) {
+        val listener = com.google.firebase.auth.FirebaseAuth.AuthStateListener { auth -> uid = auth.currentUser?.takeIf { it.isEmailVerified }?.uid }
+        service.auth.addAuthStateListener(listener)
+        onDispose { service.auth.removeAuthStateListener(listener) }
+    }
+    uid?.let { owner -> OutlinedCard(onClick = onOpen, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text("Ma sauvegarde privée", style = MaterialTheme.typography.titleSmall)
+            BackupHealthText(owner, database)
+            Text("Ouvrir les sauvegardes", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
+        }
+    } }
 }

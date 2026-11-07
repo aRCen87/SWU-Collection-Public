@@ -134,7 +134,7 @@ private fun AccountBackupSession(service: CommunityService, database: Collection
     } }
     LaunchedEffect(owner) { try { load() } catch (e: Exception) { status = communityError(e) } finally { busy = false } }
     if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
-    AutomaticBackupControls(owner)
+    AutomaticBackupControls(owner, database)
     status?.let { Text(it) }
     OutlinedButton(onClick = { action { load() } }, enabled = !busy) { Text("Actualiser les sauvegardes du compte") }
     Button(onClick = { action {

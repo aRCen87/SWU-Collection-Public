@@ -19,10 +19,11 @@ try:
     adb('shell','am','force-stop',PACKAGE);adb('shell','am','start','-W','-n',PACKAGE+'/fr.swucollection.app.MainActivity');time.sleep(8)
     tap(find(snapshot('home'),'Collection'))
     tap(find(snapshot('collection'),'Gérer par lot · Disponibilité et decks'))
-    root=snapshot('opened');find(root,'Gérer ma collection');find(root,'Sélection');find(root,'Disponibilité')
+    root=snapshot('opened');find(root,'Gérer ma collection');find(root,'Sélection');find(root,'Disponibilité');find(root,'À vérifier')
     for name,w,h,d in [('cover',720,1560,320),('unfolded',1766,1472,336),('landscape',1680,756,294)]:
         adb('shell','wm','size',f'{w}x{h}');adb('shell','wm','density',d);time.sleep(4)
         root=snapshot(name);find(root,'Fermer');find(root,'Disponibilité');capture(name)
+    tap(find(root,'À vérifier'));root=snapshot('review');find(root,'Aucun point à vérifier avec le catalogue actuel.');capture('review')
     tap(find(root,'Disponibilité'));root=snapshot('availability');find(root,'Fermer');capture('availability')
     tap(find(root,'Fermer'));root=snapshot('closed');find(root,'Gérer par lot · Disponibilité et decks')
     assert 'FATAL EXCEPTION' not in adb('logcat','-d','-s','AndroidRuntime:E')

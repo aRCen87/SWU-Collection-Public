@@ -81,10 +81,11 @@ internal fun CollectionWorkbench(database: CollectionDatabase, catalog: List<Cat
                 Row { Text("Gérer ma collection", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge); TextButton(onClick = close) { Text("Fermer") } }
                 LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 item {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { listOf("Sélection", "Disponibilité").forEach { title -> FilterChip(tab == title, { tab = title }, label = { Text(title) }) } }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { listOf("Sélection", "Disponibilité", "À vérifier").forEach { title -> FilterChip(tab == title, { tab = title }, label = { Text(title) }) } }
                 OutlinedTextField(search, { search = it.take(100) }, label = { Text("Nom, extension ou numéro") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 status?.let { Text(it) }
-                if (tab == "Sélection") {
+                if (tab == "À vérifier") CollectionReviewPanel(database, visible, catalog) { rows = database.allCards(); changed() }
+                else if (tab == "Sélection") {
                     Text("${selected.size} lignes sélectionnées · 500 maximum. La modification s’applique à tous leurs exemplaires.", style = MaterialTheme.typography.bodySmall)
                     Row { TextButton(onClick = { selected = visible.take(500).map { it.id }.toSet() }) { Text("Sélectionner les résultats") }; TextButton(onClick = { selected = emptySet() }) { Text("Tout désélectionner") } }
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) { (listOf<String?>(null) + CardLanguages.supported).forEach { lang -> FilterChip(language == lang, { language = lang }, label = { Text(lang ?: "Langue inchangée") }) } }
@@ -105,7 +106,7 @@ internal fun CollectionWorkbench(database: CollectionDatabase, catalog: List<Cat
                         Checkbox(row.id in selected, { check -> selected = if (check) (selected + row.id).take(500).toSet() else selected - row.id })
                         Column(Modifier.weight(1f)) { Text(row.name); Text("${row.setCode} ${row.number} · ${row.variant} · ${row.language} · ×${row.quantity}", style = MaterialTheme.typography.bodySmall) }
                     } } }
-                    else items(visible.groupBy { row -> byRef[MarketPricing.key(row.setCode, row.number)]?.let { details.family(it) } ?: MarketPricing.key(row.setCode, row.number) }.values.toList(), key = { it.first().id }) { group ->
+                    else if (tab == "Disponibilité") items(visible.groupBy { row -> byRef[MarketPricing.key(row.setCode, row.number)]?.let { details.family(it) } ?: MarketPricing.key(row.setCode, row.number) }.values.toList(), key = { it.first().id }) { group ->
                         val card = byRef[MarketPricing.key(group.first().setCode, group.first().number)]
                         val family = card?.let { details.family(it) }
                         val uses = demand[family].orEmpty()

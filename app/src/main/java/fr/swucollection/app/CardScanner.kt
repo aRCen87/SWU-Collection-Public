@@ -121,6 +121,15 @@ fun CardScannerDialog(
     var manualEntry by remember { mutableStateOf(false) }
     var landscapeCard by remember { mutableStateOf(false) }
     var optionsOpen by remember { mutableStateOf(false) }
+    var visualChoices by remember { mutableStateOf<List<CatalogCard>>(emptyList()) }
+    var visualChoiceError by remember { mutableStateOf<String?>(null) }
+    val visualCatalog by produceState<List<CatalogCard>>(emptyList(), context) {
+        if (context.packageName == AppChannel.TEST_PACKAGE) value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            val db = CollectionDatabase(context.applicationContext)
+            try { db.allCatalogSets().flatMap { db.catalogCardsForSet(it.code) } } finally { db.close() }
+        }
+    }
+    val latestVisualCatalog = rememberUpdatedState(visualCatalog)
     val visualViewport = remember { AtomicReference(ScanViewport(0,0,false)) }
     val visualMatcher = remember(context) { ScanVisualMatcher(context.applicationContext) }
     var restart by remember { mutableIntStateOf(0) }
@@ -129,8 +138,8 @@ fun CardScannerDialog(
     // same scan session and must not be counted a second time in batch mode.
     val scanGate = remember { StableScanGate(unknownLanguageReads = 5) }
     val externalPause = rememberUpdatedState(paused)
-    val pauseCheck = { externalPause.value || userPaused || manualEntry || optionsOpen }
-    val effectivelyPaused = paused || userPaused || manualEntry || optionsOpen
+    val pauseCheck = { externalPause.value || userPaused || manualEntry || optionsOpen || visualChoices.isNotEmpty() }
+    val effectivelyPaused = paused || userPaused || manualEntry || optionsOpen || visualChoices.isNotEmpty()
     LaunchedEffect(rescanToken) { if (rescanToken > 0) analyzer?.readAgain() }
     LaunchedEffect(effectivelyPaused) { if (effectivelyPaused) { scanGate.interrupt(); analyzer?.interrupt() } }
     val previewView = remember(context, windowKey) {
@@ -153,7 +162,14 @@ fun CardScannerDialog(
             val main = ContextCompat.getMainExecutor(context)
             val executor = Executors.newSingleThreadExecutor()
             val reader = LiveScanAnalyzer(main, executor, visualMatcher, { visualViewport.get() },
-                { matches -> if (active.get() && !pauseCheck()) { matches.firstOrNull()?.let { landscapeCard = it.landscape }; latestUncertain.value?.let { callback -> callback(matches.map { it.reference.set to it.reference.number }); true } ?: false } else false }, pauseCheck, { if (active.get()) message = it }, scanGate) { reference, raw ->
+                { matches -> if (active.get() && !pauseCheck()) {
+                    matches.firstOrNull()?.let { landscapeCard = it.landscape }
+                    val refs = matches.map { it.reference.set to it.reference.number }
+                    if (context.packageName == AppChannel.TEST_PACKAGE) {
+                        val choices = scannerVisualChoices(refs, latestVisualCatalog.value)
+                        if (choices.isNotEmpty()) { visualChoices = choices; visualChoiceError = null; true } else false
+                    } else latestUncertain.value?.let { callback -> callback(refs); true } ?: false
+                } else false }, pauseCheck, { if (active.get()) message = it }, scanGate) { reference, raw ->
                 if (!active.get() || pauseCheck()) false
                 else latestDetected.value(reference.set, reference.number, raw).also { found ->
                     if (found) previewView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
@@ -335,6 +351,15 @@ fun CardScannerDialog(
         }
     }
     }
+    if (visualChoices.isNotEmpty()) ScannerVisualChoiceDialog(visualChoices, visualChoiceError,
+        onRetry = { visualChoices = emptyList(); visualChoiceError = null; analyzer?.readAgain() },
+        onChoose = { card ->
+            // Visual similarity is not language or finish evidence. Keep both to confirm.
+            if (latestDetected.value(card.setCode, card.number, "${card.setCode} ${card.number}")) {
+                scanGate.block(ScanReference(card.setCode, card.number))
+                visualChoices = emptyList(); visualChoiceError = null
+            } else visualChoiceError = "Cette carte n’a pas pu être sélectionnée. Relance la lecture."
+        })
     if (optionsOpen && controls != null) AlertDialog(
         onDismissRequest = { optionsOpen = false },
         title = { Text("Options du scanner") },

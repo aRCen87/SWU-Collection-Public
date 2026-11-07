@@ -268,6 +268,9 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
                 if (friendship == null) OutlinedButton(onClick = { action { service.requestFriend(player.id); status = "Demande d’ami envoyée." } }, enabled = !busy && !blocked) { Text("Ajouter aux amis") }
                 else if (friendship.status == "accepted") {
                     Text("Dans mes amis")
+                    if (!blocked) FriendProfileTradeSummary(service, player, database, catalog, details) { suggestion ->
+                        selectedProfile = null; suggestedTrade = suggestion
+                    }
                     OutlinedButton(onClick = { selectedProfile = null; proposingTrade = player }, enabled = !blocked) { Text("Proposer un échange") }
                 } else Text(if (friendship.requester == user.uid) "Demande envoyée" else "Demande d’ami reçue · onglet Amis")
                 SharedProfileDecks(service, player, false, decks, catalog, onImportDeck)

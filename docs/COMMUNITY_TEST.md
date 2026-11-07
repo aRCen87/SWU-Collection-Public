@@ -1,5 +1,17 @@
 # Communauté — application Test uniquement
 
+## Parcours simplifié — Test 18
+
+Les résultats visuels incertains du scanner Test ouvrent un choix illustré de deux références maximum. Ce choix passe ensuite par le parcours habituel : langue et finition restent à confirmer, immédiatement en Une par une ou dans le bilan en Rafale. La caméra est en pause pendant le choix. Les essais photographiques sur de vraies cartes restent nécessaires pour évaluer la précision optique.
+
+La rubrique À vérifier dans Gérer ma collection utilise uniquement les incompatibilités connues du catalogue et un seuil indicatif de 20 exemplaires. Une quantité élevée peut être confirmée sans modifier la collection ; une modification ultérieure de cette ligne réactive l’invitation. Les corrections vérifient la ligne courante, les prêts et le plafond de regroupement dans une opération annulable. Aucune migration ni suppression automatique.
+
+La fiche d’un ami accepté consulte sa liste d’échange déjà partagée volontairement, sans partager la collection du lecteur. Les correspondances respectent objectifs, langues, finitions et prêts. La préparation ouvre un brouillon à vérifier ; elle n’envoie aucun message ni proposition automatiquement. Une liste distante est un instantané, à actualiser par son propriétaire.
+
+L’état de sauvegarde compare le contenu courant au hash de la dernière copie vérifiée sur cet appareil. La date est celle de cette vérification locale, pas une promesse de synchronisation entre tous les téléphones. Une restauration en attente conserve la dernière date de réussite et signale les changements non sauvegardés. Les conflits existants continuent à suspendre l’envoi.
+
+Le guide est proposé sans fenêtre bloquante sur l’accueil d’une collection vide et peut être rouvert dans Paramètres. Les validations couvrent le scan, le brouillon, les remises locales et les sauvegardes dans les tests Android, puis deux vrais comptes émulés, leur activation, l’amitié, le partage et l’acceptation d’un échange dans le seul projet demo-swu-community-test. Aucun compte réel n’est créé pour ces contrôles.
+
 Le projet Firebase est `swu-collection-test`, avec l’application Android `fr.swucollection.app.test`, l’authentification e-mail/mot de passe et Firestore Standard. Aucun abonnement Blaze, Cloud Storage ni fonction payante n’est utilisé.
 
 La configuration client fournie par Romain est chiffrée avec la clé publique du certificat Android. Le job privé de distribution déchiffre uniquement dans `app/src/preview/res/values/community_config.xml`, fichier ignoré par Git. La variante officielle contient une configuration vide et l’accès Communauté est masqué hors du paquet Test.

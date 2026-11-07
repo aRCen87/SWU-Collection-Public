@@ -9,6 +9,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.unit.dp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.Source
@@ -51,6 +53,46 @@ internal suspend fun CommunityService.tradeInventory(peer: String): TradeProfile
 }
 internal suspend fun CommunityService.hideTradeInventory() {
     accountStore().collection("tradeInventories").document(uid).delete().communityAwait()
+}
+
+@Composable
+internal fun FriendProfileTradeSummary(service: CommunityService, peer: PlayerProfile, database: CollectionDatabase,
+    catalog: List<CatalogCard>, details: CardDetails, onDraft: (SuggestedTrade) -> Unit) {
+    var revision by remember(peer.id) { mutableIntStateOf(0) }
+    var loading by remember(peer.id) { mutableStateOf(true) }
+    var match by remember(peer.id) { mutableStateOf<SuggestedTrade?>(null) }
+    var message by remember(peer.id) { mutableStateOf<String?>(null) }
+    LaunchedEffect(service, peer.id, revision, catalog) {
+        loading = true; match = null; message = null
+        try {
+            val owner = service.uid
+            val theirs = service.tradeInventory(peer.id)
+            if (theirs == null) message = "Cet ami n’a pas encore partagé ses cartes d’échange."
+            else {
+                val mine = withContext(Dispatchers.IO) {
+                    TradeProfile.build(catalog, database.allCards(), database.goals(), details,
+                        variantsBySet = database.goalVariants(), reserved = database.loans().reserved(), printGoals = database.printGoals())
+                }
+                check(service.uid == owner)
+                match = FriendTradeSuggestions.prepare(peer, mine, theirs)
+            }
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: Exception) { message = "Liste non disponible. Vérifie ta connexion ou actualise ; le partage peut avoir été retiré." }
+        finally { loading = false }
+    }
+    OutlinedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text("Nos cartes à échanger", style = MaterialTheme.typography.titleSmall)
+        if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
+        message?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+        match?.let { suggestion ->
+            Text(if (suggestion.wanted.isNotEmpty()) "Il a ${suggestion.wanted.sumOf { it.quantity }} carte(s) que tu recherches."
+                else "Aucune de tes recherches ne correspond à sa liste partagée pour le moment.")
+            if (suggestion.offer.isNotEmpty()) Text("Tu peux lui proposer ${suggestion.offer.sumOf { it.quantity }} carte(s).")
+            Text("D’après vos objectifs et sa dernière liste partagée. Langues, finitions et prêts sont pris en compte. Confirmez les disponibilités avant l’envoi.", style = MaterialTheme.typography.bodySmall)
+            if (suggestion.wanted.isNotEmpty() || suggestion.offer.isNotEmpty()) Button(onClick = { onDraft(suggestion) }) { Text("Préparer l’échange") }
+        }
+        TextButton(onClick = { revision++ }, enabled = !loading) { Text("Actualiser les correspondances") }
+    } }
 }
 @Composable
 internal fun FriendTradeSuggestionPanel(service: CommunityService, database: CollectionDatabase, catalog: List<CatalogCard>, details: CardDetails,
