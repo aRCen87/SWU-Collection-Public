@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -49,11 +50,13 @@ internal fun communityError(error: Throwable): String = when ((error as? Firebas
 
 @Composable
 internal fun ColumnScope.CommunityPanel(decks: List<DeckStore.SavedDeck>, earned: List<BadgeProgress>,
-    definitions: List<BadgeDefinition>, catalog: List<CatalogCard>, database: CollectionDatabase, details: CardDetails, initialTab: String = "Mon profil", onRestored: () -> Unit, onImportDeck: (String, PortableDeck) -> Unit) {
+    definitions: List<BadgeDefinition>, catalog: List<CatalogCard>, database: CollectionDatabase, details: CardDetails, initialTab: String = "Mon profil", messaging: Boolean = false,
+    initialConversation: Pair<PlayerConversation, String>? = null, onOpenMessenger: ((PlayerConversation, String) -> Unit)? = null,
+    onRestored: () -> Unit, onImportDeck: (String, PortableDeck) -> Unit) {
     val context = LocalContext.current
     val service = remember(context) { CommunityService.create(context) }
-    Text(if (initialTab == "Échanges") "Échanges" else "Communauté", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-    Text("Profils, messages et decks · essais privés", color = MaterialTheme.colorScheme.primary)
+    if (!messaging) Text(if (initialTab == "Échanges") "Échanges" else "Communauté", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+    Text(if (messaging) "Tes discussions et tes amis" else "Profils, messages et decks · essais privés", color = MaterialTheme.colorScheme.primary)
     if (service == null) {
         Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("Les comptes de test ne sont pas encore activés", fontWeight = FontWeight.Bold)
@@ -70,13 +73,14 @@ internal fun ColumnScope.CommunityPanel(decks: List<DeckStore.SavedDeck>, earned
         onDispose { service.auth.removeAuthStateListener(listener) }
     }
     key(user?.uid, identityRevision) {
-        CommunitySession(service, user, decks, earned, definitions, catalog, database, details, initialTab, { identityRevision++ }, onRestored, onImportDeck)
+        CommunitySession(service, user, decks, earned, definitions, catalog, database, details, initialTab, messaging, initialConversation, onOpenMessenger, { identityRevision++ }, onRestored, onImportDeck)
     }
 }
 
 @Composable
 private fun ColumnScope.CommunitySession(service: CommunityService, user: FirebaseUser?, decks: List<DeckStore.SavedDeck>,
-    earned: List<BadgeProgress>, definitions: List<BadgeDefinition>, catalog: List<CatalogCard>, database: CollectionDatabase, details: CardDetails, initialTab: String, refresh: () -> Unit,
+    earned: List<BadgeProgress>, definitions: List<BadgeDefinition>, catalog: List<CatalogCard>, database: CollectionDatabase, details: CardDetails, initialTab: String, messaging: Boolean,
+    initialConversation: Pair<PlayerConversation, String>?, onOpenMessenger: ((PlayerConversation, String) -> Unit)?, refresh: () -> Unit,
     onRestored: () -> Unit, onImportDeck: (String, PortableDeck) -> Unit) {
     val scope = rememberCoroutineScope()
     var busy by remember { mutableStateOf(false) }
@@ -135,7 +139,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
     var profileLoaded by remember { mutableStateOf(false) }
     var profiles by remember { mutableStateOf<List<PlayerProfile>>(emptyList()) }
     var conversations by remember { mutableStateOf<List<PlayerConversation>>(emptyList()) }
-    var tab by remember { mutableStateOf(initialTab) }
+    var tab by remember { mutableStateOf(if (messaging && initialTab !in listOf("Messages", "Amis")) "Messages" else initialTab) }
     var friendships by remember { mutableStateOf<List<PlayerFriendship>>(emptyList()) }
     var trades by remember { mutableStateOf<List<PlayerTrade>>(emptyList()) }
     var receipts by remember { mutableStateOf<Map<String, Long>>(emptyMap()) }
@@ -148,9 +152,12 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
     }
     var editing by remember { mutableStateOf(false) }
     var selectedProfile by remember { mutableStateOf<PlayerProfile?>(null) }
-    var conversation by remember { mutableStateOf<PlayerConversation?>(null) }
-    var peerName by remember { mutableStateOf("") }
+    var conversation by remember { mutableStateOf(initialConversation?.first) }
+    var peerName by remember { mutableStateOf(initialConversation?.second.orEmpty()) }
     var blocked by remember { mutableStateOf(false) }
+    var findingPlayers by remember { mutableStateOf(false) }
+    var choosingRecipient by remember { mutableStateOf(false) }
+    BackHandler(enabled = messaging && conversation != null && selectedProfile == null) { conversation = null }
     DisposableEffect(service, user.uid) {
         val subscriptions = listOf(service.ownProfile({ profile = it; profileLoaded = true }, { status = communityError(it) }),
             service.profiles({ profiles = it.filter { p -> p.id != user.uid } }, { status = communityError(it) }),
@@ -162,8 +169,9 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
     }
     fun talk(peer: PlayerProfile) { action {
         val id = service.openConversation(peer.id)
-        conversation = PlayerConversation(id, listOf(user.uid, peer.id), 0L); peerName = peer.name
-        selectedProfile = null; tab = "Messages"
+        val thread = PlayerConversation(id, listOf(user.uid, peer.id), 0L)
+        if (!messaging && onOpenMessenger != null) onOpenMessenger(thread, peer.name)
+        else { conversation = thread; peerName = peer.name; selectedProfile = null; tab = "Messages" }
     } }
     if (!profileLoaded) { Text("Chargement du profil…"); return }
     if (profile == null || editing) {
@@ -177,7 +185,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
     val requests = friendships.count { it.status == "pending" && it.requester != user.uid }
     val exchangeRequests = trades.count { it.status == "pending" && it.requester != user.uid }
     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        listOf("Mon profil", "Amis", "Joueurs", "Messages", "Échanges", "Favoris", "Sauvegarde").forEach { label ->
+        (if (messaging) listOf("Messages", "Amis") else listOf("Mon profil", "Joueurs", "Échanges", "Favoris", "Sauvegarde")).forEach { label ->
             FilterChip(tab == label, { tab = label; conversation = null }, label = { Text(label + when {
                 label == "Amis" && requests > 0 -> " · $requests"
                 label == "Messages" && unread > 0 -> " · $unread"
@@ -202,10 +210,14 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
             TextButton(onClick = { service.signOut() }) { Text("Me déconnecter") }
         }
         "Amis" -> {
+            if (messaging) {
+                OutlinedButton(onClick = { findingPlayers = !findingPlayers }, modifier = Modifier.fillMaxWidth()) { Text(if (findingPlayers) "Masquer la recherche de joueurs" else "Ajouter un ami · Rechercher un joueur") }
+                if (findingPlayers) PlayerDirectory(service, profiles) { selectedProfile = it }
+            }
             FriendPanel(service, friendships, profiles + friendsProfiles.values, busy,
                 { f -> action { service.acceptFriend(f) } }, { f -> action { service.removeFriend(f) } },
                 { id -> action { service.requestFriend(CommunitySocial.friendId(id)); status = "Demande d’ami envoyée." } },
-                { selectedProfile = it }, { talk(it) }, { proposingTrade = it })
+                { selectedProfile = it }, { talk(it) }, { proposingTrade = it }, messaging = messaging)
         }
         "Échanges" -> {
             val friends = friendships.filter { it.status == "accepted" }.map { f ->
@@ -238,19 +250,19 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
         "Messages" -> {
             val selected = conversation
             if (selected == null) {
-                if (conversations.isEmpty()) Text("Aucune conversation. Ouvre un profil dans Joueurs pour commencer.")
-                conversations.forEach { thread ->
-                    val peer = thread.members.firstOrNull { it != user.uid }.orEmpty()
-                    val known = (profiles + friendsProfiles.values).firstOrNull { it.id == peer }
-                    OutlinedButton(onClick = { conversation = thread; peerName = known?.name ?: "Conversation privée" }, modifier = Modifier.fillMaxWidth()) { Text((known?.name ?: "Conversation privée") + if (thread.lastSenderId.isNotBlank() && thread.lastSenderId != user.uid && thread.updatedAt > (receipts[thread.id] ?: 0L)) " · Nouveau" else "") }
-                }
+                MessengerInbox(user.uid, conversations, receipts, profiles + friendsProfiles.values,
+                    onNew = { choosingRecipient = true }, onFriends = { tab = "Amis" }, onOpen = { thread, name -> conversation = thread; peerName = name })
             } else {
                 OutlinedButton(onClick = { conversation = null }) { Text("‹ Mes conversations") }
                 Text(peerName, fontWeight = FontWeight.Bold)
-                CommunityChat(service, selected, decks, catalog, onImportDeck)
+                CommunityChat(service, selected, decks, catalog, onImportDeck, peerName)
             }
         }
     }
+    if (choosingRecipient) MessengerRecipientPicker(friendships.filter { it.status == "accepted" }.mapNotNull { friend ->
+        (profiles + friendsProfiles.values).firstOrNull { it.id == friend.peer(user.uid) }
+    }.distinctBy { it.id }, onClose = { choosingRecipient = false }, onAdd = { choosingRecipient = false; tab = "Amis" },
+        onChoose = { choosingRecipient = false; talk(it) })
     selectedProfile?.let { player ->
         var identity by remember(player.id) { mutableStateOf(player.copy(firstName = "", shareFirstName = false)) }
         DisposableEffect(service, player.id) {
@@ -261,9 +273,11 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
         AlertDialog(onDismissRequest = { selectedProfile = null }, title = { Text("Profil du joueur") }, text = {
             Column(Modifier.heightIn(max = 430.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 PlayerHeading(identity); if (player.bio.isNotBlank()) Text(player.bio)
-                ProfileInterests(player, catalog)
-                ShowcasePanel(service, player, database, catalog)
-                ProfileBadges(player, definitions, catalog)
+                if (!messaging) {
+                    ProfileInterests(player, catalog)
+                    ShowcasePanel(service, player, database, catalog)
+                    ProfileBadges(player, definitions, catalog)
+                }
                 val friendship = friendships.firstOrNull { player.id in it.members }
                 if (friendship == null) OutlinedButton(onClick = { action { service.requestFriend(player.id); status = "Demande d’ami envoyée." } }, enabled = !busy && !blocked) { Text("Ajouter aux amis") }
                 else if (friendship.status == "accepted") {
@@ -271,16 +285,16 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
                     if (!blocked) FriendProfileTradeSummary(service, player, database, catalog, details) { suggestion ->
                         selectedProfile = null; suggestedTrade = suggestion
                     }
-                    OutlinedButton(onClick = { selectedProfile = null; proposingTrade = player }, enabled = !blocked) { Text("Proposer un échange") }
+                    if (!messaging) OutlinedButton(onClick = { selectedProfile = null; proposingTrade = player }, enabled = !blocked) { Text("Proposer un échange") }
                 } else Text(if (friendship.requester == user.uid) "Demande envoyée" else "Demande d’ami reçue · onglet Amis")
-                SharedProfileDecks(service, player, false, decks, catalog, onImportDeck)
+                if (!messaging) SharedProfileDecks(service, player, false, decks, catalog, onImportDeck)
                 OutlinedButton(onClick = { action { service.block(player.id, !blocked); blocked = !blocked } }, enabled = !busy) { Text(if (blocked) "Débloquer ce joueur" else "Bloquer ce joueur") }
             }
         }, confirmButton = { Button(onClick = { talk(player) }, enabled = !busy && !blocked) { Text("Envoyer un message") } },
             dismissButton = { TextButton(onClick = { selectedProfile = null }) { Text("Fermer") } })
     }
     suggestedTrade?.let { suggestion -> TradeComposer(suggestion.peer, catalog, database, busy, { suggestedTrade = null }, { offer, wanted -> action {
-        service.proposeTrade(suggestion.peer.id, offer, wanted); suggestedTrade = null; tab = "Échanges"; status = "Proposition envoyée."
+        service.proposeTrade(suggestion.peer.id, offer, wanted); suggestedTrade = null; tab = if (messaging) "Messages" else "Échanges"; status = "Proposition envoyée. Retrouve-la dans Échanges."
     } }, initialOffer = suggestion.offer, initialWanted = suggestion.wanted) }
     proposingTrade?.let { peer -> TradeComposer(peer, catalog, database, busy, { proposingTrade = null }, { offer, wanted -> action {
         service.proposeTrade(peer.id, offer, wanted); proposingTrade = null; tab = "Échanges"; status = "Proposition envoyée."
@@ -375,7 +389,7 @@ internal fun CommunityAvatar(raw: String, modifier: Modifier = Modifier) {
 
 @Composable
 private fun ColumnScope.CommunityChat(service: CommunityService, conversation: PlayerConversation, decks: List<DeckStore.SavedDeck>,
-    catalog: List<CatalogCard>, onImportDeck: (String, PortableDeck) -> Unit) {
+    catalog: List<CatalogCard>, onImportDeck: (String, PortableDeck) -> Unit, peerName: String) {
     var messages by remember(conversation.id) { mutableStateOf<List<PlayerMessage>>(emptyList()) }
     var draft by remember(conversation.id) { mutableStateOf("") }
     var pendingId by remember(conversation.id) { mutableStateOf(UUID.randomUUID().toString()) }
@@ -384,6 +398,11 @@ private fun ColumnScope.CommunityChat(service: CommunityService, conversation: P
     var share by remember { mutableStateOf(false) }
     var received by remember { mutableStateOf<PlayerMessage?>(null) }
     val scope = rememberCoroutineScope(); val online = rememberInternetAvailable()
+    val chatScroll = rememberScrollState()
+    LaunchedEffect(conversation.id, messages.lastOrNull()?.id) {
+        withFrameNanos { }
+        chatScroll.scrollTo(chatScroll.maxValue)
+    }
     DisposableEffect(service.uid, conversation.id) {
         val subscription = service.messages(conversation.id, { rows ->
             messages = rows
@@ -401,16 +420,21 @@ private fun ColumnScope.CommunityChat(service: CommunityService, conversation: P
         finally { busy = false }
     } }
     Text("Les 50 derniers messages sont affichés.", fontSize = 12.sp)
-    messages.forEach { message -> Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = if (message.senderId == service.uid) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant)) {
+    val chatHeight = (androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp * .38f).coerceIn(120.dp, 380.dp)
+    Column(Modifier.fillMaxWidth().height(chatHeight).verticalScroll(chatScroll), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    if (messages.isEmpty()) Text("Le début de votre discussion. Écris ton premier message ci-dessous.", style = MaterialTheme.typography.bodySmall)
+    messages.forEach { message -> Box(Modifier.fillMaxWidth(), contentAlignment = if (message.senderId == service.uid) Alignment.CenterEnd else Alignment.CenterStart) {
+        Card(Modifier.fillMaxWidth(.88f), colors = CardDefaults.cardColors(containerColor = if (message.senderId == service.uid) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant)) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            Text(if (message.senderId == service.uid) "Moi" else "Joueur", fontSize = 11.sp)
+            Text(if (message.senderId == service.uid) "Moi" else peerName, fontSize = 11.sp)
             if (message.text.isNotBlank()) Text(message.text)
             if (message.kind == "deck") {
                 Text(message.deckName, fontWeight = FontWeight.Bold)
                 OutlinedButton(onClick = { received = message }) { Text("Voir le deck partagé") }
             }
         }
-    } }
+    } } }
+    }
     status?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
     if (!online) Text("Hors connexion · les nouveaux messages seront disponibles à ton retour.")
     OutlinedTextField(draft, { if (it.length <= 2000) draft = it }, enabled = !busy, label = { Text("Ton message") }, modifier = Modifier.fillMaxWidth(), maxLines = 5)

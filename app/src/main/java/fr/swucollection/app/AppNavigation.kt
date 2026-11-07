@@ -10,6 +10,8 @@ data class AppDestination(
     val catalogSearch: String = ""
 )
 
+internal fun communityDestination(tab: String): String = if (tab in listOf("Messages", "Amis")) "Messagerie" else "Communauté"
+
 /** In-memory screen history, independent from collection data. */
 class AppNavigation {
     var current by mutableStateOf(AppDestination())

@@ -51,23 +51,16 @@ internal fun CommunityHomeControls(onOpen: (String) -> Unit, onMenu: () -> Unit,
         var friendships by remember { mutableStateOf<List<PlayerFriendship>>(emptyList()) }
         var threads by remember { mutableStateOf<List<PlayerConversation>>(emptyList()) }
         var receipts by remember { mutableStateOf<Map<String, Long>>(emptyMap()) }
-        var trades by remember { mutableStateOf<List<PlayerTrade>>(emptyList()) }
         var ready by remember { mutableStateOf(false) }
         LaunchedEffect(uid) { ready = uid != null && service.auth.currentUser?.isEmailVerified == true && runCatching { service.allowed() }.getOrDefault(false) }
         DisposableEffect(ready, uid) {
             val listeners = if (ready) listOf(service.ownProfile({ profile = it }, {}), service.friendships({ friendships = it }, {}),
-                service.conversations({ threads = it }, {}), service.receipts({ receipts = it }, {}), service.trades({ trades = it }, {})) else emptyList()
+                service.conversations({ threads = it }, {}), service.receipts({ receipts = it }, {})) else emptyList()
             onDispose { listeners.forEach { it.remove() } }
         }
         val count = if (ready) CommunitySocial.unread(uid.orEmpty(), threads, receipts) +
-            friendships.count { it.status == "pending" && it.requester != uid } +
-            trades.count { it.status == "pending" && it.requester != uid } else 0
-        val destination = when {
-            friendships.any { it.status == "pending" && it.requester != uid } -> "Amis"
-            trades.any { it.status == "pending" && it.requester != uid } -> "Échanges"
-            else -> "Messages"
-        }
-        CommunityHomeActions(profile?.avatar, count, destination, onOpen, onMenu, modifier)
+            friendships.count { it.status == "pending" && it.requester != uid } else 0
+        CommunityHomeActions(profile?.avatar, count, "Messages", onOpen, onMenu, modifier)
     }
 
 }
@@ -110,26 +103,29 @@ internal suspend fun loadCharacterAvatar(context: Context, card: CatalogCard): S
 @Composable
 internal fun ColumnScope.FriendPanel(service: CommunityService, friendships: List<PlayerFriendship>, profiles: Collection<PlayerProfile>, busy: Boolean,
     onAccept: (PlayerFriendship) -> Unit, onRemove: (PlayerFriendship) -> Unit, onRequest: (String) -> Unit,
-    onProfile: (PlayerProfile) -> Unit, onMessage: (PlayerProfile) -> Unit, onTrade: (PlayerProfile) -> Unit) {
+    onProfile: (PlayerProfile) -> Unit, onMessage: (PlayerProfile) -> Unit, onTrade: (PlayerProfile) -> Unit, messaging: Boolean = false) {
     var code by remember { mutableStateOf("") }
     var remove by remember { mutableStateOf<PlayerFriendship?>(null) }
+    var search by remember { mutableStateOf("") }
     Text("Mes amis", style = MaterialTheme.typography.titleLarge)
-    Text("Trouve un joueur par pseudo dans Joueurs, ou utilise son code ami.", fontSize = 12.sp)
+    Text(if (messaging) "Recherche un joueur avec le bouton ci-dessus, ou utilise son code ami." else "Trouve un joueur par pseudo dans Joueurs, ou utilise son code ami.", fontSize = 12.sp)
     OutlinedTextField(code, { code = it.take(160) }, label = { Text("Code ami") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
     Button(onClick = { onRequest(code) }, enabled = !busy && code.isNotBlank()) { Text("Envoyer une demande") }
     val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
     TextButton(onClick = { clipboard.setText(androidx.compose.ui.text.AnnotatedString(service.uid)) }) { Text("Copier mon code ami") }
     if (friendships.isEmpty()) Text("Tes amis et demandes apparaîtront ici.")
+    if (messaging && friendships.isNotEmpty()) OutlinedTextField(search, { search = it.take(80) }, label = { Text("Rechercher parmi mes amis") }, singleLine = true, modifier = Modifier.fillMaxWidth())
     val ordered = friendships.sortedBy { if (it.status == "pending" && it.requester != service.uid) 0 else if (it.status == "accepted") 1 else 2 }
     ordered.forEach { friend ->
         val player = profiles.firstOrNull { it.id == friend.peer(service.uid) } ?: PlayerProfile(friend.peer(service.uid), if (friend.requester != service.uid) friend.requesterName.ifBlank { "Joueur du test" } else "Joueur du test", avatar = if (friend.requester != service.uid) friend.requesterAvatar else "preset:star")
+        if (!player.name.contains(search.trim(), true)) return@forEach
         Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             PlayerHeading(player)
             if (friend.status == "accepted") {
                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     TextButton(onClick = { onProfile(player) }) { Text("Profil") }
                     TextButton(onClick = { onMessage(player) }) { Text("Message") }
-                    TextButton(onClick = { onTrade(player) }) { Text("Échange") }
+                    if (!messaging) TextButton(onClick = { onTrade(player) }) { Text("Échange") }
                 }
                 TextButton(onClick = { remove = friend }) { Text("Retirer de mes amis") }
             } else {

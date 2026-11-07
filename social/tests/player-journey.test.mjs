@@ -7,7 +7,7 @@ import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, sendEmailVerification,
   applyActionCode, reload, getIdToken, signOut } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator, doc, setDoc, getDoc, updateDoc, deleteDoc,
-  serverTimestamp, runTransaction, terminate } from 'firebase/firestore';
+  serverTimestamp, runTransaction, writeBatch, terminate } from 'firebase/firestore';
 import { initializeTestEnvironment, assertFails } from '@firebase/rules-unit-testing';
 
 test('two verified players create profiles, become friends, share exact prints and accept a private exchange', async () => {
@@ -61,8 +61,27 @@ test('two verified players create profiles, become friends, share exact prints a
     await updateDoc(doc(bob.store, 'trades', id), { status: 'accepted', updatedAt: serverTimestamp() });
     assert.equal((await getDoc(doc(alice.store, 'trades', id))).data().status, 'accepted');
     await assertFails(updateDoc(doc(alice.store, 'trades', id), { status: 'pending', updatedAt: serverTimestamp() }));
+    await updateDoc(doc(bob.store, 'profiles', bob.uid), { messagePolicy: 'friends', updatedAt: serverTimestamp() });
+    await setDoc(doc(alice.store, 'conversations', pair), { members, updatedAt: serverTimestamp() });
+    async function send(client, messageId, text) {
+      const batch = writeBatch(client.store);
+      batch.set(doc(client.store, 'conversations', pair, 'messages', messageId), { senderId: client.uid,
+        kind: 'text', text, deckName: '', deckJson: '', createdAt: serverTimestamp() });
+      batch.update(doc(client.store, 'conversations', pair), { lastSenderId: client.uid, updatedAt: serverTimestamp() });
+      return batch.commit();
+    }
+    await send(alice, 'first', 'Bonjour Bob');
+    assert.equal((await getDoc(doc(bob.store, 'conversations', pair, 'messages', 'first'))).data().text, 'Bonjour Bob');
+    assert.equal((await getDoc(doc(bob.store, 'conversations', pair))).data().lastSenderId, alice.uid);
+    await setDoc(doc(bob.store, 'reads', bob.uid, 'threads', pair), { seenAt: serverTimestamp() });
+    assert.ok((await getDoc(doc(bob.store, 'reads', bob.uid, 'threads', pair))).data().seenAt);
+    await send(bob, 'reply', 'Bonjour Alice');
+    assert.equal((await getDoc(doc(alice.store, 'conversations', pair, 'messages', 'reply'))).data().senderId, bob.uid);
     await deleteDoc(doc(bob.store, 'tradeInventories', bob.uid));
     assert.equal((await getDoc(doc(alice.store, 'tradeInventories', bob.uid))).exists(), false);
+    await deleteDoc(doc(alice.store, 'friendships', pair));
+    await assertFails(send(alice, 'after-removal', 'Refusé par la préférence amis uniquement'));
+    assert.equal((await getDoc(doc(bob.store, 'conversations', pair, 'messages', 'first'))).data().text, 'Bonjour Bob');
     await signOut(alice.auth);
     await assertFails(getDoc(doc(alice.store, 'trades', id)));
   } finally {

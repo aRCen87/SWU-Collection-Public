@@ -24,7 +24,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
-import androidx.compose.material.icons.filled.SportsEsports
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.Home
 import androidx.activity.result.contract.ActivityResultContracts
@@ -250,6 +250,8 @@ private fun CollectionScreen(
     var proxyBuilderOpen by rememberSaveable { mutableStateOf(false) }
     var importingDeck by remember { mutableStateOf(false) }
     var communityInitialTab by remember { mutableStateOf("Mon profil") }
+    var messengerInitialTab by remember { mutableStateOf("Messages") }
+    var messengerConversation by remember { mutableStateOf<Pair<PlayerConversation, String>?>(null) }
     var deckLibraryVisible by remember { mutableStateOf(true) }
     var deckMessage by remember { mutableStateOf<String?>(null) }
     var favoriteCard by remember { mutableStateOf<CatalogCard?>(null) }
@@ -311,8 +313,10 @@ private fun CollectionScreen(
         if (privateLayout && communityNavigationRequest != null) {
             previewSession = null; favoriteCard = null; scanCandidate = null
             scannerOpen = false; menuOpen = false
-            communityInitialTab = communityNavigationRequest.second
-            navigation.navigateTo("Communauté")
+            val tab = communityNavigationRequest.second
+            if (communityDestination(tab) == "Messagerie") { messengerInitialTab = tab; messengerConversation = null }
+            else communityInitialTab = tab
+            navigation.navigateTo(communityDestination(tab))
         }
     }
 
@@ -655,7 +659,7 @@ private fun CollectionScreen(
                     "Collection", "Extensions", "Mes listes", "Hauts faits" -> 1000.dp
                     else -> 760.dp
                 }) else Modifier)
-                .fillMaxSize().padding(bottom = if (deckWorkspace) 0.dp else 82.dp).then(
+                .fillMaxSize().padding(bottom = if (deckWorkspace || selectedSection == "Messagerie") 0.dp else 82.dp).then(
                 if (selectedSection in listOf("Collection", "Extensions", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta", "Prêts"))
                     Modifier else Modifier.verticalScroll(rememberScrollState())
             ).padding(horizontal = 16.dp, vertical = 10.dp),
@@ -678,7 +682,11 @@ private fun CollectionScreen(
                     Modifier.fillMaxWidth().aspectRatio(475f / 185f), compactControls = privateHome,
                     ambientActive = homeArtworkActive && reflectionsEnabled)
                 if (privateHome) CommunityHomeControls(
-                    onOpen = { tab -> communityInitialTab = tab; navigation.navigateTo("Communauté") },
+                    onOpen = { tab ->
+                        if (communityDestination(tab) == "Messagerie") { messengerInitialTab = "Messages"; messengerConversation = null }
+                        else communityInitialTab = tab
+                        navigation.navigateTo(communityDestination(tab))
+                    },
                     onMenu = { menuOpen = true }, modifier = Modifier.align(androidx.compose.ui.Alignment.TopEnd))
                 else IconButton(onClick = { menuOpen = true },
                     modifier = Modifier.align(androidx.compose.ui.Alignment.TopEnd)) {
@@ -720,7 +728,7 @@ private fun CollectionScreen(
                         else -> selectedSection
                     },
                         modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
-                    if (!deckWorkspace) IconButton(onClick = { menuOpen = true }) {
+                    if (!deckWorkspace && selectedSection != "Messagerie") IconButton(onClick = { menuOpen = true }) {
                         Icon(Icons.Default.Menu, "Ouvrir le menu", tint = MaterialTheme.colorScheme.primary)
                     }
                 }
@@ -732,13 +740,18 @@ private fun CollectionScreen(
                 })
             }
             if (selectedSection == "Accueil") {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedCard(onClick = { navigation.navigateTo("Recherche") },
-                    modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
+                    modifier = Modifier.weight(1f), shape = RoundedCornerShape(20.dp)) {
                     Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                         Icon(Icons.Default.Search, null, tint = MaterialTheme.colorScheme.primary)
                         Text("Carte, deck, extension…", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
+                }
+                if (privateLayout) OutlinedIconButton(onClick = { navigation.navigateTo("Compteur") }, modifier = Modifier.size(52.dp)) {
+                    Icon(Icons.Default.Favorite, "Compteur de points de vie", tint = MaterialTheme.colorScheme.primary)
+                }
                 }
                 if (!internetAvailable) OutlinedButton(onClick = { navigation.navigateTo("Hors connexion") }, modifier = Modifier.fillMaxWidth()) {
                     Text("Hors connexion · données disponibles sur ce téléphone ›")
@@ -749,9 +762,6 @@ private fun CollectionScreen(
                             Text("★ ${pinned.name} · Compléter mon extension")
                         }
                     }
-                }
-                if (privateLayout) OutlinedButton(onClick = { navigation.navigateTo("Compteur") }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                    Icon(Icons.Default.SportsEsports, null); Spacer(Modifier.width(10.dp)); Text("Compteur point de vie")
                 }
                 (if (privateLayout) homeLayout.order else HomeLayoutStore.defaults).forEach { shortcut ->
                     when (shortcut) {
@@ -897,6 +907,7 @@ private fun CollectionScreen(
             if (selectedSection == "Échanges") {
                 if (privateLayout) {
                     CommunityPanel(savedDecks, badgeProgress.filter { it.earned }, badgeBook?.definitions.orEmpty(), allCatalog, database, cardDetails, initialTab = "Échanges",
+                        onOpenMessenger = { thread, name -> messengerInitialTab = "Messages"; messengerConversation = thread to name; navigation.navigateTo("Messagerie") },
                         onRestored = { refresh(); homeLayout = homeStore.read(); pinnedDecks = deckPins.all() },
                         onImportDeck = { title, imported ->
                             editingDeck = DeckStore.SavedDeck(java.util.UUID.randomUUID().toString(), title, "Premier", imported, System.currentTimeMillis())
@@ -952,9 +963,12 @@ private fun CollectionScreen(
                     onCard = { card, visible -> openPreview(card, visible.map { CardPreviewEntry(it) }) },
                     onDeck = ::openSavedDeck, onSet = { navigation.navigateTo("Extensions", it) })
             }
-            if (selectedSection == "Communauté" && deckContext.packageName == "fr.swucollection.app.test") {
-                key(communityNavigationRequest?.first) {
-                CommunityPanel(savedDecks, badgeProgress.filter { it.earned }, badgeBook?.definitions.orEmpty(), allCatalog, database, cardDetails, initialTab = communityInitialTab,
+            if (selectedSection in listOf("Communauté", "Messagerie") && deckContext.packageName == "fr.swucollection.app.test") {
+                key(communityNavigationRequest?.first, selectedSection) {
+                CommunityPanel(savedDecks, badgeProgress.filter { it.earned }, badgeBook?.definitions.orEmpty(), allCatalog, database, cardDetails,
+                    initialTab = if (selectedSection == "Messagerie") messengerInitialTab else communityInitialTab,
+                    messaging = selectedSection == "Messagerie", initialConversation = if (selectedSection == "Messagerie") messengerConversation else null,
+                    onOpenMessenger = { thread, name -> messengerInitialTab = "Messages"; messengerConversation = thread to name; navigation.navigateTo("Messagerie") },
                     onRestored = { refresh(); homeLayout = homeStore.read(); pinnedDecks = deckPins.all() },
                     onImportDeck = { title, imported ->
                         editingDeck = DeckStore.SavedDeck(java.util.UUID.randomUUID().toString(), title, "Premier", imported, System.currentTimeMillis())
@@ -1360,7 +1374,7 @@ private fun CollectionScreen(
                 }
             }
         }
-        if (!deckWorkspace) Box(Modifier.align(androidx.compose.ui.Alignment.BottomCenter)
+        if (!deckWorkspace && selectedSection != "Messagerie") Box(Modifier.align(androidx.compose.ui.Alignment.BottomCenter)
             .then(if (privateLayout) Modifier.widthIn(max = 640.dp) else Modifier).fillMaxWidth()) {
             CollectionBottomBar(selectedSection) { section -> navigation.navigateTo(section) }
         }
@@ -1628,7 +1642,6 @@ private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) 
                         Spacer(Modifier.height(24.dp))
                         val communityEntries = if (LocalContext.current.packageName == "fr.swucollection.app.test")
                             listOf(Triple(Icons.Default.Person, "Compte et communauté", "Communauté"),
-                                Triple(Icons.Default.SportsEsports, "Compteur point de vie", "Compteur"),
                                 Triple(Icons.Default.Handshake, "Mes prêts de cartes", "Prêts")) else emptyList()
                         val entries = communityEntries + listOf(
                             Triple(Icons.Default.PhotoCamera, "Scanner", "Scanner"),

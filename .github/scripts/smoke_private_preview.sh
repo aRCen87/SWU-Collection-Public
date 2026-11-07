@@ -54,6 +54,7 @@ adb pull /sdcard/test-home.png smoke-private/home-test.png >/dev/null
 python3 .github/scripts/check_private_fold_interactions.py
 python3 .github/scripts/check_match_counter.py
 python3 .github/scripts/check_test18_guidance.py
+python3 .github/scripts/check_messenger_entry.py
 # Both identities still exist after launching each application.
 adb shell pm path fr.swucollection.app
 adb shell pm path fr.swucollection.app.test

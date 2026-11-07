@@ -2,6 +2,8 @@
 
 ## Parcours simplifié — Test 18
 
+La messagerie a sa destination indépendante `Messagerie`, ouverte depuis l’enveloppe de l’accueil ou une notification de message/demande d’ami. Elle ne figure pas dans le menu ni dans la barre de navigation. Ses seuls onglets sont Messages et Amis ; recherche de discussions, avatars, non-lus, choix d’un ami pour un nouveau message et retrait confirmé d’un ami sont disponibles. Les discussions s’ouvrent aussi depuis un profil ou un échange dans cette destination. L’enveloppe compte uniquement messages non lus et demandes d’amis ; les propositions restent dans Échanges. Les conversations et règles serveur existantes sont réutilisées, sans migration ni publication de contenu supplémentaire. Le compteur se lance par le cœur près de la recherche ; ses réglages et sa partie en cours sont conservés.
+
 Les résultats visuels incertains du scanner Test ouvrent un choix illustré de deux références maximum. Ce choix passe ensuite par le parcours habituel : langue et finition restent à confirmer, immédiatement en Une par une ou dans le bilan en Rafale. La caméra est en pause pendant le choix. Les essais photographiques sur de vraies cartes restent nécessaires pour évaluer la précision optique.
 
 La rubrique À vérifier dans Gérer ma collection utilise uniquement les incompatibilités connues du catalogue et un seuil indicatif de 20 exemplaires. Une quantité élevée peut être confirmée sans modifier la collection ; une modification ultérieure de cette ligne réactive l’invitation. Les corrections vérifient la ligne courante, les prêts et le plafond de regroupement dans une opération annulable. Aucune migration ni suppression automatique.

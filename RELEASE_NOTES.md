@@ -1,5 +1,8 @@
 # SWU Collection Test 0.8.19-test.18
 
+- Messagerie séparée, accessible par l’enveloppe de l’accueil : discussions avec avatars, recherche, non-lus, nouveau message et onglet Amis pour rechercher, ajouter, accepter ou retirer un ami. Les conversations restent privées et les decks peuvent toujours être envoyés.
+- Compteur de points de vie : petite icône cœur à côté de la recherche, à la place du grand bouton et de l’entrée du menu.
+
 - Citations aléatoires dès le démarrage, puis toutes les 20 secondes, sans répétition consécutive.
 - Scan hésitant : jusqu’à deux suggestions illustrées à choisir avant de confirmer langue et finition ; aucun ajout par simple ressemblance visuelle.
 - Collection → Gérer → À vérifier : langues indéterminées, finitions incompatibles, références absentes du catalogue et quantités de 20 exemplaires ou plus à confirmer. Corrections explicites, atomiques, annulables et protégées contre les prêts et les données devenues obsolètes.
