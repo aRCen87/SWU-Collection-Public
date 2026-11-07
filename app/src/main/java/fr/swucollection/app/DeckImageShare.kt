@@ -69,8 +69,9 @@ internal object DeckImageExporter {
                 coroutineContext.ensureActive();text(section.title,30f,(y+34).toFloat(),25f,gold,true);y+=80
                 section.entries.forEachIndexed {i,entry ->
                     coroutineContext.ensureActive()
-                    val x=24+(i%6)*194;val top=y+(i/6)*310
-                    val rect=RectF(x.toFloat(),top.toFloat(),(x+180).toFloat(),(top+248).toFloat())
+                    val columns=if(section.title=="LEADER ET BASE") 2 else 6
+                    val cell=1152/columns;val x=24+(i%columns)*cell;val top=y+(i/columns)*310
+                    val rect=RectF(x.toFloat(),top.toFloat(),(x+cell-14).toFloat(),(top+248).toFloat())
                     paint.color=AndroidColor.rgb(18,37,58);canvas.drawRoundRect(rect,12f,12f,paint)
                     val ref=DeckInterchange.normalizeId(entry.cardId);val card=byRef[ref]
                     val loaded=try {
@@ -84,9 +85,9 @@ internal object DeckImageExporter {
                     paint.color=AndroidColor.rgb(255,212,125);canvas.drawRoundRect(RectF(x+3f,top+3f,x+65f,top+40f),8f,8f,paint)
                     text("×${entry.count}",x+10f,top+29f,23f,AndroidColor.rgb(4,13,26),true)
                     paint.textSize=17f;val label=card?.name?:ref
-                    val n=paint.breakText(label,true,180f,null)
+                    val n=paint.breakText(label,true,rect.width(),null)
                     text(label.take(n),x.toFloat(),top+273f,17f)
-                    text(label.drop(n).take(paint.breakText(label.drop(n),true,180f,null)),x.toFloat(),top+295f,17f)
+                    text(label.drop(n).take(paint.breakText(label.drop(n),true,rect.width(),null)),x.toFloat(),top+295f,17f)
                 }
                 y+=((section.entries.size+5)/6)*310
             }

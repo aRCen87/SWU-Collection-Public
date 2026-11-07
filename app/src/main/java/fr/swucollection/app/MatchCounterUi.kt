@@ -172,6 +172,9 @@ private fun CounterPlayerPane(p: CounterPlayer,index: Int,score: Int,initiative:
                 Button(onClick={onHit(-1)},enabled=p.damage>0,modifier=Modifier.weight(1f).heightIn(min=52.dp),colors=ButtonDefaults.buttonColors(containerColor=p.style.ink().copy(alpha=.2f),contentColor=Color.White),contentPadding=PaddingValues(2.dp)) {Text("+1 PV",fontWeight=FontWeight.Bold)}
                 OutlinedButton(onClick={onHit(-5)},enabled=p.damage>0,modifier=Modifier.weight(1f).heightIn(min=48.dp),contentPadding=PaddingValues(2.dp)) {Text("+5 PV",color=p.style.ink())}
             }
+            if(tokens && compact) TextButton(onClick=onEdit,contentPadding=PaddingValues(0.dp),modifier=Modifier.heightIn(min=36.dp)) {
+                Text("Boucliers ${p.shields} · Exp. ${p.experience}  ✎",fontSize=11.sp,color=p.style.ink())
+            }
             if(tokens && !compact) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),verticalAlignment=Alignment.CenterVertically) {
                 listOf(true to p.shields,false to p.experience).forEach { (shield,n) ->
                     TextButton(onClick={onToken(shield,-1)},enabled=n>0,contentPadding=PaddingValues(2.dp)) {Text("−")}
