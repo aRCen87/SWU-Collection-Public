@@ -7,10 +7,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.GraphicsMode
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [28])
+@Config(sdk = [35])
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 class CharacterPortraitTest {
     @Test fun everySelectablePortraitLoadsOfflineAndFitsTheProfileUploadLimit() {
         val context = RuntimeEnvironment.getApplication()
