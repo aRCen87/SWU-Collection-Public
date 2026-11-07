@@ -17,7 +17,7 @@ def capture(name):
 try:
     adb('shell','wm','size','720x1560');adb('shell','wm','density','320');time.sleep(3)
     adb('shell','am','force-stop',PACKAGE);adb('shell','am','start','-W','-n',PACKAGE+'/fr.swucollection.app.MainActivity');time.sleep(8)
-    tap(find(snapshot('home'),'Ouvrir le menu'));tap(find(snapshot('menu'),'Collection'))
+    tap(find(snapshot('home'),'Collection'))
     tap(find(snapshot('collection'),'Gérer par lot · Disponibilité et decks'))
     root=snapshot('opened');find(root,'Gérer ma collection');find(root,'Sélection');find(root,'Disponibilité')
     for name,w,h,d in [('cover',720,1560,320),('unfolded',1766,1472,336),('landscape',1680,756,294)]:
