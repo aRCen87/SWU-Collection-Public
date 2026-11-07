@@ -26,6 +26,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.delay
+import kotlin.random.Random
 
 internal data class HomeFilmQuote(val text: String, val speaker: String, val film: String) {
     val displayText get() = "« $text »"
@@ -71,13 +72,14 @@ internal val homeFilmQuotes = listOf(
 
 @Composable
 internal fun rememberHomeFilmQuote(active: Boolean): State<Int> {
-    val index = rememberSaveable { mutableStateOf(0) }
+    val index = rememberSaveable { mutableStateOf(Random.nextInt(homeFilmQuotes.size)) }
     val owner = LocalLifecycleOwner.current
     LaunchedEffect(active, owner) {
         if (active) owner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             while (true) {
                 delay(20_000L)
-                index.value = (index.value + 1) % homeFilmQuotes.size
+                // A nonzero random offset gives every other quote the same chance.
+                index.value = (index.value + Random.nextInt(1, homeFilmQuotes.size)) % homeFilmQuotes.size
             }
         }
     }
