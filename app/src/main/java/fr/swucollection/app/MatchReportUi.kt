@@ -17,9 +17,9 @@ internal fun MatchReportDialog(session: CounterSession, decks: List<DeckStore.Sa
     var deckMenu by remember {mutableStateOf(false)}
     val leaderChoices=remember(report.opponentLeader,leaders) { if(report.opponentLeader.length<2) emptyList() else leaders.filter { DeckBrowser.searchKey(it.name).contains(DeckBrowser.searchKey(report.opponentLeader)) }.distinctBy {it.name}.take(5) }
     AlertDialog(onDismissRequest=onClose,title={Text("Bilan de mon match")},text={Column(Modifier.heightIn(max=480.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(8.dp)) {
-        Text("Score : ${session.frame.players[0].name} ${session.frame.scores[0]} — ${session.frame.scores[1]} ${session.frame.players[1].name}")
+        Text(if(session.playerCount==1) "Mode solo · résultat à renseigner" else "Score : ${session.frame.players[0].name} ${session.frame.scores[0]} — ${session.frame.scores[1]} ${session.frame.players[1].name}")
         Text("Je suis")
-        FlowRow(horizontalArrangement=Arrangement.spacedBy(6.dp)) {session.frame.players.forEachIndexed { i,p ->
+        FlowRow(horizontalArrangement=Arrangement.spacedBy(6.dp)) {session.frame.players.take(session.playerCount).forEachIndexed { i,p ->
             FilterChip(report.player==i,{report=report.copy(player=i,result=MatchReport.fromScores(session,i).result)},label={Text(p.name)})
         } }
         Box {OutlinedButton(onClick={deckMenu=true},modifier=Modifier.fillMaxWidth()) {Text(report.deckName.ifBlank {"Choisir mon deck (facultatif)"})};DropdownMenu(deckMenu,{deckMenu=false}) {

@@ -908,6 +908,7 @@ private fun CollectionScreen(
                 if (privateLayout) {
                     CommunityPanel(savedDecks, badgeProgress.filter { it.earned }, badgeBook?.definitions.orEmpty(), allCatalog, database, cardDetails, initialTab = "Échanges",
                         onOpenMessenger = { thread, name -> messengerInitialTab = "Messages"; messengerConversation = thread to name; navigation.navigateTo("Messagerie") },
+                        onOpenFriends = { messengerInitialTab = "Amis"; messengerConversation = null; navigation.navigateTo("Messagerie") },
                         onRestored = { refresh(); homeLayout = homeStore.read(); pinnedDecks = deckPins.all() },
                         onImportDeck = { title, imported ->
                             editingDeck = DeckStore.SavedDeck(java.util.UUID.randomUUID().toString(), title, "Premier", imported, System.currentTimeMillis())
@@ -969,6 +970,7 @@ private fun CollectionScreen(
                     initialTab = if (selectedSection == "Messagerie") messengerInitialTab else communityInitialTab,
                     messaging = selectedSection == "Messagerie", initialConversation = if (selectedSection == "Messagerie") messengerConversation else null,
                     onOpenMessenger = { thread, name -> messengerInitialTab = "Messages"; messengerConversation = thread to name; navigation.navigateTo("Messagerie") },
+                    onOpenFriends = { messengerInitialTab = "Amis"; messengerConversation = null; navigation.navigateTo("Messagerie") },
                     onRestored = { refresh(); homeLayout = homeStore.read(); pinnedDecks = deckPins.all() },
                     onImportDeck = { title, imported ->
                         editingDeck = DeckStore.SavedDeck(java.util.UUID.randomUUID().toString(), title, "Premier", imported, System.currentTimeMillis())
@@ -1203,7 +1205,7 @@ private fun CollectionScreen(
                 }
                 }
                 if (selectedSection == "Collection") {
-                OutlinedButton(onClick = { collectionWorkbench = true }, modifier = Modifier.fillMaxWidth()) { Text("Gérer par lot · Disponibilité et decks") }
+                OutlinedButton(onClick = { collectionWorkbench = true }, modifier = Modifier.fillMaxWidth()) { Text("Vérifier et gérer ma collection") }
                 FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Button(onClick = { openScanner() }, modifier = Modifier.widthIn(min = 112.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)) {
                         Icon(Icons.Default.PhotoCamera, null, modifier = Modifier.size(20.dp)); Spacer(Modifier.width(5.dp)); Text("Scanner", maxLines = 1)
@@ -1477,11 +1479,6 @@ private fun CollectionScreen(
             },
             batchCount = if (scanMode == "Rafale") scanBatch.entries.sumOf { it.quantity } else null,
             controls = {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (scanBatch.entries.isNotEmpty()) {
-                        TextButton(onClick = { closeScanner() }) { Text("Voir le lot (${scanBatch.entries.sumOf { it.quantity }})") }
-                    }
-                }
                 Text("La variante est identifiée automatiquement à partir du numéro exact et du catalogue.", fontSize = 12.sp)
                 Box {
                     OutlinedButton(onClick = { scanVariantMenuOpen = true }) { Text("Finition indécidable : $batchVariant  ▾") }

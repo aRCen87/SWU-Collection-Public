@@ -12,10 +12,13 @@ service cloud.firestore {
         !exists(/databases/$(database)/documents/blocks/$(b)/users/$(a));
     }
     function friends(a, b) {
-      return (exists(/databases/$(database)/documents/friendships/$(a + '__' + b)) &&
-        get(/databases/$(database)/documents/friendships/$(a + '__' + b)).data.status == 'accepted') ||
-        (exists(/databases/$(database)/documents/friendships/$(b + '__' + a)) &&
-        get(/databases/$(database)/documents/friendships/$(b + '__' + a)).data.status == 'accepted');
+      let first = a < b ? a : b;
+      let second = a < b ? b : a;
+      return acceptedFriendship(first + '__' + second) || acceptedFriendship(second + '__' + first);
+    }
+    function acceptedFriendship(pair) {
+      return exists(/databases/$(database)/documents/friendships/$(pair)) &&
+        get(/databases/$(database)/documents/friendships/$(pair)).data.status == 'accepted';
     }
     function acceptsMessages(a, b) {
       return !exists(/databases/$(database)/documents/profiles/$(b)) ||

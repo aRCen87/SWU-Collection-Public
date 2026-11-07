@@ -95,10 +95,15 @@ internal fun MatchCounterPanel(database: CollectionDatabase, onClose: () -> Unit
     Column(Modifier.fillMaxSize().background(Color(0xFF030A17)).safeDrawingPadding().padding(8.dp),verticalArrangement=Arrangement.spacedBy(6.dp)) {
         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
             IconButton(onClick=onClose) { Icon(Icons.Default.ArrowBack,"Fermer le compteur") }
-            Column(Modifier.weight(1f)) { Text("COMPTEUR DE PARTIE",fontSize=12.sp,color=ListPalette.Gold,fontWeight=FontWeight.Bold)
-                Text("Manche ${session.frame.round} · ${session.frame.scores[0]} — ${session.frame.scores[1]}",fontSize=12.sp) }
+            Column(Modifier.weight(1f)) { Text("POINTS DE VIE",fontSize=12.sp,color=ListPalette.Gold,fontWeight=FontWeight.Bold)
+                Text(if(session.playerCount==1) "Solo · Manche ${session.frame.round}" else "Manche ${session.frame.round} · ${session.frame.scores[0]} — ${session.frame.scores[1]}",fontSize=12.sp) }
             TextButton(onClick={ save(session.toggleTimer(System.currentTimeMillis())) }) { Text("${duration/60}:${(duration%60).toString().padStart(2,'0')} ${if(session.since>0) "Ⅱ" else "▶"}") }
             IconButton(onClick={ dialog="options" }) { Icon(Icons.Default.Settings,"Options de la partie") }
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(8.dp), verticalAlignment=Alignment.CenterVertically) {
+            Text("Compteur pour",style=MaterialTheme.typography.labelMedium)
+            listOf(1,2).forEach { count -> FilterChip(session.playerCount==count, { save(session.withPlayerCount(count)) }, enabled=!readOnly,
+                label={Text(if(count==1) "1 joueur" else "2 joueurs")}) }
         }
         failure?.let { Text(it,color=MaterialTheme.colorScheme.error,modifier=Modifier.padding(horizontal=8.dp),fontSize=12.sp) }
         BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
@@ -110,12 +115,13 @@ internal fun MatchCounterPanel(database: CollectionDatabase, onClose: () -> Unit
                     onEdit={ editing=i },onInitiative={ action(session.frame.copy(initiative=if(session.frame.initiative==i) -1 else i),"Initiative : ${session.frame.players[i].name}") },
                     onToken={ shield,delta -> action(session.frame.player(i) { if(shield) it.copy(shields=(it.shields+delta).coerceIn(0,99)) else it.copy(experience=(it.experience+delta).coerceIn(0,99)) },"Jetons : ${session.frame.players[i].name}") })
             }
-            if(wide) Row(Modifier.fillMaxSize(),horizontalArrangement=Arrangement.spacedBy(8.dp)) { player(0,Modifier.weight(1f).fillMaxHeight()); player(1,Modifier.weight(1f).fillMaxHeight()) }
+            if(session.playerCount==1) player(0,Modifier.fillMaxSize())
+            else if(wide) Row(Modifier.fillMaxSize(),horizontalArrangement=Arrangement.spacedBy(8.dp)) { player(0,Modifier.weight(1f).fillMaxHeight()); player(1,Modifier.weight(1f).fillMaxHeight()) }
             else Column(Modifier.fillMaxSize(),verticalArrangement=Arrangement.spacedBy(8.dp)) { player(1,Modifier.weight(1f).fillMaxWidth()); player(0,Modifier.weight(1f).fillMaxWidth()) }
         }
         FlowRow(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick={ save(session.undoLast()) },enabled=session.undo.isNotEmpty() && !readOnly) { Text("Annuler") }
-            OutlinedButton(onClick={ dialog="round" },enabled=!readOnly) { Text("Fin de manche") }
+            OutlinedButton(onClick={ if(session.playerCount==1) save(session.nextSoloRound()) else dialog="round" },enabled=!readOnly) { Text(if(session.playerCount==1) "Nouvelle manche" else "Fin de manche") }
             OutlinedButton(onClick={ dialog="events" }) { Text("Journal") }
         }
     }
@@ -128,12 +134,12 @@ internal fun MatchCounterPanel(database: CollectionDatabase, onClose: () -> Unit
     } },confirmButton={TextButton(onClick={dialog=""}) {Text("Revenir à la partie")} })
     if(dialog=="options") AlertDialog(onDismissRequest={dialog=""},title={Text("Ma table de jeu")},text={ Column(Modifier.heightIn(max=450.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(8.dp)) {
         Text("L’écran reste allumé pendant que ce compteur est affiché. La partie est enregistrée après chaque action.")
-        CounterSwitch("Joueurs face à face",session.faceToFace) { save(session.copy(faceToFace=it)) }
+        if(session.playerCount==2) CounterSwitch("Joueurs face à face",session.faceToFace) { save(session.copy(faceToFace=it)) }
         CounterSwitch("Afficher les dégâts reçus",session.damageMode) {save(session.copy(damageMode=it))}
         CounterSwitch("Compteurs de jetons",session.tokens) {save(session.copy(tokens=it))}
         Text("Les jetons sont un aide-mémoire par joueur, sans automatisation des règles des cartes.",fontSize=12.sp)
         OutlinedButton(onClick={dialog="";editing=0},modifier=Modifier.fillMaxWidth()) {Text("Design et base du joueur 1")}
-        OutlinedButton(onClick={dialog="";editing=1},modifier=Modifier.fillMaxWidth()) {Text("Design et base du joueur 2")}
+        if(session.playerCount==2) OutlinedButton(onClick={dialog="";editing=1},modifier=Modifier.fillMaxWidth()) {Text("Design et base du joueur 2")}
         OutlinedButton(onClick={previousMatches=store.history();dialog="history"},modifier=Modifier.fillMaxWidth()) {Text("Mes matchs enregistrés")}
         OutlinedButton(onClick={dialog="finish"},modifier=Modifier.fillMaxWidth(),enabled=!readOnly) {Text("Enregistrer ce match et recommencer")}
     } },confirmButton={TextButton(onClick={dialog=""}) {Text("Reprendre")} })
@@ -145,7 +151,7 @@ internal fun MatchCounterPanel(database: CollectionDatabase, onClose: () -> Unit
         if(dialog=="events") { if(session.events.isEmpty()) Text("Aucune action pour le moment.");session.events.asReversed().forEach {Text(it)} }
         else { MatchStatisticsPanel(previousMatches); HorizontalDivider(); if(previousMatches.isEmpty()) Text("Aucun match enregistré.");previousMatches.forEach {r ->
             val p=r.getJSONArray("players");val s=r.getJSONArray("scores")
-            Text(SimpleDateFormat("dd/MM/yyyy HH:mm",Locale.FRANCE).format(Date(r.getLong("date")))+" · ${p.getString(0)} ${s.getInt(0)} — ${s.getInt(1)} ${p.getString(1)} · ${r.getLong("duration")/60000} min")
+            Text(SimpleDateFormat("dd/MM/yyyy HH:mm",Locale.FRANCE).format(Date(r.getLong("date"))) + if(r.optInt("playerCount",2)==1) " · Solo · ${p.getString(0)} · ${r.getLong("duration")/60000} min" else " · ${p.getString(0)} ${s.getInt(0)} — ${s.getInt(1)} ${p.getString(1)} · ${r.getLong("duration")/60000} min")
             r.optJSONObject("report")?.let { raw -> val report=MatchReport.read(raw)
                 Text("${matchResultTitle(report.result)} · ${report.deckName.ifBlank { "Sans deck" }} · contre ${report.opponentLeader.ifBlank { "leader non renseigné" }}",style=MaterialTheme.typography.bodySmall)
                 if(report.note.isNotBlank()) Text(report.note,style=MaterialTheme.typography.bodySmall)

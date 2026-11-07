@@ -20,6 +20,11 @@ try:
     adb('shell','am','force-stop',PACKAGE);adb('shell','am','start','-W','-n',PACKAGE+'/fr.swucollection.app.MainActivity');time.sleep(8)
     root=snapshot('home');tap(find(root,'Compteur de points de vie'))
     root=snapshot('opened');assert len(lives(root))==2,lives(root)
+    tap(find(root,'1 joueur'));root=snapshot('solo');assert len(lives(root))==1,lives(root);capture('solo')
+    adb('shell','wm','size','1766x1472');adb('shell','wm','density','336');time.sleep(4)
+    root=snapshot('solo-unfolded');assert len(lives(root))==1;find(root,'1 joueur');capture('solo-unfolded')
+    adb('shell','wm','size','720x1560');adb('shell','wm','density','320');time.sleep(4)
+    tap(find(snapshot('solo-cover'),'2 joueurs'));root=snapshot('two-restored');assert len(lives(root))==2
     buttons=[n for n in root.iter('node') if n.attrib.get('text')=='−1 PV'];assert buttons;tap(buttons[0])
     root=snapshot('damage');assert any('29 points' in s for s in lives(root)),lives(root)
     tap(find(root,'Annuler'));root=snapshot('undo');assert all('30 points' in s for s in lives(root))

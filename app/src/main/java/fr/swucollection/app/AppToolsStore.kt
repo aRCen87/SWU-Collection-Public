@@ -23,7 +23,8 @@ internal fun validateAppTool(name: String, value: JSONObject) {
         "loans" -> LoanBook.read(value)
         "matches" -> { val a=value.getJSONArray("items"); require(a.length()<=50); for(i in 0 until a.length()) {
             val r=a.getJSONObject(i); require(r.getLong("date")>=0 && r.getLong("duration")>=0)
-            if(r.has("report")) MatchReport.read(r.getJSONObject("report"))
+            if(r.has("playerCount")) toolInt(r,"playerCount",1..2)
+            if(r.has("report")) require(MatchReport.read(r.getJSONObject("report")).player < r.optInt("playerCount",2))
             val p=r.getJSONArray("players");val s=r.getJSONArray("scores"); require(p.length()==2 && s.length()==2)
             for(n in 0..1) require(p.getString(n).length in 1..40 && s.getInt(n) in 0..99)
         } }

@@ -1,5 +1,9 @@
 # SWU Collection Test 0.8.19-test.18
 
+- Compteur pour 1 ou 2 joueurs, choix visible dès l’ouverture et mémorisé. En solo, un seul panneau occupe l’écran ; le passage entre les modes conserve les réglages et les points de chaque joueur. Compatibilité des anciennes parties et des sauvegardes.
+- Revue des parcours : titres répétés et raccourci de bilan de scan en double retirés, gestion de collection renommée, et ajout d’amis dirigé vers l’espace Messagerie.
+- Correction des contrôles « amis uniquement » pour les identifiants des joueurs dans les deux ordres ; mêmes permissions, blocages et confirmation d’amitié.
+
 - Messagerie séparée, accessible par l’enveloppe de l’accueil : discussions avec avatars, recherche, non-lus, nouveau message et onglet Amis pour rechercher, ajouter, accepter ou retirer un ami. Les conversations restent privées et les decks peuvent toujours être envoyés.
 - Compteur de points de vie : petite icône cœur à côté de la recherche, à la place du grand bouton et de l’entrée du menu.
 

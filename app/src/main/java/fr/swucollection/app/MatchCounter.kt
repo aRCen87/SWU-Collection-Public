@@ -32,18 +32,25 @@ internal data class CounterFrame(val players: List<CounterPlayer> = listOf(Count
 }
 internal data class CounterSession(val frame: CounterFrame = CounterFrame(), val undo: List<CounterFrame> = emptyList(),
     val events: List<String> = emptyList(), val elapsed: Long = 0, val since: Long = 0,
-    val faceToFace: Boolean = true, val damageMode: Boolean = false, val tokens: Boolean = false) {
+    val faceToFace: Boolean = true, val damageMode: Boolean = false, val tokens: Boolean = false, val playerCount: Int = 2) {
+    init { require(playerCount in 1..2) }
+    fun withPlayerCount(count: Int) = copy(playerCount = count)
+    fun nextSoloRound(): CounterSession {
+        require(playerCount == 1)
+        return change(frame.copy(players = frame.players.mapIndexed { i, p -> if (i == 0) p.copy(damage = 0, shields = 0, experience = 0) else p },
+            round = (frame.round + 1).coerceAtMost(999), initiative = -1), "Nouvelle manche solo")
+    }
     fun change(next: CounterFrame, label: String) = if(next==frame) this else copy(frame=next,undo=(undo+frame).takeLast(50),events=(events+label.take(150)).takeLast(50))
     fun undoLast() = if(undo.isEmpty()) this else copy(frame=undo.last(),undo=undo.dropLast(1),events=events.dropLast(1))
     fun duration(now: Long) = (elapsed + if(since>0) (now-since).coerceIn(0,7*24*60*60_000L) else 0).coerceAtMost(365*24*60*60_000L)
     fun toggleTimer(now: Long) = if(since>0) copy(elapsed=duration(now),since=0) else copy(since=now)
     fun json() = JSONObject().put("frame",frame.json()).put("undo",JSONArray().apply { undo.forEach { put(it.json()) } })
-        .put("events",JSONArray(events)).put("elapsed",elapsed).put("since",since).put("face",faceToFace).put("damageMode",damageMode).put("tokens",tokens)
+        .put("events",JSONArray(events)).put("elapsed",elapsed).put("since",since).put("face",faceToFace).put("damageMode",damageMode).put("tokens",tokens).put("playerCount",playerCount)
     companion object {
         fun read(j: JSONObject): CounterSession {
             val u=j.getJSONArray("undo"); val e=j.getJSONArray("events"); require(u.length()<=50 && e.length()==u.length())
             return CounterSession(CounterFrame.read(j.getJSONObject("frame")),(0 until u.length()).map { CounterFrame.read(u.getJSONObject(it)) },
-                (0 until e.length()).map { e.getString(it).also { s -> require(s.length<=150) } },j.getLong("elapsed"),j.getLong("since"),j.getBoolean("face"),j.getBoolean("damageMode"),j.optBoolean("tokens")).also { require(it.elapsed in 0..365*24*60*60_000L && it.since>=0) }
+                (0 until e.length()).map { e.getString(it).also { s -> require(s.length<=150) } },j.getLong("elapsed"),j.getLong("since"),j.getBoolean("face"),j.getBoolean("damageMode"),j.optBoolean("tokens"),if(j.has("playerCount")) toolInt(j,"playerCount",1..2) else 2).also { require(it.elapsed in 0..365*24*60*60_000L && it.since>=0) }
         }
     }
 }
@@ -59,10 +66,10 @@ internal class MatchCounterStore(private val db: CollectionDatabase) {
     fun save(s: CounterSession) = db.putTool("counter",s.json())
     fun history(): List<JSONObject> = db.tool("matches")?.getJSONArray("items")?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } }.orEmpty()
     fun finish(s: CounterSession, now: Long, report: MatchReport? = null): CounterSession {
-        report?.let { MatchReport.read(it.json()) }
-        val item=JSONObject().put("date",now).put("players",JSONArray(s.frame.players.map { it.name })).put("scores",JSONArray(s.frame.scores)).put("duration",s.duration(now))
+        report?.let { MatchReport.read(it.json()); require(it.player in 0 until s.playerCount) }
+        val item=JSONObject().put("date",now).put("players",JSONArray(s.frame.players.map { it.name })).put("scores",JSONArray(s.frame.scores)).put("duration",s.duration(now)).put("playerCount",s.playerCount)
         report?.let { item.put("report",it.json()) }
-        val next=CounterSession(frame=CounterFrame(players=s.frame.players.map { it.copy(damage=0,shields=0,experience=0) }),faceToFace=s.faceToFace,damageMode=s.damageMode,tokens=s.tokens)
+        val next=CounterSession(frame=CounterFrame(players=s.frame.players.map { it.copy(damage=0,shields=0,experience=0) }),faceToFace=s.faceToFace,damageMode=s.damageMode,tokens=s.tokens,playerCount=s.playerCount)
         db.writableDatabase.beginTransaction()
         try { db.putTool("matches",JSONObject().put("items",JSONArray().apply { (listOf(item)+history()).take(50).forEach { put(it) } })); save(next); db.writableDatabase.setTransactionSuccessful() }
         finally { db.writableDatabase.endTransaction() }

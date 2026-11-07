@@ -108,6 +108,16 @@ test('message privacy applies to existing conversations and read receipts stay p
  await updateDoc(doc(b,'profiles','bob'),{messagePolicy:'nobody',updatedAt:serverTimestamp()});
  await assertFails(setDoc(doc(a,'conversations','alice__bob','messages','nobody'),message('alice')));
 });
+test('either accepted friend can start a friends-only conversation regardless of identifier order',async()=>{
+ const a=db('alice'),b=db('bob');
+ await setDoc(doc(a,'profiles','alice'),profile({messagePolicy:'friends'}));
+ await setDoc(doc(b,'profiles','bob'),profile({messagePolicy:'friends'}));
+ await setDoc(doc(a,'friendships','alice__bob'),{members:['alice','bob'],requester:'alice',status:'pending',updatedAt:serverTimestamp()});
+ await updateDoc(doc(b,'friendships','alice__bob'),{status:'accepted',updatedAt:serverTimestamp()});
+ for(const [uid,store] of [['alice',a],['bob',b]]) {
+  await assertSucceeds(setDoc(doc(store,'conversations','order-'+uid),{members:['alice','bob'],updatedAt:serverTimestamp()}));
+ }
+});
 test('only friends propose trades, only recipient accepts, and card snapshots cannot change',async()=>{
  const a=db('alice'),b=db('bob'),c=db('carol');
  const trade={members:['alice','bob'],requester:'alice',status:'pending',offer:'[{"card":"SOR-005","quantity":1,"language":"FR","finish":"Foil"}]',wanted:'[{"card":"SOR-010","quantity":1,"language":"FR","finish":"Classique"}]',createdAt:serverTimestamp(),updatedAt:serverTimestamp()};

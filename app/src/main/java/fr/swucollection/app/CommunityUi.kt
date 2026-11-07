@@ -52,11 +52,11 @@ internal fun communityError(error: Throwable): String = when ((error as? Firebas
 internal fun ColumnScope.CommunityPanel(decks: List<DeckStore.SavedDeck>, earned: List<BadgeProgress>,
     definitions: List<BadgeDefinition>, catalog: List<CatalogCard>, database: CollectionDatabase, details: CardDetails, initialTab: String = "Mon profil", messaging: Boolean = false,
     initialConversation: Pair<PlayerConversation, String>? = null, onOpenMessenger: ((PlayerConversation, String) -> Unit)? = null,
+    onOpenFriends: (() -> Unit)? = null,
     onRestored: () -> Unit, onImportDeck: (String, PortableDeck) -> Unit) {
     val context = LocalContext.current
     val service = remember(context) { CommunityService.create(context) }
-    if (!messaging) Text(if (initialTab == "Échanges") "Échanges" else "Communauté", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-    Text(if (messaging) "Tes discussions et tes amis" else "Profils, messages et decks · essais privés", color = MaterialTheme.colorScheme.primary)
+    Text(if (messaging) "Tes discussions et tes amis" else "Profils, échanges et decks · essais privés", color = MaterialTheme.colorScheme.primary)
     if (service == null) {
         Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("Les comptes de test ne sont pas encore activés", fontWeight = FontWeight.Bold)
@@ -73,14 +73,14 @@ internal fun ColumnScope.CommunityPanel(decks: List<DeckStore.SavedDeck>, earned
         onDispose { service.auth.removeAuthStateListener(listener) }
     }
     key(user?.uid, identityRevision) {
-        CommunitySession(service, user, decks, earned, definitions, catalog, database, details, initialTab, messaging, initialConversation, onOpenMessenger, { identityRevision++ }, onRestored, onImportDeck)
+        CommunitySession(service, user, decks, earned, definitions, catalog, database, details, initialTab, messaging, initialConversation, onOpenMessenger, onOpenFriends, { identityRevision++ }, onRestored, onImportDeck)
     }
 }
 
 @Composable
 private fun ColumnScope.CommunitySession(service: CommunityService, user: FirebaseUser?, decks: List<DeckStore.SavedDeck>,
     earned: List<BadgeProgress>, definitions: List<BadgeDefinition>, catalog: List<CatalogCard>, database: CollectionDatabase, details: CardDetails, initialTab: String, messaging: Boolean,
-    initialConversation: Pair<PlayerConversation, String>?, onOpenMessenger: ((PlayerConversation, String) -> Unit)?, refresh: () -> Unit,
+    initialConversation: Pair<PlayerConversation, String>?, onOpenMessenger: ((PlayerConversation, String) -> Unit)?, onOpenFriends: (() -> Unit)?, refresh: () -> Unit,
     onRestored: () -> Unit, onImportDeck: (String, PortableDeck) -> Unit) {
     val scope = rememberCoroutineScope()
     var busy by remember { mutableStateOf(false) }
@@ -232,7 +232,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
                 Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (friends.isEmpty()) {
                         Text("Ajoute d’abord un ami depuis Joueurs ou avec son code ami.")
-                        TextButton(onClick = { choosingFriend = false; tab = "Amis" }) { Text("Ajouter un ami") }
+                        TextButton(onClick = { choosingFriend = false; if (onOpenFriends != null) onOpenFriends() else tab = "Amis" }) { Text("Ajouter un ami") }
                     }
                     friends.sortedBy { it.name.lowercase() }.forEach { peer ->
                         OutlinedButton(onClick = { choosingFriend = false; proposingTrade = peer }, modifier = Modifier.fillMaxWidth()) { Text(peer.name) }
@@ -284,7 +284,10 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
                         selectedProfile = null; suggestedTrade = suggestion
                     }
                     if (!messaging) OutlinedButton(onClick = { selectedProfile = null; proposingTrade = player }, enabled = !blocked) { Text("Proposer un échange") }
-                } else Text(if (friendship.requester == user.uid) "Demande envoyée" else "Demande d’ami reçue · onglet Amis")
+                } else {
+                    Text(if (friendship.requester == user.uid) "Demande envoyée" else "Demande d’ami reçue")
+                    TextButton(onClick = { selectedProfile = null; if (messaging) tab = "Amis" else onOpenFriends?.invoke() }) { Text("Voir mes amis et demandes") }
+                }
                 SharedProfileDecks(service, player, false, decks, catalog, onImportDeck)
                 OutlinedButton(onClick = { action { service.block(player.id, !blocked); blocked = !blocked } }, enabled = !busy) { Text(if (blocked) "Débloquer ce joueur" else "Bloquer ce joueur") }
             }

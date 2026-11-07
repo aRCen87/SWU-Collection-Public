@@ -11,6 +11,8 @@ internal data class MatchReport(val player: Int = 0, val deckId: String = "", va
             require(it.deckId.length<=128 && it.deckName.length<=120 && it.opponentLeader.length<=160 && it.note.length<=500 && it.result in listOf("win","loss","draw"))
         }
         fun fromScores(s: CounterSession, player: Int=0): MatchReport {
+            require(player in 0 until s.playerCount)
+            if(s.playerCount==1) return MatchReport(player=0,result="draw") // A hidden opponent score cannot determine a solo result.
             val score=s.frame.scores[player].compareTo(s.frame.scores[1-player])
             return MatchReport(player=player,result=if(score>0) "win" else if(score<0) "loss" else "draw")
         }

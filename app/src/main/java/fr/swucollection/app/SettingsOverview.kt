@@ -13,7 +13,7 @@ internal fun SettingsOverview(onNavigate: (String) -> Unit, updateAvailable: Str
         color = MaterialTheme.colorScheme.onSurfaceVariant)
     listOf(
         Triple("Hors connexion", "Images des decks et extensions sur ce téléphone", "Hors connexion"),
-        Triple("Apparence", "Reflets des bordures dorées", "Apparence"),
+        Triple("Apparence", "Accueil et reflets des bordures dorées", "Apparence"),
         Triple("Mises à jour", updateAvailable?.let { "Version $it disponible" }
             ?: "Application, catalogue et rotation des cartes", "Mises à jour"),
         Triple("Sauvegarder et restaurer", "Collection, listes et changement de téléphone", "Sauvegardes")
