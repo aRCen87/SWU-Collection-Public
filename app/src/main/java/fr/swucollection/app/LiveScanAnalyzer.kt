@@ -20,7 +20,7 @@ internal class LiveScanAnalyzer(
     private val analysisExecutor: ExecutorService,
     private val visualMatcher: ScanVisualMatcher,
     private val viewport: () -> ScanViewport,
-    private val onVisualCandidates: (List<VisualCardMatch>) -> Unit,
+    private val onVisualCandidates: (List<VisualCardMatch>) -> Boolean,
     private val paused: () -> Boolean,
     private val onMessage: (String) -> Unit,
     private val gate: StableScanGate,
@@ -46,6 +46,7 @@ internal class LiveScanAnalyzer(
     private var lastVisualRead = 0L
     private var visualAbsentSince: Long? = null
     private var blockedVisualKey: List<ScanReference> = emptyList()
+    private var reviewedVisualKey: List<ScanReference> = emptyList()
 
     fun readAgain() { generation.incrementAndGet(); force.set(true) }
     fun interrupt() {
@@ -97,7 +98,7 @@ internal class LiveScanAnalyzer(
             if (retry) {
                 orientation.reset(); regionSearch.reset(); regionalReference = null
                 callbackExecutor.execute {
-                    gate.reset(); regionEvidence.interrupt(); visualEvidence.interrupt(); rejected = null; visualKey = emptyList(); visualReads = 0; blockedVisualKey = emptyList()
+                    gate.reset(); regionEvidence.interrupt(); visualEvidence.interrupt(); rejected = null; visualKey = emptyList(); visualReads = 0; blockedVisualKey = emptyList(); reviewedVisualKey = emptyList()
                 }
             }
             val qualityAdvice = ScanImageQuality.read(image)
@@ -176,16 +177,23 @@ internal class LiveScanAnalyzer(
                             visualReads = if (key == visualKey && visualNow-lastVisualRead <= 6000) visualReads + 1 else 1
                             visualKey = key; lastVisualRead = visualNow
                             if (reference == null && visualReads >= 2 && key != blockedVisualKey && gate.blockedReference !in key) {
-                                onVisualCandidates(visual)
+                                val queuedForReview = onVisualCandidates(visual)
                                 blockedVisualKey = key
+                                if (queuedForReview) { reviewedVisualKey = key; gate.block(visual.first().reference) }
                             }
                         } else if (reference != null || visualAttempted) {
                             visualKey = emptyList(); visualReads = 0
                             if (visualAttempted) {
                                 val visualNow = SystemClock.elapsedRealtime()
                                 val firstAbsent = visualAbsentSince ?: visualNow.also { visualAbsentSince = it }
-                                if (visualNow-firstAbsent >= 3600) blockedVisualKey = emptyList()
+                                if (visualNow-firstAbsent >= 3600) { blockedVisualKey = emptyList(); reviewedVisualKey = emptyList() }
                             } else visualAbsentSince = null
+                        }
+                        // A visual review already accounts for this held card. A later
+                        // OCR recovery of one of its candidate references must not add it twice.
+                        if (reference != null && reference in reviewedVisualKey) {
+                            onMessage("Carte mise de côté · présente la suivante pour continuer")
+                            return@execute
                         }
                         // A sideways retry is not evidence that the held card was
                         // removed. Otherwise one failed read can rearm batch mode.

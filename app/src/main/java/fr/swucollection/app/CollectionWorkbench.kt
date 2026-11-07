@@ -67,13 +67,15 @@ internal fun CollectionWorkbench(database: CollectionDatabase, catalog: List<Cat
         }
         result
     }
+    val visible = rows.filter { it.name.contains(search, true) || "${it.setCode} ${it.number}".contains(search, true) }
     Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(Modifier.safeDrawingPadding().padding(12.dp).widthIn(max = 850.dp).fillMaxWidth().fillMaxHeight(.94f), shape = MaterialTheme.shapes.large) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row { Text("Gérer ma collection", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge); TextButton(onClick = close) { Text("Fermer") } }
+                LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                item {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { listOf("Sélection", "Disponibilité").forEach { title -> FilterChip(tab == title, { tab = title }, label = { Text(title) }) } }
                 OutlinedTextField(search, { search = it.take(100) }, label = { Text("Nom, extension ou numéro") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                val visible = rows.filter { it.name.contains(search, true) || "${it.setCode} ${it.number}".contains(search, true) }
                 status?.let { Text(it) }
                 if (tab == "Sélection") {
                     Text("${selected.size} lignes sélectionnées · 500 maximum. La modification s’applique à tous leurs exemplaires.", style = MaterialTheme.typography.bodySmall)
@@ -91,7 +93,7 @@ internal fun CollectionWorkbench(database: CollectionDatabase, catalog: List<Cat
                     }
                     Text("Les numéros sont conservés. Une finition incompatible bloque tout le lot. Les cartes prêtées doivent d’abord être rendues. Annulation disponible dans Historique.", style = MaterialTheme.typography.bodySmall)
                 } else Text("En main = possédés moins prêts. Les decks indiquent leurs besoins et réutilisent tes exemplaires : ils ne les réservent pas automatiquement.", style = MaterialTheme.typography.bodySmall)
-                LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                }
                     if (tab == "Sélection") items(visible, key = { it.id }) { row -> OutlinedCard(Modifier.fillMaxWidth()) { Row(Modifier.padding(8.dp)) {
                         Checkbox(row.id in selected, { check -> selected = if (check) (selected + row.id).take(500).toSet() else selected - row.id })
                         Column(Modifier.weight(1f)) { Text(row.name); Text("${row.setCode} ${row.number} · ${row.variant} · ${row.language} · ×${row.quantity}", style = MaterialTheme.typography.bodySmall) }

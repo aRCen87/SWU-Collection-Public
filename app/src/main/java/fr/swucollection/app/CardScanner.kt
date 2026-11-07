@@ -153,7 +153,7 @@ fun CardScannerDialog(
             val main = ContextCompat.getMainExecutor(context)
             val executor = Executors.newSingleThreadExecutor()
             val reader = LiveScanAnalyzer(main, executor, visualMatcher, { visualViewport.get() },
-                { matches -> if (active.get() && !pauseCheck()) { matches.firstOrNull()?.let { landscapeCard = it.landscape }; latestUncertain.value?.invoke(matches.map { it.reference.set to it.reference.number }) } }, pauseCheck, { if (active.get()) message = it }, scanGate) { reference, raw ->
+                { matches -> if (active.get() && !pauseCheck()) { matches.firstOrNull()?.let { landscapeCard = it.landscape }; latestUncertain.value?.let { callback -> callback(matches.map { it.reference.set to it.reference.number }); true } ?: false } else false }, pauseCheck, { if (active.get()) message = it }, scanGate) { reference, raw ->
                 if (!active.get() || pauseCheck()) false
                 else latestDetected.value(reference.set, reference.number, raw).also { found ->
                     if (found) previewView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)

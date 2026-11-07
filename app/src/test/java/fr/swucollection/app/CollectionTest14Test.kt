@@ -18,6 +18,9 @@ class CollectionTest14Test {
         context.deleteDatabase("swu_collection.db")
         return CollectionDatabase(context)
     }
+    private fun withDatabase(block: (CollectionDatabase) -> Unit) {
+        val db = fresh(); try { block(db) } finally { db.close() }
+    }
     @Test fun exactGoalCountsOnlyTheRequestedLanguageAndFinishAndKeepsLeaderAtOne() {
         val stock = listOf(CollectionCard(1,"Carte","SOR","030","Normale",2,"FR"), CollectionCard(2,"Carte","SOR","030","Normale",8,"EN"), CollectionCard(3,"Carte","SOR","030","Foil",7,"FR"))
         val rows = printGoalRows(listOf(card, card.copy(number="001",type="Leader")), stock, true, PrintGoal("Normale","FR"))
@@ -25,7 +28,7 @@ class CollectionTest14Test {
         assertEquals(10, printGoalRows(listOf(card),stock,true,PrintGoal("Normale")).single().owned)
     }
     @Test fun bulkMergeIsAtomicKeepsTotalCopiesAndCanBeUndone() {
-        fresh().use { db ->
+        withDatabase { db ->
             db.addOrIncrement("Carte","SOR","030","Normale","FR")
             repeat(2) { db.addOrIncrement("Carte","SOR","030","Normale","EN") }
             val before = db.allCards()
@@ -39,7 +42,7 @@ class CollectionTest14Test {
         }
     }
     @Test fun bulkCannotRelabelAnOutstandingLoanAndPrintGoalsSurviveBackupRestore() {
-        fresh().use { db ->
+        withDatabase { db ->
             db.addOrIncrement("Carte","SOR","030","Normale","FR")
             val row=db.allCards().single()
             db.putTool("loans",LoanBook().add(row,"Ami",1,0,100).json())
@@ -58,7 +61,7 @@ class CollectionTest14Test {
         val batch=ScanBatchStore(context);batch.uncertain(card)
         assertFalse(batch.entries.single().resolved)
         val reloaded=ScanBatchStore(context);assertTrue(reloaded.entries.single().needsIdentity)
-        fresh().use { db ->
+        withDatabase { db ->
             assertThrows(IllegalArgumentException::class.java) {db.commitScanBatch(batch.id,batch.entries)}
             assertTrue(db.allCards().isEmpty())
             val correct=card.copy(number="031",name="Bonne carte")
@@ -77,7 +80,7 @@ class CollectionTest14Test {
         assertThrows(IllegalArgumentException::class.java) { PlayerDiscovery.validate(PlayerProfile("a","Joueur",formats=listOf("Hacked"))) }
     }
     @Test fun privateListAdditionPreservesInventoryAndExistingQuantities() {
-        fresh().use { db ->
+        withDatabase { db ->
             db.addOrIncrement("Carte","SOR","030","Normale","FR")
             val list=db.createCardList("Ma liste");db.putListCard(list,card,3)
             val before=db.allCards();db.bulkList(before.map {it.id}.toSet(),list,listOf(card))

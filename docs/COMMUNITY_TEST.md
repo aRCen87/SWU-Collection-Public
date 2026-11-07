@@ -104,4 +104,4 @@ Les objectifs précis sont conservés dans `tools.printGoals`, validés puis inc
 
 En rafale, une suggestion visuelle incertaine reste une ligne non validable dans le lot local, avec `needsIdentity=true`. Le joueur doit confirmer carte, langue et finition. Les corrections et leur retrait du groupe d’attente sont enregistrés ensemble dans les préférences. Les scans confirmés restent soumis au numéro, au catalogue et au contrôle de répétition existants. Les conseils de lumière et de contraste sont indicatifs et n’affectent ni les seuils de reconnaissance ni la décision de finition.
 
-Les règles Firestore de Test 14 doivent être déployées sur `swu-collection-test` avant disponibilité des nouveaux profils et vitrines. Les essais de sécurité utilisent uniquement `demo-swu-community-test`, sans compte réel ni message envoyé.
+Les règles Firestore de Test 14 ont été publiées sur `swu-collection-test` le 7 novembre 2026 à 10 h 03 (Paris), après réussite des 27 tests de sécurité. Les essais de sécurité utilisent uniquement `demo-swu-community-test`, sans compte réel ni message envoyé.

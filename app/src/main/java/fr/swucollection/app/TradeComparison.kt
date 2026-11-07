@@ -39,7 +39,7 @@ internal data class TradeProfile(val offers: List<TradeItem>,val needs: List<Tra
                 val exactGoal = printGoals[code]
                 val retainedOwned = if (exactGoal == null) owned else owned.filter { it.variant == exactGoal.finish && (exactGoal.language.isBlank() || it.language == exactGoal.language) }
                 CollectionObjectives.extras(retainedOwned.filter { it.setCode == code }.map { it.copy(quantity=(it.quantity-(reserved[loanKey(it)]?:0)).coerceAtLeast(0)) }, selected.filter { it.setCode == code },
-                    goals[code] ?: true, acceptVariants || variantsBySet[code] == true, details)
+                    goals[code] ?: true, exactGoal == null && (acceptVariants || variantsBySet[code] == true), details)
             }.mapNotNull { row ->
                 val c = byKey[MarketPricing.key(row.setCode,row.number)] ?: return@mapNotNull null
                 TradeItem(c.setCode,c.number,row.variant,c.name,details.family(c),row.quantity,language=row.language)
