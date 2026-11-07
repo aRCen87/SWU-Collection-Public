@@ -19,7 +19,7 @@ import java.util.Locale
 internal fun DeckInsightsDialog(deck: PortableDeck, owned: List<CollectionCard>, catalog: List<CatalogCard>,
     details: CardDetails, onDismiss: () -> Unit, rules: LegalityRules = LegalityRules.DEFAULT, onReplace: ((PortableDeck) -> Unit)? = null) {
     val context = LocalContext.current.applicationContext
-    val availableOwned = remember(owned) { CollectionDatabase(context).use { db -> val reserved=db.loans().reserved(); owned.map {it.copy(quantity=(it.quantity-(reserved[loanKey(it)] ?: 0)).coerceAtLeast(0))}.filter {it.quantity>0} } }
+    val availableOwned = remember(owned) { val db=CollectionDatabase(context); try { val reserved=db.loans().reserved(); owned.map {it.copy(quantity=(it.quantity-(reserved[loanKey(it)] ?: 0)).coerceAtLeast(0))}.filter {it.quantity>0} } finally {db.close()} }
     val currency = remember { NumberFormat.getCurrencyInstance(Locale.FRANCE) }
     var reserve by remember { mutableStateOf(false) }
     val analysis = remember(deck, reserve, catalog, details) { DeckInsights.analyse(if (reserve) deck.sideboard else deck.deck, catalog, details) }

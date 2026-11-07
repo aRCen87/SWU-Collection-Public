@@ -22,7 +22,7 @@ class CollectionTest15Test {
         CardDetail(it.name,it.name,3,if(it==base) listOf("Aggression") else if(it==leader) listOf("Heroism") else listOf("Aggression"),listOf("Trooper"),"Ground") })
     private fun fresh(block: (CollectionDatabase)->Unit) {
         val c=RuntimeEnvironment.getApplication() as Context;c.deleteDatabase("swu_collection.db")
-        CollectionDatabase(c).use(block)
+        val db=CollectionDatabase(c);try {block(db)} finally {db.close()}
     }
     private fun trade(offer: List<TradeSelection> = listOf(TradeSelection("SOR-030",1,"FR","Foil")),
         wanted: List<TradeSelection> = listOf(TradeSelection("SOR-031",1,"EN","Classique"))) = PlayerTrade("one",listOf("alice","bob"),"alice","accepted",CommunitySocial.encodeTrade(offer),CommunitySocial.encodeTrade(wanted),100)
