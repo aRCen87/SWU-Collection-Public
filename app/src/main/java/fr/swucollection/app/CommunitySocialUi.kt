@@ -1,8 +1,6 @@
 package fr.swucollection.app
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.util.Base64
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.background
@@ -24,15 +22,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.drawable.toBitmap
-import coil.imageLoader
-import coil.request.ImageRequest
-import coil.request.SuccessResult
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -103,7 +96,7 @@ internal fun CharacterAvatarGallery(catalog: List<CatalogCard>, enabled: Boolean
     Column(Modifier.heightIn(max = 300.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         choices.chunked(3).forEach { row -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             row.forEach { (entry, card) -> Column(Modifier.weight(1f).clickable(enabled = enabled) { onSelect(card) }.padding(4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                BadgeIllustration(card, false, Modifier.size(64.dp).clip(CircleShape).background(badgeNavy))
+                Image(androidx.compose.ui.res.painterResource(CharacterPortrait.drawable(entry.cardId)), entry.name, Modifier.size(64.dp).clip(CircleShape))
                 Text(entry.name, fontSize = 11.sp, maxLines = 2)
             } }
             repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
@@ -111,17 +104,7 @@ internal fun CharacterAvatarGallery(catalog: List<CatalogCard>, enabled: Boolean
     }
 }
 internal suspend fun loadCharacterAvatar(context: Context, card: CatalogCard): String = withContext(Dispatchers.IO) {
-    val result = context.imageLoader.execute(ImageRequest.Builder(context).data(OfflineImages.source(context, card.imageUrl)).size(900).allowHardware(false).build())
-    require(result is SuccessResult)
-    val source = result.drawable.toBitmap()
-    val rect = BadgeArtCrop.illustration(DeckConstruction.reference(card), card.type, source.width.toFloat(), source.height.toFloat()).fit(1f)
-    val crop = Bitmap.createBitmap(source, rect.left.toInt(), rect.top.toInt(), rect.width.toInt().coerceAtLeast(1), rect.height.toInt().coerceAtLeast(1))
-    val scaled = Bitmap.createScaledBitmap(crop, 96, 96, true)
-    val bytes = java.io.ByteArrayOutputStream().use { output -> scaled.compress(Bitmap.CompressFormat.JPEG, 78, output); output.toByteArray() }
-    // Coil owns the source bitmap: never recycle its cached pixels.
-    if (scaled !== source && scaled !== crop) scaled.recycle()
-    if (crop !== source) crop.recycle()
-    CommunityValidation.avatar("jpeg:" + Base64.encodeToString(bytes, Base64.NO_WRAP))
+    CharacterPortrait.encoded(context, DeckConstruction.reference(card))
 }
 
 @Composable

@@ -56,6 +56,18 @@ service cloud.firestore {
         request.resource.data.joinedAt == request.time;
       allow list, update, delete: if false;
     }
+    // Firestore reads whole documents: keep real names outside discoverable profiles.
+    match /profileNames/{uid} {
+      allow get: if allowed() && (request.auth.uid == uid ||
+        (resource.data.shareFirstName == true && enabled(uid) && friends(request.auth.uid, uid) && unblocked(request.auth.uid, uid)));
+      allow list: if false;
+      allow create, update: if allowed() && request.auth.uid == uid &&
+        request.resource.data.keys().hasAll(['firstName','shareFirstName','updatedAt']) &&
+        request.resource.data.keys().hasOnly(['firstName','shareFirstName','updatedAt']) &&
+        request.resource.data.firstName is string && request.resource.data.firstName.size() <= 40 &&
+        request.resource.data.shareFirstName is bool && request.resource.data.updatedAt == request.time;
+      allow delete: if allowed() && request.auth.uid == uid;
+    }
     match /profiles/{uid} {
       allow get: if allowed() && (request.auth.uid == uid || resource.data.discoverable == true || friends(request.auth.uid, uid));
       allow list: if allowed() && resource.data.discoverable == true && request.query.limit != null && request.query.limit <= 50;

@@ -123,3 +123,10 @@ Après acceptation d’une proposition, chacun confirme sur son téléphone avoi
 Le bouton d’accueil Échanges ouvre directement la communauté sur Échanges, sans comparaison hors ligne préalable. Nouvel échange affiche le choix des amis acceptés, puis un compositeur Je donne / Je reçois / Vérifier. Les cartes données proviennent de la collection locale hors prêts, sans nouvelle saisie de langue ou finition ; le contrôle des quantités porte sur les références exactes. Les reçus et propositions existants sont conservés.
 
 Les QR d’échange et d’amis, le lecteur et les bibliothèques spécifiques sont retirés. Le code ami reste copiable et le répertoire Joueurs reste disponible. Les listes partagées et suggestions sont une aide facultative repliée. Une seule case confirme la remise réelle après affichage des deux côtés du point de vue du joueur ; l’écriture atomique et les contrôles de Test 15 restent en place. Les propositions terminées ou refusées se retrouvent dans Anciens échanges.
+
+
+## Prénom privé et portraits — Test 17
+
+Les prénoms facultatifs sont stockés dans `profileNames/{uid}`, séparément du répertoire. Seul le propriétaire et ses amis acceptés si `shareFirstName=true` peuvent lire le document ; les comptes doivent être actifs et sans blocage. Aucune énumération n’est autorisée. Le profil public et le prénom sont enregistrés dans un batch atomique. La fiche observe le prénom et l’efface lors d’une révocation. Les anciens profils n’ont aucun prénom par défaut.
+
+Les 36 portraits sont intégrés et cadrés individuellement. La galerie utilise les mêmes pixels que le JPEG enregistré. Les photos personnelles et anciens avatars restent lisibles. Pour corriger un ancien JPEG déjà coupé, sélectionner à nouveau le personnage. Les symboles ne sont plus proposés.

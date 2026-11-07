@@ -24,4 +24,10 @@ class CommunityValidationTest {
         assertTrue(runCatching { CommunityValidation.avatar("jpeg:" + "A".repeat(18000)) }.isFailure)
         assertTrue(runCatching { CommunityValidation.avatar("preset:unknown") }.isFailure)
     }
+    @org.junit.Test fun optionalFirstNameIsTrimmedAndRejectsControlsOrOversize() {
+        org.junit.Assert.assertEquals("", CommunityValidation.firstName("  "))
+        org.junit.Assert.assertEquals("Éléonore", CommunityValidation.firstName(" Éléonore "))
+        org.junit.Assert.assertTrue(runCatching { CommunityValidation.firstName("x".repeat(41)) }.isFailure)
+        org.junit.Assert.assertTrue(runCatching { CommunityValidation.firstName("Ro\nmain") }.isFailure)
+    }
 }

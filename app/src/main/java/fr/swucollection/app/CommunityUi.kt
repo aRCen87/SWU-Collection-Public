@@ -252,10 +252,15 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
         }
     }
     selectedProfile?.let { player ->
+        var identity by remember(player.id) { mutableStateOf(player.copy(firstName = "", shareFirstName = false)) }
+        DisposableEffect(service, player.id) {
+            val listener = service.profileIdentity(player) { identity = it }
+            onDispose { listener.remove() }
+        }
         LaunchedEffect(player.id) { blocked = runCatching { service.isBlocked(player.id) }.getOrDefault(false) }
         AlertDialog(onDismissRequest = { selectedProfile = null }, title = { Text("Profil du joueur") }, text = {
             Column(Modifier.heightIn(max = 430.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                PlayerHeading(player); if (player.bio.isNotBlank()) Text(player.bio)
+                PlayerHeading(identity); if (player.bio.isNotBlank()) Text(player.bio)
                 ProfileInterests(player, catalog)
                 ShowcasePanel(service, player, database, catalog)
                 ProfileBadges(player, definitions, catalog)
@@ -283,6 +288,8 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
 private fun ColumnScope.ProfileEditor(initial: PlayerProfile, catalog: List<CatalogCard>, earnedIds: List<String>, busy: Boolean,
     onSave: (PlayerProfile) -> Unit, onCancel: (() -> Unit)?) {
     var name by remember(initial.id) { mutableStateOf(initial.name) }
+    var firstName by remember(initial.id) { mutableStateOf(initial.firstName) }
+    var shareFirstName by remember(initial.id) { mutableStateOf(initial.shareFirstName) }
     var bio by remember(initial.id) { mutableStateOf(initial.bio) }
     var avatar by remember(initial.id) { mutableStateOf(initial.avatar) }
     var visible by remember(initial.id) { mutableStateOf(initial.discoverable) }
@@ -298,9 +305,6 @@ private fun ColumnScope.ProfileEditor(initial: PlayerProfile, catalog: List<Cata
     } }
     Text(if (initial.name.isBlank()) "Créer mon profil" else "Modifier mon profil", fontWeight = FontWeight.Bold)
     CommunityAvatar(avatar, Modifier.size(72.dp))
-    CommunityValidation.avatars.keys.toList().chunked(4).forEach { row -> Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        row.forEach { id -> FilterChip(avatar == "preset:$id", { avatar = "preset:$id" }, label = { Text(CommunityValidation.avatars.getValue(id)) }) }
-    } }
     Text("Personnages des cartes", fontWeight = FontWeight.SemiBold)
     CharacterAvatarGallery(catalog, !busy && !avatarLoading) { card -> scope.launch {
         avatarLoading = true; photoError = null
@@ -313,6 +317,8 @@ private fun ColumnScope.ProfileEditor(initial: PlayerProfile, catalog: List<Cata
     OutlinedButton(onClick = { photo.launch("image/*") }, enabled = !busy) { Text("Choisir une photo") }
     photoError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
     OutlinedTextField(name, { name = it.take(32) }, label = { Text("Pseudo") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+    OutlinedTextField(firstName, { firstName = it.take(40) }, label = { Text("Prénom · facultatif") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+    Row(verticalAlignment = Alignment.CenterVertically) { Switch(shareFirstName, { shareFirstName = it }); Text("Afficher mon prénom à mes amis", Modifier.padding(start = 8.dp)) }
     OutlinedTextField(bio, { bio = it.take(200) }, label = { Text("À propos de moi · facultatif") }, modifier = Modifier.fillMaxWidth())
     ProfileInterestEditor(interests, catalog) { interests = it }
     Row(verticalAlignment = Alignment.CenterVertically) { Switch(visible, { visible = it }); Text("Afficher mon profil parmi les joueurs", Modifier.padding(start = 8.dp)) }
@@ -323,7 +329,7 @@ private fun ColumnScope.ProfileEditor(initial: PlayerProfile, catalog: List<Cata
     }
     Row(verticalAlignment = Alignment.CenterVertically) { Switch(shareDecks, { shareDecks = it }); Text("Afficher mes decks partagés sur mon profil", Modifier.padding(start = 8.dp)) }
     Text("Seuls les joueurs autorisés aux essais pourront consulter le profil. Ni ton e-mail ni ta collection ne sont affichés.", fontSize = 12.sp)
-    Button(onClick = { onSave(initial.copy(name = name, bio = bio, avatar = avatar, discoverable = visible, shareBadges = badges, badgeIds = if (badges) earnedIds else emptyList(), messagePolicy = policy, shareDecks = shareDecks, city = interests.city, formats = interests.formats, leaders = interests.leaders, shareShowcase = interests.shareShowcase)) }, enabled = !busy && !avatarLoading && name.trim().length >= 2) { Text("Enregistrer mon profil") }
+    Button(onClick = { onSave(initial.copy(name = name, firstName = firstName, shareFirstName = shareFirstName, bio = bio, avatar = avatar, discoverable = visible, shareBadges = badges, badgeIds = if (badges) earnedIds else emptyList(), messagePolicy = policy, shareDecks = shareDecks, city = interests.city, formats = interests.formats, leaders = interests.leaders, shareShowcase = interests.shareShowcase)) }, enabled = !busy && !avatarLoading && name.trim().length >= 2) { Text("Enregistrer mon profil") }
     onCancel?.let { TextButton(onClick = it) { Text("Annuler") } }
 }
 
@@ -345,7 +351,11 @@ internal fun CommunityAvatar(raw: String, modifier: Modifier = Modifier) {
 }
 @Composable internal fun PlayerHeading(profile: PlayerProfile) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        CommunityAvatar(profile.avatar, Modifier.size(52.dp)); Text(profile.name, fontWeight = FontWeight.Bold)
+        CommunityAvatar(profile.avatar, Modifier.size(52.dp))
+        Column {
+            Text(profile.name, fontWeight = FontWeight.Bold)
+            if (profile.firstName.isNotBlank()) Text(profile.firstName, style = MaterialTheme.typography.bodyMedium)
+        }
     }
 }
 @Composable private fun ProfileBadges(profile: PlayerProfile, definitions: List<BadgeDefinition>, catalog: List<CatalogCard>) {
