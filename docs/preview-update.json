@@ -1,11 +1,11 @@
 {
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "versionCode": 70,
-  "versionName": "0.8.19-test.11",
-  "notes": "Correctif de l’erreur d’ouverture des mises à jour privées : le bouton ouvre la page du fichier dans le navigateur normal, puis le téléchargement se lance depuis cette page après connexion à ChatGPT si nécessaire. Les anciennes versions doivent installer ce correctif une fois depuis la conversation. Bandeau scintillant, transitions entre cartes et inscription automatique conservés. Tests Android, sécurité, lint et essais téléphone/pliant réussis.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_c38ea56e97a881919c3cacf0922c0cd7&account_id=personal",
-  "sha256": "66fc07f42a4b95493edf1733827e3fa2d78523570d45b5b693331e9a94d39362",
-  "size": 85299184,
-  "sourceSha": "ab084342e7a5822efe6a4bcfadcb92033c229d3c"
+  "versionCode": 71,
+  "versionName": "0.8.19-test.12",
+  "notes": "Fiches regroupées avec miniatures des versions, langues et quantités ; sauvegarde automatique privée avec protection contre les conflits ; alertes périodiques de messages et demandes d’amis (15 minutes minimum selon Android) ; échanges illustrés et recherches des deux joueurs ; vérifications des écrans pliants. Correctifs : fiche conservée en paysage et scanner maintenu ouvert au dépliage. Tests Android, sauvegardes, sécurité, lint, compilation et essais émulateur fermé/déplié/paysage réussis. Le pliage réel reste à essayer sur ton téléphone.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_a45ed78555c48191b36b829384012089&account_id=personal",
+  "sha256": "b1276b27e7323a40ae1d429e2adb1644b33bcc88df2c88d9e54671d0aea7eafc",
+  "size": 85315564,
+  "sourceSha": "5911751a515a368be369c4a6cafd5bbb17ecfc9a"
 }
