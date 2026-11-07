@@ -45,10 +45,9 @@ class CardLanguageTest {
         assertEquals("FR",CardLanguages.imageLanguage("https://cdn.starwarsunlimited.com/card_SWH_01fr_229_Garde_du_Bloc_de_Detention.png"))
         assertEquals("EN",CardLanguages.imageLanguage("https://cdn.starwarsunlimited.com/card_SWH_01_141_Make_It_Happen.png"))
     }
-    @Test fun opticalTransferPreservesAllFiveLanguagesWithoutMergingTheirKeys() {
+    @Test fun sharedInventoryPreservesAllFiveLanguagesWithoutMergingTheirKeys() {
         val profile=TradeProfile(CardLanguages.supported.map { TradeItem("SOR","236","Normale","R2-D2","r2",1,language=it) },emptyList())
-        val receiver=OfflineTradeReceiver();var result: TradeProfile?=null
-        OfflineTradeQr.frames(profile).forEach { result=receiver.accept(it) ?: result }
+        val result=TradeProfile.parse(profile.json())
         assertEquals(profile,result)
         assertEquals(5,result!!.offers.map { it.key }.distinct().size)
     }
@@ -91,12 +90,11 @@ class CardLanguageTest {
         assertEquals(listOf("Normale","Foil"),parsed["SOR:236"])
         assertTrue(runCatching { ScanPrintCatalogue.parse("""{"format":"SWU_PRINT_FINISHES","cards":{"SOR:236":["invented"]}}""") }.isFailure)
     }
-    @Test fun qrTransferPreservesBothLanguagesAndNeverOffersEnglishAsExplicitlyFrench() {
+    @Test fun sharedInventoryPreservesBothLanguagesAndNeverOffersEnglishAsExplicitlyFrench() {
         val french=TradeItem("SOR","236","Normale","R2-D2","r2",2,language="FR")
         val english=french.copy(language="EN",quantity=3)
         val giver=TradeProfile(listOf(french,english),emptyList())
-        val receiver=OfflineTradeReceiver();var restored: TradeProfile?=null
-        OfflineTradeQr.frames(giver).reversed().forEach { restored=receiver.accept(it) ?: restored }
+        val restored=TradeProfile.parse(giver.json())
         assertEquals(giver,restored)
         val wantsFrench=TradeProfile(emptyList(),listOf(french.copy(quantity=5)))
         assertEquals(2,TradeComparison.matching(giver,wantsFrench).sumOf { it.quantity })

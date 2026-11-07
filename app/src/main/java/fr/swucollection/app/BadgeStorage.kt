@@ -15,6 +15,7 @@ internal fun createBadgeTables(db: SQLiteDatabase) {
     db.execSQL("CREATE TABLE IF NOT EXISTS badge_awards (id TEXT PRIMARY KEY,unlocked_at INTEGER NOT NULL,seen INTEGER NOT NULL DEFAULT 0,evidence TEXT NOT NULL DEFAULT '[]')")
     db.execSQL("CREATE TABLE IF NOT EXISTS badge_events (kind TEXT NOT NULL,event_key TEXT NOT NULL,amount INTEGER NOT NULL CHECK(amount>0),PRIMARY KEY(kind,event_key))")
 }
+// Keep retired event kinds readable when restoring an older collection.
 internal val badgeEventKinds = setOf("scan", "scan_unique", "scan_pending", "deck", "export", "proxy", "qr", "trade", "backup", "offline")
 internal fun CollectionDatabase.recordBadgeEvent(kind: String, key: String, amount: Int = 1) {
     require(kind in badgeEventKinds && key.isNotBlank() && key.length <= 200 && amount in 1..1000000)

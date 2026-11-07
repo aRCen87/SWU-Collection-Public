@@ -4295,21 +4295,6 @@
       ]
     },
     {
-      "id": "first_qr",
-      "title": "Connexion établie",
-      "category": "Application",
-      "chapter": "Application",
-      "story": "Recevoir entièrement le profil QR d’un ami.",
-      "tier": 0,
-      "requirements": [],
-      "metric": "qr",
-      "target": 1,
-      "prerequisites": [],
-      "art": [
-        "SHD-245"
-      ]
-    },
-    {
       "id": "first_trade",
       "title": "Marché conclu",
       "category": "Application",

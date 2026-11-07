@@ -3,7 +3,7 @@ import org.junit.Assert.*
 import org.junit.Test
 class CommunitySocialTest {
     @Test fun friendCodeRejectsUrlsAndUnknownVersions() {
-        assertEquals("alice_123", CommunitySocial.friendId(CommunitySocial.friendQr("alice_123")))
+        assertEquals("alice_123", CommunitySocial.friendId("alice_123"))
         for (bad in listOf("https://example.com", "swu-friend:v2:alice", "../alice", "", "a".repeat(129)))
             assertTrue(bad, runCatching { CommunitySocial.friendId(bad) }.isFailure)
     }

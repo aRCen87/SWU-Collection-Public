@@ -34,8 +34,6 @@ import coil.imageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.google.firebase.auth.FirebaseAuth
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.qrcode.QRCodeWriter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -130,19 +128,14 @@ internal suspend fun loadCharacterAvatar(context: Context, card: CatalogCard): S
 internal fun ColumnScope.FriendPanel(service: CommunityService, friendships: List<PlayerFriendship>, profiles: Collection<PlayerProfile>, busy: Boolean,
     onAccept: (PlayerFriendship) -> Unit, onRemove: (PlayerFriendship) -> Unit, onRequest: (String) -> Unit,
     onProfile: (PlayerProfile) -> Unit, onMessage: (PlayerProfile) -> Unit, onTrade: (PlayerProfile) -> Unit) {
-    var code by remember { mutableStateOf("") }; var qr by remember { mutableStateOf(false) }; var scan by remember { mutableStateOf(false) }
+    var code by remember { mutableStateOf("") }
     var remove by remember { mutableStateOf<PlayerFriendship?>(null) }
-    var qrError by remember { mutableStateOf<String?>(null) }
     Text("Mes amis", style = MaterialTheme.typography.titleLarge)
     Text("Trouve un joueur par pseudo dans Joueurs, ou utilise son code ami.", fontSize = 12.sp)
     OutlinedTextField(code, { code = it.take(160) }, label = { Text("Code ami") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
     Button(onClick = { onRequest(code) }, enabled = !busy && code.isNotBlank()) { Text("Envoyer une demande") }
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick = { qr = true }) { Text("Mon QR code") }
-        OutlinedButton(onClick = { scan = true }) { Text("Scanner un ami") }
-    }
-    Text("Code : ${service.uid}", fontSize = 11.sp)
-    qrError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+    val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+    TextButton(onClick = { clipboard.setText(androidx.compose.ui.text.AnnotatedString(service.uid)) }) { Text("Copier mon code ami") }
     if (friendships.isEmpty()) Text("Tes amis et demandes apparaîtront ici.")
     val ordered = friendships.sortedBy { if (it.status == "pending" && it.requester != service.uid) 0 else if (it.status == "accepted") 1 else 2 }
     ordered.forEach { friend ->
@@ -167,23 +160,6 @@ internal fun ColumnScope.FriendPanel(service: CommunityService, friendships: Lis
     }
     remove?.let { friend -> AlertDialog(onDismissRequest = { remove = null }, title = { Text("Retirer cet ami ?") }, text = { Text("Il faudra accepter une nouvelle demande pour redevenir amis.") },
         confirmButton = { Button(onClick = { onRemove(friend); remove = null }, enabled = !busy) { Text("Retirer") } }, dismissButton = { TextButton(onClick = { remove = null }) { Text("Annuler") } }) }
-    if (qr) FriendQrDialog(service.uid) { qr = false }
-    if (scan) TradeQrScanner({ scan = false }, "Scanne le QR code ami du joueur", { qrError = null }) { raw ->
-        runCatching { CommunitySocial.friendId(raw.also { require(it.startsWith("swu-friend:v1:")) }) }
-            .onSuccess { code = it; scan = false; qrError = null }
-            .onFailure { qrError = "Ce QR code n’est pas un code ami SWU."; scan = false }
-    }
-}
-@Composable
-private fun FriendQrDialog(uid: String, onClose: () -> Unit) {
-    val bitmap = remember(uid) {
-        val matrix = QRCodeWriter().encode(CommunitySocial.friendQr(uid), BarcodeFormat.QR_CODE, 600, 600)
-        Bitmap.createBitmap(600, 600, Bitmap.Config.ARGB_8888).apply { setPixels(IntArray(360000) { i -> if (matrix[i % 600, i / 600]) android.graphics.Color.BLACK else android.graphics.Color.WHITE }, 0, 600, 0, 0, 600, 600) }.asImageBitmap()
-    }
-    AlertDialog(onDismissRequest = onClose, title = { Text("Mon code ami") }, text = { Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Image(bitmap, "Mon QR code ami", Modifier.fillMaxWidth().aspectRatio(1f).background(Color.White))
-        Text("Ton ami scanne ce code puis t’envoie une demande. Tu choisis de l’accepter.")
-    } }, confirmButton = { TextButton(onClick = onClose) { Text("Fermer") } })
 }
 
 @Composable

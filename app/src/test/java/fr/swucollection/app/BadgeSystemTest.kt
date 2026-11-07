@@ -140,14 +140,14 @@ class BadgeSystemTest {
         assertEquals(1,result.single().current)
         assertEquals(0,BadgeEngine.evaluate(b,listOf(leader,c3,r2),owned.map{it.copy(variant="Foil")},details(),emptyMap(),emptyMap()).single().current)
     }
-    @Test fun bundledCatalogueHasSeventyOneDefinitionsAndAllIllustrationsAreRealCards(){
+    @Test fun bundledCatalogueHasSeventyDefinitionsAndAllIllustrationsAreRealCards(){
         val b=BadgeCatalogue.load(context)
         val details=CardDetails.load(context)
         val ventress=CatalogCard("HMW","001","Asajj Ventress","Leader","")
         val omega=CatalogCard("HMW","006","Omega","Leader","")
         assertTrue(details.get(ventress)!!.englishName.startsWith("Asajj Ventress"))
         assertNotEquals(details.family(ventress),details.family(omega))
-        assertEquals(71,b.definitions.size);assertEquals(36,b.definitions.count{it.category=="Histoires"});assertEquals(7,b.definitions.count{it.category=="Sagas"})
+        assertEquals(70,b.definitions.size);assertEquals(36,b.definitions.count{it.category=="Histoires"});assertEquals(7,b.definitions.count{it.category=="Sagas"})
         val catalog=JSONObject(context.assets.open("catalog-fr.json").bufferedReader().use{it.readText()}).getJSONArray("cards")
         val refs=(0 until catalog.length()).map{catalog.getJSONObject(it)}.associateBy{it.getString("s")+"-"+it.getString("n").padStart(3,'0')}
         b.definitions.forEach{d -> assertTrue(d.title,d.art.all{it in refs});d.requirements.forEach{r -> assertTrue(r.label,r.refs.all{it in refs})}}

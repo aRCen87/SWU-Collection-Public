@@ -36,7 +36,7 @@ android {
         create("preview") {
             initWith(getByName("release"))
             applicationIdSuffix = ".test"
-            versionNameSuffix = "-test.15"
+            versionNameSuffix = "-test.16"
             signingConfig = signingConfigs.getByName("release")
             matchingFallbacks += listOf("release")
         }
@@ -58,7 +58,7 @@ android {
 // The private app has its own update sequence; the official release stays frozen.
 androidComponents {
     onVariants(selector().withBuildType("preview")) { variant ->
-        variant.outputs.forEach { it.versionCode.set(74) }
+        variant.outputs.forEach { it.versionCode.set(75) }
     }
 }
 kotlin { jvmToolchain(17) }
@@ -86,8 +86,6 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:1.4.2")
     implementation("androidx.camera:camera-view:1.4.2")
     implementation("com.google.mlkit:text-recognition:16.0.1")
-    implementation("com.google.mlkit:barcode-scanning:17.3.0")
-    implementation("com.google.zxing:core:3.5.4")
     implementation("com.google.android.gms:play-services-oss-licenses:17.1.0")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.17")

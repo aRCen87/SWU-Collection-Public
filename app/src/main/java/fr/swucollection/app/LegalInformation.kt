@@ -48,10 +48,10 @@ internal fun LegalInformationPanel() {
         Text("Collection et réglages : les cartes, variantes, quantités et préférences sont enregistrées sur le " +
             "téléphone pour assurer le suivi de la collection. Le code de l’application ne les envoie pas à un " +
             "serveur de l’éditeur et ne crée aucun compte utilisateur.")
-        Text("Caméra : elle sert à reconnaître le texte des cartes et à scanner les QR codes de comparaison. Les images et " +
+        Text("Caméra : elle sert à reconnaître le texte des cartes. Les images et " +
             "le texte reconnus sont traités sur l’appareil ; l’application ne les téléverse pas et ne conserve " +
             "pas de photos du flux. L’autorisation peut être retirée dans les réglages Android ; la saisie manuelle reste disponible.")
-        Text("Comparaison avec un ami : les QR codes contiennent directement les surplus et manquantes choisis. Chacun scanne les codes de l’autre, sans réseau ni serveur de collection. Ces codes ne sont pas chiffrés : une personne qui les photographie peut lire et conserver ce profil, comme un fichier exporté. Aucun transfert de cartes ni changement de quantité n’est effectué.")
+        Text("Échanges entre amis dans l’application Test : les listes de cartes disponibles et recherchées sont partagées volontairement avec les amis acceptés. Une proposition doit être acceptée ; chaque joueur confirme ensuite la remise réelle avant de mettre sa propre collection à jour.")
         Text("Composant Google ML Kit : Google indique recevoir des informations techniques sur l’appareil et " +
             "l’application, des identifiants d’installation et des mesures d’utilisation, de performance et d’erreur. " +
             "Ces échanges techniques sont distincts des images et du texte reconnus. ML Kit peut aussi contacter " +

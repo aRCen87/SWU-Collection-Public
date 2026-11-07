@@ -1,3 +1,12 @@
+# SWU Collection Test 0.8.19-test.16
+
+- Échanges simplifiés : nouvel échange, choix d’un ami, Je donne / Je reçois, récapitulatif puis envoi.
+- Sélection directe des exemplaires possédés, avec langue et finition conservées et exclusion des cartes prêtées. Les quantités proposées sont limitées au stock disponible.
+- Une proposition reçue affiche toujours les cartes du point de vue du joueur. Les échanges terminés sont repliés dans les anciens échanges.
+- Après la remise réelle, une seule confirmation actualise la collection locale, avec conservation du reçu contre les doubles validations et annulation dans l’historique.
+- Suppression des QR codes, de leur scanner, de l’ajout d’amis par QR et du badge associé. Les anciens événements restent lisibles dans les sauvegardes.
+- Les propositions et amis existants sont conservés. Version officielle inchangée.
+
 ## Test 0.8.19-test.15
 
 - Historique : recherche par carte ou opération et confirmation explicite avant annulation ; les protections de quantité et de prêts restent actives.

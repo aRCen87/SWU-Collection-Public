@@ -52,7 +52,7 @@ internal fun ColumnScope.CommunityPanel(decks: List<DeckStore.SavedDeck>, earned
     definitions: List<BadgeDefinition>, catalog: List<CatalogCard>, database: CollectionDatabase, details: CardDetails, initialTab: String = "Mon profil", onRestored: () -> Unit, onImportDeck: (String, PortableDeck) -> Unit) {
     val context = LocalContext.current
     val service = remember(context) { CommunityService.create(context) }
-    Text("Communauté", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+    Text(if (initialTab == "Échanges") "Échanges" else "Communauté", fontSize = 24.sp, fontWeight = FontWeight.Bold)
     Text("Profils, messages et decks · essais privés", color = MaterialTheme.colorScheme.primary)
     if (service == null) {
         Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -208,8 +208,27 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
                 { selectedProfile = it }, { talk(it) }, { proposingTrade = it })
         }
         "Échanges" -> {
-            FriendTradeSuggestionPanel(service, database, catalog, details,
-                friendships.filter { it.status == "accepted" }.mapNotNull { friendsProfiles[it.peer(user.uid)] }, { suggestedTrade = it })
+            val friends = friendships.filter { it.status == "accepted" }.map { f ->
+                friendsProfiles[f.peer(user.uid)] ?: profiles.firstOrNull { it.id == f.peer(user.uid) }
+                    ?: PlayerProfile(f.peer(user.uid), "Ami")
+            }
+            var choosingFriend by remember { mutableStateOf(false) }
+            var suggestions by remember { mutableStateOf(false) }
+            Text("Choisis un ami, prépare les cartes et envoie ta proposition.", fontSize = 12.sp)
+            Button(onClick = { choosingFriend = true }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("Nouvel échange") }
+            if (choosingFriend) AlertDialog(onDismissRequest = { choosingFriend = false }, title = { Text("Avec qui ?") }, text = {
+                Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (friends.isEmpty()) {
+                        Text("Ajoute d’abord un ami depuis Joueurs ou avec son code ami.")
+                        TextButton(onClick = { choosingFriend = false; tab = "Amis" }) { Text("Ajouter un ami") }
+                    }
+                    friends.sortedBy { it.name.lowercase() }.forEach { peer ->
+                        OutlinedButton(onClick = { choosingFriend = false; proposingTrade = peer }, modifier = Modifier.fillMaxWidth()) { Text(peer.name) }
+                    }
+                }
+            }, confirmButton = { TextButton(onClick = { choosingFriend = false }) { Text("Fermer") } })
+            TextButton(onClick = { suggestions = !suggestions }) { Text(if (suggestions) "Masquer l’aide au choix" else "M’aider à trouver des cartes à échanger") }
+            if (suggestions) FriendTradeSuggestionPanel(service, database, catalog, details, friends, { suggestedTrade = it })
             TradeRequestsPanel(service, trades, profiles + friendsProfiles.values, catalog, database, busy,
                 { trade, answer -> action { service.answerTrade(trade, answer) } },
                 { id -> talk((profiles + friendsProfiles.values).firstOrNull { it.id == id } ?: PlayerProfile(id, "Ami")) }, onRestored)
@@ -252,10 +271,10 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
         }, confirmButton = { Button(onClick = { talk(player) }, enabled = !busy && !blocked) { Text("Envoyer un message") } },
             dismissButton = { TextButton(onClick = { selectedProfile = null }) { Text("Fermer") } })
     }
-    suggestedTrade?.let { suggestion -> TradeComposer(suggestion.peer, catalog, busy, { suggestedTrade = null }, { offer, wanted -> action {
+    suggestedTrade?.let { suggestion -> TradeComposer(suggestion.peer, catalog, database, busy, { suggestedTrade = null }, { offer, wanted -> action {
         service.proposeTrade(suggestion.peer.id, offer, wanted); suggestedTrade = null; tab = "Échanges"; status = "Proposition envoyée."
     } }, initialOffer = suggestion.offer, initialWanted = suggestion.wanted) }
-    proposingTrade?.let { peer -> TradeComposer(peer, catalog, busy, { proposingTrade = null }, { offer, wanted -> action {
+    proposingTrade?.let { peer -> TradeComposer(peer, catalog, database, busy, { proposingTrade = null }, { offer, wanted -> action {
         service.proposeTrade(peer.id, offer, wanted); proposingTrade = null; tab = "Échanges"; status = "Proposition envoyée."
     } }) }
 }

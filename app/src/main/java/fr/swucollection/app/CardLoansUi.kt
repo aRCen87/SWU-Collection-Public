@@ -28,7 +28,7 @@ internal fun ColumnScope.CardLoansPanel(db: CollectionDatabase,catalog: List<Cat
     val date=remember {SimpleDateFormat("dd/MM/yyyy",Locale.FRANCE)}
     fun save(next: LoanBook) {runCatching {db.putTool("loans",next.json())}.onSuccess {previous=book;book=next;error=null}.onFailure {error=it.message?:"Prêt non enregistré."}}
     Text("${book.rows.sumOf {it.outstanding}} exemplaire(s) prêté(s). Ils restent dans ta collection et sont exclus de tes cartes disponibles à l’échange.")
-    Text("Les anciens partages d’échange sont des copies : actualise ta liste partagée et ton QR après un prêt ou un retour.",style=MaterialTheme.typography.bodySmall)
+    Text("Les anciens partages d’échange sont des copies : actualise ta liste partagée après un prêt ou un retour.",style=MaterialTheme.typography.bodySmall)
     Row(verticalAlignment=Alignment.CenterVertically) {Button(onClick={creating=true},modifier=Modifier.weight(1f)) {Text("Enregistrer un prêt")}; TextButton(onClick={previous?.let {old ->runCatching {db.putTool("loans",old.json())}.onSuccess {book=old;previous=null}.onFailure {error="Annulation impossible."}}},enabled=previous!=null) {Text("Annuler")}}
     OutlinedTextField(search,{search=it.take(100)},label={Text("Rechercher un joueur ou une carte")},singleLine=true,modifier=Modifier.fillMaxWidth())
     Row(verticalAlignment=Alignment.CenterVertically) {Text("Afficher aussi les prêts rendus",Modifier.weight(1f));Switch(archive,{archive=it})}

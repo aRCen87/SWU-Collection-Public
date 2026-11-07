@@ -890,10 +890,15 @@ private fun CollectionScreen(
                     initialSetCode = selectedSet, database = database, onGoalChanged = { refresh() }, details = cardDetails)
             }
             if (selectedSection == "Échanges") {
-                if (privateLayout) OutlinedButton(onClick = {
-                    communityInitialTab = "Échanges"; navigation.navigateTo("Communauté")
-                }, modifier = Modifier.fillMaxWidth()) { Text("Échanges avec mes amis") }
-                ExchangePanel(sets, catalogBySet, cards, Modifier.weight(1f), database, cardDetails)
+                if (privateLayout) {
+                    CommunityPanel(savedDecks, badgeProgress.filter { it.earned }, badgeBook?.definitions.orEmpty(), allCatalog, database, cardDetails, initialTab = "Échanges",
+                        onRestored = { refresh(); homeLayout = homeStore.read(); pinnedDecks = deckPins.all() },
+                        onImportDeck = { title, imported ->
+                            editingDeck = DeckStore.SavedDeck(java.util.UUID.randomUUID().toString(), title, "Premier", imported, System.currentTimeMillis())
+                            creatingDeck = false
+                            navigation.navigateTo("Mes listes")
+                        })
+                } else ExchangePanel(sets, catalogBySet, cards, Modifier.weight(1f), database, cardDetails)
             }
             if (selectedSection == "Historique") {
                 CollectionHistoryPanel(database, { refresh() }, Modifier.weight(1f))

@@ -29,7 +29,6 @@ internal fun ExchangePanel(sets: List<CatalogSet>, catalog: Map<String, List<Cat
     val goals = remember(goalRevision) { database.goals() }
     val versions = remember(goalRevision) { database.goalVariants() }
     val preciseGoals = remember(goalRevision) { database.printGoals() }
-    var qrOpen by remember { mutableStateOf(false) }
     val acceptVariants = versions[chosen] ?: false
     var query by remember { mutableStateOf("") }
     var menu by remember { mutableStateOf(false) }
@@ -77,12 +76,6 @@ internal fun ExchangePanel(sets: List<CatalogSet>, catalog: Map<String, List<Cat
             } else Text("Les objectifs et versions acceptées sont ceux enregistrés pour chaque extension. Choisis une extension pour les modifier.", style = MaterialTheme.typography.bodySmall)
         }
         item {
-            Text("1 · Choisir les extensions", style = MaterialTheme.typography.titleSmall)
-            Text("${if (effectiveSet == "Toutes") "Extensions commencées et objectifs enregistrés" else sets.firstOrNull { it.code == effectiveSet }?.name.orEmpty()}", style = MaterialTheme.typography.bodySmall)
-            Button(onClick={qrOpen=true},modifier=Modifier.fillMaxWidth()) {Text("Comparer nos collections")}
-        }
-
-        item {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("${extras.sumOf { it.quantity }} exemplaires disponibles", fontWeight = FontWeight.Bold)
@@ -116,18 +109,4 @@ internal fun ExchangePanel(sets: List<CatalogSet>, catalog: Map<String, List<Cat
             }
         }
     }
-    if(qrOpen) Dialog(onDismissRequest={qrOpen=false},properties=DialogProperties(usePlatformDefaultWidth=false)) {
-        Surface(Modifier.fillMaxSize()) {Column(Modifier.fillMaxSize().safeDrawingPadding().padding(16.dp)) {
-            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
-                Text("Comparer nos collections",style=MaterialTheme.typography.titleLarge,modifier=Modifier.weight(1f))
-                TextButton(onClick={qrOpen=false}) {Text("Fermer")}
-            }
-            Text(sets.firstOrNull {it.code==effectiveSet}?.name?:"Extensions commencées et objectifs enregistrés")
-            Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                TradeQrPanel(profile, allCatalog)
-            }
-        }}
-    }
 }
-
-

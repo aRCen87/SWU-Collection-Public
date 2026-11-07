@@ -31,14 +31,11 @@ class CollectionObjectivesTest {
         assertTrue(groups.all { group -> group.map { it.setCode }.distinct().size == 1 })
     }
 
-    @Test fun individualVersionPreferencesSurviveQrAndDoNotLeakToOtherNeeds() {
+    @Test fun individualVersionPreferencesSurviveSharingAndDoNotLeakToOtherNeeds() {
         val allowed = TradeItem("JTL","001","Normale","Éclaireur","same",1,true)
         val strict = allowed.copy(number="002",acceptVariants=false)
         val receiver = TradeProfile(emptyList(),listOf(allowed,strict))
-        val decoded = OfflineTradeQr.frames(receiver).let { frames ->
-            val reader = OfflineTradeReceiver()
-            frames.mapNotNull { reader.accept(it) }.last()
-        }
+        val decoded = TradeProfile.parse(receiver.json())
         assertEquals(receiver,decoded)
         val giver = TradeProfile(listOf(allowed.copy(number="501",variant="Foil",quantity=3,acceptVariants=false)),emptyList())
         val matches = TradeComparison.matching(giver,decoded)

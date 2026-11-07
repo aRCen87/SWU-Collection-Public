@@ -21,8 +21,7 @@ internal object CommunitySocial {
         CharacterAvatar("SOR-015", "Boba Fett"), CharacterAvatar("SHD-018", "Le Mandalorien"),
         CharacterAvatar("TWI-135", "Dark Maul"), CharacterAvatar("SOR-135", "Empereur Palpatine"),
         CharacterAvatar("SHD-266", "Rey"), CharacterAvatar("SOR-014", "Sabine Wren"))
-    fun friendQr(uid: String): String { require(Regex("[A-Za-z0-9_-]{1,128}").matches(uid)); return "swu-friend:v1:$uid" }
-    fun friendId(raw: String): String = raw.trim().removePrefix("swu-friend:v1:").also {
+    fun friendId(raw: String): String = raw.trim().also {
         require(Regex("[A-Za-z0-9_-]{1,128}").matches(it)) { "Ce code ami n’est pas valide." }
     }
     fun unread(uid: String, conversations: List<PlayerConversation>, receipts: Map<String, Long>): Int =
