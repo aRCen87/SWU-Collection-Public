@@ -94,6 +94,11 @@ assert 'Créer mon compte de test' in texts,texts
 PYREGISTRATION
 adb shell input keyevent 4
 sleep 3
+# Registration may leave the shared scroll position below the home banner.
+# Restart the empty session before the independent camera startup check.
+adb shell am force-stop "$package"
+adb shell am start -W -n "$package/fr.swucollection.app.MainActivity" >/dev/null
+sleep 8
 tap_private_label 'Ouvrir le menu'
 tap_private_label 'Scanner'
 sleep 5
