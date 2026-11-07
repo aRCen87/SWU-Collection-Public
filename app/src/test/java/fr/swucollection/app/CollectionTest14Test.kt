@@ -96,4 +96,11 @@ class CollectionTest14Test {
         assertEquals("Foil",missing.needs.single().variant);assertEquals("FR",missing.needs.single().language);assertEquals(3,missing.needs.single().quantity)
     }
 
+    @Test fun goalFinishGetsAPriceRequestBeforeAnyCopyIsOwned() {
+        val requests=collectionPriceRequests(listOf(card),emptyList(),mapOf("SOR" to PrintGoal("Foil","FR")))
+        assertTrue(requests.any { it.first == card && it.second == "Foil" })
+        assertTrue(requests.any { it.second == MarketPricing.CATALOGUE })
+        assertEquals(requests.size,requests.map { collectionPriceKey(it.first.setCode,it.first.number,it.second) }.distinct().size)
+    }
+
 }

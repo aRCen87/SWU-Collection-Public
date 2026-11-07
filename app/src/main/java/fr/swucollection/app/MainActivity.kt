@@ -223,6 +223,7 @@ private fun CollectionScreen(
 ) {
     val compactHeader = LocalConfiguration.current.screenWidthDp < 400
     var cards by remember { mutableStateOf(database.allCards()) }
+    var collectionRevision by remember { mutableIntStateOf(0) }
     var personalLists by remember { mutableStateOf(database.cardLists()) }
     val deckContext = LocalContext.current
     val privateLayout = deckContext.packageName == AppChannel.TEST_PACKAGE
@@ -416,10 +417,9 @@ private fun CollectionScreen(
     val catalogByKey = remember(catalogBySet) {
         catalogBySet.values.flatten().associateBy { MarketPricing.key(it.setCode, it.number) }
     }
-    val priceRequests = remember(catalogByKey, cards) {
-        (catalogByKey.values.map { it to MarketPricing.CATALOGUE } + cards.mapNotNull { owned ->
-            catalogByKey[MarketPricing.key(owned.setCode, owned.number)]?.let { it to owned.variant }
-        }).distinctBy { (card, variant) -> collectionPriceKey(card.setCode, card.number, variant) }
+    val pricingGoals = remember(collectionRevision) { database.printGoals() }
+    val priceRequests = remember(catalogByKey, cards, pricingGoals) {
+        collectionPriceRequests(catalogByKey.values.toList(), cards, pricingGoals)
     }
     val collectionQuotes by produceState<Map<String, MarketQuote>>(emptyMap(),
         selectedSection, priceRequests, foregroundRequest) {
@@ -460,6 +460,7 @@ private fun CollectionScreen(
             it.number.contains(search, ignoreCase = true)
     }
     fun refresh() {
+        collectionRevision++
         cards = database.allCards()
         personalLists = database.cardLists()
         savedDecks = deckStore.all()

@@ -166,7 +166,7 @@ internal fun CompleteSetPanel(sets: List<CatalogSet>, catalog: Map<String, List<
                                 Text("N° ${row.card.number} · ${row.owned} possédé(s) sur ${row.target}", fontSize = 12.sp)
                                 Text("À trouver : ${row.missing}", fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary)
-                                val price = quotes[collectionPriceKey(row.card.setCode, row.card.number, row.variant)]?.amount
+                                val price = (quotes[collectionPriceKey(row.card.setCode, row.card.number, row.variant)] ?: if (row.variant == "Normale") catalogueQuote(quotes, row.card.setCode, row.card.number) else null)?.amount
                                     ?.takeIf { it.isFinite() && it > 0 }
                                 Text(price?.let { "${money.format(it)} / carte · ${money.format(it * row.missing)} au total" }
                                     ?: "Cote indisponible", fontSize = 12.sp)

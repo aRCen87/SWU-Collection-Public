@@ -28,3 +28,11 @@ internal fun <T> sortCollectionByPrice(items: List<T>, order: CollectionPriceSor
         }
     })
 }
+
+/** Include the requested finish even when no copy of that finish is owned yet. */
+internal fun collectionPriceRequests(catalog: List<CatalogCard>, owned: List<CollectionCard>, goals: Map<String, PrintGoal>): List<Pair<CatalogCard,String>> {
+    val byRef = catalog.associateBy { MarketPricing.key(it.setCode,it.number) }
+    return (catalog.map { it to MarketPricing.CATALOGUE } + owned.mapNotNull { row -> byRef[MarketPricing.key(row.setCode,row.number)]?.let { it to row.variant } } +
+        catalog.mapNotNull { card -> goals[card.setCode]?.finish?.takeIf { it in ScanVariants.detect(card).choices }?.let { card to it } })
+        .distinctBy { (card,finish) -> collectionPriceKey(card.setCode,card.number,finish) }
+}
