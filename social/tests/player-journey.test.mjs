@@ -19,7 +19,7 @@ test('two verified players create profiles, become friends, share exact prints a
     const auth = getAuth(app); connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
     const store = getFirestore(app); connectFirestoreEmulator(store, '127.0.0.1', 8080);
     const client = { app, auth, store }; clients.push(client);
-    const email = `${name}-${Date.now()}@example.test`;
+    const email = `${name.toLowerCase()}-${Date.now()}@example.test`;
     const user = (await createUserWithEmailAndPassword(auth, email, 'Emulator-only-strong-password-18!')).user;
     await sendEmailVerification(user);
     const response = await fetch(`http://127.0.0.1:9099/emulator/v1/projects/${projectId}/oobCodes`);
