@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -17,7 +19,10 @@ internal fun GlobalSearchPanel(query: String, onQuery: (String) -> Unit, catalog
     val matchingDecks = remember(index, query, decks) { if (query.isBlank()) emptyList() else decks.filter { index.deckMatches(it, terms) } }
     val matchingSets = remember(index, query, sets) { if (query.isBlank()) emptyList() else sets.filter { index.setMatches(it, query) } }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedTextField(query, onQuery, label = { Text("Carte, deck, extension ou recherche naturelle") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        OutlinedTextField(query, onQuery, label = { Text("Rechercher une carte, un deck, une extension") },
+            trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { onQuery("") }) {
+                Icon(Icons.Default.Close, "Effacer la recherche")
+            } }, modifier = Modifier.fillMaxWidth(), singleLine = true)
         Text("Ex. : unités rouges à 3 ressources · légendaires manquantes · mes doubles anglais", style = MaterialTheme.typography.bodySmall)
         if (natural.description.isNotBlank()) Text("Compris : ${natural.description}", color = ListPalette.Gold, style = MaterialTheme.typography.bodySmall)
         SearchFacetPanel(facets, sets, catalog, details, onFacets)

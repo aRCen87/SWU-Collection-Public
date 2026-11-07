@@ -17,3 +17,7 @@ internal fun rememberCollectionFilter(key: String, fallback: String): MutableSta
     LaunchedEffect(state.value) { prefs.edit().putString(key, state.value).apply() }
     return state
 }
+
+/** Search is cleared independently; grouping and visual mode are display preferences. */
+internal fun collectionFilterCount(set: String, language: String, scope: String, sort: CollectionPriceSort): Int =
+    listOf(set != "Toutes", language != "Toutes", scope == "Doublons", sort != CollectionPriceSort.CATALOG).count { it }

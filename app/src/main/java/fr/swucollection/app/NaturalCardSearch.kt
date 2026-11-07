@@ -3,8 +3,9 @@ package fr.swucollection.app
 /** Small offline vocabulary. Unknown words remain name terms instead of being guessed. */
 internal data class NaturalCardSearch(val text: String, val type: String? = null, val rarity: String? = null,
     val aspect: String? = null, val cost: Int? = null, val language: String? = null, val scope: String? = null) {
+    private val textTerms = DeckBrowser.searchKey(text).trim().split(Regex("\\s+")).filter { it.isNotBlank() }
     fun matches(card: CatalogCard, detail: CardDetail?, owned: List<CollectionCard>, index: GlobalSearchIndex): Boolean {
-        if (!index.cardMatches(card, text)) return false
+        if (!index.cardMatches(card, textTerms)) return false
         if (type != null && canonicalType(card) != type) return false
         if (rarity != null && !DeckBrowser.searchKey(card.rarity).startsWith(rarity)) return false
         if (aspect != null && detail?.aspects?.contains(aspect) != true) return false

@@ -128,17 +128,17 @@ internal fun familyPreviewEntries(groups: List<List<CollectionCard>>, clicked: C
 }
 
 @Composable
-internal fun GroupedOwnedCard(rows: List<CollectionCard>, catalog: List<CatalogCard>, quotes: Map<String, MarketQuote>,
+internal fun GroupedOwnedCard(rows: List<CollectionCard>, catalogByKey: Map<String, CatalogCard>, quotes: Map<String, MarketQuote>,
     onPreview: (CollectionCard, CatalogCard) -> Unit, onQuantity: (Long, Int) -> Unit, onLanguage: (CollectionCard) -> Unit = {}, openDirect: Boolean = false) {
     val prints = remember(rows) { groupOwnedPrints(rows) }
     var expanded by remember(rows.first().id) { mutableStateOf(false) }
     val first = rows.first()
-    val representative = catalog.firstOrNull { MarketPricing.key(it.setCode,it.number) == MarketPricing.key(first.setCode,first.number) }
+    val representative = catalogByKey[MarketPricing.key(first.setCode, first.number)]
     OutlinedCard(onClick = { if (openDirect && representative != null) onPreview(first, representative) else expanded = !expanded }, modifier = Modifier.fillMaxWidth(),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                val image = catalog.firstOrNull { MarketPricing.key(it.setCode,it.number) == MarketPricing.key(first.setCode,first.number) }
+                val image = representative
                 CardArtwork(image, Modifier.size(48.dp,68.dp), language=first.language, variant=first.variant)
                 Column(Modifier.weight(1f)) {
                     Text(first.name, fontWeight = FontWeight.Bold)
@@ -154,7 +154,7 @@ internal fun GroupedOwnedCard(rows: List<CollectionCard>, catalog: List<CatalogC
             if (openDirect) TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "Masquer les quantités par version" else "Modifier les quantités par version") }
             if (expanded) prints.forEach { languages ->
                 val print = languages.first()
-                val card = catalog.firstOrNull { MarketPricing.key(it.setCode,it.number) == MarketPricing.key(print.setCode,print.number) }
+                val card = catalogByKey[MarketPricing.key(print.setCode, print.number)]
                 HorizontalDivider()
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text("N° ${print.number} · ${print.variant}", modifier = Modifier.weight(1f))

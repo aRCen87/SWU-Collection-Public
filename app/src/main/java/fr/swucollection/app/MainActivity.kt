@@ -455,15 +455,15 @@ private fun CollectionScreen(
                 .forEach { database.recordBadgeEvent("deck",BadgeEngine.deckSignature(it.deck,allCatalog,cardDetails)) }
         }
     }
-    val total = cards.sumOf { it.quantity }
-    val copiesPerPrint = cards.groupBy { MarketPricing.key(it.setCode,it.number) + ":" + it.variant }.mapValues { (_,rows) -> rows.sumOf { it.quantity } }
-    val visibleCards = cards.filter {
-        val english = catalogByKey[MarketPricing.key(it.setCode,it.number)]?.let { card -> cardDetails.get(card)?.englishName }.orEmpty()
-        DeckBrowser.searchKey(english).contains(DeckBrowser.searchKey(search)) ||
-        it.name.contains(search, ignoreCase = true) ||
-            it.setCode.contains(search, ignoreCase = true) ||
-            it.number.contains(search, ignoreCase = true)
+    val total = remember(cards) { cards.sumOf { it.quantity } }
+    val copiesPerPrint = remember(cards) {
+        cards.groupBy { MarketPricing.key(it.setCode,it.number) + ":" + it.variant }
+            .mapValues { (_,rows) -> rows.sumOf { it.quantity } }
     }
+    val collectionSearchIndex = remember(cards, catalogByKey, cardDetails) {
+        CollectionSearchIndex(cards, catalogByKey, cardDetails)
+    }
+    val visibleCards = remember(collectionSearchIndex, search) { collectionSearchIndex.search(search) }
     fun refresh() {
         collectionRevision++
         cards = database.allCards()
@@ -720,7 +720,7 @@ private fun CollectionScreen(
                     }
                     Text(when (selectedSection) {
                         "Collection" -> "Ma collection"
-                        "Recherche" -> "Recherche globale"
+                        "Recherche" -> "Rechercher"
                         "Ajouter" -> "Ajout manuel"
                         "Sauvegardes" -> "Sauvegardes"
                         "Mes listes" -> if (deckWorkspace) "Construire un deck" else "Mes listes"
@@ -1205,20 +1205,27 @@ private fun CollectionScreen(
                 }
                 }
                 if (selectedSection == "Collection") {
-                OutlinedButton(onClick = { collectionWorkbench = true }, modifier = Modifier.fillMaxWidth()) { Text("Vérifier et gérer ma collection") }
                 FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Button(onClick = { openScanner() }, modifier = Modifier.widthIn(min = 112.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)) {
                         Icon(Icons.Default.PhotoCamera, null, modifier = Modifier.size(20.dp)); Spacer(Modifier.width(5.dp)); Text("Scanner", maxLines = 1)
                     }
                     OutlinedButton(onClick = { collectionFiltersOpen = true }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)) {
-                        Icon(Icons.Default.Tune, null, modifier = Modifier.size(18.dp)); Spacer(Modifier.width(5.dp)); Text("Filtres")
+                        Icon(Icons.Default.Tune, null, modifier = Modifier.size(18.dp)); Spacer(Modifier.width(5.dp))
+                        val count = collectionFilterCount(collectionSetFilter, collectionLanguage, collectionScope, collectionSort)
+                        Text(if (count == 0) "Filtres" else "Filtres ($count)")
                     }
-                    IconButton(onClick = { navigation.navigateTo("Ajouter") }) {
-                        Icon(Icons.Default.Add, "Ajouter une carte manuellement")
+                    TextButton(onClick = { navigation.navigateTo("Ajouter") }) {
+                        Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(5.dp)); Text("Ajout manuel")
                     }
+                    TextButton(onClick = { collectionWorkbench = true }) { Text("Gérer ma collection") }
                 }
                 OutlinedTextField(value = search, onValueChange = { search = it },
-                    label = { Text("Nom, extension ou numéro") },
+                    label = { Text("Rechercher dans ma collection") },
+                    placeholder = { Text("Nom français ou anglais, extension, numéro") },
+                    trailingIcon = { if (search.isNotEmpty()) IconButton(onClick = { search = "" }) {
+                        Icon(Icons.Default.Close, "Effacer la recherche")
+                    } },
                     modifier = Modifier.fillMaxWidth(), singleLine = true)
                 if (collectionFiltersOpen) {
                     AlertDialog(onDismissRequest = { collectionFiltersOpen = false },
@@ -1230,7 +1237,7 @@ private fun CollectionScreen(
                     search = ""; collectionSetFilter = "Toutes"; collectionLanguage = "Toutes"; collectionView = "Visuel"
                     savedCollectionSort = CollectionPriceSort.CATALOG.name; collectionScope = "Possédées"
                     ownershipFilter = "Toutes"
-                }) { Text("Réinitialiser les filtres") }
+                }) { Text("Tout réinitialiser") }
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("Possédées", "Doublons").forEach { option ->
                         FilterChip(selected = if (option == "Doublons") collectionScope == option else collectionScope != "Doublons",
@@ -1303,23 +1310,28 @@ private fun CollectionScreen(
                     onSet = { collectionSetFilter = "Toutes" }, onScope = { collectionScope = "Possédées" },
                     onSort = { savedCollectionSort = CollectionPriceSort.CATALOG.name }, onSearch = { search = "" })
                 if (collectionLanguage != "Toutes") InputChip(true, { collectionLanguage = "Toutes" }, label = { Text(CardLanguages.label(collectionLanguage) + " ×") })
-                val selectedOwned = sortCollectionByPrice(visibleCards.filter {
+                val selectedOwned = remember(visibleCards, collectionSetFilter, collectionLanguage,
+                    collectionScope, copiesPerPrint, collectionSort, collectionQuotes) {
+                    sortCollectionByPrice(visibleCards.filter {
                     (collectionSetFilter == "Toutes" || it.setCode == collectionSetFilter) &&
                         (collectionLanguage == "Toutes" || it.language == collectionLanguage) &&
                         (collectionScope != "Doublons" || (copiesPerPrint[MarketPricing.key(it.setCode,it.number) + ":" + it.variant] ?: 0) > 1)
                 }, collectionSort) {
-                    collectionQuotes[collectionPriceKey(it.setCode, it.number, it.variant)]?.amount
+                        collectionQuotes[collectionPriceKey(it.setCode, it.number, it.variant)]?.amount
+                    }
                 }
                 Text("${selectedOwned.map { MarketPricing.key(it.setCode,it.number) + ":" + it.variant }.distinct().size} références et variantes possédées · ${selectedOwned.sumOf { it.quantity }} exemplaires", fontSize = 12.sp)
                 if (collectionScope == "Doublons") Text("Filtre Doublons actif", color = MaterialTheme.colorScheme.primary)
                 if (selectedOwned.isEmpty()) {
                     Text(if (cards.isEmpty()) "Ta collection est vide. Scanne ta première carte pour commencer." else "Aucune carte possédée ne correspond aux filtres.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    if (cards.isNotEmpty()) TextButton(onClick = { search = ""; collectionSetFilter = "Toutes"; collectionScope = "Possédées"; collectionLanguage = "Toutes"; savedCollectionSort = CollectionPriceSort.CATALOG.name }) { Text("Effacer les filtres") }
+                    if (cards.isNotEmpty()) TextButton(onClick = { search = ""; collectionSetFilter = "Toutes"; collectionScope = "Possédées"; collectionLanguage = "Toutes"; savedCollectionSort = CollectionPriceSort.CATALOG.name }) { Text("Afficher toute ma collection") }
                 } else if (groupVersions) {
-                    val groups = groupOwnedVersions(selectedOwned, allCatalog, cardDetails, acrossSets = privateLayout)
+                    val groups = remember(selectedOwned, allCatalog, cardDetails, privateLayout) {
+                        groupOwnedVersions(selectedOwned, allCatalog, cardDetails, acrossSets = privateLayout)
+                    }
                     LazyColumn(Modifier.fillMaxWidth().weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(groups, key = { it.first().id }) { rows ->
-                            GroupedOwnedCard(rows, allCatalog, collectionQuotes,
+                            GroupedOwnedCard(rows, catalogByKey, collectionQuotes,
                                 onPreview = { owned, card -> openPreview(card,
                                     familyPreviewEntries(groups, owned, catalogByKey), owned.variant, owned.language) },
                                 onQuantity = { id, delta -> database.changeQuantity(id, delta); refresh() },
@@ -1330,13 +1342,11 @@ private fun CollectionScreen(
                     LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f),
                         verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(selectedOwned, key = { it.id }) { card ->
-                            val catalogMatch = catalogBySet[card.setCode].orEmpty()
-                                .firstOrNull { it.number == card.number }
+                            val catalogMatch = catalogByKey[MarketPricing.key(card.setCode, card.number)]
                             Card(onClick = {
                                 catalogMatch?.let { matched ->
                                     val visible = selectedOwned.mapNotNull { owned ->
-                                        catalogBySet[owned.setCode].orEmpty()
-                                            .firstOrNull { it.number == owned.number }
+                                        catalogByKey[MarketPricing.key(owned.setCode, owned.number)]
                                             ?.let { CardPreviewEntry(it, owned.variant, owned.language) }
                                     }
                                     openPreview(matched, visible, card.variant, card.language)

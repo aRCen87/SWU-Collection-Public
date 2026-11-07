@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,7 +31,10 @@ internal fun MessengerInbox(uid: String, conversations: List<PlayerConversation>
     var search by remember { mutableStateOf("") }
     Text("Discussions", style = MaterialTheme.typography.titleLarge)
     Button(onClick = onNew, modifier = Modifier.fillMaxWidth()) { Text("Nouveau message") }
-    OutlinedTextField(search, { search = it.take(80) }, label = { Text("Rechercher une discussion") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+    OutlinedTextField(search, { search = it.take(80) }, label = { Text("Rechercher une discussion") },
+        trailingIcon = { if (search.isNotEmpty()) IconButton(onClick = { search = "" }) {
+            Icon(Icons.Default.Close, "Effacer la recherche")
+        } }, singleLine = true, modifier = Modifier.fillMaxWidth())
     val rows = remember(uid, conversations, receipts, profiles, search) { messengerThreads(uid, conversations, receipts, profiles, search) }
     if (rows.isEmpty()) {
         Text(if (conversations.isEmpty()) "Tes discussions apparaîtront ici. Choisis un ami pour lui écrire." else "Aucune discussion pour cette recherche.")

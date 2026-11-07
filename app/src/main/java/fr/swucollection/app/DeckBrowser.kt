@@ -21,10 +21,12 @@ internal data class DeckBrowserFilters(
 }
 internal object DeckBrowser {
     const val DEFAULT_SORT = "Extensions récentes"
+    private val combiningMarks = Regex("\\p{M}+")
+    private val separators = Regex("[^a-z0-9]+")
     // MainActivity flattens allCatalogSets(), already ordered by CatalogChronology.
     fun extensionOrder(catalog: List<CatalogCard>): List<String> = catalog.map { it.setCode }.distinct()
     fun searchKey(value: String): String = Normalizer.normalize(value, Normalizer.Form.NFD)
-        .replace(Regex("\\p{M}+"), "").lowercase(Locale.ROOT).replace(Regex("[^a-z0-9]+"), " ").trim()
+        .replace(combiningMarks, "").lowercase(Locale.ROOT).replace(separators, " ").trim()
     fun search(card: CatalogCard, query: String): Boolean = query.isBlank() ||
         searchKey(card.name + " " + card.setCode + "-" + card.number).contains(searchKey(query.trim()))
     fun comparator(sort: String, details: CardDetails, setOrder: List<String> = emptyList()): Comparator<CatalogCard> {
