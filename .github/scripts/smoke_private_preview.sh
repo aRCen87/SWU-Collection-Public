@@ -120,7 +120,10 @@ python3 - <<'PYUPDATES'
 import xml.etree.ElementTree as ET
 texts={n.attrib.get('text','') for n in ET.parse('smoke-private/private-updates.xml').iter('node')}
 assert 'Mise à jour de l’application' in texts,texts
-assert any('0.8.19-test.15' in text for text in texts),texts
+import re, subprocess
+installed = re.search(r'versionName=([^\s]+)', subprocess.check_output(['adb', 'shell', 'dumpsys', 'package', 'fr.swucollection.app.test'], text=True)).group(1)
+assert '-test.' in installed, installed
+assert any(installed in text for text in texts), (installed, texts)
 PYUPDATES
 adb logcat -d -s AndroidRuntime:E > smoke-private/private-updates-crashes.txt
 if grep -q 'FATAL EXCEPTION' smoke-private/private-updates-crashes.txt; then exit 1; fi
