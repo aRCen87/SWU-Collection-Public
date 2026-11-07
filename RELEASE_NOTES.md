@@ -1,5 +1,7 @@
 ## Test 0.8.19-test.12
 
+- Correctifs pliants : fiche conservée lors du passage en paysage ; fenêtre et aperçu caméra rétablis après changement de format, en conservant la session de scan. Tests Android, sécurité, lint, compilation et essais émulateur réussis ; essai du vrai Z Fold à réaliser sur le téléphone.
+
 - Fiche unique par carte avec miniatures des versions, langues et quantités ; regroupement activé une fois par défaut, réimpressions reconnues incluses, sans fusionner les stocks.
 - Sauvegarde automatique privée du compte vérifié, modifications regroupées et copie vérifiée sur le serveur. Pause en cas de sauvegarde distante différente ou de changement de compte ; restauration et choix de conserver ce téléphone confirmés.
 - Alertes de messages privés et demandes d’amis par vérification Android périodique (15 minutes minimum, retards possibles), réglages séparés et test local. Les textes de messages restent masqués sur l’écran verrouillé.
