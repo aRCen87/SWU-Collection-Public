@@ -14,7 +14,8 @@ internal data class PlayerProfile(
     val id: String, val name: String, val bio: String = "", val avatar: String = "preset:star",
     val discoverable: Boolean = false, val shareBadges: Boolean = false, val badgeIds: List<String> = emptyList(),
     val messagePolicy: String = "testers", val shareDecks: Boolean = false,
-    val city: String = "", val formats: List<String> = emptyList(), val leaders: List<String> = emptyList(), val shareShowcase: Boolean = false
+    val city: String = "", val formats: List<String> = emptyList(), val leaders: List<String> = emptyList(), val shareShowcase: Boolean = false,
+    val firstName: String = "", val shareFirstName: Boolean = false
 )
 internal data class PlayerConversation(val id: String, val members: List<String>, val updatedAt: Long, val lastSenderId: String = "")
 internal data class PlayerMessage(val id: String, val senderId: String, val kind: String, val text: String,
@@ -23,6 +24,7 @@ internal data class PlayerMessage(val id: String, val senderId: String, val kind
 internal object CommunityValidation {
     val avatars = linkedMapOf("star" to "✦", "moon" to "☾", "planet" to "🪐", "robot" to "🤖", "ship" to "🚀", "comet" to "☄", "sun" to "☀", "crystal" to "💎")
     fun name(raw: String): String = raw.trim().also { require(it.length in 2..32 && it.none(Char::isISOControl)) { "Choisis un pseudo de 2 à 32 caractères." } }
+    fun firstName(raw: String): String = raw.trim().also { require(it.length <= 40 && it.none(Char::isISOControl)) { "Le prénom doit contenir au maximum 40 caractères." } }
     fun text(raw: String): String = raw.trim().also { require(it.length in 1..2000) { "Le message doit contenir de 1 à 2 000 caractères." } }
     fun avatar(raw: String): String = raw.also {
         require(it.removePrefix("preset:") in avatars.keys && it.startsWith("preset:") ||
@@ -80,9 +82,26 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
         return auth.currentUser?.uid == owner && result
     }
 
-    fun ownProfile(onValue: (PlayerProfile?) -> Unit, onError: (Exception) -> Unit): ListenerRegistration =
-        db.collection("profiles").document(uid).addSnapshotListener { row, error ->
-            if (error != null) onError(error) else onValue(row?.takeIf { it.exists() }?.toPlayerProfile())
+    fun ownProfile(onValue: (PlayerProfile?) -> Unit, onError: (Exception) -> Unit): ListenerRegistration {
+        var profile: PlayerProfile? = null
+        var identity: DocumentSnapshot? = null
+        var profileReady = false
+        var identityReady = false
+        fun emit() { if (profileReady && identityReady) onValue(profile?.withIdentity(identity)) }
+        val owner = uid
+        val publicListener = db.collection("profiles").document(owner).addSnapshotListener { row, error ->
+            if (error != null) onError(error) else { profile = row?.takeIf { it.exists() }?.toPlayerProfile(); profileReady = true; emit() }
+        }
+        val privateListener = db.collection("profileNames").document(owner).addSnapshotListener { row, error ->
+            if (error != null) onError(error) else { identity = row; identityReady = true; emit() }
+        }
+        return ListenerRegistration { publicListener.remove(); privateListener.remove() }
+    }
+    // Names never enter the discoverable directory. Server rules check accepted friendship,
+    // sharing and blocks on every read, including live revocation while the dialog is open.
+    fun profileIdentity(profile: PlayerProfile, onValue: (PlayerProfile) -> Unit): ListenerRegistration =
+        db.collection("profileNames").document(profile.id).addSnapshotListener { row, error ->
+            onValue(if (error == null) profile.withIdentity(row) else profile.copy(firstName = "", shareFirstName = false))
         }
     fun profiles(onValue: (List<PlayerProfile>) -> Unit, onError: (Exception) -> Unit): ListenerRegistration =
         db.collection("profiles").whereEqualTo("discoverable", true).limit(50).addSnapshotListener { rows, error ->
@@ -93,14 +112,20 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
         require(profile.id == uid)
         require(profile.bio.length <= 200)
         PlayerDiscovery.validate(profile)
-        db.collection("profiles").document(uid).set(mapOf(
+        val firstName = CommunityValidation.firstName(profile.firstName)
+        val batch = db.batch()
+        batch.set(db.collection("profiles").document(uid), mapOf(
             "name" to CommunityValidation.name(profile.name), "bio" to profile.bio.trim(),
             "avatar" to CommunityValidation.avatar(profile.avatar), "discoverable" to profile.discoverable,
             "shareBadges" to profile.shareBadges, "badgeIds" to if (profile.shareBadges) earnedIds.distinct().take(500) else emptyList<String>(),
             "messagePolicy" to profile.messagePolicy.also { require(it in listOf("testers", "friends", "nobody")) },
             "shareDecks" to profile.shareDecks, "city" to profile.city.trim(), "cityKey" to PlayerDiscovery.cityKey(profile.city),
             "formats" to profile.formats, "leaders" to profile.leaders, "shareShowcase" to profile.shareShowcase, "updatedAt" to FieldValue.serverTimestamp()
-        )).communityAwait()
+        ))
+        batch.set(db.collection("profileNames").document(uid), mapOf(
+            "firstName" to firstName, "shareFirstName" to profile.shareFirstName,
+            "updatedAt" to FieldValue.serverTimestamp()))
+        batch.commit().communityAwait()
     }
     fun conversations(onValue: (List<PlayerConversation>) -> Unit, onError: (Exception) -> Unit): ListenerRegistration =
         db.collection("conversations").whereArrayContains("members", uid).limit(100).addSnapshotListener { rows, error ->
@@ -225,3 +250,6 @@ internal fun DocumentSnapshot.toPlayerProfile() = PlayerProfile(id, getString("n
     (get("badgeIds") as? List<*>)?.filterIsInstance<String>().orEmpty(), getString("messagePolicy") ?: "testers", getBoolean("shareDecks") == true,
     getString("city").orEmpty(), (get("formats") as? List<*>)?.filterIsInstance<String>().orEmpty(),
     (get("leaders") as? List<*>)?.filterIsInstance<String>().orEmpty(), getBoolean("shareShowcase") == true)
+
+private fun PlayerProfile.withIdentity(row: DocumentSnapshot?): PlayerProfile = copy(
+    firstName = row?.getString("firstName").orEmpty(), shareFirstName = row?.getBoolean("shareFirstName") == true)

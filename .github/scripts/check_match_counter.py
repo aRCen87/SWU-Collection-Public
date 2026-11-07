@@ -18,7 +18,7 @@ def capture(name):
 try:
     adb('shell','wm','size','720x1560');adb('shell','wm','density','320');time.sleep(3)
     adb('shell','am','force-stop',PACKAGE);adb('shell','am','start','-W','-n',PACKAGE+'/fr.swucollection.app.MainActivity');time.sleep(8)
-    root=snapshot('home');tap(find(root,'Ouvrir le menu'));root=snapshot('menu');tap(find(root,'Compteur de partie'))
+    root=snapshot('home');tap(find(root,'Ouvrir le menu'));root=snapshot('menu');tap(find(root,'Compteur point de vie'))
     root=snapshot('opened');assert len(lives(root))==2,lives(root)
     buttons=[n for n in root.iter('node') if n.attrib.get('text')=='−1 PV'];assert buttons;tap(buttons[0])
     root=snapshot('damage');assert any('29 points' in s for s in lives(root)),lives(root)
@@ -38,7 +38,7 @@ try:
         find(root,'Options de la partie');capture(name)
     tap(find(root,'Fermer le compteur'));root=snapshot('closed');find(root,'Ouvrir le menu')
     adb('shell','wm','size','720x1560');adb('shell','wm','density','320');time.sleep(3)
-    root=snapshot('home-return');tap(find(root,'Ouvrir le menu'));tap(find(snapshot('menu-return'),'Compteur de partie'))
+    root=snapshot('home-return');tap(find(root,'Ouvrir le menu'));tap(find(snapshot('menu-return'),'Compteur point de vie'))
     root=snapshot('resumed');assert len(lives(root))==2
     # Complete a private result report, then inspect statistics from the real UI.
     tap(find(root,'Options de la partie'))

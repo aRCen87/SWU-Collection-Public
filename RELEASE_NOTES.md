@@ -1,4 +1,11 @@
-# SWU Collection Test 0.8.19-test.16
+# SWU Collection Test 0.8.19-test.17
+
+- Bouton renommé « Compteur point de vie ».
+- Prénom facultatif, masqué par défaut, partageable aux amis acceptés seulement ; enregistré séparément du répertoire des joueurs.
+- Suppression des symboles dans les choix d’avatar ; 36 portraits de personnages disponibles hors connexion.
+- Cadrages spécifiques aux avatars, identiques dans la galerie et après enregistrement. Sélectionner à nouveau un ancien avatar pour corriger son cadrage.
+
+## Test 0.8.19-test.16
 
 - Échanges simplifiés : nouvel échange, choix d’un ami, Je donne / Je reçois, récapitulatif puis envoi.
 - Sélection directe des exemplaires possédés, avec langue et finition conservées et exclusion des cartes prêtées. Les quantités proposées sont limitées au stock disponible.

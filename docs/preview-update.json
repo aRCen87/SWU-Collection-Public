@@ -1,11 +1,11 @@
 {
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "versionCode": 75,
-  "versionName": "0.8.19-test.16",
-  "notes": "Échanges simplifiés : choisir un ami, sélectionner Je donne / Je reçois, vérifier puis envoyer. Exemplaires disponibles sélectionnés directement dans la collection, avec langue et finition conservées et cartes prêtées exclues. Après la remise réelle, le bouton Échange effectué permet de confirmer puis d’actualiser sa collection. Protection contre les doubles validations et annulation dans l’historique conservées. QR codes, lecteur QR et ajout d’amis par QR supprimés. Amis, propositions et données existantes conservés. Tests Android, sauvegardes, sécurité, compilation, signature et essais sur émulateur validés.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_d4b72b6d8b0c8191a5035105dbb7b31a&account_id=personal",
-  "sha256": "1ed2158d02479d4aad53e9dbd8f2c3fc3a8378b07724412f9bfc79c45912dd24",
-  "size": 64048687,
-  "sourceSha": "4016b0b0538241bcb783762505bc8cb5b6d24b33"
+  "versionCode": 76,
+  "versionName": "0.8.19-test.17",
+  "notes": "Bouton renommé « Compteur point de vie ». Prénom facultatif dans le profil, masqué par défaut et visible uniquement aux amis acceptés si tu actives son affichage. Petits symboles retirés des choix d’avatar et 36 portraits de personnages intégrés, recadrés spécialement et disponibles hors connexion. Pour corriger un ancien avatar déjà enregistré, sélectionne à nouveau le personnage. Collection et données existantes conservées. Tests Android, sauvegardes, confidentialité, compilation, signature et essais sur émulateur validés.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_fe30f83023c88191bb2dc5f12db60e18&account_id=personal",
+  "sha256": "ef48d378b561d5b0f4129b0356c93d96634fd62925cd923319672c5de906377f",
+  "size": 64316703,
+  "sourceSha": "2efed81cbe02f31b8233733b9f8c83f82dcb8a35"
 }

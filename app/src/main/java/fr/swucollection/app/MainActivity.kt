@@ -749,7 +749,7 @@ private fun CollectionScreen(
                     }
                 }
                 if (privateLayout) OutlinedButton(onClick = { navigation.navigateTo("Compteur") }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                    Icon(Icons.Default.SportsEsports, null); Spacer(Modifier.width(10.dp)); Text("Compteur de partie · Jouer à deux")
+                    Icon(Icons.Default.SportsEsports, null); Spacer(Modifier.width(10.dp)); Text("Compteur point de vie")
                 }
                 (if (privateLayout) homeLayout.order else HomeLayoutStore.defaults).forEach { shortcut ->
                     when (shortcut) {
@@ -1621,7 +1621,7 @@ private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) 
                         Spacer(Modifier.height(24.dp))
                         val communityEntries = if (LocalContext.current.packageName == "fr.swucollection.app.test")
                             listOf(Triple(Icons.Default.Person, "Compte et communauté", "Communauté"),
-                                Triple(Icons.Default.SportsEsports, "Compteur de partie", "Compteur"),
+                                Triple(Icons.Default.SportsEsports, "Compteur point de vie", "Compteur"),
                                 Triple(Icons.Default.Handshake, "Mes prêts de cartes", "Prêts")) else emptyList()
                         val entries = communityEntries + listOf(
                             Triple(Icons.Default.PhotoCamera, "Scanner", "Scanner"),
