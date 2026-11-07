@@ -58,6 +58,7 @@ internal fun TradeComposer(peer: PlayerProfile, catalog: List<CatalogCard>, busy
             }, enabled = !busy && selected.size < 20, modifier = Modifier.fillMaxWidth()) {
                 AsyncImage(card.imageUrl, null, Modifier.size(30.dp, 42.dp)); Spacer(Modifier.width(8.dp)); Text(card.name, fontSize = 12.sp)
             } }
+            if (offer.isNotEmpty() && wanted.isNotEmpty()) TradeValuation(offer, wanted, catalog)
             Text("Maximum 20 références par côté, 9 exemplaires par référence.", fontSize = 11.sp)
         }
     }, confirmButton = { Button(onClick = { onSend(offer, wanted) }, enabled = !busy && offer.isNotEmpty() && wanted.isNotEmpty()) { Text(if (busy) "Envoi…" else "Envoyer la proposition") } },
@@ -65,7 +66,7 @@ internal fun TradeComposer(peer: PlayerProfile, catalog: List<CatalogCard>, busy
 }
 @Composable
 internal fun ColumnScope.TradeRequestsPanel(service: CommunityService, trades: List<PlayerTrade>, profiles: Collection<PlayerProfile>,
-    catalog: List<CatalogCard>, busy: Boolean, onAnswer: (PlayerTrade, String) -> Unit, onTalk: (String) -> Unit) {
+    catalog: List<CatalogCard>, database: CollectionDatabase, busy: Boolean, onAnswer: (PlayerTrade, String) -> Unit, onTalk: (String) -> Unit, onChanged: () -> Unit) {
     Text("Demandes d’échange", style = MaterialTheme.typography.titleLarge)
     Text("Pour proposer un échange, ouvre un ami puis touche Échange.", fontSize = 12.sp)
     if (trades.isEmpty()) Text("Aucune proposition pour le moment.")
@@ -80,6 +81,7 @@ internal fun ColumnScope.TradeRequestsPanel(service: CommunityService, trades: L
             if (offer == null || wanted == null) Text("Proposition illisible. Tu peux la refuser ou l’annuler.") else {
                 TradeCardList(if (incoming) "Il propose" else "Je propose", offer, catalog)
                 TradeCardList(if (incoming) "Il recherche" else "Je recherche", wanted, catalog)
+                TradeValuation(offer, wanted, catalog)
             }
             if (trade.status == "pending") Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (incoming) {
@@ -88,7 +90,7 @@ internal fun ColumnScope.TradeRequestsPanel(service: CommunityService, trades: L
                 } else OutlinedButton(onClick = { onAnswer(trade, "cancelled") }, enabled = !busy) { Text("Annuler la proposition") }
             }
             TextButton(onClick = { onTalk(peer) }, enabled = !busy) { Text("En discuter par message") }
-            if (trade.status == "accepted") Text("Organisez la remise des cartes dans la messagerie. Mets ta collection à jour après l’échange.", fontSize = 12.sp)
+            if (trade.status == "accepted" && offer != null && wanted != null) ConfirmedTradeAction(database, service.uid, trade, catalog, onChanged)
         } }
     }
 }

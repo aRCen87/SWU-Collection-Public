@@ -7,6 +7,8 @@ internal class GlobalSearchIndex(catalog: List<CatalogCard>, owned: List<Collect
     private val deckKeys = decks.associate { saved -> saved.id to DeckBrowser.searchKey(saved.name + " " + DeckCompanion.rows(saved.deck).joinToString(" ") { cardKeys[it.cardId] ?: it.cardId }) }
     private val stock = owned.mapNotNull { row -> DeckConstruction.stockReference(row.setCode, row.number)?.let { byId[it] }?.let { details.family(it) to row.quantity } }
         .groupBy { it.first }.mapValues { (_, rows) -> rows.sumOf { it.second } }
+    private val languageStock = owned.mapNotNull { row -> DeckConstruction.stockReference(row.setCode,row.number)?.let { byId[it] }?.let { Triple(details.family(it),row.language,row.quantity) } }
+        .groupBy { it.first to it.second }.mapValues { (_,rows) -> rows.sumOf {it.third} }
     private val usage = decks.flatMap { saved -> DeckCompanion.rows(saved.deck).mapNotNull { byId[it.cardId]?.let(details::family) }.distinct() }
         .groupingBy { it }.eachCount()
     fun terms(query: String) = DeckBrowser.searchKey(query).trim().split(Regex("\\s+")).filter { it.isNotBlank() }
@@ -17,5 +19,6 @@ internal class GlobalSearchIndex(catalog: List<CatalogCard>, owned: List<Collect
     fun deckMatches(deck: DeckStore.SavedDeck, terms: List<String>) = matches(deckKeys[deck.id].orEmpty(), terms)
     fun setMatches(set: CatalogSet, query: String) = matches(DeckBrowser.searchKey("${set.code} ${set.name}"), terms(query))
     fun stock(card: CatalogCard) = stock[details.family(card)] ?: 0
+    fun stock(card: CatalogCard, language: String) = languageStock[details.family(card) to language] ?: 0
     fun deckCount(card: CatalogCard) = usage[details.family(card)] ?: 0
 }

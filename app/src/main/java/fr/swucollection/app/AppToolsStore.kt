@@ -17,25 +17,31 @@ internal fun CollectionDatabase.putTool(name: String, value: JSONObject) {
 internal fun validateAppTool(name: String, value: JSONObject) {
     require(value.toString().length<=2_000_000)
     when(name) {
+        "tradeReceipts" -> validateTradeReceipts(value)
         "printGoals" -> readPrintGoals(value)
         "counter" -> CounterSession.read(value)
         "loans" -> LoanBook.read(value)
         "matches" -> { val a=value.getJSONArray("items"); require(a.length()<=50); for(i in 0 until a.length()) {
             val r=a.getJSONObject(i); require(r.getLong("date")>=0 && r.getLong("duration")>=0)
+            if(r.has("report")) MatchReport.read(r.getJSONObject("report"))
             val p=r.getJSONArray("players");val s=r.getJSONArray("scores"); require(p.length()==2 && s.length()==2)
             for(n in 0..1) require(p.getString(n).length in 1..40 && s.getInt(n) in 0..99)
         } }
         else -> error("Outil de sauvegarde inconnu.")
     }
 }
-internal fun validateTools(tools: JSONObject) { require(tools.length()<=4);tools.keys().forEach { validateAppTool(it,tools.getJSONObject(it)) } }
+internal fun validateTools(tools: JSONObject) { require(tools.length()<=5);tools.keys().forEach { validateAppTool(it,tools.getJSONObject(it)) } }
 internal fun CollectionDatabase.exportTools() = JSONObject().also { root -> readableDatabase.rawQuery("SELECT name,payload FROM app_tools ORDER BY name",null).use { while(it.moveToNext()) root.put(it.getString(0),JSONObject(it.getString(1))) } }
 internal fun CollectionDatabase.importTools(root: JSONObject?, replace: Boolean) {
     root?.let(::validateTools)
     if(root==null) { if(replace) writableDatabase.delete("app_tools",null,null); return }
     if(replace) writableDatabase.delete("app_tools",null,null)
     root.keys().forEach { name ->
-        if(replace || tool(name)==null) putTool(name,root.getJSONObject(name))
+        if(name=="tradeReceipts" && !replace && tool(name)!=null) {
+            val merged=tool(name)!!; val incoming=root.getJSONObject(name)
+            incoming.keys().forEach { merged.put(it,incoming.getLong(it)) }
+            putTool(name,merged)
+        } else if(replace || tool(name)==null) putTool(name,root.getJSONObject(name))
         // Import without replacement never merges loan quantities or ongoing matches.
     }
 }

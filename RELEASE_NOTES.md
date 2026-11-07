@@ -1,3 +1,13 @@
+## Test 0.8.19-test.15
+
+- Historique : recherche par carte ou opération et confirmation explicite avant annulation ; les protections de quantité et de prêts restent actives.
+- Objectifs : raccourcis Classiques, Hyperspace et Foil, combinables avec langue précise, un exemplaire ou playset ; mêmes objectifs pour progression, manquantes et échanges.
+- Recherche naturelle locale : type, couleur/aspect, rareté, coût exact en ressources, langue, cartes absentes, possédées et doublons. Les filtres manuels restent utilisables ; le texte reconnu est affiché.
+- Analyse du deck : alternatives possédées selon coût, type, arène, aspects et traits, sans employer les exemplaires prêtés ou déjà utilisés ; remplacement d’un exemplaire dans le brouillon après confirmation, annulable depuis l’éditeur. Suggestions Premier indicatives, sans prétendre comparer les effets des cartes.
+- Compteur : bilan privé avec joueur, deck, leader adverse, résultat à confirmer et note ; résultats filtrables par deck et leader adverse dans les 50 matchs conservés. Les matchs antérieurs restent lisibles.
+- Échanges : comparaison des sous-totaux disponibles en cache, signalement des cartes sans cote ; après accord accepté et confirmation de la remise réelle, mise à jour atomique de sa collection avec langues et finitions exactes. L’autre joueur actualise sa propre collection sur son téléphone. Registre empêchant une seconde application, conservé en sauvegarde ; annulation des quantités dans Historique, contrôle des prêts et des stocks avant toute écriture.
+- Version Test uniquement ; aucun mode rangement. Sauvegardes étendues sans recréer la base de collection.
+
 ## Test 0.8.19-test.14
 
 - Profils enrichis : ville volontaire sans GPS, formats et trois leaders favoris ; recherche de joueurs par ville et format.

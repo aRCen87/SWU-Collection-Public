@@ -210,9 +210,9 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
         "Échanges" -> {
             FriendTradeSuggestionPanel(service, database, catalog, details,
                 friendships.filter { it.status == "accepted" }.mapNotNull { friendsProfiles[it.peer(user.uid)] }, { suggestedTrade = it })
-            TradeRequestsPanel(service, trades, profiles + friendsProfiles.values, catalog, busy,
+            TradeRequestsPanel(service, trades, profiles + friendsProfiles.values, catalog, database, busy,
                 { trade, answer -> action { service.answerTrade(trade, answer) } },
-                { id -> talk((profiles + friendsProfiles.values).firstOrNull { it.id == id } ?: PlayerProfile(id, "Ami")) })
+                { id -> talk((profiles + friendsProfiles.values).firstOrNull { it.id == id } ?: PlayerProfile(id, "Ami")) }, onRestored)
         }
         "Joueurs" -> { PlayerDirectory(service, profiles) { selectedProfile = it } }
         "Favoris" -> { ShowcaseFavoritesPanel(service, catalog) { selectedProfile = it } }

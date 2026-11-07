@@ -58,8 +58,10 @@ internal class MatchCounterStore(private val db: CollectionDatabase) {
     fun read() = db.tool("counter")?.let(CounterSession::read) ?: CounterSession()
     fun save(s: CounterSession) = db.putTool("counter",s.json())
     fun history(): List<JSONObject> = db.tool("matches")?.getJSONArray("items")?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } }.orEmpty()
-    fun finish(s: CounterSession, now: Long): CounterSession {
+    fun finish(s: CounterSession, now: Long, report: MatchReport? = null): CounterSession {
+        report?.let { MatchReport.read(it.json()) }
         val item=JSONObject().put("date",now).put("players",JSONArray(s.frame.players.map { it.name })).put("scores",JSONArray(s.frame.scores)).put("duration",s.duration(now))
+        report?.let { item.put("report",it.json()) }
         val next=CounterSession(frame=CounterFrame(players=s.frame.players.map { it.copy(damage=0,shields=0,experience=0) }),faceToFace=s.faceToFace,damageMode=s.damageMode,tokens=s.tokens)
         db.writableDatabase.beginTransaction()
         try { db.putTool("matches",JSONObject().put("items",JSONArray().apply { (listOf(item)+history()).take(50).forEach { put(it) } })); save(next); db.writableDatabase.setTransactionSuccessful() }

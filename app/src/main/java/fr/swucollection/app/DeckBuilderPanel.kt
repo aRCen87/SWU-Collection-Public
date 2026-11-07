@@ -477,7 +477,7 @@ internal fun DeckBuilderPanel(
         confirmButton = { TextButton(enabled = collectionEntries.all { it.resolved }, onClick = { confirmingSave = false; saveDeck() }) { Text("Tout enregistrer") } },
         dismissButton = { TextButton(onClick = { confirmingSave = false }) { Text("Vérifier encore") } })
     if (preparing) DeckPreparationDialog(name, deck, owned, catalog, details, onDismiss = { preparing = false })
-    if (showingInsights) DeckInsightsDialog(deck, owned, catalog, details, onDismiss = { showingInsights = false })
+    if (showingInsights) DeckInsightsDialog(deck, owned, catalog, details, onDismiss = { showingInsights = false }, rules = rules, onReplace = { next -> checkpoint(); deck = next; draftStarted = true })
     if (naming && !restoring) AlertDialog(onDismissRequest = { naming = false }, title = { Text(if (newDeck && !leaderChosen) "Créer mon deck" else "Nom du deck") },
         text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Format Premier · un leader, une base, au moins 50 cartes et jusqu’à 10 en réserve.", style = MaterialTheme.typography.bodySmall)

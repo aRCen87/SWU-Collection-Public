@@ -120,7 +120,7 @@ python3 - <<'PYUPDATES'
 import xml.etree.ElementTree as ET
 texts={n.attrib.get('text','') for n in ET.parse('smoke-private/private-updates.xml').iter('node')}
 assert 'Mise à jour de l’application' in texts,texts
-assert any('0.8.19-test.14' in text for text in texts),texts
+assert any('0.8.19-test.15' in text for text in texts),texts
 PYUPDATES
 adb logcat -d -s AndroidRuntime:E > smoke-private/private-updates-crashes.txt
 if grep -q 'FATAL EXCEPTION' smoke-private/private-updates-crashes.txt; then exit 1; fi

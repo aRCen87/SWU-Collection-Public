@@ -137,13 +137,20 @@ internal fun MatchCounterPanel(database: CollectionDatabase, onClose: () -> Unit
         OutlinedButton(onClick={previousMatches=store.history();dialog="history"},modifier=Modifier.fillMaxWidth()) {Text("Mes matchs enregistrés")}
         OutlinedButton(onClick={dialog="finish"},modifier=Modifier.fillMaxWidth(),enabled=!readOnly) {Text("Enregistrer ce match et recommencer")}
     } },confirmButton={TextButton(onClick={dialog=""}) {Text("Reprendre")} })
-    if(dialog=="finish") AlertDialog(onDismissRequest={dialog=""},title={Text("Terminer ce match ?")},text={Text("Score : ${session.frame.players[0].name} ${session.frame.scores[0]} — ${session.frame.scores[1]} ${session.frame.players[1].name}. Une nouvelle partie commencera avec les mêmes noms, bases et designs.")},
-        confirmButton={TextButton(onClick={runCatching {store.finish(session,System.currentTimeMillis())}.onSuccess {session=it;dialog=""}.onFailure {failure="Match non enregistré. Réessaie."}}) {Text("Enregistrer et recommencer")}},dismissButton={TextButton(onClick={dialog=""}) {Text("Annuler")} })
+    if(dialog=="finish") MatchReportDialog(session,
+        remember { DeckStore(view.context.applicationContext).use { it.all() } },
+        remember { database.allCatalogSets().flatMap { database.catalogCardsForSet(it.code) }.filter { DeckConstruction.type(it) in listOf("leader","chef") } },
+        onClose={dialog=""},onSave={report ->runCatching {store.finish(session,System.currentTimeMillis(),report)}.onSuccess {session=it;dialog=""}.onFailure {failure="Match non enregistré. Réessaie."}})
     if(dialog=="events" || dialog=="history") AlertDialog(onDismissRequest={dialog=""},title={Text(if(dialog=="events") "Journal de la partie" else "Mes 50 derniers matchs")},text={ Column(Modifier.heightIn(max=450.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(8.dp)) {
         if(dialog=="events") { if(session.events.isEmpty()) Text("Aucune action pour le moment.");session.events.asReversed().forEach {Text(it)} }
-        else { if(previousMatches.isEmpty()) Text("Aucun match enregistré.");previousMatches.forEach {r ->
+        else { MatchStatisticsPanel(previousMatches); HorizontalDivider(); if(previousMatches.isEmpty()) Text("Aucun match enregistré.");previousMatches.forEach {r ->
             val p=r.getJSONArray("players");val s=r.getJSONArray("scores")
             Text(SimpleDateFormat("dd/MM/yyyy HH:mm",Locale.FRANCE).format(Date(r.getLong("date")))+" · ${p.getString(0)} ${s.getInt(0)} — ${s.getInt(1)} ${p.getString(1)} · ${r.getLong("duration")/60000} min")
+            r.optJSONObject("report")?.let { raw -> val report=MatchReport.read(raw)
+                Text("${matchResultTitle(report.result)} · ${report.deckName.ifBlank { "Sans deck" }} · contre ${report.opponentLeader.ifBlank { "leader non renseigné" }}",style=MaterialTheme.typography.bodySmall)
+                if(report.note.isNotBlank()) Text(report.note,style=MaterialTheme.typography.bodySmall)
+            }
+            HorizontalDivider()
         } }
     } },confirmButton={TextButton(onClick={dialog=""}) {Text("Fermer")} })
 }

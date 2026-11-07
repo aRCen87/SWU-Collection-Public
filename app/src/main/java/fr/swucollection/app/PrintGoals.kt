@@ -33,6 +33,12 @@ internal fun printGoalRows(catalog: List<CatalogCard>, owned: List<CollectionCar
 }
 @Composable
 internal fun PrintGoalControls(goal: PrintGoal?, change: (PrintGoal?) -> Unit) {
+    Text("Objectif rapide", style = MaterialTheme.typography.titleSmall)
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        FilterChip(goal == PrintGoal("Normale"), { change(PrintGoal("Normale")) }, label = { Text("Classiques") })
+        FilterChip(goal == PrintGoal("Hyperspace"), { change(PrintGoal("Hyperspace")) }, label = { Text("Hyperspace") })
+        FilterChip(goal == PrintGoal("Foil"), { change(PrintGoal("Foil")) }, label = { Text("Foil") })
+    }
     Row { Switch(goal != null, { change(if (it) PrintGoal("Normale", "FR") else null) }); Text("Choisir une langue et une finition précises", Modifier.padding(8.dp)) }
     goal?.let { selected ->
         Text("Les autres versions et langues restent dans la collection et ne comptent pas dans cet objectif.", style = MaterialTheme.typography.bodySmall)

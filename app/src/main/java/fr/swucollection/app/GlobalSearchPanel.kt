@@ -12,11 +12,14 @@ import androidx.compose.ui.unit.dp
 internal fun GlobalSearchPanel(query: String, onQuery: (String) -> Unit, catalog: List<CatalogCard>, sets: List<CatalogSet>, owned: List<CollectionCard>, decks: List<DeckStore.SavedDeck>, details: CardDetails, facets: SearchFacets, onFacets: (SearchFacets) -> Unit, modifier: Modifier, legality: PremierLegality, onCard: (CatalogCard, List<CatalogCard>) -> Unit, onDeck: (DeckStore.SavedDeck) -> Unit, onSet: (String) -> Unit) {
     val index = remember(catalog, owned, decks, details) { GlobalSearchIndex(catalog, owned, decks, details) }
     val terms = remember(index, query) { index.terms(query) }
-    val results = remember(index, query, facets, catalog, details) { catalog.filter { facets.matches(it, details.get(it)) && index.cardMatches(it, terms) } }
+    val natural = remember(query) { NaturalCardSearch.parse(query) }
+    val results = remember(index, natural, facets, catalog, details, owned) { catalog.filter { facets.matches(it, details.get(it)) && natural.matches(it, details.get(it), owned, index) } }
     val matchingDecks = remember(index, query, decks) { if (query.isBlank()) emptyList() else decks.filter { index.deckMatches(it, terms) } }
     val matchingSets = remember(index, query, sets) { if (query.isBlank()) emptyList() else sets.filter { index.setMatches(it, query) } }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedTextField(query, onQuery, label = { Text("Carte, deck ou extension") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        OutlinedTextField(query, onQuery, label = { Text("Carte, deck, extension ou recherche naturelle") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        Text("Ex. : unités rouges à 3 ressources · légendaires manquantes · mes doubles anglais", style = MaterialTheme.typography.bodySmall)
+        if (natural.description.isNotBlank()) Text("Compris : ${natural.description}", color = ListPalette.Gold, style = MaterialTheme.typography.bodySmall)
         SearchFacetPanel(facets, sets, catalog, details, onFacets)
         Text("${results.size} carte(s) · ${matchingDecks.size} deck(s) · ${matchingSets.size} extension(s)", style = MaterialTheme.typography.bodySmall)
         LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 12.dp)) {

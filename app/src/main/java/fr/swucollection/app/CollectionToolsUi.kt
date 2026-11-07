@@ -42,13 +42,17 @@ internal fun CollectionValuePanel(cards: List<CollectionCard>,quotes: Map<String
 internal fun CollectionHistoryPanel(database: CollectionDatabase,onChanged:()->Unit,modifier: Modifier) {
     var events by remember {mutableStateOf(database.history())};var message by remember {mutableStateOf<String?>(null)}
     val current=events.firstOrNull {!it.undone}
+    var confirmUndo by remember { mutableStateOf(false) }
+    var search by remember { mutableStateOf("") }
+    val shown = events.filter { search.isBlank() || DeckBrowser.searchKey(it.label + " " + it.changes).contains(DeckBrowser.searchKey(search)) }
     Column(modifier,verticalArrangement=Arrangement.spacedBy(8.dp)) {
         Text("Les 100 dernières opérations. Un lot validé compte comme une seule opération.")
-        Button(enabled=current?.reversible==true,onClick={runCatching {database.undoLastChange()}.onSuccess {message="Opération annulée : $it";events=database.history();onChanged()}.onFailure {message=it.message}}) {Text("Annuler la dernière modification")}
+        Button(enabled=current?.reversible==true,onClick={confirmUndo=true}) {Text("Annuler la dernière modification")}
+        OutlinedTextField(search,{search=it.take(100)},label={Text("Rechercher une carte ou une opération")},modifier=Modifier.fillMaxWidth(),singleLine=true)
         message?.let {Text(it)}
         LazyColumn(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(8.dp)) {
             if(events.isEmpty())item {Text("Les prochains ajouts et modifications apparaîtront ici.")}
-            items(events,key={it.id}) {e->Card(Modifier.fillMaxWidth()) {Column(Modifier.padding(12.dp)) {
+            items(shown,key={it.id}) {e->Card(Modifier.fillMaxWidth()) {Column(Modifier.padding(12.dp)) {
                 Text(e.label+if(e.undone)" · annulée" else "",fontWeight=FontWeight.SemiBold)
                 Text(DateFormat.getDateTimeInstance(DateFormat.SHORT,DateFormat.SHORT).format(Date(e.time)))
                 var expanded by remember(e.id) { mutableStateOf(false) }
@@ -60,6 +64,10 @@ internal fun CollectionHistoryPanel(database: CollectionDatabase,onChanged:()->U
             }}}
         }
     }
+    if (confirmUndo) AlertDialog(onDismissRequest={confirmUndo=false},title={Text("Annuler cette opération ?")},
+        text={Text(current?.label.orEmpty()+". Les quantités avant cette opération seront rétablies pour les cartes concernées.")},
+        confirmButton={TextButton(onClick={runCatching {database.undoLastChange()}.onSuccess {message="Opération annulée : $it";events=database.history();onChanged()}.onFailure {message=it.message};confirmUndo=false}) {Text("Confirmer l’annulation")}},
+        dismissButton={TextButton(onClick={confirmUndo=false}) {Text("Conserver")}})
 }
 @Composable
 internal fun RelatedPrintsPanel(card: CatalogCard, catalog: List<CatalogCard>, owned: List<CollectionCard>,
