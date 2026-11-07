@@ -1,11 +1,11 @@
 {
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "versionCode": 74,
-  "versionName": "0.8.19-test.15",
-  "notes": "Historique avec recherche et confirmation avant annulation. Raccourcis d’objectifs Classiques, Hyperspace et Foil, par langue et quantité. Recherche naturelle locale (type, aspect, rareté, ressources, langue et doublons). Alternatives possédées dans l’analyse du deck, avec remplacement confirmé d’un exemplaire et annulation dans le brouillon. Bilan privé des parties : deck, leader adverse, résultat et note ; statistiques filtrables. Échanges : sous-totaux cotés, confirmation de la remise puis mise à jour de sa collection, contrôle des stocks et prêts, protection contre la double validation et annulation. Aucun mode rangement. Sauvegardes, tests Android, sécurité, compilation, signature et essais sur émulateur validés.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_ad6ad4b23d7881919a571b688354dfde&account_id=personal",
-  "sha256": "85e1b2cf446a6ff250d357b6136a3ac215d09892a69b74836597538289424c3b",
-  "size": 85413868,
-  "sourceSha": "7df71c43947f274dfd7c2dc5cf3b6919f5ebaeb0"
+  "versionCode": 75,
+  "versionName": "0.8.19-test.16",
+  "notes": "Échanges simplifiés : choisir un ami, sélectionner Je donne / Je reçois, vérifier puis envoyer. Exemplaires disponibles sélectionnés directement dans la collection, avec langue et finition conservées et cartes prêtées exclues. Après la remise réelle, le bouton Échange effectué permet de confirmer puis d’actualiser sa collection. Protection contre les doubles validations et annulation dans l’historique conservées. QR codes, lecteur QR et ajout d’amis par QR supprimés. Amis, propositions et données existantes conservés. Tests Android, sauvegardes, sécurité, compilation, signature et essais sur émulateur validés.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_d4b72b6d8b0c8191a5035105dbb7b31a&account_id=personal",
+  "sha256": "1ed2158d02479d4aad53e9dbd8f2c3fc3a8378b07724412f9bfc79c45912dd24",
+  "size": 64048687,
+  "sourceSha": "4016b0b0538241bcb783762505bc8cb5b6d24b33"
 }
