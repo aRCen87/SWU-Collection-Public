@@ -103,4 +103,25 @@ class CollectionTest15Test {
         assertEquals(session,store.read());assertTrue(store.history().isEmpty())
         assertEquals("win",MatchReport.fromScores(session).result);assertEquals("loss",MatchReport.fromScores(session,1).result)
     }
+    @Test fun failedBackupReportRestoreLeavesInventoryAndReportsUntouched() = fresh {db ->
+        db.addOrIncrement(a.name,a.setCode,a.number,"Normale","FR")
+        MatchCounterStore(db).finish(CounterSession(),100,MatchReport(note="À conserver"))
+        val before=db.exportJson();val broken=JSONObject(before)
+        broken.getJSONObject("tools").getJSONObject("matches").getJSONArray("items").getJSONObject(0).getJSONObject("report").put("result","bad")
+        assertThrows(IllegalArgumentException::class.java) {db.importJson(broken.toString(),true)}
+        assertEquals(before,db.exportJson())
+    }
+    @Test fun mergedBackupKeepsAllTradeReceiptsAndOverflowRollsBackBothSides() = fresh {db ->
+        val keyA=tradeReceiptKey("alice","a");val keyB=tradeReceiptKey("alice","b")
+        db.putTool("tradeReceipts",JSONObject().put(keyA,100))
+        val incoming=JSONObject(db.exportJson());incoming.getJSONObject("tools").put("tradeReceipts",JSONObject().put(keyB,200))
+        db.importJson(incoming.toString(),false)
+        assertTrue(db.tradeApplied("alice","a"));assertTrue(db.tradeApplied("alice","b"))
+        db.addOrIncrement(a.name,a.setCode,a.number,"Foil","FR");db.addOrIncrement(b.name,b.setCode,b.number,"Normale","EN")
+        db.changeQuantity(db.allCards().single {it.number=="031"}.id,9998)
+        val before=db.exportJson();val history=db.history()
+        assertThrows(IllegalArgumentException::class.java) {db.applyConfirmedTrade("alice",trade(),catalog)}
+        assertEquals(before,db.exportJson());assertEquals(history,db.history());assertFalse(db.tradeApplied("alice","one"))
+    }
+
 }

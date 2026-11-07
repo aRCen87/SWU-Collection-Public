@@ -40,6 +40,23 @@ try:
     adb('shell','wm','size','720x1560');adb('shell','wm','density','320');time.sleep(3)
     root=snapshot('home-return');tap(find(root,'Ouvrir le menu'));tap(find(snapshot('menu-return'),'Compteur de partie'))
     root=snapshot('resumed');assert len(lives(root))==2
+    # Complete a private result report, then inspect statistics from the real UI.
+    tap(find(root,'Options de la partie'))
+    for attempt in range(5):
+        root=snapshot('finish-option-'+str(attempt))
+        options=[n for n in root.iter('node') if n.attrib.get('text')=='Enregistrer ce match et recommencer']
+        if options:
+            rect=list(map(int,re.findall(r'\d+',options[-1].attrib['bounds'])))
+            if rect[2]>rect[0] and rect[3]>rect[1]: tap(options[-1]);break
+        adb('shell','input','swipe','360','1100','360','600','400');time.sleep(1)
+    else: raise AssertionError('Match report option is not reachable')
+    root=snapshot('report');find(root,'Bilan de mon match');tap(find(root,'Victoire'))
+    tap(find(snapshot('report-result'),'Enregistrer et recommencer'))
+    root=snapshot('new-match');assert len(lives(root))==2
+    tap(find(root,'Options de la partie'));tap(find(snapshot('saved-options'),'Mes matchs enregistrés'))
+    root=snapshot('statistics');find(root,'Mes résultats')
+    assert any('1 V' in n.attrib.get('text','') for n in root.iter('node'))
+    capture('report-statistics');tap(find(root,'Fermer'))
     assert 'FATAL EXCEPTION' not in adb('logcat','-d','-s','AndroidRuntime:E')
     print('Match counter checks passed: two players, damage, undo, per-player skin, cover/unfolded/landscape and reopen.')
 except Exception:
