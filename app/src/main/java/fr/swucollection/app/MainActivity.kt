@@ -672,7 +672,6 @@ private fun CollectionScreen(
                 }
             }
             if (selectedSection == "Accueil") {
-                if (privateLayout) FirstStepsCard(cards.isEmpty()) { firstStepsOpen = true }
             val privateHome = deckContext.packageName == AppChannel.TEST_PACKAGE
             Box(Modifier.fillMaxWidth().then(if (privateHome) Modifier.heightIn(min = 144.dp) else Modifier)) {
                 HomeHeaderArtwork(homeHeaderProgress, headerReflection,
@@ -687,6 +686,7 @@ private fun CollectionScreen(
                 }
             }
             HomeFilmQuoteCard(homeFilmQuote)
+            if (privateLayout) FirstStepsCard(cards.isEmpty()) { firstStepsOpen = true }
             }
             if (selectedSection != "Accueil") {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
