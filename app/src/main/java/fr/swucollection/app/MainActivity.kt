@@ -672,6 +672,7 @@ private fun CollectionScreen(
                 }
             }
             if (selectedSection == "Accueil") {
+                if (privateLayout) FirstStepsCard(cards.isEmpty()) { firstStepsOpen = true }
             val privateHome = deckContext.packageName == AppChannel.TEST_PACKAGE
             Box(Modifier.fillMaxWidth().then(if (privateHome) Modifier.heightIn(min = 144.dp) else Modifier)) {
                 HomeHeaderArtwork(homeHeaderProgress, headerReflection,
@@ -790,7 +791,6 @@ private fun CollectionScreen(
                     }
                 }
                 if (privateLayout) {
-                    FirstStepsCard(cards.isEmpty()) { firstStepsOpen = true }
                     TextButton(onClick = { homeEditing = true }) { Text("Personnaliser mon accueil") }
                     HomeBackupStatus(database) { navigation.navigateTo("Sauvegardes") }
                 }
