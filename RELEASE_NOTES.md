@@ -1,3 +1,12 @@
+# Test 19 — fluidité et simplicité
+
+- Recherche et regroupement de la collection recalculés seulement quand leurs données changent.
+- Index des noms anglais et normalisation des recherches réutilisés ; accès direct aux références du catalogue.
+- Scanner prioritaire, ajout manuel nommé, filtres actifs comptés et recherche effaçable en un geste.
+- Choix d’affichage sans effet masqués et confirmation du scanner simplifiée.
+- Version Test disponible aussi dans l’aperçu des paramètres.
+- Données, langues et variantes conservées, sans migration de base.
+
 # SWU Collection Test 0.8.19-test.18
 
 - Compteur pour 1 ou 2 joueurs, choix visible dès l’ouverture et mémorisé. En solo, un seul panneau occupe l’écran ; le passage entre les modes conserve les réglages et les points de chaque joueur. Compatibilité des anciennes parties et des sauvegardes.

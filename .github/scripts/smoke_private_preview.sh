@@ -43,6 +43,7 @@ PYUI
 done
 # The empty test account contains no private user data; keep its home capture encrypted.
 adb shell am force-stop fr.swucollection.app
+python3 .github/scripts/check_test19_usability.py
 python3 .github/scripts/check_collection_workbench.py
 # Restore the independent home starting point before the broader resize checks.
 adb shell am force-stop fr.swucollection.app.test

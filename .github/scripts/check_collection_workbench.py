@@ -18,14 +18,14 @@ try:
     adb('shell','wm','size','720x1560');adb('shell','wm','density','320');time.sleep(3)
     adb('shell','am','force-stop',PACKAGE);adb('shell','am','start','-W','-n',PACKAGE+'/fr.swucollection.app.MainActivity');time.sleep(8)
     tap(find(snapshot('home'),'Collection'))
-    tap(find(snapshot('collection'),'Vérifier et gérer ma collection'))
+    tap(find(snapshot('collection'),'Gérer ma collection'))
     root=snapshot('opened');find(root,'Gérer ma collection');find(root,'Sélection');find(root,'Disponibilité');find(root,'À vérifier')
     for name,w,h,d in [('cover',720,1560,320),('unfolded',1766,1472,336),('landscape',1680,756,294)]:
         adb('shell','wm','size',f'{w}x{h}');adb('shell','wm','density',d);time.sleep(4)
         root=snapshot(name);find(root,'Fermer');find(root,'Disponibilité');capture(name)
     tap(find(root,'À vérifier'));root=snapshot('review');find(root,'Aucun point à vérifier avec le catalogue actuel.');capture('review')
     tap(find(root,'Disponibilité'));root=snapshot('availability');find(root,'Fermer');capture('availability')
-    tap(find(root,'Fermer'));root=snapshot('closed');find(root,'Vérifier et gérer ma collection')
+    tap(find(root,'Fermer'));root=snapshot('closed');find(root,'Gérer ma collection')
     assert 'FATAL EXCEPTION' not in adb('logcat','-d','-s','AndroidRuntime:E')
     print('Collection workbench checks passed: selection, availability, cover/unfolded/landscape and close.')
 except Exception:
