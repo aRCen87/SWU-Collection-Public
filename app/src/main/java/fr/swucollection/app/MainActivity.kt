@@ -268,6 +268,8 @@ private fun CollectionScreen(
     val navigation = remember { AppNavigation() }
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     val selectedSection = navigation.current.section
+    val compactCollectionLayout = privateLayout && selectedSection == "Collection" &&
+        LocalConfiguration.current.screenHeightDp < 480
     val selectedSet = navigation.current.setCode
     val catalogSearch = navigation.current.catalogSearch
     var menuOpen by remember { mutableStateOf(false) }
@@ -663,7 +665,7 @@ private fun CollectionScreen(
                 if (selectedSection in listOf("Collection", "Extensions", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta", "Prêts"))
                     Modifier else Modifier.verticalScroll(rememberScrollState())
             ).padding(horizontal = 16.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(if (compactCollectionLayout) 4.dp else 12.dp)
         ) {
             if (!deckWorkspace && appUpdates.availableVersion != null && selectedSection != "Mises à jour") {
                 OutlinedButton(onClick = {
@@ -1222,7 +1224,8 @@ private fun CollectionScreen(
                 }
                 OutlinedTextField(value = search, onValueChange = { search = it },
                     label = { Text("Rechercher dans ma collection") },
-                    placeholder = { Text("Nom français ou anglais, extension, numéro") },
+                    placeholder = { Text("Nom français ou anglais, extension, numéro", maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
                     trailingIcon = { if (search.isNotEmpty()) IconButton(onClick = { search = "" }) {
                         Icon(Icons.Default.Close, "Effacer la recherche")
                     } },
@@ -1305,11 +1308,13 @@ private fun CollectionScreen(
                         },
                         confirmButton = { TextButton(onClick = { collectionFiltersOpen = false }) { Text("Voir les cartes") } })
                 }
+                if (!compactCollectionLayout) {
                 if (groupVersions) InputChip(true, { groupVersionsValue = "false" }, label = { Text("Versions regroupées ×") })
                 ActiveCollectionFilters(collectionSetFilter, collectionScope, collectionSort, search,
                     onSet = { collectionSetFilter = "Toutes" }, onScope = { collectionScope = "Possédées" },
                     onSort = { savedCollectionSort = CollectionPriceSort.CATALOG.name }, onSearch = { search = "" })
                 if (collectionLanguage != "Toutes") InputChip(true, { collectionLanguage = "Toutes" }, label = { Text(CardLanguages.label(collectionLanguage) + " ×") })
+                }
                 val selectedOwned = remember(visibleCards, collectionSetFilter, collectionLanguage,
                     collectionScope, copiesPerPrint, collectionSort, collectionQuotes) {
                     sortCollectionByPrice(visibleCards.filter {
@@ -1320,7 +1325,8 @@ private fun CollectionScreen(
                         collectionQuotes[collectionPriceKey(it.setCode, it.number, it.variant)]?.amount
                     }
                 }
-                Text("${selectedOwned.map { MarketPricing.key(it.setCode,it.number) + ":" + it.variant }.distinct().size} références et variantes possédées · ${selectedOwned.sumOf { it.quantity }} exemplaires", fontSize = 12.sp)
+                Text(if (compactCollectionLayout) "${selectedOwned.sumOf { it.quantity }} exemplaires affichés"
+                    else "${selectedOwned.map { MarketPricing.key(it.setCode,it.number) + ":" + it.variant }.distinct().size} références et variantes possédées · ${selectedOwned.sumOf { it.quantity }} exemplaires", fontSize = 12.sp)
                 if (collectionScope == "Doublons") Text("Filtre Doublons actif", color = MaterialTheme.colorScheme.primary)
                 if (selectedOwned.isEmpty()) {
                     Text(if (cards.isEmpty()) "Ta collection est vide. Scanne ta première carte pour commencer." else "Aucune carte possédée ne correspond aux filtres.", color = MaterialTheme.colorScheme.onSurfaceVariant)

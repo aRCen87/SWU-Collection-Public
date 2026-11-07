@@ -67,9 +67,19 @@ try:
         for label in ('Scanner', 'Filtres', 'Ajout manuel', 'Gérer ma collection'):
             x1, y1, x2, y2 = rect(find(root, label))
             assert left <= x1 < x2 <= right and top <= y1 < y2 <= bottom, (name, label, (x1,y1,x2,y2))
+        empty = find(root, 'Ta collection est vide. Scanne ta première carte pour commencer.')
+        parents = {child: parent for parent in root.iter() for child in parent}
+        navigation = find(root, 'Accueil')
+        while navigation.attrib.get('clickable') != 'true' and navigation in parents:
+            navigation = parents[navigation]
+        x1, y1, x2, y2 = rect(empty)
+        assert x2 > x1 and y2 > y1 and y2 <= rect(navigation)[1], (name, 'Collection body obscured by navigation', rect(empty), rect(navigation))
         capture(name)
     assert 'FATAL EXCEPTION' not in adb('logcat', '-d', '-s', 'AndroidRuntime:E')
     print('Test 19 usability passed: clear search, active/reset filters, visible actions on cover/unfolded/landscape.')
+except Exception:
+    capture('failure')
+    raise
 finally:
     if original_keyboard == 'null': adb('shell', 'settings', 'delete', 'secure', 'show_ime_with_hard_keyboard')
     else: adb('shell', 'settings', 'put', 'secure', 'show_ime_with_hard_keyboard', original_keyboard)
