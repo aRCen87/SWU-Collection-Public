@@ -273,11 +273,9 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
         AlertDialog(onDismissRequest = { selectedProfile = null }, title = { Text("Profil du joueur") }, text = {
             Column(Modifier.heightIn(max = 430.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 PlayerHeading(identity); if (player.bio.isNotBlank()) Text(player.bio)
-                if (!messaging) {
-                    ProfileInterests(player, catalog)
-                    ShowcasePanel(service, player, database, catalog)
-                    ProfileBadges(player, definitions, catalog)
-                }
+                ProfileInterests(player, catalog)
+                ShowcasePanel(service, player, database, catalog)
+                ProfileBadges(player, definitions, catalog)
                 val friendship = friendships.firstOrNull { player.id in it.members }
                 if (friendship == null) OutlinedButton(onClick = { action { service.requestFriend(player.id); status = "Demande d’ami envoyée." } }, enabled = !busy && !blocked) { Text("Ajouter aux amis") }
                 else if (friendship.status == "accepted") {
@@ -287,7 +285,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
                     }
                     if (!messaging) OutlinedButton(onClick = { selectedProfile = null; proposingTrade = player }, enabled = !blocked) { Text("Proposer un échange") }
                 } else Text(if (friendship.requester == user.uid) "Demande envoyée" else "Demande d’ami reçue · onglet Amis")
-                if (!messaging) SharedProfileDecks(service, player, false, decks, catalog, onImportDeck)
+                SharedProfileDecks(service, player, false, decks, catalog, onImportDeck)
                 OutlinedButton(onClick = { action { service.block(player.id, !blocked); blocked = !blocked } }, enabled = !busy) { Text(if (blocked) "Débloquer ce joueur" else "Bloquer ce joueur") }
             }
         }, confirmButton = { Button(onClick = { talk(player) }, enabled = !busy && !blocked) { Text("Envoyer un message") } },
