@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -72,7 +73,9 @@ internal fun CollectionWorkbench(database: CollectionDatabase, catalog: List<Cat
         result
     }
     val visible = rows.filter { it.name.contains(search, true) || "${it.setCode} ${it.number}".contains(search, true) }
-    Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    val window = LocalConfiguration.current
+    key(window.screenWidthDp, window.screenHeightDp, window.orientation, window.densityDpi) {
+    Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false)) {
         Surface(Modifier.safeDrawingPadding().padding(12.dp).widthIn(max = 850.dp).fillMaxWidth().fillMaxHeight(.94f), shape = MaterialTheme.shapes.large) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row { Text("Gérer ma collection", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge); TextButton(onClick = close) { Text("Fermer") } }
@@ -115,6 +118,7 @@ internal fun CollectionWorkbench(database: CollectionDatabase, catalog: List<Cat
                 }
             }
         }
+    }
     }
     if (confirmation) AlertDialog(onDismissRequest = { confirmation = false }, title = { Text("Modifier ${selected.size} lignes ?") }, text = { Text("Langue : ${language ?: "inchangée"}. Finition : ${finish ?: "inchangée"}. Le nombre total d’exemplaires est conservé, les lignes identiques sont regroupées.") }, confirmButton = { TextButton(onClick = { runCatching { database.bulkCorrect(selected, catalog, language, finish) }.onSuccess { rows = database.allCards(); selected = emptySet(); status = "Lot modifié. Tu peux annuler dans Historique."; changed() }.onFailure { status = it.message }; confirmation = false }) { Text("Confirmer") } }, dismissButton = { TextButton(onClick = { confirmation = false }) { Text("Annuler") } })
 }

@@ -43,12 +43,16 @@ PYUI
 done
 # The empty test account contains no private user data; keep its home capture encrypted.
 adb shell am force-stop fr.swucollection.app
+python3 .github/scripts/check_collection_workbench.py
+# Restore the independent home starting point before the broader resize checks.
+adb shell am force-stop fr.swucollection.app.test
+adb shell am start -W -n fr.swucollection.app.test/fr.swucollection.app.MainActivity >/dev/null
+sleep 8
 python3 .github/scripts/check_private_resizing.py
 adb shell screencap -p /sdcard/test-home.png
 adb pull /sdcard/test-home.png smoke-private/home-test.png >/dev/null
 python3 .github/scripts/check_private_fold_interactions.py
 python3 .github/scripts/check_match_counter.py
-python3 .github/scripts/check_collection_workbench.py
 # Both identities still exist after launching each application.
 adb shell pm path fr.swucollection.app
 adb shell pm path fr.swucollection.app.test
