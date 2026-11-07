@@ -103,4 +103,14 @@ class CollectionTest14Test {
         assertEquals(requests.size,requests.map { collectionPriceKey(it.first.setCode,it.first.number,it.second) }.distinct().size)
     }
 
+    @Test fun uncertainPhysicalCardsStayIndependentWhenTheVisualSuggestionIsTheSame() {
+        val context=RuntimeEnvironment.getApplication() as Context
+        context.getSharedPreferences("scan_batch",0).edit().clear().commit()
+        val batch=ScanBatchStore(context);batch.uncertain(card);batch.uncertain(card)
+        assertEquals(2,batch.entries.size);assertEquals(2,batch.entries.map {it.reviewId}.distinct().size)
+        batch.replace(batch.entries.first(),card,"FR","Normale",1)
+        assertEquals(2,batch.entries.size);assertEquals(1,batch.entries.count {it.resolved});assertEquals(1,batch.entries.count {it.needsIdentity})
+        val reloaded=ScanBatchStore(context);assertEquals(batch.entries,reloaded.entries)
+    }
+
 }

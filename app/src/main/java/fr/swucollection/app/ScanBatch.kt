@@ -13,7 +13,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.UUID
 
-internal data class ScanBatchEntry(val card: CatalogCard, val variant: String, val quantity: Int, val needsIdentity: Boolean = false) {
+internal data class ScanBatchEntry(val card: CatalogCard, val variant: String, val quantity: Int, val needsIdentity: Boolean = false, val reviewId: String = "") {
     val resolved get() = !needsIdentity && card.language in CardLanguages.supported && variant in ScanVariants.detect(card).choices
 }
 
@@ -26,7 +26,7 @@ internal fun resolveScanEntries(entries: List<ScanBatchEntry>, entry: ScanBatchE
     val index = remaining.indexOf(entry)
     if (quantity == entry.quantity) remaining.removeAt(index)
     else remaining[index] = entry.copy(quantity = entry.quantity - quantity)
-    val resolved = entry.copy(card = entry.card.copy(language = language), variant = variant, quantity = quantity, needsIdentity = false)
+    val resolved = entry.copy(card = entry.card.copy(language = language), variant = variant, quantity = quantity, needsIdentity = false, reviewId = "")
     val existing = remaining.indexOfFirst { it.card.setCode == resolved.card.setCode && it.card.number == resolved.card.number && it.card.language == language && it.variant == variant }
     if (existing < 0) remaining.add(resolved)
     else {
@@ -43,12 +43,12 @@ internal class ScanBatchStore(context: Context) {
     var entries by mutableStateOf(runCatching {
         val array = JSONArray(prefs.getString("entries", "[]"))
         (0 until array.length()).map { i -> array.getJSONObject(i).let {
-            ScanBatchEntry(cardFromJson(it), it.getString("variant"), it.getInt("quantity").also { n -> require(n in 1..9999) }, it.optBoolean("needsIdentity")) }
+            ScanBatchEntry(cardFromJson(it), it.getString("variant"), it.getInt("quantity").also { n -> require(n in 1..9999) }, it.optBoolean("needsIdentity"), it.optString("reviewId")) }
         }
     }.getOrDefault(emptyList()))
         private set
     private fun save(nextId: String, next: List<ScanBatchEntry>) {
-        val array = JSONArray().apply { next.forEach { put(cardToJson(it.card).put("variant", it.variant).put("quantity", it.quantity).put("needsIdentity", it.needsIdentity)) } }
+        val array = JSONArray().apply { next.forEach { put(cardToJson(it.card).put("variant", it.variant).put("quantity", it.quantity).put("needsIdentity", it.needsIdentity).put("reviewId", it.reviewId)) } }
         check(prefs.edit().putString("id", nextId).putString("entries", array.toString()).commit()) { "Impossible d’enregistrer le lot." }
         id = nextId; entries = next
     }
@@ -71,11 +71,9 @@ internal class ScanBatchStore(context: Context) {
         save(id, resolveScanEntries(entries, entry, language, variant, quantity))
     fun uncertain(card: CatalogCard) {
         require(entries.size < 500) { "Vérifie le lot avant de poursuivre (500 lignes maximum)." }
-        val index = entries.indexOfFirst { it.needsIdentity && it.card.setCode == card.setCode && it.card.number == card.number }
-        val next = entries.toMutableList()
-        if (index < 0) next += ScanBatchEntry(card.copy(language = CardLanguages.UNKNOWN), "", 1, true)
-        else { require(next[index].quantity < 9999); next[index] = next[index].copy(quantity = next[index].quantity + 1) }
-        save(id, next)
+        // Each uncertain physical scan stays independent: confirming one suggestion
+        // must never replace or drop the other cards waiting to be identified.
+        save(id, entries + ScanBatchEntry(card.copy(language = CardLanguages.UNKNOWN), "", 1, true, UUID.randomUUID().toString()))
     }
     fun replace(entry: ScanBatchEntry, card: CatalogCard, language: String, finish: String, quantity: Int) = save(id, replaceBatchEntry(entries, entry, card, language, finish, quantity))
     fun clear() = save(UUID.randomUUID().toString(), emptyList())
