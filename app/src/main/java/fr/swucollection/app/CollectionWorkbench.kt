@@ -23,7 +23,11 @@ internal fun CollectionDatabase.bulkCorrect(ids: Set<Long>, catalog: List<Catalo
     val next = selected.map { row ->
         val card = catalog.firstOrNull { MarketPricing.key(it.setCode, it.number) == MarketPricing.key(row.setCode, row.number) }
             ?: error("Référence absente du catalogue : ${row.name}")
-        if (finish != null) require(finish in ScanVariants.detect(card).choices) { "La finition choisie ne correspond pas au numéro de ${row.name}." }
+        if (finish != null) {
+            val choices = ScanVariants.detect(card).choices
+            require(choices.size < ScanVariants.options.size) { "Finitions inconnues pour ${row.name} : corrige cette carte individuellement." }
+            require(finish in choices) { "La finition choisie ne correspond pas au numéro de ${row.name}." }
+        }
         row.copy(language = language ?: row.language, variant = finish ?: row.variant)
     }
     val merged = (current.filter { it.id !in ids } + next).groupBy { loanKey(it) }

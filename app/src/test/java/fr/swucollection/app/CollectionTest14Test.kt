@@ -12,7 +12,7 @@ import org.json.JSONObject
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[28],manifest=Config.NONE)
 class CollectionTest14Test {
-    private val card = CatalogCard("SOR","030","Carte","Unité","Commune", "https://example.test/card_SWH_01FR_030.png")
+    private val card = CatalogCard("SOR","030","Carte","Unité","Commune", "https://example.test/card_0101030_FR.png")
     private fun fresh(): CollectionDatabase {
         val context = RuntimeEnvironment.getApplication() as Context
         context.deleteDatabase("swu_collection.db")
@@ -23,7 +23,7 @@ class CollectionTest14Test {
     }
     @Test fun exactGoalCountsOnlyTheRequestedLanguageAndFinishAndKeepsLeaderAtOne() {
         val stock = listOf(CollectionCard(1,"Carte","SOR","030","Normale",2,"FR"), CollectionCard(2,"Carte","SOR","030","Normale",8,"EN"), CollectionCard(3,"Carte","SOR","030","Foil",7,"FR"))
-        val rows = printGoalRows(listOf(card, card.copy(number="001",type="Leader")), stock, true, PrintGoal("Normale","FR"))
+        val rows = printGoalRows(listOf(card, card.copy(number="001",type="Leader",imageUrl="https://example.test/card_0101001_FR.png")), stock, true, PrintGoal("Normale","FR"))
         assertEquals(2, rows.first().owned); assertEquals(1, rows.first().missing); assertEquals(1, rows.last().target)
         assertEquals(10, printGoalRows(listOf(card),stock,true,PrintGoal("Normale")).single().owned)
     }

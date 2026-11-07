@@ -27,7 +27,7 @@ internal fun CollectionDatabase.setPrintGoal(set: String, goal: PrintGoal?) {
 internal fun printGoalRows(catalog: List<CatalogCard>, owned: List<CollectionCard>, playset: Boolean, goal: PrintGoal): List<PlanRow> {
     val quantities = owned.filter { it.variant == goal.finish && (goal.language.isBlank() || it.language == goal.language) }
         .groupBy { MarketPricing.key(it.setCode, it.number) }.mapValues { (_, rows) -> rows.sumOf { it.quantity } }
-    return catalog.filter { goal.finish in ScanVariants.detect(it).choices }.distinctBy { MarketPricing.key(it.setCode, it.number) }.map { card ->
+    return catalog.filter { val choices = ScanVariants.detect(it).choices; choices.size < ScanVariants.options.size && goal.finish in choices }.distinctBy { MarketPricing.key(it.setCode, it.number) }.map { card ->
         PlanRow(card, quantities[MarketPricing.key(card.setCode, card.number)] ?: 0, CollectionPlan.target(card, playset), goal.finish, goal.language)
     }
 }
