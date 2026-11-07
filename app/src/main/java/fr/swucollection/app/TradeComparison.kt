@@ -31,12 +31,12 @@ internal data class TradeProfile(val offers: List<TradeItem>,val needs: List<Tra
             return TradeProfile(rows("offers"),rows("needs"),root.optBoolean("acceptVariants",false))
         }
         fun build(catalog: List<CatalogCard>,owned: List<CollectionCard>,goals: Map<String,Boolean>,details: CardDetails,
-            setFilter: String="Toutes",acceptVariants: Boolean=false,variantsBySet: Map<String,Boolean> = emptyMap()): TradeProfile {
+            setFilter: String="Toutes",acceptVariants: Boolean=false,variantsBySet: Map<String,Boolean> = emptyMap(), reserved: Map<String,Int> = emptyMap()): TradeProfile {
             val scope=if(setFilter=="Toutes") goals.keys+owned.map { it.setCode } else setOf(setFilter)
             val selected=catalog.filter { it.setCode in scope }
             val byKey=selected.associateBy { MarketPricing.key(it.setCode,it.number) }
             val offers = scope.flatMap { code ->
-                CollectionObjectives.extras(owned.filter { it.setCode == code }, selected.filter { it.setCode == code },
+                CollectionObjectives.extras(owned.filter { it.setCode == code }.map { it.copy(quantity=(it.quantity-(reserved[loanKey(it)]?:0)).coerceAtLeast(0)) }, selected.filter { it.setCode == code },
                     goals[code] ?: true, acceptVariants || variantsBySet[code] == true, details)
             }.mapNotNull { row ->
                 val c = byKey[MarketPricing.key(row.setCode,row.number)] ?: return@mapNotNull null

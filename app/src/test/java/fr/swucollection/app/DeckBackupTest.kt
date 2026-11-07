@@ -80,7 +80,7 @@ class DeckBackupTest {
             old.execSQL("INSERT INTO decks VALUES(?,?,?,?,?)", arrayOf("legacy", "Ancien deck", "Premier", DeckInterchange.exportJson(deck), 123L))
         }
         inventory = CollectionDatabase(context); store = DeckStore(context)
-        assertEquals(11, inventory.readableDatabase.version)
+        assertEquals(12, inventory.readableDatabase.version)
         assertEquals("Foil", inventory.allCards().single().variant)
         assertEquals("legacy", store.all().single().id)
         store.delete("legacy"); store.close(); inventory.close()

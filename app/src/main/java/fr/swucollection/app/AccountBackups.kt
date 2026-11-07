@@ -159,7 +159,7 @@ private fun AccountBackupSession(service: CommunityService, database: Collection
     pending?.let { raw ->
         val summary = remember(raw) { validateAccountBackup(raw) }
         AlertDialog(onDismissRequest = { pending = null }, title = { Text("Restaurer la sauvegarde du compte ?") }, text = {
-            Text("${summary.references} références, ${summary.copies} exemplaires, ${summary.lists} listes et ${summary.decks} decks.\n\nCette sauvegarde remplacera les données de ce téléphone, sans additionner les quantités. Une copie de récupération locale sera créée avant la restauration.")
+            Text("${summary.references} références, ${summary.copies} exemplaires, ${summary.lists} listes et ${summary.decks} decks.\n\nCette sauvegarde remplacera les données de ce téléphone, sans additionner les quantités. Les prêts et parties seront aussi restaurés ; une ancienne sauvegarde ne contient pas ces outils. Une copie de récupération locale sera créée avant la restauration.")
         }, confirmButton = { TextButton(onClick = { pending = null; action {
             check(service.auth.currentUser?.uid == owner)
             AutomaticAccountBackup.exclusive { withContext(Dispatchers.IO) {

@@ -36,7 +36,7 @@ data class CatalogCard(
 )
 
 class CollectionDatabase(context: Context) :
-    SQLiteOpenHelper(context, "swu_collection.db", null, 11) {
+    SQLiteOpenHelper(context, "swu_collection.db", null, 12) {
 
     private val appContext = context.applicationContext
     private val chronology = runCatching {
@@ -45,6 +45,7 @@ class CollectionDatabase(context: Context) :
     }.getOrElse { CatalogChronology(emptyMap()) }
 
     override fun onCreate(db: SQLiteDatabase) {
+        createAppTools(db)
         createBadgeTables(db)
         createDeckTables(db)
         createHistoryTables(db)
@@ -55,6 +56,7 @@ class CollectionDatabase(context: Context) :
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        if (oldVersion < 12) createAppTools(db)
         if (oldVersion < 11) migrateCollectionLanguages(db)
         if (oldVersion < 10) createBadgeTables(db)
         if (oldVersion < 9) createDeckTables(db)
@@ -262,13 +264,14 @@ class CollectionDatabase(context: Context) :
         val db = readableDatabase
         db.beginTransactionNonExclusive()
         try {
-            val root = JSONObject().put("format", "SWU_COLLECTION_BACKUP").put("version", 7)
+            val root = JSONObject().put("format", "SWU_COLLECTION_BACKUP").put("version", 8)
             val rows = JSONArray()
             allCards().forEach { card ->
                 rows.put(JSONObject().put("name", card.name).put("setCode", card.setCode)
                     .put("number", card.number).put("variant", card.variant).put("quantity", card.quantity).put("language",card.language))
             }
             root.put("badges", exportBadges())
+            root.put("tools", exportTools())
             root.put("cards", rows)
             root.put("lists", exportCardLists())
             root.put("decks", exportDecks())
@@ -288,6 +291,7 @@ class CollectionDatabase(context: Context) :
         var count = 0
         db.beginTransaction()
         try {
+            importTools(root.optJSONObject("tools"), replace)
             root.optJSONObject("badges")?.let { importBadges(it) }
             importCardLists(lists, replace)
             root.optJSONArray("decks")?.let { importDecks(it, replace) }

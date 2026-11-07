@@ -70,7 +70,7 @@ class CardLanguageStorageTest {
         val migrated=db.allCards().single()
         assertEquals(42L,migrated.id);assertEquals(7,migrated.quantity)
         assertEquals(CardLanguages.UNKNOWN,migrated.language)
-        assertEquals(11,db.readableDatabase.version)
+        assertEquals(12,db.readableDatabase.version)
         assertEquals("Mes favoris",db.cardLists().single().name)
         assertEquals(r2,db.catalogCardsForSet("SOR").single())
         assertEquals(7L,db.badgeEventCounts()["scan"])

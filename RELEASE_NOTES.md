@@ -1,3 +1,12 @@
+## Test 0.8.19-test.13
+
+- Compteur de partie à deux joueurs : six designs indépendants, noms et PV de base réglables, mode face à face, portrait/paysage, PV restants ou dégâts reçus, initiative, chronomètre avec pause, manches, jetons, journal et annulation des 50 dernières actions. Partie conservée après fermeture et écran maintenu allumé pendant son affichage ; historique des 50 derniers matchs.
+- Prêts : quantités, langue, finition, emprunteur et retour prévu, retours partiels, annulation et registre privé. Les exemplaires prêtés restent possédés et sont exclus des disponibilités des nouveaux profils et QR d’échange ; actualiser les anciens partages après un prêt.
+- Alertes de recherche facultatives : correspondances dans les listes volontairement partagées par les amis acceptés, sans publier les recherches ; vérification périodique Android, notifications privées et dédoublonnage.
+- Export de deck en image PNG avec leader, base, deck et réserve, illustrations, références et quantités ; aperçu, enregistrement et partage Android. Les visuels indisponibles sont signalés.
+- Sauvegardes et récupération incluent les prêts, la partie et les matchs. Migration additive de la base de données ; aucune quantité de carte n’est modifiée par ces outils.
+- Retrait de l’écran temporaire de vérification du pliant après les six essais réussis par Romain sur SM-F966B / Test 12.
+
 ## Test 0.8.19-test.12
 
 - Correctifs pliants : fiche conservée lors du passage en paysage ; fenêtre et aperçu caméra rétablis après changement de format, en conservant la session de scan. Tests Android, sécurité, lint, compilation et essais émulateur réussis ; essai du vrai Z Fold à réaliser sur le téléphone.

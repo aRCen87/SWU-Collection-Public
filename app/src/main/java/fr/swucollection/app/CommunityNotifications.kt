@@ -41,17 +41,19 @@ internal object CommunityNotifications {
     const val TAB = "community_tab"
     private const val MESSAGES = "community_messages"
     private const val FRIENDS = "community_friends"
+    private const val SEARCH = "community_search_cards"
+    private fun channel(tab: String) = when(tab) { "Messages" -> MESSAGES; "Échanges" -> SEARCH; else -> FRIENDS }
     private fun prefs(context: Context) = context.getSharedPreferences("community_notifications", Context.MODE_PRIVATE)
     fun pending(context: Context, uid: String, notice: CommunityNotice) = CommunityNoticePolicy.shouldNotify(notice, prefs(context).getLong("$uid.${notice.key}.notified", 0))
-    fun enabled(context: Context, uid: String, tab: String) = prefs(context).getBoolean("$uid.$tab.enabled", true)
+    fun enabled(context: Context, uid: String, tab: String) = prefs(context).getBoolean("$uid.$tab.enabled", tab != "Échanges")
     fun setEnabled(context: Context, uid: String, tab: String, value: Boolean) {
         prefs(context).edit().putBoolean("$uid.$tab.enabled", value).apply()
-        if (!value) clear(context, if (tab == "Messages") MESSAGES else FRIENDS)
+        if (!value) clear(context, channel(tab))
     }
     fun channels(context: Context) {
         if (context.packageName != AppChannel.TEST_PACKAGE) return
         val manager = context.getSystemService(NotificationManager::class.java)
-        listOf(MESSAGES to "Messages privés", FRIENDS to "Demandes d’amis").forEach { (id, name) ->
+        listOf(MESSAGES to "Messages privés", FRIENDS to "Demandes d’amis", SEARCH to "Cartes recherchées").forEach { (id, name) ->
             manager.createNotificationChannel(NotificationChannel(id, name, NotificationManager.IMPORTANCE_DEFAULT).apply {
                 description = "Communauté Test · vérification périodique en arrière-plan"
                 lockscreenVisibility = android.app.Notification.VISIBILITY_PRIVATE
@@ -66,7 +68,7 @@ internal object CommunityNotifications {
         if (context.packageName != AppChannel.TEST_PACKAGE || !enabled(context, uid, notice.tab) || !permission(context)) return false
         if (CommunityService.create(context)?.auth?.currentUser?.uid != uid) return false
         channels(context)
-        val channel = if (notice.tab == "Messages") MESSAGES else FRIENDS
+        val channel = channel(notice.tab)
         if (context.getSystemService(NotificationManager::class.java).getNotificationChannel(channel)?.importance == NotificationManager.IMPORTANCE_NONE) return false
         val marker = "$uid.${notice.key}.notified"
         if (!CommunityNoticePolicy.shouldNotify(notice, prefs(context).getLong(marker, 0))) return false
@@ -76,7 +78,7 @@ internal object CommunityNotifications {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
         val pending = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        val title = if (notice.key == "local-test") "Notification de test" else if (notice.tab == "Messages") "Nouveau message privé" else "Nouvelle demande d’ami"
+        val title = if (notice.key == "local-test") "Notification de test" else if (notice.tab == "Messages") "Nouveau message privé" else if (notice.tab == "Échanges") "Cartes recherchées chez un ami" else "Nouvelle demande d’ami"
         val public = NotificationCompat.Builder(context, channel).setSmallIcon(R.drawable.ic_update_notification)
             .setContentTitle("SWU Collection Test").setContentText("Une activité est disponible dans la communauté.").build()
         val notification = NotificationCompat.Builder(context, channel).setSmallIcon(R.drawable.ic_update_notification)
@@ -90,19 +92,19 @@ internal object CommunityNotifications {
     }
     fun clear(context: Context, channel: String? = null) {
         val manager = context.getSystemService(NotificationManager::class.java)
-        manager.activeNotifications.filter { it.notification.channelId in listOf(MESSAGES, FRIENDS) &&
+        manager.activeNotifications.filter { it.notification.channelId in listOf(MESSAGES, FRIENDS, SEARCH) &&
             (channel == null || it.notification.channelId == channel) }.forEach { manager.cancel(it.tag, it.id) }
     }
     fun destination(context: Context, intent: Intent): String? {
         if (context.packageName != AppChannel.TEST_PACKAGE || intent.action != ACTION) return null
         val uid = CommunityService.create(context)?.auth?.currentUser?.uid ?: return null
         if (intent.getStringExtra(OWNER) != uid) return null
-        return intent.getStringExtra(TAB)?.takeIf { it in listOf("Messages", "Amis") }
+        return intent.getStringExtra(TAB)?.takeIf { it in listOf("Messages", "Amis", "Échanges") }
     }
     suspend fun check(context: Context, service: CommunityService) {
         val uid = service.auth.currentUser?.takeIf { it.isEmailVerified }?.uid ?: return
         if (!permission(context)) return
-        if (!enabled(context, uid, "Messages") && !enabled(context, uid, "Amis")) return
+        if (!enabled(context, uid, "Messages") && !enabled(context, uid, "Amis") && !enabled(context, uid, "Échanges")) return
         if (!service.allowed()) return
         val db = service.accountStore()
         if (enabled(context, uid, "Messages")) {
@@ -128,6 +130,7 @@ internal object CommunityNotifications {
                 if (pending(context, uid, notice) && !service.isBlocked(peer)) offer(context, uid, notice)
             }
         }
+        SearchCardAlerts.check(context, service)
     }
 }
 
@@ -176,13 +179,14 @@ internal fun CommunityNotificationControls(uid: String) {
     var testStatus by remember { mutableStateOf<String?>(null) }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text("Notifications de la communauté", style = MaterialTheme.typography.titleMedium)
-        listOf("Messages" to "Messages privés", "Amis" to "Demandes d’amis").forEach { (key, label) ->
+        listOf("Messages" to "Messages privés", "Amis" to "Demandes d’amis", "Échanges" to "Cartes recherchées chez mes amis").forEach { (key, label) ->
             var enabled by remember(uid, key) { mutableStateOf(CommunityNotifications.enabled(context, uid, key)) }
             Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                 Text(label, Modifier.weight(1f)); Switch(enabled, { enabled = it; CommunityNotifications.setEnabled(context, uid, key, it) })
             }
         }
         Text("Vérification périodique, environ toutes les 15 minutes. Android peut la retarder quand le téléphone dort. Les alertes ne sont pas instantanées et nécessitent Internet et l’autorisation Android. Aucun texte de message n’apparaît sur l’écran verrouillé.", style = MaterialTheme.typography.bodySmall)
+        Text("Alertes de recherche : active ce réglage, définis tes objectifs dans Compléter mon set, puis tes amis doivent partager leur liste d’échange. Les correspondances sont recalculées sans publier tes recherches. Une liste privée, retirée ou bloquée ne déclenche aucune alerte.", style = MaterialTheme.typography.bodySmall)
         OutlinedButton(onClick = { context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)) }) {
             Text("Paramètres des notifications Android")
         }

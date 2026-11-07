@@ -59,7 +59,7 @@ internal fun FriendTradeSuggestionPanel(service: CommunityService, database: Col
     var busy by remember { mutableStateOf(false) }; var status by remember { mutableStateOf<String?>(null) }
     var preview by remember { mutableStateOf<TradeProfile?>(null) }; var matches by remember { mutableStateOf<List<SuggestedTrade>>(emptyList()) }
     var inspecting by remember { mutableStateOf<SuggestedTrade?>(null) }
-    fun local() = TradeProfile.build(catalog,database.allCards(),database.goals(),details,variantsBySet = database.goalVariants())
+    fun local() = TradeProfile.build(catalog,database.allCards(),database.goals(),details,variantsBySet = database.goalVariants(),reserved = database.loans().reserved())
     fun action(block: suspend () -> Unit) { if (!busy) scope.launch {
         busy = true; status = null
         try { check(service.uid == owner); block() } catch (cancelled: CancellationException) { throw cancelled }

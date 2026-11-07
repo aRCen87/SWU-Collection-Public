@@ -497,6 +497,10 @@ private fun CollectionScreen(
         refresh()
     }
 
+    if (privateLayout && selectedSection == "Compteur") {
+        MatchCounterPanel(database, onClose = { navigation.back() })
+        return
+    }
     val deckWorkspace = selectedSection == "Mes listes" && (creatingDeck || editingDeck != null)
     val previewPane: @Composable () -> Unit = {
     previewSession?.let { session ->
@@ -647,7 +651,7 @@ private fun CollectionScreen(
                     else -> 760.dp
                 }) else Modifier)
                 .fillMaxSize().padding(bottom = if (deckWorkspace) 0.dp else 82.dp).then(
-                if (selectedSection in listOf("Collection", "Extensions", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta"))
+                if (selectedSection in listOf("Collection", "Extensions", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta", "Prêts"))
                     Modifier else Modifier.verticalScroll(rememberScrollState())
             ).padding(horizontal = 16.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -739,6 +743,9 @@ private fun CollectionScreen(
                             Text("★ ${pinned.name} · Compléter mon extension")
                         }
                     }
+                }
+                if (privateLayout) OutlinedButton(onClick = { navigation.navigateTo("Compteur") }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                    Icon(Icons.Default.SportsEsports, null); Spacer(Modifier.width(10.dp)); Text("Compteur de partie · Jouer à deux")
                 }
                 (if (privateLayout) homeLayout.order else HomeLayoutStore.defaults).forEach { shortcut ->
                     when (shortcut) {
@@ -946,6 +953,7 @@ private fun CollectionScreen(
                 initialSelection = badgeFocus, onSelectionConsumed = { badgeFocus = null }, onCard = { card ->
                     openPreview(card, allCatalog.map { CardPreviewEntry(it, null) })
                 })
+            if (privateLayout && selectedSection == "Prêts") CardLoansPanel(database, allCatalog)
             if (selectedSection == "Hors connexion") OfflineImagesPanel(allCatalog, sets, savedDecks, internetAvailable)
             if (selectedSection == "Paramètres") {
                 SettingsOverview(onNavigate = { navigation.navigateTo(it) }, updateAvailable = appUpdates.release?.version)
@@ -1596,7 +1604,9 @@ private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) 
                         }
                         Spacer(Modifier.height(24.dp))
                         val communityEntries = if (LocalContext.current.packageName == "fr.swucollection.app.test")
-                            listOf(Triple(Icons.Default.Person, "Compte et communauté", "Communauté")) else emptyList()
+                            listOf(Triple(Icons.Default.Person, "Compte et communauté", "Communauté"),
+                                Triple(Icons.Default.SportsEsports, "Compteur de partie", "Compteur"),
+                                Triple(Icons.Default.Handshake, "Mes prêts de cartes", "Prêts")) else emptyList()
                         val entries = communityEntries + listOf(
                             Triple(Icons.Default.PhotoCamera, "Scanner", "Scanner"),
                             Triple(Icons.Default.CollectionsBookmark, "Compléter mon set", "Compléter mon set"),

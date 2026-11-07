@@ -52,10 +52,13 @@ internal fun writeVerifiedPortableBackup(context: Context, uri: Uri, json: Strin
 internal fun validateBackup(json: String): BackupSummary {
     val root = JSONObject(json)
     require(root.optString("format") == "SWU_COLLECTION_BACKUP") { "Fichier de sauvegarde invalide." }
-    val version = backupInteger(root, "version", 1, 1..7)
+    val version = backupInteger(root, "version", 1, 1..8)
     require(!root.has("badges") || root.opt("badges") is JSONObject) { "Hauts faits invalides." }
     root.optJSONObject("badges")?.let(::validateBadgeBackup)
     require(version < 6 || root.has("badges")) { "Hauts faits absents de la sauvegarde." }
+    require(!root.has("tools") || root.get("tools") is JSONObject) { "Outils invalides dans la sauvegarde." }
+    require(version < 8 || root.has("tools")) { "Outils absents de la sauvegarde." }
+    root.optJSONObject("tools")?.let(::validateTools)
     val lists = root.optJSONArray("lists") ?: org.json.JSONArray()
     require(!root.has("lists") || root.get("lists") is org.json.JSONArray)
     validateCardLists(lists)
