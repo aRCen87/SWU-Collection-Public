@@ -986,7 +986,7 @@ private fun CollectionScreen(
             if (privateLayout && selectedSection == "Prêts") CardLoansPanel(database, allCatalog)
             if (selectedSection == "Hors connexion") OfflineImagesPanel(allCatalog, sets, savedDecks, internetAvailable)
             if (selectedSection == "Paramètres") {
-                SettingsOverview(onNavigate = { navigation.navigateTo(it) }, updateAvailable = appUpdates.release?.version)
+                SettingsOverview(onNavigate = { navigation.navigateTo(it) }, updateAvailable = appUpdates.availableVersion)
                 if (privateLayout) OutlinedButton(onClick = { firstStepsOpen = true }) { Text("Revoir le guide des premiers pas") }
             }
             if (selectedSection == "Apparence") {
@@ -1250,7 +1250,7 @@ private fun CollectionScreen(
                     Text("Regrouper les versions", modifier = Modifier.weight(1f))
                     Switch(groupVersions, { groupVersionsValue = it.toString() })
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (!groupVersions) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("Visuel", "Liste").forEach { option ->
                         FilterChip(selected = collectionView == option,
                             onClick = { collectionView = option },

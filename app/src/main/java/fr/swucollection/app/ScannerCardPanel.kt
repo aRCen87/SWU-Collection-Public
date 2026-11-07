@@ -78,7 +78,7 @@ internal fun ScannerCardConfirmation(card: CatalogCard, initialLanguage: String,
             TextButton(onClick = onCancel) { Text("Annuler") }
             Button(onClick = { onConfirm(language, variant) },
                 enabled = language in CardLanguages.supported && variant in print.choices,
-                modifier = Modifier.weight(1f)) { Text("Valider · $destination") }
+                modifier = Modifier.weight(1f)) { Text(destination) }
         }
         TextButton(onClick = { correcting = !correcting }) { Text(if (correcting) "Masquer les détails" else "Corriger la langue ou la finition") }
     }
