@@ -91,10 +91,10 @@ internal fun ShowcasePanel(service: CommunityService, profile: PlayerProfile, da
         } }
     }; if (pair.size == 1) Spacer(Modifier.weight(1f)) } }
     removing?.let { row -> AlertDialog(onDismissRequest = { removing = null }, title = { Text("Retirer cette carte de la vitrine ?") }, text = { Text("Ta collection et ses quantités sont conservées.") }, confirmButton = { TextButton(onClick = { action { service.removeShowcase(row.id); removing = null } }) { Text("Retirer") } }, dismissButton = { TextButton(onClick = { removing = null }) { Text("Annuler") } }) }
-    if (adding) ShowcasePicker(database.allCards(), catalog, { adding = false }) { row, caption -> action { service.publishShowcase(row, caption); adding = false } }
+    if (adding) ShowcasePicker(database.allCards(), { adding = false }) { row, caption -> action { service.publishShowcase(row, caption); adding = false } }
 }
 @Composable
-private fun ShowcasePicker(owned: List<CollectionCard>, catalog: List<CatalogCard>, close: () -> Unit, publish: (CollectionCard, String) -> Unit) {
+private fun ShowcasePicker(owned: List<CollectionCard>, close: () -> Unit, publish: (CollectionCard, String) -> Unit) {
     var search by remember { mutableStateOf("") }; var selected by remember { mutableStateOf<CollectionCard?>(null) }; var caption by remember { mutableStateOf("") }
     AlertDialog(onDismissRequest = close, title = { Text("Choisir une carte à exposer") }, text = { Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("La référence, la langue, la finition et ta légende seront visibles si tu actives la vitrine. Aucune quantité ni collection complète n’est partagée.")
@@ -107,20 +107,40 @@ private fun ShowcasePicker(owned: List<CollectionCard>, catalog: List<CatalogCar
     } }, confirmButton = { TextButton(onClick = { selected?.let { publish(it, caption) } }, enabled = selected != null) { Text("Ajouter à ma vitrine") } }, dismissButton = { TextButton(onClick = close) { Text("Annuler") } })
 }
 @Composable
-internal fun ShowcaseFavoritesPanel(service: CommunityService, select: (PlayerProfile) -> Unit) {
+internal fun ShowcaseFavoritesPanel(service: CommunityService, catalog: List<CatalogCard>, select: (PlayerProfile) -> Unit) {
     var rows by remember { mutableStateOf<List<ShowcaseFavorite>>(emptyList()) }; var revision by remember { mutableIntStateOf(0) }
-    var status by remember { mutableStateOf<String?>(null) }; val scope = rememberCoroutineScope()
-    LaunchedEffect(revision) { try { rows = service.showcaseFavorites() } catch (e: CancellationException) { throw e } catch (_: Exception) { status = "Favoris indisponibles." } }
+    var showcases by remember { mutableStateOf<Map<String, Pair<PlayerProfile,List<ShowcaseCard>>>>(emptyMap()) }
+    var status by remember { mutableStateOf<String?>(null) }; var loading by remember { mutableStateOf(false) }; val scope = rememberCoroutineScope()
+    LaunchedEffect(revision) {
+        loading = true; showcases = emptyMap(); status = null
+        try {
+            rows = service.showcaseFavorites()
+            val found = mutableMapOf<String, Pair<PlayerProfile,List<ShowcaseCard>>>()
+            rows.map { it.owner }.distinct().forEach { owner ->
+                try { val profile = service.profile(owner); if (profile?.shareShowcase == true) found[owner] = profile to service.showcase(owner) }
+                catch (e: CancellationException) { throw e } catch (_: Exception) { /* Revoked, blocked or unavailable: no cached card content. */ }
+            }
+            showcases = found
+        } catch (e: CancellationException) { throw e } catch (_: Exception) { status = "Favoris indisponibles." } finally { loading = false }
+    }
     Text("Mes favoris de vitrines", style = MaterialTheme.typography.titleMedium)
     Text("Cette liste est privée. Une carte retirée ou une vitrine masquée n’est plus consultable.", style = MaterialTheme.typography.bodySmall)
-    status?.let { Text(it) }; if (rows.isEmpty()) Text("Ajoute une carte aux favoris depuis la vitrine d’un joueur.")
-    rows.forEach { favorite -> Row(Modifier.fillMaxWidth()) {
-        TextButton(onClick = { scope.launch { try {
-            val profile = service.profile(favorite.owner) ?: error("Profil indisponible")
-            check(profile.shareShowcase) { "Cette vitrine est masquée." }; select(profile)
-        } catch (e: CancellationException) { throw e } catch (_: Exception) { status = "Cette vitrine n’est plus accessible." } } }, modifier = Modifier.weight(1f)) { Text("Voir la vitrine · ${favorite.item.substringBeforeLast('_').take(40)}") }
-        TextButton(onClick = { scope.launch { try { service.accountStore().collection("showcaseFavorites").document(service.uid).collection("items").document(favorite.id).delete().communityAwait(); revision++ } catch (e: CancellationException) { throw e } catch (_: Exception) { status = "Retrait impossible." } } }) { Text("Retirer") }
-    } }
+    if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
+    status?.let { Text(it) }; if (!loading && rows.isEmpty()) Text("Ajoute une carte aux favoris depuis la vitrine d’un joueur.")
+    val byRef = remember(catalog) { catalog.associateBy { MarketPricing.key(it.setCode,it.number) } }
+    rows.forEach { favorite ->
+        val showcase = showcases[favorite.owner]; val item = showcase?.second?.firstOrNull { it.id == favorite.item }
+        OutlinedCard(Modifier.fillMaxWidth()) { Row(Modifier.padding(10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (item != null) CardArtwork(byRef[MarketPricing.key(item.set,item.number)], Modifier.size(65.dp,90.dp), language = item.language, variant = item.variant)
+            Column(Modifier.weight(1f)) {
+                Text(if (item != null) byRef[MarketPricing.key(item.set,item.number)]?.name ?: "${item.set} ${item.number}" else if (loading) "Chargement de la vitrine…" else "Carte retirée ou vitrine indisponible")
+                if (item != null) { Text(showcase?.first?.name.orEmpty()); Text("${item.variant} · ${item.language}", style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = { showcase?.first?.let(select) }) { Text("Ouvrir la vitrine") }
+                }
+                TextButton(onClick = { scope.launch { try { service.accountStore().collection("showcaseFavorites").document(service.uid).collection("items").document(favorite.id).delete().communityAwait(); revision++ } catch (e: CancellationException) { throw e } catch (_: Exception) { status = "Retrait impossible." } } }) { Text("Retirer des favoris") }
+            }
+        } }
+    }
 }
 
 @Composable

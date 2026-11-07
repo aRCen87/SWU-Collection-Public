@@ -28,6 +28,7 @@ internal fun ExchangePanel(sets: List<CatalogSet>, catalog: Map<String, List<Cat
     var goalRevision by remember { mutableStateOf(0) }
     val goals = remember(goalRevision) { database.goals() }
     val versions = remember(goalRevision) { database.goalVariants() }
+    val preciseGoals = remember(goalRevision) { database.printGoals() }
     var qrOpen by remember { mutableStateOf(false) }
     val acceptVariants = versions[chosen] ?: false
     var query by remember { mutableStateOf("") }
@@ -37,11 +38,12 @@ internal fun ExchangePanel(sets: List<CatalogSet>, catalog: Map<String, List<Cat
     val effectiveSet = chosen.takeIf { code -> sets.any { it.code == code } } ?: "Toutes"
     val allCatalog = remember(catalog) { catalog.values.flatten() }
     val playset = goals[effectiveSet] ?: true
-    val extras = remember(cards, allCatalog, effectiveSet, goals, versions) {
-        cards.filter { effectiveSet == "Toutes" || it.setCode == effectiveSet }.groupBy { it.setCode }.flatMap { (code, rows) ->
-            CollectionObjectives.extras(rows, allCatalog.filter { it.setCode == code }, goals[code] ?: true, versions[code] ?: false, details)
-        }
+    val reserved = database.loans().reserved()
+    val profile = remember(cards, allCatalog, effectiveSet, goals, versions, preciseGoals, reserved) {
+        TradeProfile.build(allCatalog, cards, goals, details, effectiveSet, variantsBySet = versions, reserved = reserved, printGoals = preciseGoals)
     }
+    val offers = profile.offers.associate { it.key to it.quantity }
+    val extras = cards.mapNotNull { row -> offers[loanKey(row)]?.takeIf { it > 0 }?.let { row.copy(quantity = it) } }
     val visible = extras.filter { it.name.contains(query, true) || it.number.contains(query, true) }
     val csv by rememberUpdatedState(CollectionPlan.csv(emptyList(), extras))
     val export = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
@@ -68,7 +70,8 @@ internal fun ExchangePanel(sets: List<CatalogSet>, catalog: Map<String, List<Cat
                 }
             }
             if (effectiveSet != "Toutes") {
-                ObjectiveControls(playset, acceptVariants) { triple, accept ->
+                PrintGoalControls(preciseGoals[effectiveSet]) { goal -> database.setPrintGoal(effectiveSet, goal); goalRevision++ }
+                ObjectiveControls(playset, acceptVariants, precise = preciseGoals[effectiveSet] != null) { triple, accept ->
                     database.setGoal(effectiveSet, triple, accept); goalRevision++
                 }
             } else Text("Les objectifs et versions acceptées sont ceux enregistrés pour chaque extension. Choisis une extension pour les modifier.", style = MaterialTheme.typography.bodySmall)
@@ -121,7 +124,6 @@ internal fun ExchangePanel(sets: List<CatalogSet>, catalog: Map<String, List<Cat
             }
             Text(sets.firstOrNull {it.code==effectiveSet}?.name?:"Extensions commencées et objectifs enregistrés")
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                val profile=remember(cards,allCatalog,goals,effectiveSet,versions) {TradeProfile.build(allCatalog,cards,goals,details,effectiveSet,variantsBySet=versions,reserved=database.loans().reserved(),printGoals=database.printGoals())}
                 TradeQrPanel(profile, allCatalog)
             }
         }}

@@ -215,7 +215,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
                 { id -> talk((profiles + friendsProfiles.values).firstOrNull { it.id == id } ?: PlayerProfile(id, "Ami")) })
         }
         "Joueurs" -> { PlayerDirectory(service, profiles) { selectedProfile = it } }
-        "Favoris" -> { ShowcaseFavoritesPanel(service) { selectedProfile = it } }
+        "Favoris" -> { ShowcaseFavoritesPanel(service, catalog) { selectedProfile = it } }
         "Messages" -> {
             val selected = conversation
             if (selected == null) {

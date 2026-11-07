@@ -49,7 +49,7 @@ internal data class TradeProfile(val offers: List<TradeItem>,val needs: List<Tra
                 CollectionObjectives.rows(selected.filter { it.setCode == code }, owned, goals[code] ?: true, accept, details, printGoals[code])
                     .filter { it.missing > 0 }.map { TradeItem(it.card.setCode,it.card.number,it.variant,it.card.name,details.family(it.card),it.missing,accept, it.language.ifBlank { CardLanguages.UNKNOWN }) }
             }
-            return TradeProfile(offers,needs,acceptVariants)
+            return TradeProfile(offers,needs,acceptVariants && printGoals.isEmpty())
         }
     }
 }

@@ -87,4 +87,13 @@ class CollectionTest14Test {
             assertEquals(before,db.allCards());assertEquals(3,db.cardLists().single().entries.single().quantity)
         }
     }
+    @Test fun preciseTradeGoalNeverOffersOtherLanguagesOrTreatmentsAndRequestsTheExactPrint() {
+        val stock=listOf(CollectionCard(1,"Carte","SOR","030","Foil",4,"FR"),CollectionCard(2,"Carte","SOR","030","Normale",20,"FR"),CollectionCard(3,"Carte","SOR","030","Foil",8,"EN"))
+        val goal=mapOf("SOR" to PrintGoal("Foil","FR"))
+        val profile=TradeProfile.build(listOf(card),stock,mapOf("SOR" to true),CardDetails.empty(),variantsBySet=mapOf("SOR" to true),printGoals=goal)
+        assertEquals(1,profile.offers.size); assertEquals("Foil",profile.offers.single().variant); assertEquals("FR",profile.offers.single().language);assertEquals(1,profile.offers.single().quantity)
+        val missing=TradeProfile.build(listOf(card),stock.filter {it.language=="EN"},mapOf("SOR" to true),CardDetails.empty(),printGoals=goal)
+        assertEquals("Foil",missing.needs.single().variant);assertEquals("FR",missing.needs.single().language);assertEquals(3,missing.needs.single().quantity)
+    }
+
 }
