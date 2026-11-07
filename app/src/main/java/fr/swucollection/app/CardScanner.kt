@@ -99,6 +99,12 @@ fun CardScannerDialog(
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
+    // Android can detach a Dialog's window when a fold changes the display
+    // metrics without recreating the activity. Recreate only its Test window
+    // and camera view; keep scanGate, pending cards and scanner choices below.
+    val windowKey = if (context.packageName == AppChannel.TEST_PACKAGE)
+        listOf(configuration.orientation, configuration.screenWidthDp,
+            configuration.screenHeightDp, configuration.densityDpi) else emptyList()
     val activity = context.scannerActivity()
     val owner = activity as? LifecycleOwner
     val latestDetected = rememberUpdatedState(onDetected)
@@ -125,7 +131,7 @@ fun CardScannerDialog(
     val effectivelyPaused = paused || userPaused || manualEntry || optionsOpen
     LaunchedEffect(rescanToken) { if (rescanToken > 0) analyzer?.readAgain() }
     LaunchedEffect(effectivelyPaused) { if (effectivelyPaused) { scanGate.interrupt(); analyzer?.interrupt() } }
-    val previewView = remember(context) {
+    val previewView = remember(context, windowKey) {
         PreviewView(context).apply {
             scaleType = PreviewView.ScaleType.FILL_CENTER
             implementationMode = PreviewView.ImplementationMode.PERFORMANCE
@@ -207,6 +213,7 @@ fun CardScannerDialog(
         }
     }
 
+    key(windowKey) {
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false)) {
         Surface(color = ScanInk, modifier = Modifier.fillMaxSize()) {
           ScannerAdaptiveLayout(
@@ -324,6 +331,7 @@ fun CardScannerDialog(
               }
           )
         }
+    }
     }
     if (optionsOpen && controls != null) AlertDialog(
         onDismissRequest = { optionsOpen = false },
