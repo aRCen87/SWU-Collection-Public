@@ -96,6 +96,11 @@ try:
     assert page(root) == first
     tap(find(root,"Fermer la carte")); root = snapshot("closed")
     tap(find(root,"Accueil")); root = snapshot("home-restored")
+    # In a short landscape window the home buttons are below the scrollable
+    # banner. Open the camera from the cover, then resize the active scanner
+    # through every profile below instead of tapping an offscreen home item.
+    resize(720,1560,320)
+    root = snapshot("home-cover-restored")
     adb("shell", "pm", "grant", PACKAGE, "android.permission.CAMERA")
     tap(find(root,"SCANNER")); time.sleep(4)
     for name,w,h,d in [("cover",720,1560,320),("unfolded",1766,1472,336),("landscape",1680,756,294)]:
