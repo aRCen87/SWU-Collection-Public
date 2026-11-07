@@ -17,6 +17,7 @@ internal fun CollectionDatabase.putTool(name: String, value: JSONObject) {
 internal fun validateAppTool(name: String, value: JSONObject) {
     require(value.toString().length<=2_000_000)
     when(name) {
+        "printGoals" -> readPrintGoals(value)
         "counter" -> CounterSession.read(value)
         "loans" -> LoanBook.read(value)
         "matches" -> { val a=value.getJSONArray("items"); require(a.length()<=50); for(i in 0 until a.length()) {
@@ -27,7 +28,7 @@ internal fun validateAppTool(name: String, value: JSONObject) {
         else -> error("Outil de sauvegarde inconnu.")
     }
 }
-internal fun validateTools(tools: JSONObject) { require(tools.length()<=3);tools.keys().forEach { validateAppTool(it,tools.getJSONObject(it)) } }
+internal fun validateTools(tools: JSONObject) { require(tools.length()<=4);tools.keys().forEach { validateAppTool(it,tools.getJSONObject(it)) } }
 internal fun CollectionDatabase.exportTools() = JSONObject().also { root -> readableDatabase.rawQuery("SELECT name,payload FROM app_tools ORDER BY name",null).use { while(it.moveToNext()) root.put(it.getString(0),JSONObject(it.getString(1))) } }
 internal fun CollectionDatabase.importTools(root: JSONObject?, replace: Boolean) {
     root?.let(::validateTools)

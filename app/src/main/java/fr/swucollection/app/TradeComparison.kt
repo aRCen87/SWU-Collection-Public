@@ -31,21 +31,23 @@ internal data class TradeProfile(val offers: List<TradeItem>,val needs: List<Tra
             return TradeProfile(rows("offers"),rows("needs"),root.optBoolean("acceptVariants",false))
         }
         fun build(catalog: List<CatalogCard>,owned: List<CollectionCard>,goals: Map<String,Boolean>,details: CardDetails,
-            setFilter: String="Toutes",acceptVariants: Boolean=false,variantsBySet: Map<String,Boolean> = emptyMap(), reserved: Map<String,Int> = emptyMap()): TradeProfile {
+            setFilter: String="Toutes",acceptVariants: Boolean=false,variantsBySet: Map<String,Boolean> = emptyMap(), reserved: Map<String,Int> = emptyMap(), printGoals: Map<String,PrintGoal> = emptyMap()): TradeProfile {
             val scope=if(setFilter=="Toutes") goals.keys+owned.map { it.setCode } else setOf(setFilter)
             val selected=catalog.filter { it.setCode in scope }
             val byKey=selected.associateBy { MarketPricing.key(it.setCode,it.number) }
             val offers = scope.flatMap { code ->
-                CollectionObjectives.extras(owned.filter { it.setCode == code }.map { it.copy(quantity=(it.quantity-(reserved[loanKey(it)]?:0)).coerceAtLeast(0)) }, selected.filter { it.setCode == code },
+                val exactGoal = printGoals[code]
+                val retainedOwned = if (exactGoal == null) owned else owned.filter { it.variant == exactGoal.finish && (exactGoal.language.isBlank() || it.language == exactGoal.language) }
+                CollectionObjectives.extras(retainedOwned.filter { it.setCode == code }.map { it.copy(quantity=(it.quantity-(reserved[loanKey(it)]?:0)).coerceAtLeast(0)) }, selected.filter { it.setCode == code },
                     goals[code] ?: true, acceptVariants || variantsBySet[code] == true, details)
             }.mapNotNull { row ->
                 val c = byKey[MarketPricing.key(row.setCode,row.number)] ?: return@mapNotNull null
                 TradeItem(c.setCode,c.number,row.variant,c.name,details.family(c),row.quantity,language=row.language)
             }
             val needs = scope.flatMap { code ->
-                val accept = acceptVariants || variantsBySet[code] == true
-                CollectionObjectives.rows(selected.filter { it.setCode == code }, owned, goals[code] ?: true, accept, details)
-                    .filter { it.missing > 0 }.map { TradeItem(it.card.setCode,it.card.number,"Normale",it.card.name,details.family(it.card),it.missing,accept) }
+                val accept = printGoals[code] == null && (acceptVariants || variantsBySet[code] == true)
+                CollectionObjectives.rows(selected.filter { it.setCode == code }, owned, goals[code] ?: true, accept, details, printGoals[code])
+                    .filter { it.missing > 0 }.map { TradeItem(it.card.setCode,it.card.number,it.variant,it.card.name,details.family(it.card),it.missing,accept, it.language.ifBlank { CardLanguages.UNKNOWN }) }
             }
             return TradeProfile(offers,needs,acceptVariants)
         }

@@ -31,14 +31,19 @@ service cloud.firestore {
     }
     function validProfile(d) {
       return d.keys().hasAll(['name','bio','avatar','discoverable','shareBadges','badgeIds','updatedAt']) &&
-        d.keys().hasOnly(['name','bio','avatar','discoverable','shareBadges','badgeIds','updatedAt','messagePolicy','shareDecks']) &&
+        d.keys().hasOnly(['name','bio','avatar','discoverable','shareBadges','badgeIds','updatedAt','messagePolicy','shareDecks','city','cityKey','formats','leaders','shareShowcase']) &&
         d.name is string && d.name.size() >= 2 && d.name.size() <= 32 &&
         d.bio is string && d.bio.size() <= 200 &&
         d.avatar is string && d.avatar.size() <= 18000 &&
         (d.avatar.matches('preset:(star|moon|planet|robot|ship|comet|sun|crystal)') || d.avatar.matches('jpeg:[A-Za-z0-9+/=]+')) &&
         d.discoverable is bool && d.shareBadges is bool && d.badgeIds is list && d.badgeIds.size() <= 500 &&
         (d.shareBadges || d.badgeIds.size() == 0) && d.get('messagePolicy', 'testers') in ['testers','friends','nobody'] &&
-        d.get('shareDecks', false) is bool && d.updatedAt == request.time;
+        d.get('shareDecks', false) is bool && d.get('city', '') is string && d.get('city', '').size() <= 60 &&
+        d.get('cityKey', '') is string && d.get('cityKey', '').size() <= 120 &&
+        d.get('formats', []) is list && d.get('formats', []).size() <= 5 &&
+        d.get('formats', []).hasOnly(['Premier','Éternel','Twin Suns','Draft','Scellé']) &&
+        d.get('leaders', []) is list && d.get('leaders', []).size() <= 3 &&
+        d.get('shareShowcase', false) is bool && d.updatedAt == request.time;
     }
     match /testMembers/{uid} {
       // A verified account may join once. Only an administrator may change or
@@ -56,6 +61,24 @@ service cloud.firestore {
       allow list: if allowed() && resource.data.discoverable == true && request.query.limit != null && request.query.limit <= 50;
       allow create, update: if allowed() && request.auth.uid == uid && validProfile(request.resource.data);
       allow delete: if allowed() && request.auth.uid == uid;
+      match /showcase/{item} {
+        function maySee() { return allowed() && (request.auth.uid == uid ||
+          (enabled(uid) && unblocked(request.auth.uid, uid) && visibleProfile(uid) &&
+            get(/databases/$(database)/documents/profiles/$(uid)).data.get('shareShowcase', false) == true)); }
+        allow get: if maySee();
+        allow list: if maySee() && request.query.limit != null && request.query.limit <= 12;
+        allow create, update: if allowed() && request.auth.uid == uid &&
+          item.matches('[A-Za-z0-9_-]{1,120}') &&
+          request.resource.data.keys().hasAll(['set','number','variant','language','caption','updatedAt']) &&
+          request.resource.data.keys().hasOnly(['set','number','variant','language','caption','updatedAt']) &&
+          request.resource.data.set is string && request.resource.data.set.matches('[A-Z0-9]{2,12}') &&
+          request.resource.data.number is string && request.resource.data.number.matches('[0-9]{1,5}') &&
+          request.resource.data.variant is string && request.resource.data.variant.size() <= 60 &&
+          request.resource.data.language in ['FR','EN','DE','ES','IT'] &&
+          request.resource.data.caption is string && request.resource.data.caption.size() <= 160 &&
+          request.resource.data.updatedAt == request.time;
+        allow delete: if allowed() && request.auth.uid == uid;
+      }
       match /decks/{deck} {
         function mayRead() { return allowed() && (request.auth.uid == uid ||
           (visibleProfile(uid) && get(/databases/$(database)/documents/profiles/$(uid)).data.get('shareDecks', false) == true)); }
@@ -68,6 +91,20 @@ service cloud.firestore {
           request.resource.data.updatedAt == request.time;
         allow delete: if allowed() && request.auth.uid == uid;
       }
+    }
+    match /showcaseFavorites/{uid}/items/{favorite} {
+      allow get: if allowed() && request.auth.uid == uid;
+      allow list: if allowed() && request.auth.uid == uid && request.query.limit != null && request.query.limit <= 100;
+      allow create, update: if allowed() && request.auth.uid == uid &&
+        request.resource.data.keys().hasAll(['owner','item','createdAt']) && request.resource.data.keys().hasOnly(['owner','item','createdAt']) &&
+        request.resource.data.owner is string && request.resource.data.owner != uid && request.resource.data.owner.size() <= 128 &&
+        request.resource.data.item is string && request.resource.data.item.matches('[A-Za-z0-9_-]{1,120}') &&
+        favorite == request.resource.data.owner + '__' + request.resource.data.item &&
+        enabled(request.resource.data.owner) && unblocked(uid, request.resource.data.owner) && visibleProfile(request.resource.data.owner) &&
+        get(/databases/$(database)/documents/profiles/$(request.resource.data.owner)).data.get('shareShowcase', false) == true &&
+        exists(/databases/$(database)/documents/profiles/$(request.resource.data.owner)/showcase/$(request.resource.data.item)) &&
+        request.resource.data.createdAt == request.time;
+      allow delete: if allowed() && request.auth.uid == uid;
     }
     match /friendships/{pair} {
       allow get: if allowed() && (resource == null || request.auth.uid in resource.data.members);

@@ -271,6 +271,7 @@ private fun CollectionScreen(
     var catalogSyncMessage by remember { mutableStateOf<String?>(null) }
     val batchContext = LocalContext.current
     val scanBatch = remember { ScanBatchStore(batchContext) }
+    var collectionWorkbench by remember { mutableStateOf(false) }
     var scanMode by rememberCollectionFilter("scanModeV3", "Une par une")
     var scanReadToken by remember { mutableIntStateOf(0) }
     var scanLastCard by remember { mutableStateOf<ScanBatchEntry?>(null) }
@@ -1011,7 +1012,7 @@ private fun CollectionScreen(
             if (selectedSection == "Scanner" && !scannerOpen) {
                 if (scanBatch.entries.isNotEmpty()) {
                     Text("Vérifier le lot scanné", fontWeight = FontWeight.Bold, fontSize = 22.sp)
-                    ScanBatchPanel(scanBatch, committed = database.isScanBatchCommitted(scanBatch.id), onCommit = {
+                    ScanBatchPanel(scanBatch, catalog = allCatalog, committed = database.isScanBatchCommitted(scanBatch.id), onCommit = {
                         database.commitScanBatch(scanBatch.id, scanBatch.entries, cardDetails)
                         try { scanBatch.clear() } finally { refresh() }
                     })
@@ -1176,6 +1177,7 @@ private fun CollectionScreen(
                 }
                 }
                 if (selectedSection == "Collection") {
+                OutlinedButton(onClick = { collectionWorkbench = true }, modifier = Modifier.fillMaxWidth()) { Text("Gérer par lot · Disponibilité et decks") }
                 FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Button(onClick = { openScanner() }, modifier = Modifier.widthIn(min = 112.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)) {
                         Icon(Icons.Default.PhotoCamera, null, modifier = Modifier.size(20.dp)); Spacer(Modifier.width(5.dp)); Text("Scanner", maxLines = 1)
@@ -1392,6 +1394,7 @@ private fun CollectionScreen(
                 }.fold({ null }, { it.message ?: "Ajout impossible. Ton deck reste inchangé." })
             })
     }
+    if (collectionWorkbench) CollectionWorkbench(database, allCatalog, savedDecks, cardDetails, { collectionWorkbench = false }, { refresh() })
     scanCorrection?.let { entry -> QuickScanCorrection(entry, { scanCorrection = null }) { language, finish ->
         if (scanMode == "Rafale") {
             val source = scanBatch.entries.firstOrNull { it.card.setCode == entry.card.setCode && it.card.number == entry.card.number && it.card.language == entry.card.language && it.variant == entry.variant }
@@ -1465,6 +1468,11 @@ private fun CollectionScreen(
                 Text("Ce réglage sert uniquement aux références dont la finition n’est pas identifiable. Une variante déterminée par son numéro reste prioritaire.", fontSize = 11.sp)
                 TextButton(onClick = { closeScanner(); navigation.navigateTo("Ajouter") }) { Text("Ajouter une carte manuellement") }
             },
+            onUncertain = if (scanMode == "Rafale") ({ candidates ->
+                val ref = candidates.firstOrNull()
+                val card = ref?.let { r -> allCatalog.firstOrNull { it.setCode == r.first && it.number.trimStart('0') == r.second.trimStart('0') } }
+                if (card != null) runCatching { check(!database.isScanBatchCommitted(scanBatch.id)); scanBatch.uncertain(card) }.onFailure { batchMessage = it.message; closeScanner() }
+            }) else null,
             onDetected = detected@{ detectedSet, detectedNumber, raw ->
                 if (scanCandidate != null || scanVariantMenuOpen || scanCorrection != null) return@detected false
                 if (detectedSet.isNotBlank()) set = detectedSet

@@ -65,6 +65,10 @@ internal fun CollectionDatabase.undoLastChange(): String {
             val key=(after ?: before ?: error("Historique invalide")).historyKey()
             check(now[key]?.copy(id=0)==after?.copy(id=0)) { "La collection a changé depuis cette opération : annulation refusée." }
         }
+        val projected = now.toMutableMap()
+        pairs.forEach { (before, after) -> val key = (after ?: before!!).historyKey(); if (before == null) projected.remove(key) else projected[key] = before }
+        val reserved = loans().reserved()
+        reserved.forEach { (key, quantity) -> check(projected.values.filter { loanKey(it) == key }.sumOf { it.quantity } >= quantity) { "Des exemplaires sont prêtés : enregistre leur retour avant cette annulation." } }
         pairs.forEach { (before,after) ->
             val row=after ?: before!!
             db.delete("collection_cards","set_code=? AND card_number=? AND variant=? AND language=?",arrayOf(row.setCode,row.number,row.variant,row.language))

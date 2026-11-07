@@ -51,11 +51,12 @@ internal fun CollectionHistoryPanel(database: CollectionDatabase,onChanged:()->U
             items(events,key={it.id}) {e->Card(Modifier.fillMaxWidth()) {Column(Modifier.padding(12.dp)) {
                 Text(e.label+if(e.undone)" · annulée" else "",fontWeight=FontWeight.SemiBold)
                 Text(DateFormat.getDateTimeInstance(DateFormat.SHORT,DateFormat.SHORT).format(Date(e.time)))
+                var expanded by remember(e.id) { mutableStateOf(false) }
                 val changes=org.json.JSONArray(e.changes)
-                for(i in 0 until minOf(changes.length(),5)) {val r=changes.getJSONObject(i);val b=r.optJSONObject("before");val a=r.optJSONObject("after");val c=a?:b?:continue
-                    Text("${c.getString("name")} · ${c.getString("set")} ${c.getString("number")} · ${c.getString("variant")} : ${b?.optInt("quantity")?:0} → ${a?.optInt("quantity")?:0}",style=MaterialTheme.typography.bodySmall)
+                for(i in 0 until minOf(changes.length(),if(expanded) 500 else 5)) {val r=changes.getJSONObject(i);val b=r.optJSONObject("before");val a=r.optJSONObject("after");val c=a?:b?:continue
+                    Text("${c.getString("name")} · ${c.getString("set")} ${c.getString("number")} · ${c.getString("variant")} · ${c.optString("language","UND")} : ${b?.optInt("quantity")?:0} → ${a?.optInt("quantity")?:0}",style=MaterialTheme.typography.bodySmall)
                 }
-                if(changes.length()>5)Text("Et ${changes.length()-5} autres références.")
+                if(changes.length()>5)TextButton(onClick={expanded=!expanded}) {Text(if(expanded) "Réduire le détail" else "Voir les ${changes.length()} modifications")}
             }}}
         }
     }

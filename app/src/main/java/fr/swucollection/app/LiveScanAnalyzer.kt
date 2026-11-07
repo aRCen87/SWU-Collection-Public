@@ -100,6 +100,7 @@ internal class LiveScanAnalyzer(
                     gate.reset(); regionEvidence.interrupt(); visualEvidence.interrupt(); rejected = null; visualKey = emptyList(); visualReads = 0; blockedVisualKey = emptyList()
                 }
             }
+            val qualityAdvice = ScanImageQuality.read(image)
             val currentViewport = viewport()
             val rotation = (image.imageInfo.rotationDegrees + orientation.degrees) % 360
             recognizer.process(InputImage.fromMediaImage(media, rotation))
@@ -174,8 +175,9 @@ internal class LiveScanAnalyzer(
                             val visualNow = SystemClock.elapsedRealtime()
                             visualReads = if (key == visualKey && visualNow-lastVisualRead <= 6000) visualReads + 1 else 1
                             visualKey = key; lastVisualRead = visualNow
-                            if (visualReads >= 2 && key != blockedVisualKey && gate.blockedReference !in key) {
+                            if (reference == null && visualReads >= 2 && key != blockedVisualKey && gate.blockedReference !in key) {
                                 onVisualCandidates(visual)
+                                blockedVisualKey = key
                             }
                         } else if (reference != null || visualAttempted) {
                             visualKey = emptyList(); visualReads = 0
@@ -202,7 +204,7 @@ internal class LiveScanAnalyzer(
                                 }
                             }
                             reference == null && visual.isNotEmpty() -> onMessage("Illustration repérée · garde la carte immobile")
-                            reference == null -> onMessage("Garde la carte entière dans le cadre, avec son numéro bien visible")
+                            reference == null -> onMessage(qualityAdvice ?: "Garde la carte entière dans le cadre, avec son numéro bien visible")
                             reference == rejected -> Unit
                             reference == gate.blockedReference -> onMessage("Présente la carte suivante, ou relance pour lire la même carte")
                             else -> onMessage("Référence repérée · garde la carte immobile")

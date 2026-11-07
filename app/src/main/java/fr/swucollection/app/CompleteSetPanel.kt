@@ -30,6 +30,7 @@ internal fun CompleteSetPanel(sets: List<CatalogSet>, catalog: Map<String, List<
     var chosen by rememberSaveable(initialSetCode) { mutableStateOf(initialSetCode ?: prefs.getString("set", "") ?: "") }
     var playset by rememberSaveable(chosen) { mutableStateOf(database.goals()[chosen] ?: true) }
     var acceptVariants by remember(chosen) { mutableStateOf(database.goalVariants()[chosen] ?: false) }
+    var printGoal by remember(chosen) { mutableStateOf(database.printGoals()[chosen]) }
     var showResults by rememberSaveable { mutableStateOf(initialSetCode != null) }
     var menu by remember { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
@@ -37,8 +38,8 @@ internal fun CompleteSetPanel(sets: List<CatalogSet>, catalog: Map<String, List<
     var message by remember { mutableStateOf<String?>(null) }
     val available = sets.filter { catalog[it.code].orEmpty().any(CollectionPlan::isClassic) }
     val set = available.firstOrNull { it.code == chosen }
-    val rows = remember(catalog, chosen, cards, playset, acceptVariants) {
-        CollectionObjectives.rows(catalog[chosen].orEmpty(), cards, playset, acceptVariants, details)
+    val rows = remember(catalog, chosen, cards, playset, acceptVariants, printGoal) {
+        CollectionObjectives.rows(catalog[chosen].orEmpty(), cards, playset, acceptVariants, details, printGoal)
     }
     val missing = rows.filter { it.missing > 0 }
     val visible = missing.filter { it.card.name.contains(query, true) || it.card.number.contains(query, true) }
@@ -89,7 +90,8 @@ internal fun CompleteSetPanel(sets: List<CatalogSet>, catalog: Map<String, List<
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("2 · Choisis ton objectif", fontWeight = FontWeight.Bold)
-                        ObjectiveControls(playset, acceptVariants) { triple, versions ->
+                        PrintGoalControls(printGoal) { goal -> printGoal = goal; if (chosen.isNotBlank()) { database.setPrintGoal(chosen, goal); onGoalChanged() } }
+                        ObjectiveControls(playset, acceptVariants, precise = printGoal != null) { triple, versions ->
                             playset = triple; acceptVariants = versions
                             if (chosen.isNotBlank()) { database.setGoal(chosen, triple, versions); onGoalChanged() }
                         }
@@ -98,7 +100,7 @@ internal fun CompleteSetPanel(sets: List<CatalogSet>, catalog: Map<String, List<
                 }
             }
             item {
-                Button(onClick = { database.setGoal(chosen,playset);onGoalChanged();query = ""; showResults = true }, enabled = set != null, modifier = Modifier.fillMaxWidth()) {
+                Button(onClick = { database.setGoal(chosen,playset,acceptVariants);onGoalChanged();query = ""; showResults = true }, enabled = set != null, modifier = Modifier.fillMaxWidth()) {
                     Text("Voir mes cartes manquantes")
                 }
             }
@@ -111,12 +113,12 @@ internal fun CompleteSetPanel(sets: List<CatalogSet>, catalog: Map<String, List<
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         val required = rows.sumOf { it.target }
                         val filled = rows.sumOf { minOf(it.owned, it.target) }
-                        Text(if (missing.isEmpty()) "Objectif atteint !" else "${missing.sumOf { it.missing }} exemplaires à trouver",
+                        Text(if (rows.isEmpty()) "Aucune version compatible dans le catalogue" else if (missing.isEmpty()) "Objectif atteint !" else "${missing.sumOf { it.missing }} exemplaires à trouver",
                             fontSize = 20.sp, fontWeight = FontWeight.Bold)
                         Text("${missing.size} cartes différentes · " + if (playset) "Objectif playset" else "Objectif 1 de chaque", fontSize = 12.sp)
                         LinearProgressIndicator(progress = { if (required == 0) 0f else filled.toFloat() / required },
                             modifier = Modifier.fillMaxWidth())
-                        Text("$filled / $required exemplaires · ${if (acceptVariants) "variantes acceptées" else "classiques non foil"}", fontSize = 12.sp)
+                        Text("$filled / $required exemplaires · ${printGoal?.let { it.finish + " · " + it.language.ifBlank { "Toutes langues" } } ?: if (acceptVariants) "variantes acceptées" else "classiques non foil"}", fontSize = 12.sp)
                         val range = if (budget.minimum == budget.maximum) money.format(budget.minimum)
                             else "${money.format(budget.minimum)} à ${money.format(budget.maximum)}"
                         Text("${if (budget.unpricedCopies > 0) "Sous-total coté" else "Budget estimé"} : $range",
@@ -137,7 +139,7 @@ internal fun CompleteSetPanel(sets: List<CatalogSet>, catalog: Map<String, List<
                                     putExtra(Intent.EXTRA_TEXT, buildString {
                                         appendLine("SWU Collection — ${set.name}")
                                         appendLine(if (playset) "Playset · leaders et bases ×1" else "Un exemplaire de chaque carte")
-                                        missing.forEach { appendLine("${it.missing} × ${it.card.name} · ${it.card.setCode} ${it.card.number}") }
+                                        missing.forEach { appendLine("${it.missing} × ${it.card.name} · ${it.card.setCode} ${it.card.number} · ${it.variant} · ${it.language.ifBlank { "Toutes langues" }}") }
                                     })
                                 }, "Partager mes cartes manquantes"))
                             }.onFailure { message = "Partage indisponible." }
@@ -158,13 +160,13 @@ internal fun CompleteSetPanel(sets: List<CatalogSet>, catalog: Map<String, List<
                     Card(onClick = { onPreview(row.card, visible.map { it.card }) }, modifier = Modifier.fillMaxWidth()) {
                         Row(Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalAlignment = Alignment.CenterVertically) {
-                            CardArtwork(row.card, Modifier.size(64.dp, 88.dp))
+                            CardArtwork(row.card, Modifier.size(64.dp, 88.dp), language = row.language.ifBlank { row.card.language }, variant = row.variant)
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                                 Text(row.card.name, fontWeight = FontWeight.SemiBold)
                                 Text("N° ${row.card.number} · ${row.owned} possédé(s) sur ${row.target}", fontSize = 12.sp)
                                 Text("À trouver : ${row.missing}", fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary)
-                                val price = catalogueQuote(quotes, row.card.setCode, row.card.number)?.amount
+                                val price = quotes[collectionPriceKey(row.card.setCode, row.card.number, row.variant)]?.amount
                                     ?.takeIf { it.isFinite() && it > 0 }
                                 Text(price?.let { "${money.format(it)} / carte · ${money.format(it * row.missing)} au total" }
                                     ?: "Cote indisponible", fontSize = 12.sp)
@@ -173,7 +175,7 @@ internal fun CompleteSetPanel(sets: List<CatalogSet>, catalog: Map<String, List<
                     }
                 }
             } else item {
-                Text("Tu possèdes déjà tous les exemplaires nécessaires pour cet objectif.")
+                Text(if (rows.isEmpty()) "Le catalogue ne propose aucune référence compatible avec cet objectif." else "Tu possèdes déjà tous les exemplaires nécessaires pour cet objectif.")
             }
         }
         message?.let { item { Text(it, fontSize = 12.sp) } }

@@ -95,7 +95,8 @@ fun CardScannerDialog(
     hint: String? = null,
     inlineControls: (@Composable () -> Unit)? = null,
     destinationControls: (@Composable () -> Unit)? = null,
-    rescanToken: Int = 0
+    rescanToken: Int = 0,
+    onUncertain: ((List<Pair<String, String>>) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
@@ -107,6 +108,7 @@ fun CardScannerDialog(
             configuration.screenHeightDp, configuration.densityDpi) else emptyList()
     val activity = context.scannerActivity()
     val owner = activity as? LifecycleOwner
+    val latestUncertain = rememberUpdatedState(onUncertain)
     val latestDetected = rememberUpdatedState(onDetected)
     var hasPermission by remember { mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) }
     var permissionAsked by remember { mutableStateOf(false) }
@@ -151,7 +153,7 @@ fun CardScannerDialog(
             val main = ContextCompat.getMainExecutor(context)
             val executor = Executors.newSingleThreadExecutor()
             val reader = LiveScanAnalyzer(main, executor, visualMatcher, { visualViewport.get() },
-                { matches -> if (active.get() && !pauseCheck()) matches.firstOrNull()?.let { landscapeCard = it.landscape } }, pauseCheck, { if (active.get()) message = it }, scanGate) { reference, raw ->
+                { matches -> if (active.get() && !pauseCheck()) { matches.firstOrNull()?.let { landscapeCard = it.landscape }; latestUncertain.value?.invoke(matches.map { it.reference.set to it.reference.number }) } }, pauseCheck, { if (active.get()) message = it }, scanGate) { reference, raw ->
                 if (!active.get() || pauseCheck()) false
                 else latestDetected.value(reference.set, reference.number, raw).also { found ->
                     if (found) previewView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)

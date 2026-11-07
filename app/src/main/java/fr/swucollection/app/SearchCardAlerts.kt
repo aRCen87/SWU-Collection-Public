@@ -15,7 +15,7 @@ internal object SearchCardAlerts {
         val prefs=context.getSharedPreferences("community_notifications",Context.MODE_PRIVATE)
         val mine=CollectionDatabase(context.applicationContext).use {db ->
             val catalog=db.allCatalogSets().flatMap {db.catalogCardsForSet(it.code)}
-            TradeProfile.build(catalog,db.allCards(),db.goals(),CardDetails.load(context),variantsBySet=db.goalVariants(),reserved=db.loans().reserved())
+            TradeProfile.build(catalog,db.allCards(),db.goals(),CardDetails.load(context),variantsBySet=db.goalVariants(),reserved=db.loans().reserved(),printGoals=db.printGoals())
         }
         if(mine.needs.isEmpty()) return
         val rows=service.accountStore().collection("friendships").whereArrayContains("members",owner).limit(100).get(Source.SERVER).communityAwait()

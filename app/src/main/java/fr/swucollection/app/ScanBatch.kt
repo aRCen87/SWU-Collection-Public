@@ -2,6 +2,7 @@ package fr.swucollection.app
 
 import android.content.Context
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
@@ -12,8 +13,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.UUID
 
-internal data class ScanBatchEntry(val card: CatalogCard, val variant: String, val quantity: Int) {
-    val resolved get() = card.language in CardLanguages.supported && variant in ScanVariants.detect(card).choices
+internal data class ScanBatchEntry(val card: CatalogCard, val variant: String, val quantity: Int, val needsIdentity: Boolean = false) {
+    val resolved get() = !needsIdentity && card.language in CardLanguages.supported && variant in ScanVariants.detect(card).choices
 }
 
 /** Resolve copies explicitly; mixed foil/normal copies need not be assigned the same finish. */
@@ -25,7 +26,7 @@ internal fun resolveScanEntries(entries: List<ScanBatchEntry>, entry: ScanBatchE
     val index = remaining.indexOf(entry)
     if (quantity == entry.quantity) remaining.removeAt(index)
     else remaining[index] = entry.copy(quantity = entry.quantity - quantity)
-    val resolved = entry.copy(card = entry.card.copy(language = language), variant = variant, quantity = quantity)
+    val resolved = entry.copy(card = entry.card.copy(language = language), variant = variant, quantity = quantity, needsIdentity = false)
     val existing = remaining.indexOfFirst { it.card.setCode == resolved.card.setCode && it.card.number == resolved.card.number && it.card.language == language && it.variant == variant }
     if (existing < 0) remaining.add(resolved)
     else {
@@ -42,18 +43,18 @@ internal class ScanBatchStore(context: Context) {
     var entries by mutableStateOf(runCatching {
         val array = JSONArray(prefs.getString("entries", "[]"))
         (0 until array.length()).map { i -> array.getJSONObject(i).let {
-            ScanBatchEntry(cardFromJson(it), it.getString("variant"), it.getInt("quantity").also { n -> require(n in 1..9999) }) }
+            ScanBatchEntry(cardFromJson(it), it.getString("variant"), it.getInt("quantity").also { n -> require(n in 1..9999) }, it.optBoolean("needsIdentity")) }
         }
     }.getOrDefault(emptyList()))
         private set
     private fun save(nextId: String, next: List<ScanBatchEntry>) {
-        val array = JSONArray().apply { next.forEach { put(cardToJson(it.card).put("variant", it.variant).put("quantity", it.quantity)) } }
+        val array = JSONArray().apply { next.forEach { put(cardToJson(it.card).put("variant", it.variant).put("quantity", it.quantity).put("needsIdentity", it.needsIdentity)) } }
         check(prefs.edit().putString("id", nextId).putString("entries", array.toString()).commit()) { "Impossible d’enregistrer le lot." }
         id = nextId; entries = next
     }
     fun add(card: CatalogCard, variant: String) {
         require(variant.isEmpty() || variant in ScanVariants.detect(card).choices) { "Cette finition ne correspond pas à la référence." }
-        val index = entries.indexOfFirst { MarketPricing.key(it.card.setCode, it.card.number) == MarketPricing.key(card.setCode, card.number) && it.variant == variant && it.card.language == card.language }
+        val index = entries.indexOfFirst { !it.needsIdentity && MarketPricing.key(it.card.setCode, it.card.number) == MarketPricing.key(card.setCode, card.number) && it.variant == variant && it.card.language == card.language }
         val next = entries.toMutableList()
         if (index < 0) next += ScanBatchEntry(card, variant, 1)
         else { require(next[index].quantity < 9999); next[index] = next[index].copy(quantity = next[index].quantity + 1) }
@@ -68,6 +69,15 @@ internal class ScanBatchStore(context: Context) {
     }
     fun resolve(entry: ScanBatchEntry, language: String, variant: String, quantity: Int) =
         save(id, resolveScanEntries(entries, entry, language, variant, quantity))
+    fun uncertain(card: CatalogCard) {
+        require(entries.size < 500) { "Vérifie le lot avant de poursuivre (500 lignes maximum)." }
+        val index = entries.indexOfFirst { it.needsIdentity && it.card.setCode == card.setCode && it.card.number == card.number }
+        val next = entries.toMutableList()
+        if (index < 0) next += ScanBatchEntry(card.copy(language = CardLanguages.UNKNOWN), "", 1, true)
+        else { require(next[index].quantity < 9999); next[index] = next[index].copy(quantity = next[index].quantity + 1) }
+        save(id, next)
+    }
+    fun replace(entry: ScanBatchEntry, card: CatalogCard, language: String, finish: String, quantity: Int) = save(id, replaceBatchEntry(entries, entry, card, language, finish, quantity))
     fun clear() = save(UUID.randomUUID().toString(), emptyList())
 }
 
@@ -104,22 +114,24 @@ internal fun CollectionDatabase.commitScanBatch(id: String, entries: List<ScanBa
 }
 
 @Composable
-internal fun ScanBatchPanel(batch: ScanBatchStore, committed: Boolean, onCommit: () -> Unit) {
+internal fun ScanBatchPanel(batch: ScanBatchStore, committed: Boolean, catalog: List<CatalogCard> = emptyList(), onCommit: () -> Unit) {
     var discard by remember { mutableStateOf(false) }
     var correction by remember { mutableStateOf<ScanBatchEntry?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
     if (batch.entries.isNotEmpty()) Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Lot à valider · ${batch.entries.sumOf { it.quantity }} carte(s)")
+            Text("Bilan du scan · ${batch.entries.sumOf { it.quantity }} carte(s)")
+            Text("${batch.entries.count { it.resolved }} ligne(s) prête(s) · ${batch.entries.count { !it.resolved }} à vérifier. Les lignes en attente apparaissent en premier.")
             Text(if (committed) "Ce lot a déjà été ajouté. Termine sa fermeture avant de scanner de nouvelles cartes." else "Vérifie les références, variantes et quantités. Ce lot est conservé si tu fermes l’appli.")
             LazyColumn(Modifier.fillMaxWidth().heightIn(max = 300.dp)) {
-                items(batch.entries, key = { it.card.setCode + ":" + it.card.number + ":" + it.variant + ":" + it.card.language }) { entry ->
-                    Column {
+                items(batch.entries.sortedBy { it.resolved }) { entry ->
+                    Column(Modifier.clickable(enabled = !committed) { correction = entry }) {
+                        if (entry.needsIdentity) Text("Suggestion à confirmer · carte non identifiée", color = MaterialTheme.colorScheme.primary)
                         ScannerCardSummary(entry.card, entry.variant)
-                        if (!entry.resolved && !committed) ScanEntryReview(entry) { language, variant, quantity ->
+                        if (!entry.resolved && !entry.needsIdentity && !committed) ScanEntryReview(entry) { language, variant, quantity ->
                             runCatching { batch.resolve(entry, language, variant, quantity) }.onFailure { message = it.message }
                         }
-                        if (!committed) TextButton(onClick = { correction = entry }) { Text("Corriger langue / finition") }
+                        if (!committed) TextButton(onClick = { correction = entry }) { Text("Corriger carte · langue · finition · quantité") }
                         Row {
                             TextButton(enabled = !committed, onClick = { runCatching { batch.change(entry, -1) }.onFailure { message = it.message } }) { Text("−") }
                             Text("${entry.quantity}", modifier = Modifier.padding(top = 12.dp))
@@ -134,8 +146,8 @@ internal fun ScanBatchPanel(batch: ScanBatchStore, committed: Boolean, onCommit:
             message?.let { Text(it) }
         }
     }
-    correction?.let { entry -> QuickScanCorrection(entry, { correction = null }) { language, finish ->
-        batch.resolve(entry, language, finish, 1); correction = null
+    correction?.let { entry -> ScanBatchCorrection(entry, catalog, { correction = null }) { card, language, finish, quantity ->
+        batch.replace(entry, card, language, finish, quantity); correction = null
     } }
     if (discard) AlertDialog(onDismissRequest = { discard = false }, title = { Text("Abandonner le lot ?") },
         text = { Text("Les cartes en attente seront retirées du lot. Ta collection reste conservée.") },

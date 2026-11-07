@@ -1,3 +1,13 @@
+## Test 0.8.19-test.14
+
+- Profils enrichis : ville volontaire sans GPS, formats et trois leaders favoris ; recherche de joueurs par ville et format.
+- Vitrine volontaire avec cartes choisies, langues, finitions et légendes, sans quantités ni collection complète ; favoris privés et retrait du partage.
+- Objectifs d’extension par langue et finition, playset avec leaders/bases en un exemplaire, inclus dans les sauvegardes et les cartes recherchées.
+- Modification de collection par lot : langue, finition compatible ou ajout à une liste. Prévisualisation et confirmation, quantités conservées et annulation dans Historique ; protection des cartes prêtées.
+- Disponibilité : exemplaires possédés, prêtés, en main et besoins des decks, sans réservation automatique des mêmes cartes entre plusieurs decks.
+- Scan rafale : suggestions visuelles incertaines conservées à vérifier, sans ajout à la collection ; récapitulatif trié par vérifications restantes. Correction de la carte, de la langue, de la finition et de la quantité en touchant la ligne. Bilan explicite avant validation et conservation des sessions.
+- Conseils de lumière et de contraste mesurés sur l’image ; avertissement de surexposition sans prétendre identifier une foil par un reflet.
+
 ## Test 0.8.19-test.13
 
 - Compteur de partie à deux joueurs : six designs indépendants, noms et PV de base réglables, mode face à face, portrait/paysage, PV restants ou dégâts reçus, initiative, chronomètre avec pause, manches, jetons, journal et annulation des 50 dernières actions. Partie conservée après fermeture et écran maintenu allumé pendant son affichage ; historique des 50 derniers matchs.

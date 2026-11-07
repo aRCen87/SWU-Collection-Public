@@ -121,7 +121,7 @@ internal fun ExchangePanel(sets: List<CatalogSet>, catalog: Map<String, List<Cat
             }
             Text(sets.firstOrNull {it.code==effectiveSet}?.name?:"Extensions commencées et objectifs enregistrés")
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                val profile=remember(cards,allCatalog,goals,effectiveSet,versions) {TradeProfile.build(allCatalog,cards,goals,details,effectiveSet,variantsBySet=versions,reserved=database.loans().reserved())}
+                val profile=remember(cards,allCatalog,goals,effectiveSet,versions) {TradeProfile.build(allCatalog,cards,goals,details,effectiveSet,variantsBySet=versions,reserved=database.loans().reserved(),printGoals=database.printGoals())}
                 TradeQrPanel(profile, allCatalog)
             }
         }}

@@ -13,7 +13,8 @@ import kotlin.coroutines.resumeWithException
 internal data class PlayerProfile(
     val id: String, val name: String, val bio: String = "", val avatar: String = "preset:star",
     val discoverable: Boolean = false, val shareBadges: Boolean = false, val badgeIds: List<String> = emptyList(),
-    val messagePolicy: String = "testers", val shareDecks: Boolean = false
+    val messagePolicy: String = "testers", val shareDecks: Boolean = false,
+    val city: String = "", val formats: List<String> = emptyList(), val leaders: List<String> = emptyList(), val shareShowcase: Boolean = false
 )
 internal data class PlayerConversation(val id: String, val members: List<String>, val updatedAt: Long, val lastSenderId: String = "")
 internal data class PlayerMessage(val id: String, val senderId: String, val kind: String, val text: String,
@@ -81,22 +82,24 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
 
     fun ownProfile(onValue: (PlayerProfile?) -> Unit, onError: (Exception) -> Unit): ListenerRegistration =
         db.collection("profiles").document(uid).addSnapshotListener { row, error ->
-            if (error != null) onError(error) else onValue(row?.takeIf { it.exists() }?.profile())
+            if (error != null) onError(error) else onValue(row?.takeIf { it.exists() }?.toPlayerProfile())
         }
     fun profiles(onValue: (List<PlayerProfile>) -> Unit, onError: (Exception) -> Unit): ListenerRegistration =
         db.collection("profiles").whereEqualTo("discoverable", true).limit(50).addSnapshotListener { rows, error ->
-            if (error != null) onError(error) else onValue(rows?.documents.orEmpty().map { it.profile() }.sortedBy { it.name.lowercase() })
+            if (error != null) onError(error) else onValue(rows?.documents.orEmpty().map { it.toPlayerProfile() }.sortedBy { it.name.lowercase() })
         }
-    suspend fun profile(id: String): PlayerProfile? = db.collection("profiles").document(id).get().communityAwait().takeIf { it.exists() }?.profile()
+    suspend fun profile(id: String): PlayerProfile? = db.collection("profiles").document(id).get().communityAwait().takeIf { it.exists() }?.toPlayerProfile()
     suspend fun saveProfile(profile: PlayerProfile, earnedIds: List<String>) {
         require(profile.id == uid)
         require(profile.bio.length <= 200)
+        PlayerDiscovery.validate(profile)
         db.collection("profiles").document(uid).set(mapOf(
             "name" to CommunityValidation.name(profile.name), "bio" to profile.bio.trim(),
             "avatar" to CommunityValidation.avatar(profile.avatar), "discoverable" to profile.discoverable,
             "shareBadges" to profile.shareBadges, "badgeIds" to if (profile.shareBadges) earnedIds.distinct().take(500) else emptyList<String>(),
             "messagePolicy" to profile.messagePolicy.also { require(it in listOf("testers", "friends", "nobody")) },
-            "shareDecks" to profile.shareDecks, "updatedAt" to FieldValue.serverTimestamp()
+            "shareDecks" to profile.shareDecks, "city" to profile.city.trim(), "cityKey" to PlayerDiscovery.cityKey(profile.city),
+            "formats" to profile.formats, "leaders" to profile.leaders, "shareShowcase" to profile.shareShowcase, "updatedAt" to FieldValue.serverTimestamp()
         )).communityAwait()
     }
     fun conversations(onValue: (List<PlayerConversation>) -> Unit, onError: (Exception) -> Unit): ListenerRegistration =
@@ -197,10 +200,6 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
     }
     suspend fun unshareDeck(id: String) { db.collection("profiles").document(uid).collection("decks").document(id).delete().communityAwait() }
 
-    private fun DocumentSnapshot.profile() = PlayerProfile(id, getString("name").orEmpty(), getString("bio").orEmpty(),
-        getString("avatar") ?: "preset:star", getBoolean("discoverable") == true, getBoolean("shareBadges") == true,
-        (get("badgeIds") as? List<*>)?.filterIsInstance<String>().orEmpty(),
-        getString("messagePolicy") ?: "testers", getBoolean("shareDecks") == true)
 
     companion object {
         @Synchronized
@@ -220,3 +219,9 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
         private val instances = mutableMapOf<String, CommunityService>()
     }
 }
+
+internal fun DocumentSnapshot.toPlayerProfile() = PlayerProfile(id, getString("name").orEmpty(), getString("bio").orEmpty(),
+    getString("avatar") ?: "preset:star", getBoolean("discoverable") == true, getBoolean("shareBadges") == true,
+    (get("badgeIds") as? List<*>)?.filterIsInstance<String>().orEmpty(), getString("messagePolicy") ?: "testers", getBoolean("shareDecks") == true,
+    getString("city").orEmpty(), (get("formats") as? List<*>)?.filterIsInstance<String>().orEmpty(),
+    (get("leaders") as? List<*>)?.filterIsInstance<String>().orEmpty(), getBoolean("shareShowcase") == true)

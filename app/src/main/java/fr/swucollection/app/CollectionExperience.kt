@@ -41,21 +41,21 @@ internal fun CollectionBottomBar(section: String, onNavigate: (String) -> Unit) 
 }
 
 @Composable
-internal fun ObjectiveControls(playset: Boolean, acceptVariants: Boolean, onChange: (Boolean, Boolean) -> Unit) {
+internal fun ObjectiveControls(playset: Boolean, acceptVariants: Boolean, precise: Boolean = false, onChange: (Boolean, Boolean) -> Unit) {
     Text("Mon objectif pour cette extension", fontWeight = FontWeight.SemiBold)
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         FilterChip(!playset, { onChange(false, acceptVariants) }, label = { Text("1 de chaque") })
         FilterChip(playset, { onChange(true, acceptVariants) }, label = { Text("Playset") })
     }
     Text("Playset : 3 exemplaires, sauf leaders et bases en 1 exemplaire.", style = MaterialTheme.typography.bodySmall)
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    if (!precise) Row(verticalAlignment = Alignment.CenterVertically) {
         Checkbox(checked = acceptVariants, onCheckedChange = { onChange(playset, it) })
         Text("Les variantes comptent dans mon objectif", modifier = Modifier.weight(1f))
     }
-    Text(if (acceptVariants) "Les versions d’une même carte de cette extension sont additionnées. Les classiques sont conservées en priorité ; le surplus peut inclure des variantes."
+    if (!precise) Text(if (acceptVariants) "Les versions d’une même carte de cette extension sont additionnées. Les classiques sont conservées en priorité ; le surplus peut inclure des variantes."
         else "Les manquantes concernent les classiques non foil. Les autres versions sont conservées séparément avant de proposer leurs surplus.",
         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    Text("Les langues sont cumulées pour cet objectif, commun aux cartes manquantes et aux échanges.", color = MaterialTheme.colorScheme.primary,
+    if (!precise) Text("Les langues sont cumulées pour cet objectif, commun aux cartes manquantes et aux échanges.", color = MaterialTheme.colorScheme.primary,
         style = MaterialTheme.typography.bodySmall)
 }
 
@@ -67,7 +67,7 @@ internal fun ResumeCollectionPanel(database: CollectionDatabase, cards: List<Col
     val variants = database.goalVariants()
     val started = cards.map { it.setCode }.toSet() + goals.keys
     val suggested = sets.firstOrNull { it.code in started && CollectionObjectives.rows(catalog[it.code].orEmpty(), cards,
-        goals[it.code] ?: true, variants[it.code] ?: false, details).any { row -> row.missing > 0 } }
+        goals[it.code] ?: true, variants[it.code] ?: false, details, database.printGoals()[it.code]).any { row -> row.missing > 0 } }
     OutlinedCard(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -86,7 +86,7 @@ internal fun ResumeCollectionPanel(database: CollectionDatabase, cards: List<Col
             }
             suggested?.let { set ->
                 val rows = CollectionObjectives.rows(catalog[set.code].orEmpty(), cards, goals[set.code] ?: true,
-                    variants[set.code] ?: false, details)
+                    variants[set.code] ?: false, details, database.printGoals()[set.code])
                 val target = rows.sumOf { it.target }
                 val missing = rows.sumOf { it.missing }
                 Text(set.name, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)

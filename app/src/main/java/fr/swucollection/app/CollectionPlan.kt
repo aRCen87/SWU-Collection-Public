@@ -4,7 +4,7 @@ import java.math.BigDecimal
 import java.text.Normalizer
 import java.util.Locale
 
-internal data class PlanRow(val card: CatalogCard, val owned: Int, val target: Int) {
+internal data class PlanRow(val card: CatalogCard, val owned: Int, val target: Int, val variant: String = "Normale", val language: String = "") {
     val missing get() = (target - owned).coerceAtLeast(0)
 }
 internal data class PlanBudget(val minimum: BigDecimal, val maximum: BigDecimal, val unpricedCopies: Int)
@@ -33,7 +33,7 @@ internal object CollectionPlan {
     fun budget(rows: List<PlanRow>, quotes: Map<String, MarketQuote>): PlanBudget {
         var low = BigDecimal.ZERO; var high = BigDecimal.ZERO; var unknown = 0
         rows.filter { it.missing > 0 }.forEach { row ->
-            val quote = catalogueQuote(quotes, row.card.setCode, row.card.number)
+            val quote = quotes[collectionPriceKey(row.card.setCode, row.card.number, row.variant)] ?: if (row.variant == "Normale") catalogueQuote(quotes, row.card.setCode, row.card.number) else null
             val price = quote?.amount?.takeIf { it.isFinite() && it > 0 }
             if (price == null) unknown += row.missing else {
                 low += BigDecimal.valueOf(price) * row.missing.toBigDecimal()
@@ -75,7 +75,7 @@ internal object CollectionPlan {
         fun line(values: List<String>) = values.joinToString(";") { "\"${it.replace("\"", "\"\"")}\"" }
         return (listOf("Statut;Nom;Extension;Numéro;Variante;Quantité;Langue") +
             extras.map { line(listOf("Disponible", it.name, it.setCode, it.number, it.variant, it.quantity.toString(), it.language)) } +
-            rows.filter { it.missing > 0 }.map { line(listOf("Recherchée", it.card.name, it.card.setCode, it.card.number, "Normale", it.missing.toString(), "Toutes")) })
+            rows.filter { it.missing > 0 }.map { line(listOf("Recherchée", it.card.name, it.card.setCode, it.card.number, it.variant, it.missing.toString(), it.language.ifBlank { "Toutes" })) })
             .joinToString("\n")
     }
 }

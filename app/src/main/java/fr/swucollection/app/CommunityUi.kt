@@ -177,7 +177,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
     val requests = friendships.count { it.status == "pending" && it.requester != user.uid }
     val exchangeRequests = trades.count { it.status == "pending" && it.requester != user.uid }
     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        listOf("Mon profil", "Amis", "Joueurs", "Messages", "Échanges", "Sauvegarde").forEach { label ->
+        listOf("Mon profil", "Amis", "Joueurs", "Messages", "Échanges", "Favoris", "Sauvegarde").forEach { label ->
             FilterChip(tab == label, { tab = label; conversation = null }, label = { Text(label + when {
                 label == "Amis" && requests > 0 -> " · $requests"
                 label == "Messages" && unread > 0 -> " · $unread"
@@ -190,6 +190,8 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
         "Sauvegarde" -> AccountBackupPanel(database, {}, onRestored)
         "Mon profil" -> {
             PlayerHeading(profile!!)
+            ProfileInterests(profile!!, catalog)
+            ShowcasePanel(service, profile!!, database, catalog)
             if (profile!!.bio.isNotBlank()) Text(profile!!.bio)
             Text(if (profile!!.discoverable) "Profil visible aux joueurs autorisés du test" else "Profil non listé parmi les joueurs")
             OutlinedButton(onClick = { editing = true }) { Text("Modifier mon profil et mon avatar") }
@@ -212,15 +214,8 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
                 { trade, answer -> action { service.answerTrade(trade, answer) } },
                 { id -> talk((profiles + friendsProfiles.values).firstOrNull { it.id == id } ?: PlayerProfile(id, "Ami")) })
         }
-        "Joueurs" -> {
-            var search by remember { mutableStateOf("") }
-            OutlinedTextField(search, { search = it.take(32) }, label = { Text("Rechercher un pseudo") }, modifier = Modifier.fillMaxWidth())
-            val visible = profiles.filter { it.name.contains(search, true) }
-            if (visible.isEmpty()) Text("Aucun autre profil visible pour le moment.")
-            visible.forEach { player -> Card(onClick = { selectedProfile = player }, modifier = Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(12.dp)) { PlayerHeading(player); Text("Voir le profil et les badges ›") }
-            } }
-        }
+        "Joueurs" -> { PlayerDirectory(service, profiles) { selectedProfile = it } }
+        "Favoris" -> { ShowcaseFavoritesPanel(service) { selectedProfile = it } }
         "Messages" -> {
             val selected = conversation
             if (selected == null) {
@@ -242,6 +237,8 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
         AlertDialog(onDismissRequest = { selectedProfile = null }, title = { Text("Profil du joueur") }, text = {
             Column(Modifier.heightIn(max = 430.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 PlayerHeading(player); if (player.bio.isNotBlank()) Text(player.bio)
+                ProfileInterests(player, catalog)
+                ShowcasePanel(service, player, database, catalog)
                 ProfileBadges(player, definitions, catalog)
                 val friendship = friendships.firstOrNull { player.id in it.members }
                 if (friendship == null) OutlinedButton(onClick = { action { service.requestFriend(player.id); status = "Demande d’ami envoyée." } }, enabled = !busy && !blocked) { Text("Ajouter aux amis") }
@@ -272,6 +269,7 @@ private fun ColumnScope.ProfileEditor(initial: PlayerProfile, catalog: List<Cata
     var visible by remember(initial.id) { mutableStateOf(initial.discoverable) }
     var badges by remember(initial.id) { mutableStateOf(initial.shareBadges) }
     var policy by remember(initial.id) { mutableStateOf(initial.messagePolicy) }
+    var interests by remember(initial.id) { mutableStateOf(initial) }
     var shareDecks by remember(initial.id) { mutableStateOf(initial.shareDecks) }
     var avatarLoading by remember { mutableStateOf(false) }
     var photoError by remember { mutableStateOf<String?>(null) }
@@ -297,6 +295,7 @@ private fun ColumnScope.ProfileEditor(initial: PlayerProfile, catalog: List<Cata
     photoError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
     OutlinedTextField(name, { name = it.take(32) }, label = { Text("Pseudo") }, singleLine = true, modifier = Modifier.fillMaxWidth())
     OutlinedTextField(bio, { bio = it.take(200) }, label = { Text("À propos de moi · facultatif") }, modifier = Modifier.fillMaxWidth())
+    ProfileInterestEditor(interests, catalog) { interests = it }
     Row(verticalAlignment = Alignment.CenterVertically) { Switch(visible, { visible = it }); Text("Afficher mon profil parmi les joueurs", Modifier.padding(start = 8.dp)) }
     Row(verticalAlignment = Alignment.CenterVertically) { Switch(badges, { badges = it }); Text("Afficher mes badges débloqués", Modifier.padding(start = 8.dp)) }
     Text("Qui peut m’écrire ?", fontWeight = FontWeight.SemiBold)
@@ -305,7 +304,7 @@ private fun ColumnScope.ProfileEditor(initial: PlayerProfile, catalog: List<Cata
     }
     Row(verticalAlignment = Alignment.CenterVertically) { Switch(shareDecks, { shareDecks = it }); Text("Afficher mes decks partagés sur mon profil", Modifier.padding(start = 8.dp)) }
     Text("Seuls les joueurs autorisés aux essais pourront consulter le profil. Ni ton e-mail ni ta collection ne sont affichés.", fontSize = 12.sp)
-    Button(onClick = { onSave(initial.copy(name = name, bio = bio, avatar = avatar, discoverable = visible, shareBadges = badges, badgeIds = if (badges) earnedIds else emptyList(), messagePolicy = policy, shareDecks = shareDecks)) }, enabled = !busy && !avatarLoading && name.trim().length >= 2) { Text("Enregistrer mon profil") }
+    Button(onClick = { onSave(initial.copy(name = name, bio = bio, avatar = avatar, discoverable = visible, shareBadges = badges, badgeIds = if (badges) earnedIds else emptyList(), messagePolicy = policy, shareDecks = shareDecks, city = interests.city, formats = interests.formats, leaders = interests.leaders, shareShowcase = interests.shareShowcase)) }, enabled = !busy && !avatarLoading && name.trim().length >= 2) { Text("Enregistrer mon profil") }
     onCancel?.let { TextButton(onClick = it) { Text("Annuler") } }
 }
 

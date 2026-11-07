@@ -5,7 +5,8 @@ internal object CollectionObjectives {
     fun family(card: CatalogCard, details: CardDetails): String = card.setCode + ":" + details.family(card)
 
     fun rows(catalog: List<CatalogCard>, owned: List<CollectionCard>, playset: Boolean,
-        acceptVariants: Boolean, details: CardDetails): List<PlanRow> {
+        acceptVariants: Boolean, details: CardDetails, printGoal: PrintGoal? = null): List<PlanRow> {
+        if (printGoal != null) return printGoalRows(catalog, owned, playset, printGoal)
         if (!acceptVariants) return CollectionPlan.rows(catalog, owned, playset)
         val byKey = catalog.associateBy { MarketPricing.key(it.setCode, it.number) }
         val quantities = owned.groupBy { row ->
