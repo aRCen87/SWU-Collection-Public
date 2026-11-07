@@ -1,11 +1,11 @@
 {
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "versionCode": 72,
-  "versionName": "0.8.19-test.13",
-  "notes": "Compteur de partie à deux joueurs : six designs indépendants, noms et PV de base réglables, mode face à face, PV ou dégâts, initiative, chronomètre, manches, jetons, journal et annulation. L’écran reste allumé tant que le compteur est affiché ; la partie est conservée après fermeture. Prêts avec retours partiels et exclusion des nouveaux profils d’échange. Alertes de recherche facultatives dans les notifications du compte, par vérifications Android périodiques (15 minutes minimum, retards possibles). Export des decks en image PNG depuis Exporter. Les sauvegardes incluent les prêts, parties et matchs. Écran de vérification pliant retiré après les essais de Romain. Tests Android, conservation des données, sécurité, lint, compilation et essais émulateur téléphone/pliant/paysage réussis.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_ad3d7e6c9fa481919ab37337ec02d9cf&account_id=personal",
-  "sha256": "d1022cce23a0b68079c1230588b12b2909a314e1bb192d9e5bffcc5a6198fb88",
-  "size": 85364716,
-  "sourceSha": "5c382691266131eee837c17a27111b4803f62576"
+  "versionCode": 73,
+  "versionName": "0.8.19-test.14",
+  "notes": "Profils enrichis avec ville facultative sans GPS, formats et leaders favoris ; recherche de joueurs par ville. Vitrine de cartes choisies et favoris privés, sans publier la collection ni ses quantités. Objectifs par langue et finition, gestion de collection par lot avec confirmation et annulation, disponibilité des exemplaires et besoins des decks. Scans incertains conservés séparément pour vérification, correction de la carte/langue/finition/quantité et bilan avant ajout. Conseils de lumière et de contraste ; cotes des finitions recherchées demandées même sans exemplaire possédé. Sauvegardes et migrations, sécurité, tests Android, lint, compilation et essais émulateur validés. À essayer avec tes cartes sur ton téléphone.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_01a59ed0eb7c8191a4e968c1660dcaa6&account_id=personal",
+  "sha256": "b5397e63fcc1b4b5a30a94f6649cd83f6c0d806441b508ceedefa4a0c95eb635",
+  "size": 85397484,
+  "sourceSha": "c2e1f4ccc8ef98a242a936b81a913eab56b1cdea"
 }
