@@ -105,6 +105,7 @@ internal fun ColumnScope.CommunityChat(service: CommunityService, conversation: 
 internal fun ColumnScope.MessengerChatLayout(uid:String,peerName:String,messages:List<PlayerMessage>,draft:String,onDraft:(String)->Unit,
     busy:Boolean,online:Boolean,error:String?,signal:MessengerSignal,reply:PlayerMessage?,catalog:List<CatalogCard>,onSend:()->Unit,onShare:()->Unit,
     onReply:(PlayerMessage)->Unit,onCancelReply:()->Unit,onHide:(PlayerMessage)->Unit,onAttachment:(PlayerMessage)->Unit,onBack:(()->Unit)?=null) {
+    val shortWindow=androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp<480
     val compactKeyboard=messengerCompactKeyboard()
     val scroll=rememberLazyListState();val clipboard=LocalClipboardManager.current
     var selected by remember{mutableStateOf<PlayerMessage?>(null)};var hide by remember{mutableStateOf<PlayerMessage?>(null)}
@@ -151,7 +152,7 @@ internal fun ColumnScope.MessengerChatLayout(uid:String,peerName:String,messages
     if(reply!=null && !compactKeyboard)Row(verticalAlignment=Alignment.CenterVertically){Text("Réponse : ${reply.text.ifBlank{reply.deckName}.take(100)}",Modifier.weight(1f),fontSize=12.sp);IconButton(onClick=onCancelReply){Icon(Icons.Default.Close,"Annuler la réponse")}}
     Row(Modifier.fillMaxWidth().testTag("messenger_composer"),verticalAlignment=Alignment.Bottom,horizontalArrangement=Arrangement.spacedBy(6.dp)) {
         IconButton(onClick=onShare,enabled=!busy&&online&&error==null){Icon(Icons.Default.Add,"Partager un deck")}
-        OutlinedTextField(draft,onDraft,enabled=error==null,label={Text("Ton message")},modifier=Modifier.weight(1f).testTag("messenger_draft"),singleLine=compactKeyboard,maxLines=if(compactKeyboard)1 else 4,
+        OutlinedTextField(draft,onDraft,enabled=error==null,label={Text("Ton message")},modifier=Modifier.weight(1f).testTag("messenger_draft"),singleLine=shortWindow,maxLines=if(shortWindow)1 else 4,
             keyboardOptions=KeyboardOptions(imeAction=ImeAction.Send),keyboardActions=KeyboardActions(onSend={if(draft.isNotBlank()&&online&&!busy)onSend()}))
         FilledIconButton(onClick=onSend,enabled=!busy&&online&&draft.isNotBlank(),modifier=Modifier.size(48.dp).testTag("messenger_send")){
             if(busy)CircularProgressIndicator(Modifier.size(20.dp),strokeWidth=2.dp) else Icon(Icons.Default.Send,"Envoyer")
