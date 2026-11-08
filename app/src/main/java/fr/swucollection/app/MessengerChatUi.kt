@@ -101,18 +101,19 @@ internal fun ColumnScope.CommunityChat(service: CommunityService, conversation: 
 internal fun ColumnScope.MessengerChatLayout(uid:String,peerName:String,messages:List<PlayerMessage>,draft:String,onDraft:(String)->Unit,
     busy:Boolean,online:Boolean,error:String?,signal:MessengerSignal,reply:PlayerMessage?,catalog:List<CatalogCard>,onSend:()->Unit,onShare:()->Unit,
     onReply:(PlayerMessage)->Unit,onCancelReply:()->Unit,onHide:(PlayerMessage)->Unit,onAttachment:(PlayerMessage)->Unit,onBack:(()->Unit)?=null) {
+    val compactKeyboard=androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp<480 && WindowInsets.ime.getBottom(androidx.compose.ui.platform.LocalDensity.current)>0
     val scroll=rememberLazyListState();val clipboard=LocalClipboardManager.current
     var selected by remember{mutableStateOf<PlayerMessage?>(null)};var hide by remember{mutableStateOf<PlayerMessage?>(null)}
     var search by remember{mutableStateOf("")};var searching by remember{mutableStateOf(false)}
     var now by remember{mutableLongStateOf(System.currentTimeMillis())}
     LaunchedEffect(Unit){while(true){delay(5000);now=System.currentTimeMillis()}}
     LaunchedEffect(messages.lastOrNull()?.id,search){if(messages.isNotEmpty())scroll.animateScrollToItem((messages.count{search.isBlank() || it.text.contains(search,true) || it.deckName.contains(search,true)}-1).coerceAtLeast(0))}
-    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+    if(!compactKeyboard)Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
         if(onBack!=null)IconButton(onClick=onBack){Icon(Icons.Default.ArrowBack,"Mes discussions")}
         Text(peerName,Modifier.weight(1f),fontWeight=FontWeight.Bold)
         IconButton(onClick={searching=!searching;if(!searching)search=""}){Icon(Icons.Default.Search,"Rechercher dans la discussion")}
     }
-    if(searching)OutlinedTextField(search,{search=it.take(80)},label={Text("Rechercher un message")},singleLine=true,modifier=Modifier.fillMaxWidth())
+    if(searching && !compactKeyboard)OutlinedTextField(search,{search=it.take(80)},label={Text("Rechercher un message")},singleLine=true,modifier=Modifier.fillMaxWidth())
     val visible=messages.filter{search.isBlank() || it.text.contains(search,true) || it.deckName.contains(search,true)}
     LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("messenger_messages"),state=scroll,verticalArrangement=Arrangement.spacedBy(8.dp),contentPadding=PaddingValues(vertical=8.dp)) {
         if(visible.isEmpty())item{Text(if(search.isBlank())"Le début de votre discussion." else "Aucun message trouvé.",style=MaterialTheme.typography.bodySmall)}
@@ -142,10 +143,10 @@ internal fun ColumnScope.MessengerChatLayout(uid:String,peerName:String,messages
     if(signal.typing && now-signal.typingAt in 0..10_000)Text("$peerName écrit…",fontSize=12.sp,color=PremiumGold)
     if(!online)Text("Hors connexion",fontSize=12.sp)
     if(error!=null)Row(verticalAlignment=Alignment.CenterVertically){Text(error,Modifier.weight(1f),fontSize=12.sp,maxLines=2,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis,color=MaterialTheme.colorScheme.error);TextButton(onClick=onSend,enabled=online&&!busy){Text("Réessayer")}}
-    if(reply!=null)Row(verticalAlignment=Alignment.CenterVertically){Text("Réponse : ${reply.text.ifBlank{reply.deckName}.take(100)}",Modifier.weight(1f),fontSize=12.sp);IconButton(onClick=onCancelReply){Icon(Icons.Default.Close,"Annuler la réponse")}}
+    if(reply!=null && !compactKeyboard)Row(verticalAlignment=Alignment.CenterVertically){Text("Réponse : ${reply.text.ifBlank{reply.deckName}.take(100)}",Modifier.weight(1f),fontSize=12.sp);IconButton(onClick=onCancelReply){Icon(Icons.Default.Close,"Annuler la réponse")}}
     Row(Modifier.fillMaxWidth().testTag("messenger_composer"),verticalAlignment=Alignment.Bottom,horizontalArrangement=Arrangement.spacedBy(6.dp)) {
         IconButton(onClick=onShare,enabled=!busy&&online&&error==null){Icon(Icons.Default.Add,"Partager un deck")}
-        OutlinedTextField(draft,onDraft,enabled=error==null,label={Text("Ton message")},modifier=Modifier.weight(1f).testTag("messenger_draft"),maxLines=4,
+        OutlinedTextField(draft,onDraft,enabled=error==null,label={Text("Ton message")},modifier=Modifier.weight(1f).testTag("messenger_draft"),maxLines=if(compactKeyboard)2 else 4,
             keyboardOptions=KeyboardOptions(imeAction=ImeAction.Send),keyboardActions=KeyboardActions(onSend={if(draft.isNotBlank()&&online&&!busy)onSend()}))
         FilledIconButton(onClick=onSend,enabled=!busy&&online&&draft.isNotBlank(),modifier=Modifier.size(48.dp).testTag("messenger_send")){
             if(busy)CircularProgressIndicator(Modifier.size(20.dp),strokeWidth=2.dp) else Icon(Icons.Default.Send,"Envoyer")
