@@ -1,11 +1,11 @@
 {
+  "versionCode": 79,
+  "versionName": "0.8.19-test.20",
+  "sha256": "33b4557067b89fb88d9a20709bc749a3e1160b2e999ef5ce46195907c74b866b",
+  "size": 63006467,
+  "sourceSha": "1a5788f4bfc6dddda7d8fad433aa93ec73984509",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "versionCode": 78,
-  "versionName": "0.8.19-test.19",
-  "notes": "Collection et recherches optimisées : calculs et index réutilisés au lieu de les refaire à chaque rafraîchissement. Scanner prioritaire, ajout manuel clairement nommé, filtres actifs comptés et recherche effaçable en un geste. Choix d’affichage sans effet masqués, confirmation du scan simplifiée et affichage paysage compact pour garder la collection visible au-dessus de la navigation. Collection, langues, variantes et sauvegardes conservées, sans migration. Tests Android, restauration, confidentialité, compilation, signature et essais sur émulateur fermé/déplié/paysage validés.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_6c2a03ca080c81918b1534e977b118c8&account_id=personal",
-  "sha256": "25c8dd4a214063a51affbda224dbb201c01e0c46573ec1dc07327c553888a5cb",
-  "size": 64349471,
-  "sourceSha": "f8c6dd2fec4e2f0202b2eef641d6902c54b1b8cc"
+  "notes": "Nouvelle présentation bleu nuit et or : bandeau spatial avec déplacement lent du fond, avatar à gauche et accès Paramètres, Messages et Compteur de points de vie à droite. Collection et Scanner prioritaires sur l’accueil, grille de collection avec vrais visuels, langues, quantités et cotes, fiche de carte simplifiée. Animation suspendue lorsque l’accueil est inactif et respect du réglage système sans animations. Collection et sauvegardes conservées, sans migration.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_3c2072f53ef481918983d48c16ac7e61&account_id=personal"
 }
