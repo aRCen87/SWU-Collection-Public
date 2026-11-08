@@ -111,6 +111,7 @@ jobs:
           ram-size: 2048M
           emulator-boot-timeout: 300
           disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot-save -feature -Vulkan
           script: bash .github/scripts/smoke_premium_preview.sh
       - name: Encrypt the empty-account layout check for private review
         if: always()
@@ -121,6 +122,21 @@ jobs:
             name=$(basename "$image" .png)
             python3 .github/scripts/encrypt_private_preview.py docs/preview-recipient-public.pem "$image" "distribution-layout-private/$name"
           done
+      - name: Preserve encrypted emulator crash diagnostics
+        if: always()
+        run: |
+          python3 - <<'PYDIAG'
+          from pathlib import Path
+          from zipfile import ZipFile,ZIP_DEFLATED
+          files=[p for p in Path('/tmp/android-runner').glob('emu-crash*') if p.is_file() and p.stat().st_size < 50_000_000]
+          if files:
+              Path('smoke-private').mkdir(exist_ok=True)
+              with ZipFile('smoke-private/graphics-diagnostics.zip','w',ZIP_DEFLATED) as z:
+                  for p in files:z.write(p,p.name)
+          PYDIAG
+          if test -f smoke-private/graphics-diagnostics.zip; then
+            python3 .github/scripts/encrypt_private_preview.py docs/preview-recipient-public.pem smoke-private/graphics-diagnostics.zip distribution-layout-private/graphics-diagnostics
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
