@@ -1,5 +1,9 @@
 # SWU Collection — finalisation et distribution
 
+## Passage officiel autorisé le 8 novembre 2026
+
+Romain demande désormais une officielle identique à Test et autorise sa préparation et sa publication après réussite des vérifications. Préserver les collections officielles ; ne pas reprendre les deux comptes Test. Le projet officiel dédié est `swu-collection-official`, sur Spark. Voir `docs/OFFICIAL_RELEASE.md` pour l'état réel et les blocages. La restriction historique aux seuls développements Test ci-dessous est remplacée pour ce chantier officiel ; le refus antérieur de contourner l'autorisation CLI et les protections de signature/données restent applicables.
+
 ## Autorisation et préférences
 
 Depuis le 6 novembre 2026, développer les nouveautés dans l’application privée SWU Collection Test. L’application officielle reste disponible. Ne publier ni intégrer de nouveautés à la version officielle sans l’accord explicite de Romain après ses essais. Cette consigne remplace l’ancienne autorisation de publication automatique. Ne lui fournir un APK dans la conversation que s’il le demande. Respecter tout nouvel ordre de ne pas publier une modification ou de garder une version en brouillon.

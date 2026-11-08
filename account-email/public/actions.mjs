@@ -16,7 +16,7 @@ export function validateConfig(config, hostname) {
 
 export function returnIntent(projectId) {
   const pkg = projectId === 'swu-collection-test' ? 'fr.swucollection.app.test' : 'fr.swucollection.app';
-  return `intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=${pkg};end`;
+  return `intent://account#Intent;scheme=swucollection;package=${pkg};end`;
 }
 
 export async function processAction(sdk, auth, action) {

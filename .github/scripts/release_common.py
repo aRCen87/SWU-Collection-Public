@@ -21,8 +21,12 @@ def validate(metadata):
 def source_fingerprint(root):
     root=Path(root)
     files=list((root/'app/src').rglob('*'))+[root/'app/build.gradle.kts',root/'app/proguard-rules.pro',root/'build.gradle.kts',root/'settings.gradle.kts',root/'gradle.properties']
+    sealed_backend=root/'docs/official-backend-config.enc.properties'
+    if sealed_backend.is_file(): files.append(sealed_backend)
     digest=hashlib.sha256()
     for path in sorted(p for p in files if p.is_file()):
+        # Generated client resources are authenticated by the sealed source input.
+        if path.relative_to(root).as_posix() in ('app/src/release/res/values/community_config.xml', 'app/src/preview/res/values/community_config.xml'):continue
         # Unit tests do not change the application binary or trigger a new publication.
         if str(path.relative_to(root)).startswith(('app/src/test/','app/src/androidTest/')):continue
         digest.update(path.relative_to(root).as_posix().encode('utf-8')+b'\0')

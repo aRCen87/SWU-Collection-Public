@@ -124,6 +124,7 @@ jobs:
         with:
           name: swu-startup-apk
           path: app/build/outputs/apk/release
+      - run: python3 -m pip install "Pillow>=11,<13"
       - name: Enable emulator hardware acceleration
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -136,16 +137,24 @@ jobs:
           arch: x86_64
           target: google_apis
           disk-size: 2048M
-          ram-size: 2048M
+          ram-size: 4096M
           emulator-boot-timeout: 300
           disable-animations: true
-          script: bash .github/scripts/smoke_apk.sh
+          emulator-build: 15917651
+          emulator-options: -no-window -gpu swangle_indirect -noaudio -no-boot-anim -no-snapshot-save -feature GLESDynamicVersion
+          script: |
+            mkdir -p smoke-private
+            adb install -r app/build/outputs/apk/release/app-release.apk
+            adb shell pm grant fr.swucollection.app android.permission.POST_NOTIFICATIONS
+            SWU_SMOKE_PACKAGE=fr.swucollection.app python3 .github/scripts/check_premium_collection.py
+            python3 .github/scripts/check_official_account_entry.py
+            python3 .github/scripts/check_official_upgrade.py
       - name: Upload startup verification
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: swu-startup-verification
-          path: smoke/
+          path: smoke-private/
           if-no-files-found: ignore
 
   publish:
