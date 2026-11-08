@@ -4,7 +4,7 @@ Page Firebase Hosting réutilisable pour Test et, après configuration de son pr
 
 ## État
 
-Source et tests préparés. Aucun projet officiel n'est disponible dans la console vérifiée le 8 novembre 2026 : seul SWU Collection Test existe. Ne pas annoncer les nouveaux e-mails comme actifs avant déploiement et vérification réelle. Le projet Test et ses modèles existants restent inchangés par ce commit.
+Le projet officiel `swu-collection-official` existe désormais sur Spark. Le 8 novembre 2026, le nom d'expéditeur **SWU Collection** a été enregistré et vérifié séparément dans les trois modèles : validation d'adresse, réinitialisation du mot de passe et modification d'adresse. Modifier l'objet de validation seul reste refusé par Firebase ; un échec sur cet objet ne signifie donc pas que tous les champs sont bloqués. La page personnalisée n'est pas encore déployée et le lien d'action standard reste actif. Une demande d'assistance est préparée dans la console, sans envoi : l'accord de Romain pour contacter l'assistance reste nécessaire. Ne pas annoncer un objet personnalisé, une nouvelle page active ou la réception réelle d'un e-mail sans vérification.
 
 ## Déploiement et activation
 
