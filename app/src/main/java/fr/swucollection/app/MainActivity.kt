@@ -698,7 +698,8 @@ private fun CollectionScreen(
                 }
             }
     }
-    AdaptiveWorkspace(enabled = privateLayout && selectedSection in listOf("Collection", "Extensions", "Recherche"),
+    AdaptiveWorkspace(enabled = privateLayout && selectedSection in listOf("Collection", "Extensions", "Recherche") &&
+        !(selectedSection == "Collection" && collectionView == "Miniatures"),
         hasDetail = previewSession != null, onClose = { previewSession = null }, detail = previewPane,
         dismissOnOutside = !privateLayout) {
     Box(Modifier.fillMaxSize().background(Color(0xFF030A17))
