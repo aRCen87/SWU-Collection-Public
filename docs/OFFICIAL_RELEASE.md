@@ -4,18 +4,20 @@ Romain a autorisé le 8 novembre 2026 la reprise des fonctions de Test dans l'of
 
 ## État vérifié
 
+Le diagnostic `42520120938` est terminé : la relance de l'ancienne application renvoyait vers `GrantPermissionsActivity`, après un arrêt forcé du scénario de test ; aucun crash Java n'est présent. Le grant de notifications doit être rétabli après réinstallation de la fixture, avant son premier lancement. Le contrôle signé de conservation reste à relancer avec ce correctif du scénario.
+
 - Source de départ : Test 24, commit 0e7d2b6b39c2bdc8b461765efacbbe049d0636a1. Les nouveautés et les comptes sont promus au paquet officiel, tout en conservant le paquet Test et son propre flux de mise à jour.
 - Projet officiel `swu-collection-official` créé sur Spark, sans Analytics, Gemini, Developer Program ou option payante.
 - Application Android `fr.swucollection.app` enregistrée. Le fichier de configuration est chiffré vers l'identité de signature permanente ; aucune clé privée ni configuration client en clair dans Git.
 - Connexion e-mail/mot de passe activée. Les modèles d'e-mail sont en français.
 - Firestore Standard `(default)` créé à Paris (`europe-west9`), d'abord en refus intégral puis avec les règles officielles vérifiées. Les 24 506 caractères de l'éditeur ont été comparés au fichier testé avant publication ; la console confirme la version active du 8 novembre à 20 h 49 (Paris).
 - Inscription autonome après e-mail confirmé : collection `members` dans l'officielle, `testMembers` dans Test. Un compte désactivé ne peut pas se réactiver.
-- Les 40 tests de sécurité officiels et 9 tests de la page de confirmation ont réussi. Les premières compilation, tests de code Android et lint ont réussi. Une nouvelle passe sur l'APK optimisé signé, les parcours natifs et la vraie mise à jour est requise pour le dernier état des sources.
+- Les 40 tests de sécurité officiels et 9 tests de la page de confirmation ont réussi. Les premières compilation, tests de code Android et lint ont réussi. L'APK optimisé signé a également passé ses tests et lint. Les parcours natifs de collection et l'ouverture des comptes ont réussi. Le contrôle de mise à jour signée attend une nouvelle passe : le diagnostic a identifié une autorisation de notifications restée ouverte dans le scénario, sans crash Java ; ce scénario est corrigé avant de conclure sur la conservation.
 - La conservation est vérifiée au niveau SQLite 11 → 12 (cartes, identifiants, quantités, variantes, langues, listes et decks). Un contrôle sur le véritable APK officiel publié est ajouté : fixtures exclusivement dans un émulateur, puis mise à jour signée sans désinstallation entre ancienne et nouvelle versions.
 
 ## Blocages et points non encore validés
 
-- Personnalisation des e-mails : le nom d'expéditeur **SWU Collection** a été enregistré et vérifié le 8 novembre, séparément, pour les trois modèles utiles (validation d'adresse, mot de passe oublié, modification d'adresse). L'objet de validation personnalisé, essayé seul, reste refusé par Firebase (« Il n'est actuellement pas possible de mettre à jour les modèles d'e-mail de ce projet »). Le lien reste le gestionnaire Firebase standard, pas une page inexistante. Une demande d'assistance détaillée est préparée dans le formulaire officiel, non envoyée, en attente de l'accord de Romain pour contacter Google.
+- Personnalisation des e-mails : le nom d'expéditeur **SWU Collection** a été enregistré et vérifié le 8 novembre, séparément, pour les trois modèles utiles (validation d'adresse, mot de passe oublié, modification d'adresse). L'objet de validation personnalisé, essayé seul, reste refusé par Firebase (« Il n'est actuellement pas possible de mettre à jour les modèles d'e-mail de ce projet »). Le lien reste le gestionnaire Firebase standard, pas une page inexistante. Romain a refusé le contact avec l'assistance : ne pas envoyer la demande. Il accepte l'objet français standard et le nom d'expéditeur enregistré ; cette personnalisation n'est plus un préalable à la publication.
 - L'application Web de confirmation est enregistrée et associée au site Hosting officiel, mais les fichiers de la page ne sont pas déployés. Aucun changement du lien d'action tant que la page n'est pas disponible et validée.
 - La connexion de Firebase CLI a été bloquée précédemment par la politique d'URL du navigateur après l'accord de Romain. Ne pas contourner ce refus en rejouant l'autorisation par un chemin indirect. La session CLI en attente a été arrêtée, aucune connexion CLI utilisable n'a été confirmée.
 - Aucun parcours avec de vrais comptes officiels, aucune réception réelle de mail officiel et aucune validation sur les deux téléphones de Romain n'est encore confirmée. Les tests de sécurité utilisent exclusivement les émulateurs locaux.
@@ -25,7 +27,7 @@ Romain a autorisé le 8 novembre 2026 la reprise des fonctions de Test dans l'of
 
 Utiliser la candidate officielle signée, sur l'installation officielle existante, sans désinstaller l'application. Comparer d'abord les quantités et les listes avant/après. Créer un compte avec une adresse contrôlée par Romain, recevoir le mail en français, confirmer son lien puis actualiser le statut dans l'application. L'accès doit s'activer sans intervention dans Firebase. Enregistrer le profil et vérifier une sauvegarde cloud ; sur le second téléphone, se connecter au même compte et contrôler la sauvegarde avant toute restauration explicitement choisie. Les essais de messagerie déjà réalisés sur Test ne constituent pas une preuve de ce parcours avec le nouveau projet officiel.
 
-Ne pas annoncer cet essai réussi sur la seule base des tests d'émulateur ou du HTTP 200 du gestionnaire de confirmation. La publication reste en attente si la réception réelle du mail ou l'activation du compte n'est pas confirmée.
+Ne pas annoncer cet essai réussi sur la seule base des tests d'émulateur ou du HTTP 200 du gestionnaire de confirmation. La publication reste en attente si la réception réelle du mail ou l'activation du compte n'est pas confirmée. Le 8 novembre, Romain redemande le contrôle complet et confirme que la mise à jour pourra être disponible après réussite ; ne pas lui redemander une autorisation générale de publication.
 
 ## Commandes utiles, depuis un environnement de déploiement autorisé
 

@@ -67,6 +67,10 @@ assert old_code < new_code
 # Only discard the earlier empty smoke fixture in this verified disposable emulator.
 adb('uninstall', PACKAGE)
 adb('install', '-r', baseline)
+# This fixture has just been reinstalled, so its notification grant was reset.
+# Resolve it before launch: force-stopping behind an unanswered system dialog leaves
+# PermissionController on top and can prevent the next app launch from starting.
+adb('shell', 'pm', 'grant', PACKAGE, 'android.permission.POST_NOTIFICATIONS')
 adb('logcat', '-c')
 launch()
 adb('root'); adb('wait-for-device')

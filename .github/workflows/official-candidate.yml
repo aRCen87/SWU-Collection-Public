@@ -90,6 +90,13 @@ jobs:
             adb install -r app/build/outputs/apk/release/app-release.apk
             adb shell pm grant fr.swucollection.app android.permission.POST_NOTIFICATIONS
             SWU_SMOKE_PACKAGE=fr.swucollection.app python3 .github/scripts/check_premium_collection.py
+            SWU_SMOKE_PACKAGE=fr.swucollection.app python3 .github/scripts/check_test19_usability.py
+            SWU_SMOKE_PACKAGE=fr.swucollection.app python3 .github/scripts/check_collection_workbench.py
+            SWU_SMOKE_PACKAGE=fr.swucollection.app python3 .github/scripts/check_private_fold_interactions.py
+            SWU_SMOKE_PACKAGE=fr.swucollection.app python3 .github/scripts/check_match_counter.py
+            adb shell am force-stop fr.swucollection.app
+            adb shell am start -W -n fr.swucollection.app/fr.swucollection.app.MainActivity
+            sleep 8
             python3 .github/scripts/check_official_account_entry.py
             python3 .github/scripts/check_official_upgrade.py
       - name: Encrypt validated official candidate for private review

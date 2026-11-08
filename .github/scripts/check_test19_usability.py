@@ -1,15 +1,19 @@
 """Check common collection actions and search/filter recovery on an empty Test account."""
+import os
 import re
 import subprocess
 import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-PACKAGE = 'fr.swucollection.app.test'
+PACKAGE = os.environ.get('SWU_SMOKE_PACKAGE', 'fr.swucollection.app.test')
 OUT = Path('smoke-private')
 
 def adb(*args):
     return subprocess.check_output(['adb', *map(str, args)], text=True, stderr=subprocess.STDOUT, timeout=45)
+
+assert PACKAGE in ('fr.swucollection.app', 'fr.swucollection.app.test')
+assert adb('shell', 'getprop', 'ro.kernel.qemu').strip() == '1', 'Disposable emulator required'
 
 def snapshot(name):
     adb('shell', 'uiautomator', 'dump', '/sdcard/usability.xml')

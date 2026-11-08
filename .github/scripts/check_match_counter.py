@@ -1,9 +1,12 @@
 """Exercise the real counter, live resizing and retained state on an empty emulator."""
-import re,subprocess,time,xml.etree.ElementTree as ET
+import os,re,subprocess,time,xml.etree.ElementTree as ET
 from pathlib import Path
-PACKAGE='fr.swucollection.app.test'
+PACKAGE=os.environ.get('SWU_SMOKE_PACKAGE', 'fr.swucollection.app.test')
 OUT=Path('smoke-private')
 def adb(*args): return subprocess.check_output(['adb',*map(str,args)],text=True,stderr=subprocess.STDOUT,timeout=45)
+assert PACKAGE in ('fr.swucollection.app', 'fr.swucollection.app.test')
+assert adb('shell', 'getprop', 'ro.kernel.qemu').strip() == '1', 'Disposable emulator required'
+
 def snapshot(name):
     adb('shell','uiautomator','dump','/sdcard/counter.xml');p=OUT/('counter-'+name+'.xml');adb('pull','/sdcard/counter.xml',p);return ET.parse(p).getroot()
 def find(root,label):

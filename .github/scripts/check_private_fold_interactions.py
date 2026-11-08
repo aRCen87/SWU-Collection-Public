@@ -1,11 +1,12 @@
 """Exercise keyboard, open-card navigation and CameraX during live window changes."""
+import os
 import re
 import subprocess
 import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-PACKAGE = "fr.swucollection.app.test"
+PACKAGE = os.environ.get("SWU_SMOKE_PACKAGE", "fr.swucollection.app.test")
 OUT = Path("smoke-private")
 
 def adb(*args):
@@ -17,6 +18,9 @@ def adb(*args):
         if not read_only or "offline" not in error.output: raise
         subprocess.check_call(["adb", "wait-for-device"], timeout=30)
         return subprocess.check_output(command, text=True, stderr=subprocess.STDOUT, timeout=45)
+
+assert PACKAGE in ('fr.swucollection.app', 'fr.swucollection.app.test')
+assert adb('shell', 'getprop', 'ro.kernel.qemu').strip() == '1', 'Disposable emulator required'
 
 def snapshot(name):
     adb("shell", "uiautomator", "dump", "/sdcard/fold-check.xml")

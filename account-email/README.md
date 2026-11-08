@@ -4,7 +4,7 @@ Page Firebase Hosting réutilisable pour Test et, après configuration de son pr
 
 ## État
 
-Le projet officiel `swu-collection-official` existe désormais sur Spark. Le 8 novembre 2026, le nom d'expéditeur **SWU Collection** a été enregistré et vérifié séparément dans les trois modèles : validation d'adresse, réinitialisation du mot de passe et modification d'adresse. Modifier l'objet de validation seul reste refusé par Firebase ; un échec sur cet objet ne signifie donc pas que tous les champs sont bloqués. La page personnalisée n'est pas encore déployée et le lien d'action standard reste actif. Une demande d'assistance est préparée dans la console, sans envoi : l'accord de Romain pour contacter l'assistance reste nécessaire. Ne pas annoncer un objet personnalisé, une nouvelle page active ou la réception réelle d'un e-mail sans vérification.
+Le projet officiel `swu-collection-official` existe désormais sur Spark. Le 8 novembre 2026, le nom d'expéditeur **SWU Collection** a été enregistré et vérifié séparément dans les trois modèles : validation d'adresse, réinitialisation du mot de passe et modification d'adresse. Modifier l'objet de validation seul reste refusé par Firebase ; un échec sur cet objet ne signifie donc pas que tous les champs sont bloqués. La page personnalisée n'est pas encore déployée et le lien d'action standard reste actif. Romain a refusé de contacter l'assistance ; ne pas envoyer la demande préparée. Il accepte le nom d'expéditeur enregistré et l'objet français standard pour la sortie officielle. Ne pas annoncer un objet personnalisé, une nouvelle page active ou la réception réelle d'un e-mail sans vérification.
 
 ## Déploiement et activation
 
