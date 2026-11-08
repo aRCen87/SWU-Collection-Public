@@ -1,6 +1,6 @@
 package fr.swucollection.app
 
-import android.graphics.Canvas
+import android.graphics.Canvas as NativeCanvas
 import android.graphics.LinearGradient
 import android.graphics.Matrix
 import android.graphics.Paint
@@ -35,7 +35,7 @@ internal class PremiumLogoPainter {
         val label="C O L L E C T I O N";val path=Path();paint.getTextPath(label,0,label.length,(300f-paint.measureText(label))/2f,135f,path);all.addPath(path)
         contour=HomeLogoContour(letterPaths=letters)
     }
-    fun draw(canvas: Canvas,width: Float,height: Float,intro: Float,reflection: Float) {
+    fun draw(canvas: NativeCanvas,width: Float,height: Float,intro: Float,reflection: Float) {
         val save=canvas.save();val scale=minOf(width/300f,height/180f)
         canvas.translate((width-300f*scale)/2f,0f);canvas.scale(scale,scale)
         paint.style=Paint.Style.FILL;paint.shader=metal;paint.alpha=255;canvas.drawPath(all,paint)
