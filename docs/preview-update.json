@@ -1,11 +1,11 @@
 {
-  "versionCode": 82,
-  "versionName": "0.8.19-test.23",
-  "sha256": "cd3f603e9d67931c61eddaef41a85d8b378a7bfd908fcf79fb01abbd52269069",
+  "versionCode": 83,
+  "versionName": "0.8.19-test.24",
+  "sha256": "41751fb55fc62f73f135bb9b2a81381c727f1b05bc8969fe121cdd827077d868",
   "size": 63055951,
-  "sourceSha": "58b8d86d7f6a68dbfd9432adeef74b251a9ef552",
+  "sourceSha": "1d6c8759d95db9923599281cb6602338540a102f",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "notes": "Messagerie : onglets Discussions et Amis, recherche par pseudo, avatars et présence, indicateurs de saisie et lecture, suppression privée des conversations, épingles et sourdine. Cartes partagées à un ou plusieurs amis avec sélection par pseudo et avatar ; partage de decks et accès aux échanges. Envoi accessible avec le clavier ouvert, y compris en paysage ; fiches amis compactes. Alertes gratuites via la notification permanente « Messagerie connectée » avec arrêt possible ; Android peut interrompre la connexion, un contrôle périodique sert de secours. Planète et lune encore accélérées, sur des axes et vitesses différents. Tests Android et conservation des données validés, sans migration de collection.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_3d206ec0bfa0819193f43a3b4bc8185e&account_id=personal"
+  "notes": "Collection : nouvel affichage « Miniatures » avec uniquement les images de cartes. Trois cartes par ligne sur téléphone en portrait, davantage selon la largeur disponible sur Z Fold déplié ou en paysage. La grille utilise toute la largeur ; toucher une miniature ouvre la fiche habituelle. Le choix d’affichage est mémorisé, filtres, tris et regroupement des versions conservés. Tests Android sur trois formats, ouverture des fiches, mémorisation et conservation des quantités validés. Aucun changement des collections, sauvegardes ou services communautaires.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_69802c704a1c8191847be8d190952881&account_id=personal"
 }
