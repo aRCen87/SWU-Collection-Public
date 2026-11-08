@@ -1,11 +1,11 @@
 {
-  "versionCode": 80,
-  "versionName": "0.8.19-test.21",
-  "sha256": "c980faf1a4baa8ca336a47b0036550cdc351801076070b27738234ff4026fdb0",
+  "versionCode": 81,
+  "versionName": "0.8.19-test.22",
+  "sha256": "ba476901b8a7f0b3da84377cf0b70fa9ff8339bb5bab29613f6c0e5423e66ddd",
   "size": 63006467,
-  "sourceSha": "1822ac897a2afdbbca7d4dfd19df7c7766328178",
+  "sourceSha": "6269af688cae16f4557cfadc5b6a1d47bad968ed",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "notes": "Bandeau spatial bord à bord, y compris derrière la barre d’état. Planète légèrement plus rapide et petite lune animée sur un axe et à une vitesse différents. Retour des illustrations des boutons en conservant leur taille. Reflet métallique, étoile et contour lumineux du logo restaurés, avec reflets et animations adaptés aux boutons. Respect des préférences de mouvement et suspension des animations hors de l’accueil. Tests Android et essais sur émulateur validés. Collection et sauvegardes conservées, sans migration.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_77914e8e82308191ad4ab2d6f119644e&account_id=personal"
+  "notes": "Accueil rapproché : citations retirées, recherche et raccourcis remontés sur un fondu progressif au bas du bandeau. Contours dorés et reflets harmonisés sur tous les raccourcis ; les six boutons du bas, dont Échanges, ont les mêmes dimensions. Planète et lune encore légèrement accélérées avec leurs mouvements indépendants. Réduction des animations respectée. Tests Android, conservation des données et essais sur émulateur validés. Collection et sauvegardes conservées, sans migration.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_7207845f92f8819183a22fad9f454e7c&account_id=personal"
 }
