@@ -62,7 +62,16 @@ def verify_miniatures():
     columns = []
     for name, size, density in [('cover', '720x1560', 320), ('unfolded', '1766x1472', 336), ('landscape', '1560x720', 320)]:
         adb('shell', 'wm', 'size', size); adb('shell', 'wm', 'density', density); time.sleep(4)
-        root = snapshot('miniatures-' + name)
+        # In short landscape windows the controls scroll with the gallery, leaving full cards reachable.
+        for attempt in range(5):
+            root = snapshot('miniatures-' + name + '-' + str(attempt))
+            grid = next(n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_miniature_grid')
+            tiles = [n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_miniature_tile']
+            if tiles:
+                x1,y1,x2,y2 = bounds(tiles[0])
+                if y2-y1 >= (x2-x1)/0.716 - 4: break
+            gx1,gy1,gx2,gy2 = bounds(grid)
+            adb('shell','input','swipe',(gx1+gx2)//2,gy2-8,(gx1+gx2)//2,gy1+8,400); time.sleep(1)
         grid = next(n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_miniature_grid')
         tile = next(n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_miniature_tile')
         gx1,gy1,gx2,gy2 = bounds(grid); tx1,ty1,tx2,ty2 = bounds(tile)

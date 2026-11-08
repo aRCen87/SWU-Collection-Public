@@ -58,6 +58,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.LazyColumn
@@ -1266,6 +1267,8 @@ private fun CollectionScreen(
                 }
                 }
                 if (selectedSection == "Collection") {
+                val scrollingMiniatureControls = compactCollectionLayout && collectionView == "Miniatures"
+                val collectionControls: @Composable () -> Unit = {
                 FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Button(onClick = { openScanner() }, modifier = Modifier.widthIn(min = 112.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)) {
                         Icon(Icons.Default.PhotoCamera, null, modifier = Modifier.size(20.dp)); Spacer(Modifier.width(5.dp)); Text("Scanner", maxLines = 1)
@@ -1289,6 +1292,8 @@ private fun CollectionScreen(
                         Icon(Icons.Default.Close, "Effacer la recherche")
                     } },
                     modifier = Modifier.fillMaxWidth(), singleLine = true)
+                }
+                if (!scrollingMiniatureControls) collectionControls()
                 if (collectionFiltersOpen) {
                     AlertDialog(onDismissRequest = { collectionFiltersOpen = false },
                         title = { Text("Filtres et affichage") },
@@ -1384,7 +1389,8 @@ private fun CollectionScreen(
                         collectionQuotes[collectionPriceKey(it.setCode, it.number, it.variant)]?.amount
                     }
                 }
-                Text(if (compactCollectionLayout) "${selectedOwned.sumOf { it.quantity }} exemplaires affichés"
+                if (scrollingMiniatureControls && selectedOwned.isEmpty()) collectionControls()
+                if (!scrollingMiniatureControls || selectedOwned.isEmpty()) Text(if (compactCollectionLayout) "${selectedOwned.sumOf { it.quantity }} exemplaires affichés"
                     else "${selectedOwned.map { MarketPricing.key(it.setCode,it.number) + ":" + it.variant }.distinct().size} références et variantes possédées · ${selectedOwned.sumOf { it.quantity }} exemplaires", fontSize = 12.sp)
                 if (collectionScope == "Doublons") Text("Filtre Doublons actif", color = MaterialTheme.colorScheme.primary)
                 if (selectedOwned.isEmpty()) {
@@ -1404,6 +1410,12 @@ private fun CollectionScreen(
                             horizontalArrangement = Arrangement.spacedBy(if (miniatures) 6.dp else 10.dp),
                             verticalArrangement = Arrangement.spacedBy(if (miniatures) 6.dp else 10.dp),
                             contentPadding = PaddingValues(bottom = 12.dp)) {
+                            if (scrollingMiniatureControls) item(key = "miniature-controls", span = { GridItemSpan(maxLineSpan) }) {
+                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    collectionControls()
+                                    Text("${selectedOwned.sumOf { it.quantity }} exemplaires affichés", fontSize = 12.sp)
+                                }
+                            }
                             items(groups, key = { it.first().id }) { rows ->
                                 val onOpen: (CollectionCard, CatalogCard) -> Unit = { owned, card ->
                                     openPreview(card, familyPreviewEntries(groups, owned, catalogByKey), owned.variant, owned.language)
