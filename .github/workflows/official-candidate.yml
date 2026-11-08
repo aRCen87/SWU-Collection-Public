@@ -46,3 +46,25 @@ jobs:
       - run: python3 .github/scripts/verify_packaged_card_details.py app/build/outputs/apk/debug/app-debug.apk
       # This workflow deliberately has no publisher. The final public workflow is
       # blocked until backend configuration and end-to-end upgrade checks exist.
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Exercise official UI and collection on Android
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          emulator-build: 15917651
+          arch: x86_64
+          target: google_apis
+          disk-size: 2048M
+          ram-size: 4096M
+          emulator-boot-timeout: 300
+          disable-animations: true
+          emulator-options: -no-window -gpu swangle_indirect -noaudio -no-boot-anim -no-snapshot-save -feature GLESDynamicVersion
+          script: |
+            mkdir -p smoke-private
+            adb install -r app/build/outputs/apk/debug/app-debug.apk
+            adb shell pm grant fr.swucollection.app android.permission.POST_NOTIFICATIONS
+            SWU_SMOKE_PACKAGE=fr.swucollection.app python3 .github/scripts/check_premium_collection.py

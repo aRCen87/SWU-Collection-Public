@@ -42,7 +42,7 @@ internal fun communityError(error: Throwable): String = when ((error as? Firebas
     "ERROR_INVALID_EMAIL" -> "Cette adresse e-mail n’est pas valide."
     "ERROR_EMAIL_ALREADY_IN_USE" -> "Cette adresse possède déjà un compte. Essaie de te connecter."
     "ERROR_WRONG_PASSWORD", "ERROR_INVALID_CREDENTIAL", "ERROR_USER_NOT_FOUND" -> "Connexion impossible. Vérifie l’e-mail et le mot de passe."
-    "ERROR_OPERATION_NOT_ALLOWED" -> "La connexion par e-mail et mot de passe n’est pas encore activée pour les essais."
+    "ERROR_OPERATION_NOT_ALLOWED" -> "La connexion par e-mail et mot de passe n’est pas encore activée."
     "ERROR_TOO_MANY_REQUESTS" -> "Trop de tentatives. Patiente avant de réessayer."
     else -> if (error is IllegalArgumentException) error.message ?: "Vérifie les informations saisies."
         else "Opération impossible. Vérifie ta connexion, la confirmation de ton e-mail et le statut de ton compte, puis réessaie."

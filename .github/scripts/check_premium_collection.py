@@ -1,9 +1,10 @@
 """Exercise the real visual grid and orbital background on a disposable local emulator."""
-import re, subprocess, time, xml.etree.ElementTree as ET
+import os, re, subprocess, time, xml.etree.ElementTree as ET
 from pathlib import Path
 from PIL import Image, ImageChops
 
-PACKAGE = 'fr.swucollection.app.test'
+PACKAGE = os.environ.get('SWU_SMOKE_PACKAGE', 'fr.swucollection.app.test')
+assert PACKAGE in ('fr.swucollection.app', 'fr.swucollection.app.test')
 OUT = Path('smoke-private')
 def adb(*args):
     try:
