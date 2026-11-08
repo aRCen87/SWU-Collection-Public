@@ -8,8 +8,8 @@ import android.graphics.Path
 import android.graphics.PathMeasure
 
 /** Traces the actual letters; the official artwork retains its original paths. */
-internal class HomeLogoContour(artwork: Bitmap? = null) {
-    private val contours = (if (artwork != null) traceLogo(artwork) else listOf(
+internal class HomeLogoContour(artwork: Bitmap? = null, letterPaths: List<Path>? = null) {
+    private val contours = (letterPaths ?: if (artwork != null) traceLogo(artwork) else listOf(
         Path().apply {
             moveTo(58.00f, 17.75f)
             lineTo(90.50f, 17.75f)

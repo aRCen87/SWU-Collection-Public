@@ -1,5 +1,8 @@
 package fr.swucollection.app
 
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.SystemBarStyle
+
 import android.os.Bundle
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
@@ -131,6 +134,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if(packageName==AppChannel.TEST_PACKAGE) enableEdgeToEdge(statusBarStyle=SystemBarStyle.dark(android.graphics.Color.TRANSPARENT))
         if (packageName == AppChannel.TEST_PACKAGE) {
             CommunityBackground.install(applicationContext)
             lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -491,7 +495,7 @@ private fun CollectionScreen(
         !menuOpen && previewSession == null && !scannerOpen && scanCandidate == null && favoriteCard == null)
     val homeArtworkActive = selectedSection == "Accueil" && !menuOpen && !scannerOpen && scanCandidate == null && previewSession == null
     val homeHeaderProgress = rememberHomeHeaderProgress(homeArtworkActive)
-    val headerReflection = rememberHeaderReflectionProgress(homeArtworkActive)
+    val headerReflection = rememberHeaderReflectionProgress(homeArtworkActive && reflectionsEnabled)
     val homeFilmQuote = rememberHomeFilmQuote(homeArtworkActive)
     val updateScope = rememberCoroutineScope()
     val appUpdates = remember(appContext, database) { AppUpdates(appContext, database) }
@@ -661,27 +665,9 @@ private fun CollectionScreen(
             }
     }
     }
-    AdaptiveWorkspace(enabled = privateLayout && selectedSection in listOf("Collection", "Extensions", "Recherche"),
-        hasDetail = previewSession != null, onClose = { previewSession = null }, detail = previewPane,
-        dismissOnOutside = !privateLayout) {
-    Box(Modifier.fillMaxSize().background(Color(0xFF030A17)).safeDrawingPadding().imePadding()
-        .then(if (privateLayout) Modifier.semantics { testTagsAsResourceId = true }
-            .testTag("swu_content_window") else Modifier)) {
-        Box(Modifier.fillMaxSize().background(Color(0xFF02090F)))
-        Column(
-            Modifier.align(androidx.compose.ui.Alignment.TopCenter)
-                .then(if (privateLayout) Modifier.widthIn(max = when (selectedSection) {
-                    "Accueil" -> 600.dp
-                    "Collection", "Extensions", "Mes listes", "Hauts faits" -> 1000.dp
-                    else -> 760.dp
-                }) else Modifier)
-                .fillMaxSize().padding(bottom = if (deckWorkspace || selectedSection == "Messagerie") 0.dp else 82.dp).then(
-                if (selectedSection in listOf("Collection", "Extensions", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta", "Prêts"))
-                    Modifier else Modifier.verticalScroll(rememberScrollState())
-            ).padding(horizontal = 16.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(if (compactCollectionLayout) 4.dp else 12.dp)
-        ) {
-            if (!deckWorkspace && appUpdates.availableVersion != null && selectedSection != "Mises à jour") {
+    val immersiveHome=privateLayout && selectedSection=="Accueil"
+    val updateBanner: @Composable () -> Unit = {
+        if (!deckWorkspace && appUpdates.availableVersion != null && selectedSection != "Mises à jour") {
                 OutlinedButton(onClick = {
                     navigation.navigateTo("Mises à jour")
                     if (deckContext.packageName == AppChannel.TEST_PACKAGE) updateScope.launch { appUpdates.requestPrivateDownload() }
@@ -691,10 +677,35 @@ private fun CollectionScreen(
                     Text("Mise à jour ${appUpdates.availableVersion} disponible · ${if (deckContext.packageName == AppChannel.TEST_PACKAGE) "Ouvrir" else "Télécharger"}")
                 }
             }
+    }
+    AdaptiveWorkspace(enabled = privateLayout && selectedSection in listOf("Collection", "Extensions", "Recherche"),
+        hasDetail = previewSession != null, onClose = { previewSession = null }, detail = previewPane,
+        dismissOnOutside = !privateLayout) {
+    Box(Modifier.fillMaxSize().background(Color(0xFF030A17))
+        .then(if(immersiveHome) Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)) else Modifier.safeDrawingPadding()).imePadding()
+        .then(if (privateLayout) Modifier.semantics { testTagsAsResourceId = true }
+            .testTag("swu_content_window") else Modifier)) {
+        Box(Modifier.fillMaxSize().background(Color(0xFF02090F)))
+        Column(
+            Modifier.align(androidx.compose.ui.Alignment.TopCenter)
+                .then(if (privateLayout && !immersiveHome) Modifier.widthIn(max = when (selectedSection) {
+                    "Accueil" -> 600.dp
+                    "Collection", "Extensions", "Mes listes", "Hauts faits" -> 1000.dp
+                    else -> 760.dp
+                }) else Modifier)
+                .fillMaxSize().padding(bottom = if (deckWorkspace || selectedSection == "Messagerie") 0.dp else 82.dp).then(
+                if (selectedSection in listOf("Collection", "Extensions", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta", "Prêts"))
+                    Modifier else Modifier.verticalScroll(rememberScrollState())
+            ).then(if(immersiveHome) Modifier else Modifier.padding(horizontal = 16.dp, vertical = 10.dp)),
+            horizontalAlignment=if(immersiveHome) androidx.compose.ui.Alignment.CenterHorizontally else androidx.compose.ui.Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(if(immersiveHome) 0.dp else if (compactCollectionLayout) 4.dp else 12.dp)
+        ) {
+            if (!immersiveHome) updateBanner()
             if (selectedSection == "Accueil") {
             val privateHome = deckContext.packageName == AppChannel.TEST_PACKAGE
             Box(Modifier.fillMaxWidth().then(if (privateHome) Modifier.heightIn(min = 144.dp) else Modifier)) {
-                if (privateHome) PremiumHomeBanner(homeArtworkActive && reflectionsEnabled)
+                if (privateHome) PremiumHomeBanner(homeArtworkActive && reflectionsEnabled,
+                    if(reflectionsEnabled) homeHeaderProgress else remember {mutableStateOf(1f)}, headerReflection)
                 else HomeHeaderArtwork(homeHeaderProgress, headerReflection,
                     Modifier.fillMaxWidth().aspectRatio(475f / 185f), compactControls = false,
                     ambientActive = homeArtworkActive && reflectionsEnabled)
@@ -706,13 +717,12 @@ private fun CollectionScreen(
                     },
                     onMenu = { navigation.navigateTo("Paramètres") },
                     onCounter = { navigation.navigateTo("Compteur") },
-                    modifier = Modifier.align(androidx.compose.ui.Alignment.TopCenter))
+                    modifier = Modifier.align(androidx.compose.ui.Alignment.TopCenter).windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)))
                 else IconButton(onClick = { menuOpen = true },
                     modifier = Modifier.align(androidx.compose.ui.Alignment.TopEnd)) {
                     Icon(Icons.Default.Menu, "Ouvrir le menu", tint = Color.Transparent)
                 }
             }
-            HomeFilmQuoteCard(homeFilmQuote)
             }
             if (selectedSection != "Accueil") {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
@@ -758,6 +768,9 @@ private fun CollectionScreen(
                 })
             }
             if (selectedSection == "Accueil") {
+                Column(Modifier.then(if(privateLayout) Modifier.widthIn(max=600.dp).fillMaxWidth().padding(horizontal=16.dp,vertical=12.dp) else Modifier.fillMaxWidth()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+                HomeFilmQuoteCard(homeFilmQuote)
+                if(immersiveHome) updateBanner()
                 Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedCard(onClick = { navigation.navigateTo("Recherche") },
                     modifier = Modifier.weight(1f), shape = RoundedCornerShape(20.dp)) {
@@ -778,7 +791,7 @@ private fun CollectionScreen(
                         }
                     }
                 }
-                if (privateLayout) PremiumHomeShortcuts(homeLayout.order, borderTilt,
+                if (privateLayout) PremiumHomeShortcuts(homeLayout.order, borderTilt, headerReflection, reflectionsEnabled,
                     afterPrimary = { FirstStepsCard(cards.isEmpty()) { firstStepsOpen = true } }) { shortcut ->
                     when (shortcut) {
                         "SCANNER" -> openScanner()
@@ -839,6 +852,7 @@ private fun CollectionScreen(
                 Text("$total exemplaires • ${cards.map { it.setCode to it.number }.distinct().size} cartes différentes",
                     modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                }
             }
             if (selectedSection == "Mes listes") {
                 if (importingDeck) DeckImportDialog(catalog = allCatalog, details = cardDetails, onDismiss = { importingDeck = false }, onImport = { title, imported ->

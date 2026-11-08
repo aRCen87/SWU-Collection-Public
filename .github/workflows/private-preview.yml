@@ -1,7 +1,7 @@
 name: Encrypted SWU Collection Test
 on:
   push:
-    branches: ["preview/private-sandbox", "preview/profile-avatars-test17", "preview/reliability-test18", "preview/performance-test19", "preview/premium-design-test20"]
+    branches: ["preview/private-sandbox", "preview/profile-avatars-test17", "preview/reliability-test18", "preview/performance-test19", "preview/premium-design-test20", "preview/immersive-home-test21"]
     paths-ignore: ["docs/preview-update.json"]
   workflow_dispatch:
 permissions:

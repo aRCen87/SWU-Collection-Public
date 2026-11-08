@@ -13,18 +13,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.drawscope.withTransform
-import kotlin.math.sin
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -37,33 +33,17 @@ internal val PremiumMetal = Brush.verticalGradient(listOf(Color(0xFFFFEDB6), Col
 
 /** Artwork contains no printed controls: every action remains a real accessible button. */
 @Composable
-internal fun PremiumHomeBanner(active: Boolean, modifier: Modifier = Modifier) {
+internal fun PremiumHomeBanner(active: Boolean, intro: State<Float>, reflection: State<Float>, modifier: Modifier = Modifier) {
     val orbitTime = rememberHeaderAmbientTime(active)
-    BoxWithConstraints(modifier.fillMaxWidth().testTag("swu_premium_banner").clip(RoundedCornerShape(22.dp))) {
+    val topInset=WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+    BoxWithConstraints(modifier.fillMaxWidth().testTag("swu_premium_banner").clipToBounds()) {
         val compact = maxWidth < 340.dp
-        val bannerHeight = if (compact) 220.dp else 246.dp
-        Image(painterResource(R.drawable.home_premium_space), null,
-            Modifier.fillMaxWidth().height(bannerHeight).drawWithContent {
-                // Translate the existing image on its canvas, without an extra GPU layer.
-                // Overscan keeps every edge covered; controls remain in their own layout.
-                val phase = orbitTime.value * (2f * Math.PI.toFloat() / 180f)
-                withTransform({
-                    translate(sin(phase) * size.width * .022f, sin(phase * .5f) * size.height * .009f)
-                    scale(1.07f, 1.07f)
-                }) { this@drawWithContent.drawContent() }
-            }, contentScale = ContentScale.Crop)
+        val bannerHeight=(if(compact) 220.dp else 246.dp)+topInset
+        PremiumSpaceArtwork(orbitTime,Modifier.fillMaxWidth().height(bannerHeight))
         Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(
-            Color(0xB008121F), Color.Transparent, Color(0xBB08121F)))))
-        Column(Modifier.align(Alignment.TopCenter).padding(top = 20.dp).widthIn(max = if (compact) 154.dp else 196.dp)
-            .semantics(mergeDescendants = true) { contentDescription = "SWU Collection" },
-            horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("SWU", style = TextStyle(brush = PremiumMetal, fontSize = if (compact) 38.sp else 48.sp,
-                fontWeight = FontWeight.Black, letterSpacing = 2.sp), maxLines = 1)
-            Text("COLLECTION", color = PremiumGold, fontSize = if (compact) 12.sp else 15.sp,
-                letterSpacing = 3.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
-            Spacer(Modifier.height(10.dp))
-            Box(Modifier.width(100.dp).height(1.dp).background(PremiumMetal))
-        }
+            Color(0x3308121F), Color.Transparent, Color(0xBB08121F)))))
+        PremiumLogoArtwork(intro,reflection,Modifier.align(Alignment.TopCenter)
+            .padding(top=topInset+14.dp).width(if(compact) 154.dp else 196.dp).height(if(compact) 98.dp else 118.dp))
     }
 }
 
@@ -80,36 +60,60 @@ private val premiumShortcuts = listOf(
 )
 
 @Composable
-internal fun PremiumHomeShortcuts(order: List<String>, reflection: State<BorderTilt?>, afterPrimary: @Composable () -> Unit = {}, onOpen: (String) -> Unit) {
+internal fun PremiumHomeShortcuts(order: List<String>, reflection: State<BorderTilt?>, shine: State<Float>, effectsEnabled: Boolean, afterPrimary: @Composable () -> Unit = {}, onOpen: (String) -> Unit) {
     // Keep explicitly saved arrangements; promote the two core actions for the original default layout.
     val arranged = if (order == HomeLayoutStore.defaults) premiumShortcuts else order.mapNotNull { key -> premiumShortcuts.find { it.key == key } }
-    arranged.take(2).forEach { shortcut -> PremiumHomeTile(shortcut, true, Modifier.fillMaxWidth(), reflection) { onOpen(shortcut.key) } }
+    arranged.take(2).forEach { shortcut -> PremiumHomeTile(shortcut, true, Modifier.fillMaxWidth(), reflection, shine, effectsEnabled, arranged.indexOf(shortcut)) { onOpen(shortcut.key) } }
     afterPrimary()
     arranged.drop(2).chunked(2).forEach { pair ->
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            pair.forEach { shortcut -> PremiumHomeTile(shortcut, false, Modifier.weight(1f), reflection) { onOpen(shortcut.key) } }
+            pair.forEach { shortcut -> PremiumHomeTile(shortcut, false, Modifier.weight(1f), reflection, shine, effectsEnabled, arranged.indexOf(shortcut)) { onOpen(shortcut.key) } }
         }
     }
 }
 
+internal fun homeShortcutArtwork(key: String): Int = when(key) {
+    "SCANNER" -> R.drawable.home_scanner_art
+    "MA COLLECTION" -> R.drawable.home_collection_art
+    "MES DECKS" -> R.drawable.home_decks_art
+    "EXTENSIONS" -> R.drawable.home_extensions_art
+    "TOURNOIS & MÉTA" -> R.drawable.home_meta_art
+    "BADGES" -> R.drawable.home_badges_art
+    "ÉCHANGES" -> R.drawable.home_trades_art
+    else -> R.drawable.home_stats_art
+}
+
 @Composable
 private fun PremiumHomeTile(item: PremiumShortcut, prominent: Boolean, modifier: Modifier,
-    reflection: State<BorderTilt?>, onClick: () -> Unit) {
-    Surface(onClick = onClick, modifier = modifier.goldBorderReflection(reflection), color = PremiumNavy,
-        shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, PremiumGold.copy(alpha = if (prominent) .85f else .35f))) {
-        if (prominent) Row(Modifier.background(PremiumPanel).heightIn(min = 98.dp).padding(18.dp),
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Icon(item.icon, null, tint = PremiumGold, modifier = Modifier.size(38.dp))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(item.title, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color(0xFFF5F3ED))
-                Text(item.subtitle, fontSize = 12.sp, color = Color(0xFFCAD3DF))
+    reflection: State<BorderTilt?>, shine: State<Float>, effectsEnabled: Boolean, index: Int, onClick: () -> Unit) {
+    val interactions=remember {MutableInteractionSource()}
+    val motion=if(effectsEnabled) Modifier.homeButtonMotion(interactions) else Modifier
+    Surface(onClick = onClick, interactionSource=interactions,
+        modifier = modifier.then(motion).goldBorderReflection(reflection).homeTileShine(shine,index), color = PremiumNavy,
+        shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, PremiumGold.copy(alpha = if (prominent) .85f else .55f))) {
+        Box {
+            Box(Modifier.matchParentSize().background(PremiumPanel)) {
+                Image(painterResource(homeShortcutArtwork(item.key)),null,
+                    Modifier.align(Alignment.CenterEnd).fillMaxWidth(if(prominent) .58f else .8f).fillMaxHeight(),contentScale=ContentScale.Crop)
+                Box(Modifier.matchParentSize().homeIllustrationShine(item.key,shine,index))
+                Box(Modifier.matchParentSize().background(Brush.horizontalGradient(
+                    0f to PremiumNavy, .3f to PremiumNavy.copy(alpha=.96f),
+                    .66f to PremiumNavy.copy(alpha=if(prominent) .77f else .72f), 1f to PremiumNavy.copy(alpha=.16f))))
             }
-            Icon(Icons.Default.ChevronRight, null, tint = PremiumGold, modifier = Modifier.size(20.dp))
-        } else Column(Modifier.background(PremiumPanel).heightIn(min = 120.dp).padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Icon(item.icon, null, tint = PremiumGold, modifier = Modifier.size(27.dp))
-            Text(item.title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Color(0xFFF5F3ED))
-            Text(item.subtitle, fontSize = 11.sp, color = Color(0xFFCAD3DF))
+            if (prominent) Row(Modifier.heightIn(min = 98.dp).padding(18.dp),
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Icon(item.icon, null, tint = PremiumGold, modifier = Modifier.size(38.dp))
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(item.title, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color(0xFFF5F3ED))
+                    Text(item.subtitle, fontSize = 12.sp, color = Color(0xFFE0E5EB))
+                }
+                Icon(Icons.Default.ChevronRight, null, tint = PremiumGold, modifier = Modifier.size(20.dp))
+            } else Column(Modifier.heightIn(min = 120.dp).padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(item.icon, null, tint = PremiumGold, modifier = Modifier.size(27.dp))
+                Text(item.title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Color(0xFFF5F3ED))
+                Text(item.subtitle, fontSize = 11.sp, color = Color(0xFFE0E5EB))
+            }
         }
     }
 }

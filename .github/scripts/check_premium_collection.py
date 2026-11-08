@@ -56,6 +56,14 @@ def verify_motion():
     root=snapshot('motion-bounds')
     banner=next(n for n in root.iter('node') if n.attrib.get('resource-id')=='swu_premium_banner')
     x1,y1,x2,y2=bounds(banner); w=x2-x1; h=y2-y1
+    assert x1==0 and y1==0, ('Banner has top/left margin', (x1,y1,x2,y2))
+    display=adb('shell','wm','size')
+    screen_width=int(re.findall(r'(\d+)x\d+',display)[-1])
+    assert x2==screen_width, ('Banner has right margin',x2,screen_width)
+    edge=capture('edge-to-edge')
+    image=Image.open(edge).convert('RGB')
+    for point in [(2,2),(screen_width-3,2),(2,y1+h//2),(screen_width-3,y1+h//2)]:
+        assert max(image.getpixel(point))>3, ('Black band at edge',point)
     area=(int(x1+w*.2),int(y1+h*.55),int(x1+w*.8),int(y2-h*.08))
     collection_entry = find(root, 'Collection')
     home_entry = find(root, 'Accueil')

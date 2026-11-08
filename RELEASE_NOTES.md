@@ -1,3 +1,11 @@
+## Test 0.8.19-test.21
+
+- Bandeau bord à bord, sans marges noires ni coins arrondis en haut, à gauche et à droite. Le décor passe derrière la barre d’état ; avatar et raccourcis restent dans la zone sûre. Le contenu sous le bandeau garde sa largeur confortable.
+- Déplacement du décor environ 12 % plus rapide ; petite lune indépendante sur un axe principalement vertical, avec sa propre période. Image conservée et éléments d’interface fixes.
+- Retour des anciennes illustrations Collection, Scanner, Decks, Extensions, Méta, Échanges, Badges et Statistiques en gardant la taille des boutons de Test 20 et des textes lisibles.
+- Logo : reflet métallique, contour lumineux suivant les lettres, étoile filante qui rejoint l’étoile sous le titre. Boutons : reflets des contours, retour au toucher et effets sur les illustrations adaptés au Scanner, aux cartes et aux trophées.
+- Horloge de reflet partagée, pauses entre les passages, arrêt hors accueil/en arrière-plan et respect de la réduction des animations et du réglage Reflets dorés. Aucun changement de collection ni de sauvegarde.
+
 # Test 20 — nouvelle présentation bleu et or
 
 - Fond spatial animé par une dérive orbitale très lente ; logo, avatar et commandes fixes. Animation suspendue hors accueil et respect des animations désactivées.

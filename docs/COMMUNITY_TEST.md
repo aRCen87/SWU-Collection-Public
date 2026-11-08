@@ -156,3 +156,12 @@ Les prénoms facultatifs sont stockés dans `profileNames/{uid}`, séparément d
 Les 36 portraits sont intégrés et cadrés individuellement. La galerie utilise les mêmes pixels que le JPEG enregistré. Les photos personnelles et anciens avatars restent lisibles. Pour corriger un ancien JPEG déjà coupé, sélectionner à nouveau le personnage. Les symboles ne sont plus proposés.
 
 Les règles de confidentialité du prénom Test 17 ont été publiées sur `swu-collection-test` le 7 novembre 2026 à 18 h 54 (Paris), après réussite des 31 tests de sécurité.
+
+
+## Accueil bord à bord — Test 21
+
+L’accueil Test dessine son bandeau derrière les zones système, sans marges latérales ou supérieures. Les commandes sont décalées par safeDrawing et le contenu sous le bandeau reste limité à 600 dp. Les autres pages conservent leurs marges sûres. Aucune action n’est intégrée à une image.
+
+Le décor utilise la même image approuvée, avec une période horizontale de 160 secondes au lieu de 180. La petite lune est redessinée séparément depuis ses pixels d’origine, après couverture en étoilement voisin de son emplacement fixe, avec une période de 113 secondes et un déplacement surtout vertical. Les ressources et masques sont conservés en mémoire entre les images ; aucune génération, requête réseau ou texture graphique supplémentaire n’est nécessaire pendant l’animation.
+
+Le logo est dessiné avec ses vrais contours de lettres : reflet limité aux lettres, trait lumineux suivant leur forme, étoile filante et étoile d’arrivée. Les boutons réemploient les huit illustrations existantes, gardent leurs dimensions et associent le retour tactile visuel à une horloge commune de reflets espacés. Scanner possède une ligne de balayage, les cartes un reflet doré et les badges/trophées un éclat. Tous les effets restent décoratifs, sans intercepter les clics. Les mouvements continus et reflets s’arrêtent hors accueil et en arrière-plan ; Android sans animations conserve une image fixe. Désactiver Reflets dorés retire ces effets de l’accueil Test.
