@@ -713,7 +713,6 @@ private fun CollectionScreen(
                 }
             }
             HomeFilmQuoteCard(homeFilmQuote)
-            if (privateLayout) FirstStepsCard(cards.isEmpty()) { firstStepsOpen = true }
             }
             if (selectedSection != "Accueil") {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
@@ -779,7 +778,8 @@ private fun CollectionScreen(
                         }
                     }
                 }
-                if (privateLayout) PremiumHomeShortcuts(homeLayout.order, borderTilt) { shortcut ->
+                if (privateLayout) PremiumHomeShortcuts(homeLayout.order, borderTilt,
+                    afterPrimary = { FirstStepsCard(cards.isEmpty()) { firstStepsOpen = true } }) { shortcut ->
                     when (shortcut) {
                         "SCANNER" -> openScanner()
                         "MA COLLECTION" -> navigation.navigateTo("Collection")

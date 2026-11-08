@@ -78,10 +78,11 @@ private val premiumShortcuts = listOf(
 )
 
 @Composable
-internal fun PremiumHomeShortcuts(order: List<String>, reflection: State<BorderTilt?>, onOpen: (String) -> Unit) {
+internal fun PremiumHomeShortcuts(order: List<String>, reflection: State<BorderTilt?>, afterPrimary: @Composable () -> Unit = {}, onOpen: (String) -> Unit) {
     // Keep explicitly saved arrangements; promote the two core actions for the original default layout.
     val arranged = if (order == HomeLayoutStore.defaults) premiumShortcuts else order.mapNotNull { key -> premiumShortcuts.find { it.key == key } }
     arranged.take(2).forEach { shortcut -> PremiumHomeTile(shortcut, true, Modifier.fillMaxWidth(), reflection) { onOpen(shortcut.key) } }
+    afterPrimary()
     arranged.drop(2).chunked(2).forEach { pair ->
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             pair.forEach { shortcut -> PremiumHomeTile(shortcut, false, Modifier.weight(1f), reflection) { onOpen(shortcut.key) } }
