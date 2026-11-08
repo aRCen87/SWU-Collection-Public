@@ -1,11 +1,11 @@
 {
-  "versionCode": 81,
-  "versionName": "0.8.19-test.22",
-  "sha256": "ba476901b8a7f0b3da84377cf0b70fa9ff8339bb5bab29613f6c0e5423e66ddd",
-  "size": 63006467,
-  "sourceSha": "6269af688cae16f4557cfadc5b6a1d47bad968ed",
+  "versionCode": 82,
+  "versionName": "0.8.19-test.23",
+  "sha256": "cd3f603e9d67931c61eddaef41a85d8b378a7bfd908fcf79fb01abbd52269069",
+  "size": 63055951,
+  "sourceSha": "58b8d86d7f6a68dbfd9432adeef74b251a9ef552",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "notes": "Accueil rapproché : citations retirées, recherche et raccourcis remontés sur un fondu progressif au bas du bandeau. Contours dorés et reflets harmonisés sur tous les raccourcis ; les six boutons du bas, dont Échanges, ont les mêmes dimensions. Planète et lune encore légèrement accélérées avec leurs mouvements indépendants. Réduction des animations respectée. Tests Android, conservation des données et essais sur émulateur validés. Collection et sauvegardes conservées, sans migration.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_7207845f92f8819183a22fad9f454e7c&account_id=personal"
+  "notes": "Messagerie : onglets Discussions et Amis, recherche par pseudo, avatars et présence, indicateurs de saisie et lecture, suppression privée des conversations, épingles et sourdine. Cartes partagées à un ou plusieurs amis avec sélection par pseudo et avatar ; partage de decks et accès aux échanges. Envoi accessible avec le clavier ouvert, y compris en paysage ; fiches amis compactes. Alertes gratuites via la notification permanente « Messagerie connectée » avec arrêt possible ; Android peut interrompre la connexion, un contrôle périodique sert de secours. Planète et lune encore accélérées, sur des axes et vitesses différents. Tests Android et conservation des données validés, sans migration de collection.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_3d206ec0bfa0819193f43a3b4bc8185e&account_id=personal"
 }
