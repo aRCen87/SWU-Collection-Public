@@ -30,10 +30,14 @@ def verify_apk(path):
     return int(code), version
 
 def launch():
-    adb('shell', 'am', 'start', '-W', '-n', PACKAGE+'/fr.swucollection.app.MainActivity')
+    start = adb('shell', 'am', 'start', '-W', '-n', PACKAGE+'/fr.swucollection.app.MainActivity')
     time.sleep(10)
-    adb('shell', 'pidof', PACKAGE)
-    assert 'FATAL EXCEPTION' not in adb('logcat', '-d', '-s', 'AndroidRuntime:E')
+    crashes = adb('logcat', '-d', '-s', 'AndroidRuntime:E')
+    process = subprocess.run(['adb', 'shell', 'pidof', PACKAGE], text=True, capture_output=True, timeout=30)
+    if process.returncode or 'FATAL EXCEPTION' in crashes:
+        print(start, crashes, flush=True)
+        print(adb('shell', 'dumpsys', 'activity', 'exit-info', PACKAGE), flush=True)
+        raise AssertionError('Official upgrade launch failed; crash and exit reason are printed above')
     adb('shell', 'am', 'force-stop', PACKAGE)
 
 def copy_database(name):
@@ -86,6 +90,9 @@ adb('push', before, remote)
 adb('shell', 'chown', uid+':'+uid, remote)
 adb('shell', 'chmod', '660', remote)
 adb('shell', 'restorecon', remote)
+# Prove that the fixture itself is readable by the published application before upgrading it.
+adb('logcat', '-c')
+launch()
 adb('install', '-r', candidate)  # The actual upgrade must retain the application's UID and data.
 adb('logcat', '-c')
 launch()

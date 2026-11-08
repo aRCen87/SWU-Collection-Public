@@ -15,11 +15,17 @@ Romain a autorisé le 8 novembre 2026 la reprise des fonctions de Test dans l'of
 
 ## Blocages et points non encore validés
 
-- Firebase refuse actuellement la personnalisation des modèles du nouveau projet (« Il n'est actuellement pas possible de mettre à jour les modèles d'e-mail de ce projet »). L'expéditeur et l'objet personnalisés n'ont pas été enregistrés. Le lien reste le gestionnaire Firebase standard, pas une page inexistante.
+- Personnalisation des e-mails : le nom d'expéditeur **SWU Collection** a été enregistré et vérifié le 8 novembre, séparément, pour les trois modèles utiles (validation d'adresse, mot de passe oublié, modification d'adresse). L'objet de validation personnalisé, essayé seul, reste refusé par Firebase (« Il n'est actuellement pas possible de mettre à jour les modèles d'e-mail de ce projet »). Le lien reste le gestionnaire Firebase standard, pas une page inexistante. Une demande d'assistance détaillée est préparée dans le formulaire officiel, non envoyée, en attente de l'accord de Romain pour contacter Google.
 - L'application Web de confirmation est enregistrée et associée au site Hosting officiel, mais les fichiers de la page ne sont pas déployés. Aucun changement du lien d'action tant que la page n'est pas disponible et validée.
 - La connexion de Firebase CLI a été bloquée précédemment par la politique d'URL du navigateur après l'accord de Romain. Ne pas contourner ce refus en rejouant l'autorisation par un chemin indirect. La session CLI en attente a été arrêtée, aucune connexion CLI utilisable n'a été confirmée.
 - Aucun parcours avec de vrais comptes officiels, aucune réception réelle de mail officiel et aucune validation sur les deux téléphones de Romain n'est encore confirmée. Les tests de sécurité utilisent exclusivement les émulateurs locaux.
 - Aucune mise à jour officielle n'est publiée par le workflow de validation de candidate. Le dernier état signé et tous les contrôles doivent être validés avant toute fusion/publication.
+
+## Dernier essai réel avant ouverture publique
+
+Utiliser la candidate officielle signée, sur l'installation officielle existante, sans désinstaller l'application. Comparer d'abord les quantités et les listes avant/après. Créer un compte avec une adresse contrôlée par Romain, recevoir le mail en français, confirmer son lien puis actualiser le statut dans l'application. L'accès doit s'activer sans intervention dans Firebase. Enregistrer le profil et vérifier une sauvegarde cloud ; sur le second téléphone, se connecter au même compte et contrôler la sauvegarde avant toute restauration explicitement choisie. Les essais de messagerie déjà réalisés sur Test ne constituent pas une preuve de ce parcours avec le nouveau projet officiel.
+
+Ne pas annoncer cet essai réussi sur la seule base des tests d'émulateur ou du HTTP 200 du gestionnaire de confirmation. La publication reste en attente si la réception réelle du mail ou l'activation du compte n'est pas confirmée.
 
 ## Commandes utiles, depuis un environnement de déploiement autorisé
 
