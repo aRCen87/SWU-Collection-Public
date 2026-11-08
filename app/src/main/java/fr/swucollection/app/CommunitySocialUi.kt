@@ -87,9 +87,12 @@ private fun CommunityHomeActions(avatar: String?, count: Int, destination: Strin
             }
             Surface(shape = RoundedCornerShape(14.dp), color = Color(0xDB08121F),
                 border = androidx.compose.foundation.BorderStroke(1.dp, PremiumGold.copy(alpha = .4f))) {
-                BadgedBox(badge = { if (count > 0) Badge { Text(if (count > 99) "99+" else "$count") } }) {
-                    IconButton(onClick = { onOpen(destination) }, modifier = Modifier.size(48.dp)) {
+                IconButton(onClick = { onOpen(destination) }, modifier = Modifier.size(48.dp)) {
+                    Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
                         Icon(Icons.Default.MailOutline, "Courrier, $count en attente", tint = PremiumGold)
+                        if (count > 0) Badge(Modifier.align(Alignment.TopEnd).offset(x = 6.dp, y = (-6).dp)) {
+                            Text(if (count > 99) "99+" else "$count")
+                        }
                     }
                 }
             }
