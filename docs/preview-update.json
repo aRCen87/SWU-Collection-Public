@@ -1,11 +1,11 @@
 {
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "versionCode": 76,
-  "versionName": "0.8.19-test.17",
-  "notes": "Bouton renommé « Compteur point de vie ». Prénom facultatif dans le profil, masqué par défaut et visible uniquement aux amis acceptés si tu actives son affichage. Petits symboles retirés des choix d’avatar et 36 portraits de personnages intégrés, recadrés spécialement et disponibles hors connexion. Pour corriger un ancien avatar déjà enregistré, sélectionne à nouveau le personnage. Collection et données existantes conservées. Tests Android, sauvegardes, confidentialité, compilation, signature et essais sur émulateur validés.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_fe30f83023c88191bb2dc5f12db60e18&account_id=personal",
-  "sha256": "ef48d378b561d5b0f4129b0356c93d96634fd62925cd923319672c5de906377f",
-  "size": 64316703,
-  "sourceSha": "2efed81cbe02f31b8233733b9f8c83f82dcb8a35"
+  "versionCode": 78,
+  "versionName": "0.8.19-test.19",
+  "notes": "Collection et recherches optimisées : calculs et index réutilisés au lieu de les refaire à chaque rafraîchissement. Scanner prioritaire, ajout manuel clairement nommé, filtres actifs comptés et recherche effaçable en un geste. Choix d’affichage sans effet masqués, confirmation du scan simplifiée et affichage paysage compact pour garder la collection visible au-dessus de la navigation. Collection, langues, variantes et sauvegardes conservées, sans migration. Tests Android, restauration, confidentialité, compilation, signature et essais sur émulateur fermé/déplié/paysage validés.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_6c2a03ca080c81918b1534e977b118c8&account_id=personal",
+  "sha256": "25c8dd4a214063a51affbda224dbb201c01e0c46573ec1dc07327c553888a5cb",
+  "size": 64349471,
+  "sourceSha": "f8c6dd2fec4e2f0202b2eef641d6902c54b1b8cc"
 }

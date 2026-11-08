@@ -5,6 +5,7 @@
 - Scanner prioritaire, ajout manuel nommé, filtres actifs comptés et recherche effaçable en un geste.
 - Choix d’affichage sans effet masqués et confirmation du scanner simplifiée.
 - Version Test disponible aussi dans l’aperçu des paramètres.
+- En paysage court, commandes et recherche compactes pour garder la collection visible au-dessus de la navigation.
 - Données, langues et variantes conservées, sans migration de base.
 
 # SWU Collection Test 0.8.19-test.18
