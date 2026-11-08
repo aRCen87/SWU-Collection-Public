@@ -1,11 +1,11 @@
 {
-  "versionCode": 79,
-  "versionName": "0.8.19-test.20",
-  "sha256": "33b4557067b89fb88d9a20709bc749a3e1160b2e999ef5ce46195907c74b866b",
+  "versionCode": 80,
+  "versionName": "0.8.19-test.21",
+  "sha256": "c980faf1a4baa8ca336a47b0036550cdc351801076070b27738234ff4026fdb0",
   "size": 63006467,
-  "sourceSha": "1a5788f4bfc6dddda7d8fad433aa93ec73984509",
+  "sourceSha": "1822ac897a2afdbbca7d4dfd19df7c7766328178",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "notes": "Nouvelle présentation bleu nuit et or : bandeau spatial avec déplacement lent du fond, avatar à gauche et accès Paramètres, Messages et Compteur de points de vie à droite. Collection et Scanner prioritaires sur l’accueil, grille de collection avec vrais visuels, langues, quantités et cotes, fiche de carte simplifiée. Animation suspendue lorsque l’accueil est inactif et respect du réglage système sans animations. Collection et sauvegardes conservées, sans migration.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_3c2072f53ef481918983d48c16ac7e61&account_id=personal"
+  "notes": "Bandeau spatial bord à bord, y compris derrière la barre d’état. Planète légèrement plus rapide et petite lune animée sur un axe et à une vitesse différents. Retour des illustrations des boutons en conservant leur taille. Reflet métallique, étoile et contour lumineux du logo restaurés, avec reflets et animations adaptés aux boutons. Respect des préférences de mouvement et suspension des animations hors de l’accueil. Tests Android et essais sur émulateur validés. Collection et sauvegardes conservées, sans migration.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_77914e8e82308191ad4ab2d6f119644e&account_id=personal"
 }
