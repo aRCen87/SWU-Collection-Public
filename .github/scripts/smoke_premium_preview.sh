@@ -41,9 +41,9 @@ PYUI
   adb logcat -d -s AndroidRuntime:E > "smoke-private/$package-crashes.txt"
   if grep -q 'FATAL EXCEPTION' "smoke-private/$package-crashes.txt"; then exit 1; fi
 done
-# The complete Android, scanner, fold, counter, guidance and messenger suite
-# passed for unchanged application sources in run 42457412044 before the new
-# grid check needed a scroll after unfolding. Recheck that affected path here.
+# Core Android, scanner, fold, counter, guidance and messenger checks passed
+# in run 42457412044. Recheck the affected visual grid and the simplified
+# orbital drawing path, including live and disabled animation, here.
 python3 .github/scripts/check_premium_collection.py
 adb shell pm path fr.swucollection.app
 adb shell pm path fr.swucollection.app.test

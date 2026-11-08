@@ -16,7 +16,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.drawscope.withTransform
 import kotlin.math.sin
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -42,13 +43,14 @@ internal fun PremiumHomeBanner(active: Boolean, modifier: Modifier = Modifier) {
         val compact = maxWidth < 340.dp
         val bannerHeight = if (compact) 220.dp else 246.dp
         Image(painterResource(R.drawable.home_premium_space), null,
-            Modifier.fillMaxWidth().height(bannerHeight).graphicsLayer {
-                // A quiet orbital pan, one complete drift in three minutes.
-                // Overscan keeps every edge covered; controls never inherit the transform.
+            Modifier.fillMaxWidth().height(bannerHeight).drawWithContent {
+                // Translate the existing image on its canvas, without an extra GPU layer.
+                // Overscan keeps every edge covered; controls remain in their own layout.
                 val phase = orbitTime.value * (2f * Math.PI.toFloat() / 180f)
-                scaleX = 1.07f; scaleY = 1.07f
-                translationX = sin(phase) * size.width * .022f
-                translationY = sin(phase * .5f) * size.height * .009f
+                withTransform({
+                    translate(sin(phase) * size.width * .022f, sin(phase * .5f) * size.height * .009f)
+                    scale(1.07f, 1.07f)
+                }) { this@drawWithContent.drawContent() }
             }, contentScale = ContentScale.Crop)
         Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(
             Color(0xB008121F), Color.Transparent, Color(0xBB08121F)))))

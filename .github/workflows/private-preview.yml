@@ -92,6 +92,11 @@ jobs:
           assert hashlib.sha256(path.read_bytes()).hexdigest()==asset['digest'].removeprefix('sha256:')
           Path('distribution/SOURCES.txt').write_text('Preview source: ${{ github.sha }}\nOfficial baseline: '+data['tag_name']+'\n')
           PY
+      - name: Release compiler memory before graphics checks
+        run: |
+          gradle --stop || true
+          jps -l | awk '/org.jetbrains.kotlin.daemon.KotlinCompileDaemon/ {print $1}' | xargs -r kill || true
+          free -m
       - name: Enable emulator acceleration
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -103,7 +108,7 @@ jobs:
           arch: x86_64
           target: google_apis
           disk-size: 2048M
-          ram-size: 3072M
+          ram-size: 2048M
           emulator-boot-timeout: 300
           disable-animations: true
           script: bash .github/scripts/smoke_premium_preview.sh
