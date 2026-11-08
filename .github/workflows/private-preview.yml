@@ -89,7 +89,7 @@ jobs:
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose distribution/SWU-Collection-Test.apk
           "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging distribution/SWU-Collection-Test.apk > distribution/preview-identity.txt
           python3 - <<'PY'
-          import json,re,hashlib,urllib.request,urllib.error,os,time,shutil
+          import json,re,hashlib,urllib.request,urllib.error,os,time,shutil,subprocess
           from pathlib import Path
           def fetch(request,path=None):
               for attempt in range(4):
@@ -112,7 +112,20 @@ jobs:
           data=fetch(request)
           asset=next(a for a in data['assets'] if a['name']=='SWU-Collection.apk')
           path=Path('distribution/SWU-Collection-Official.apk')
-          fetch(asset['browser_download_url'],path)
+          # The asset API avoids the unreliable browser release-download redirect.
+          expected=asset['digest'].removeprefix('sha256:')
+          for attempt in range(4):
+              temporary=path.with_suffix('.apk.part')
+              try:
+                  with temporary.open('wb') as output:
+                      result=subprocess.run(['gh','api',f"repos/aRCen87/SWU-Collection-Releases/releases/assets/{asset['id']}",'-H','Accept: application/octet-stream'],stdout=output,timeout=60)
+                  if result.returncode==0 and temporary.stat().st_size==asset['size'] and hashlib.sha256(temporary.read_bytes()).hexdigest()==expected:
+                      temporary.replace(path)
+                      break
+              except subprocess.TimeoutExpired:
+                  print('Release asset API timed out; retrying',flush=True)
+              if attempt==3:raise RuntimeError('The official reference asset could not be downloaded and verified.')
+              time.sleep(3*(attempt+1))
           assert path.stat().st_size==asset['size']
           assert hashlib.sha256(path.read_bytes()).hexdigest()==asset['digest'].removeprefix('sha256:')
           Path('distribution/SOURCES.txt').write_text('Preview source: ${{ github.sha }}\nOfficial baseline: '+data['tag_name']+'\n')
