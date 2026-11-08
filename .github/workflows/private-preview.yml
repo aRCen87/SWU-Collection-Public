@@ -67,7 +67,18 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           python3 -m unittest discover -s .github/scripts -p 'test_*.py'
-          gradle --no-daemon testDebugUnitTest lintDebug assembleDebug testPreviewUnitTest lintPreview assemblePreview
+          for attempt in 1 2 3; do
+            set +e
+            gradle --no-daemon testDebugUnitTest lintDebug assembleDebug testPreviewUnitTest lintPreview assemblePreview 2>&1 | tee "$RUNNER_TEMP/preview-gradle.log"
+            result=${PIPESTATUS[0]}
+            set -e
+            if test "$result" -eq 0; then break; fi
+            if test "$attempt" -eq 3 || ! grep -Eiq 'Gateway Time-out|status code 50[234]|Could not (GET|HEAD)|Read timed out|Connect timed out' "$RUNNER_TEMP/preview-gradle.log"; then
+              exit "$result"
+            fi
+            echo "Retrying transient dependency download ($attempt/3)"
+            sleep 5
+          done
           python3 .github/scripts/verify_packaged_card_details.py app/build/outputs/apk/preview/app-preview.apk
       - name: Verify identity and prepare coexistence checks
         env:
@@ -78,16 +89,30 @@ jobs:
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose distribution/SWU-Collection-Test.apk
           "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging distribution/SWU-Collection-Test.apk > distribution/preview-identity.txt
           python3 - <<'PY'
-          import json,re,hashlib,urllib.request,os
+          import json,re,hashlib,urllib.request,urllib.error,os,time,shutil
           from pathlib import Path
+          def fetch(request,path=None):
+              for attempt in range(4):
+                  try:
+                      with urllib.request.urlopen(request,timeout=40) as response:
+                          if path is None:return json.load(response)
+                          temporary=path.with_suffix(path.suffix+'.part')
+                          with temporary.open('wb') as output:shutil.copyfileobj(response,output)
+                          temporary.replace(path)
+                      return
+                  except (urllib.error.URLError,TimeoutError) as error:
+                      if isinstance(error,urllib.error.HTTPError) and error.code not in (408,429,500,502,503,504):raise
+                      if attempt==3:raise
+                      print('Retrying transient reference download',attempt+1,flush=True)
+                      time.sleep(3*(attempt+1))
           text=Path('distribution/preview-identity.txt').read_text()
           assert "package: name='fr.swucollection.app.test'" in text
           assert "application-label:'SWU Collection Test'" in text
           request=urllib.request.Request('https://api.github.com/repos/aRCen87/SWU-Collection-Releases/releases/latest',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
-          data=json.load(urllib.request.urlopen(request,timeout=30))
+          data=fetch(request)
           asset=next(a for a in data['assets'] if a['name']=='SWU-Collection.apk')
           path=Path('distribution/SWU-Collection-Official.apk')
-          urllib.request.urlretrieve(asset['browser_download_url'],path)
+          fetch(asset['browser_download_url'],path)
           assert path.stat().st_size==asset['size']
           assert hashlib.sha256(path.read_bytes()).hexdigest()==asset['digest'].removeprefix('sha256:')
           Path('distribution/SOURCES.txt').write_text('Preview source: ${{ github.sha }}\nOfficial baseline: '+data['tag_name']+'\n')
