@@ -10,18 +10,21 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 
-def encrypt(public_key_path, apk_path, output):
+def encrypt(public_key_path, apk_path, output, package="fr.swucollection.app.test"):
+    if package not in ("fr.swucollection.app.test", "fr.swucollection.app"):
+        raise ValueError("Unsupported delivery package")
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
     data = Path(apk_path).read_bytes()
     key = AESGCM.generate_key(bit_length=256)
     nonce = os.urandom(12)
-    associated = b'fr.swucollection.app.test'
+    associated = package.encode()
+    filename = 'SWU-Collection-Candidate.aesgcm' if package == 'fr.swucollection.app' else 'SWU-Collection-Test.aesgcm'
     encrypted = AESGCM(key).encrypt(nonce, data, associated)
     public = serialization.load_pem_public_key(Path(public_key_path).read_bytes())
     wrapped = public.encrypt(key, padding.OAEP(mgf=padding.MGF1(hashes.SHA256()), algorithm=hashes.SHA256(), label=None))
-    (output/'SWU-Collection-Test.aesgcm').write_bytes(encrypted)
-    metadata = {'format':1, 'package':'fr.swucollection.app.test',
+    (output/filename).write_bytes(encrypted)
+    metadata = {'format':1, 'package':package,
                 'source_sha':os.environ.get('GITHUB_SHA','local-test'),
                 'apk_sha256':hashlib.sha256(data).hexdigest(), 'apk_bytes':len(data),
                 'nonce':base64.b64encode(nonce).decode(),

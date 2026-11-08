@@ -91,3 +91,11 @@ jobs:
             SWU_SMOKE_PACKAGE=fr.swucollection.app python3 .github/scripts/check_premium_collection.py
             python3 .github/scripts/check_official_account_entry.py
             python3 .github/scripts/check_official_upgrade.py
+      - name: Encrypt validated official candidate for private review
+        run: python3 .github/scripts/encrypt_private_preview.py docs/preview-recipient-public.pem app/build/outputs/apk/release/app-release.apk official-candidate-encrypted fr.swucollection.app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SWU-Official-Candidate-encrypted
+          retention-days: 14
+          path: official-candidate-encrypted/
+          if-no-files-found: error
