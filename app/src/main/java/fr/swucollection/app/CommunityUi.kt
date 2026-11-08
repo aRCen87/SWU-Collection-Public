@@ -144,6 +144,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
     var tab by remember { mutableStateOf(if (messaging && initialTab !in listOf("Messages", "Amis")) "Messages" else initialTab) }
     var friendships by remember { mutableStateOf<List<PlayerFriendship>>(emptyList()) }
     var trades by remember { mutableStateOf<List<PlayerTrade>>(emptyList()) }
+    var threadStatesLoaded by remember {mutableStateOf(false)}
     var threadStates by remember { mutableStateOf<Map<String,MessengerThreadState>>(emptyMap()) }
     var preferences by remember { mutableStateOf(MessengerPreferences()) }
     var receipts by remember { mutableStateOf<Map<String, Long>>(emptyMap()) }
@@ -169,7 +170,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
             service.friendships({ friendships = it }, { status = communityError(it) }),
             service.trades({ trades = it }, { status = communityError(it) }),
             service.receipts({ receipts = it }, { status = communityError(it) }),
-            service.threadStates({ threadStates=it },{status=communityError(it)}),
+            service.threadStates({ threadStates=it;threadStatesLoaded=true },{status=communityError(it)}),
             service.messengerPreferences({preferences=it},{status=communityError(it)}))
         onDispose { subscriptions.forEach { it.remove() } }
     }
@@ -178,8 +179,6 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
         require(peer.messagePolicy!="nobody") {"Ce joueur n’accepte pas les messages."}
         val id = service.openConversation(peer.id)
         val thread = PlayerConversation(id, listOf(user.uid, peer.id), 0L)
-        val old=threadStates[id]?:MessengerThreadState()
-        if(old.hiddenBefore>0)service.saveThreadState(id,old.copy(hiddenBefore=0))
         if (!messaging && onOpenMessenger != null) onOpenMessenger(thread, peer.name)
         else { conversation = thread; peerName = peer.name; selectedProfile = null; tab = "Messages" }
     } }
@@ -264,7 +263,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
         "Messages" -> {
             val selected = conversation
             if (selected == null) {
-                MessengerInbox(user.uid, conversations, receipts, profiles + friendsProfiles.values,
+                if(!threadStatesLoaded)Text("Chargement des discussions…") else MessengerInbox(user.uid, conversations, receipts, profiles + friendsProfiles.values,
                     states=threadStates,onState={id,state->action{service.saveThreadState(id,state);if(state.hiddenBefore>0)service.markRead(id)}},
                     onNew = { choosingRecipient = true }, onFriends = { tab = "Amis" }, onOpen = { thread, name -> conversation = thread; peerName = name })
             } else {

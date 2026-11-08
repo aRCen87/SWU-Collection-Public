@@ -56,7 +56,8 @@ internal object CommunityNotifications {
         val manager = context.getSystemService(NotificationManager::class.java)
         listOf(MESSAGES to "Messages privés", FRIENDS to "Demandes d’amis", SEARCH to "Cartes recherchées").forEach { (id, name) ->
             manager.createNotificationChannel(NotificationChannel(id, name, NotificationManager.IMPORTANCE_DEFAULT).apply {
-                description = "Communauté Test · vérification périodique en arrière-plan"
+                description = "Messages, invitations et échanges de la communauté Test"
+                enableVibration(true)
                 lockscreenVisibility = android.app.Notification.VISIBILITY_PRIVATE
             })
         }
@@ -87,7 +88,7 @@ internal object CommunityNotifications {
         val notification = NotificationCompat.Builder(context, channel).setSmallIcon(R.drawable.ic_update_notification)
             .setContentTitle(title).setContentText("Ouvre la communauté pour la consulter.")
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE).setPublicVersion(public)
-            .setContentIntent(pending).setAutoCancel(true).setOnlyAlertOnce(true).build()
+            .setContentIntent(pending).setAutoCancel(true).setOnlyAlertOnce(false).build()
         return try {
             NotificationManagerCompat.from(context).notify("$uid:${notice.key}", 1, notification)
             prefs(context).edit().putLong(marker, notice.version).commit()

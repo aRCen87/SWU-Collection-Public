@@ -22,13 +22,15 @@ import java.io.File
 class MessengerKeyboardTest {
  @get:Rule val ui=createAndroidComposeRule<ComponentActivity>()
  @Test fun sendRemainsAboveTheRealKeyboardAndKeepsItOpenAfterSending(){
-  ui.activity.enableEdgeToEdge()
+  ui.activityRule.scenario.onActivity {it.enableEdgeToEdge()}
   ui.setContent {
    MaterialTheme {
+    var busy by remember{mutableStateOf(false)}
     var draft by remember{mutableStateOf("")};var messages by remember{mutableStateOf(listOf(PlayerMessage("first","friend","text","Bonjour","","",1L)))}
+    LaunchedEffect(busy){if(busy){kotlinx.coroutines.delay(600);messages=messages+PlayerMessage("sent","me","text",draft,"","",2L);draft="";busy=false}}
     Column(Modifier.fillMaxSize().testTag("fixture_root").safeDrawingPadding().imePadding().padding(16.dp)) {
-     MessengerChatLayout("me","Ami test",messages,draft,{draft=it},false,true,null,MessengerSignal(),null,emptyList(),
-      {messages=messages+PlayerMessage("sent","me","text",draft,"","",2L);draft=""},{},{},{},{},{})
+     MessengerChatLayout("me","Ami test",messages,draft,{draft=it},busy,true,null,MessengerSignal(),null,emptyList(),
+      {busy=true},{},{},{},{},{})
     }
    }
   }
@@ -41,6 +43,7 @@ class MessengerKeyboardTest {
   val send=ui.onNodeWithTag("messenger_send").getUnclippedBoundsInRoot()
   assertTrue("Send is hidden below keyboard",send.bottom.value<=bottom+2)
   ui.onNodeWithTag("messenger_send").assertIsEnabled().performTouchInput{click()}
+  ui.waitUntil(5000){ui.onAllNodesWithText("Essai clavier").fetchSemanticsNodes().isNotEmpty()}
   ui.onNodeWithText("Essai clavier").assertIsDisplayed()
   ui.onNodeWithTag("messenger_draft").assertIsFocused()
   assertTrue(ViewCompat.getRootWindowInsets(ui.activity.window.decorView)!!.isVisible(WindowInsetsCompat.Type.ime()))

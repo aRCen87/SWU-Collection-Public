@@ -30,23 +30,27 @@ internal fun ColumnScope.CommunityChat(service: CommunityService, conversation: 
     var messages by remember(conversation.id){mutableStateOf<List<PlayerMessage>>(emptyList())}
     var draft by remember(conversation.id){mutableStateOf("")};var pendingId by remember(conversation.id){mutableStateOf(UUID.randomUUID().toString())}
     var busy by remember{mutableStateOf(false)};var error by remember{mutableStateOf<String?>(null)}
+    var outboundText by remember(conversation.id){mutableStateOf<String?>(null)}
+    var outboundReply by remember(conversation.id){mutableStateOf<PlayerMessage?>(null)}
     var pendingDeck by remember(conversation.id){mutableStateOf<DeckStore.SavedDeck?>(null)}
     var share by remember{mutableStateOf(false)};var received by remember{mutableStateOf<PlayerMessage?>(null)}
     var reply by remember(conversation.id){mutableStateOf<PlayerMessage?>(null)}
+    var stateLoaded by remember(conversation.id){mutableStateOf(false)}
     var state by remember(conversation.id){mutableStateOf(MessengerThreadState())}
     var preferences by remember{mutableStateOf(MessengerPreferences())};var signal by remember{mutableStateOf(MessengerSignal())}
     val lifecycleOwner=androidx.lifecycle.compose.LocalLifecycleOwner.current
     val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsState()
+    val chatContext=androidx.compose.ui.platform.LocalContext.current
     val scope=rememberCoroutineScope();val online=rememberInternetAvailable();val peer=conversation.members.firstOrNull{it!=service.uid}.orEmpty()
     DisposableEffect(service,conversation.id) {
         CommunityNotifications.activeThread=conversation.id
         val listeners=listOf(service.messages(conversation.id,{messages=it},{error=communityError(it)}),
-            service.threadStates({state=it[conversation.id]?:MessengerThreadState()},{error=communityError(it)}),
+            service.threadStates({state=it[conversation.id]?:MessengerThreadState();stateLoaded=true},{error=communityError(it)}),
             service.messengerPreferences({preferences=it},{error=communityError(it)}),service.signal(conversation.id,peer){signal=it})
         onDispose{CommunityNotifications.activeThread=null;listeners.forEach{it.remove()}}
     }
     LaunchedEffect(conversation.id,messages.lastOrNull()?.id,preferences.shareRead,lifecycleState) {
-        if(messages.isNotEmpty() && lifecycleState==androidx.lifecycle.Lifecycle.State.RESUMED) {runCatching{service.markRead(conversation.id)};runCatching{service.publishSignal(conversation.id,preferences.shareRead,false)}}
+        if(messages.isNotEmpty() && lifecycleState==androidx.lifecycle.Lifecycle.State.RESUMED) {runCatching{service.markRead(conversation.id)};chatContext.getSystemService(android.app.NotificationManager::class.java).cancel("${service.uid}:message:${conversation.id}",1);runCatching{service.publishSignal(conversation.id,preferences.shareRead,false)}}
     }
     LaunchedEffect(conversation.id,draft,lifecycleState) {
         if(lifecycleState!=androidx.lifecycle.Lifecycle.State.RESUMED)return@LaunchedEffect
@@ -56,12 +60,13 @@ internal fun ColumnScope.CommunityChat(service: CommunityService, conversation: 
     }
     DisposableEffect(conversation.id) {onDispose{scope.launch{runCatching{service.publishSignal(conversation.id,preferences.shareRead,false)}}}}
     fun send(deck:DeckStore.SavedDeck?=null) {if(!busy && online)scope.launch {
-        busy=true;error=null;if(deck!=null)pendingDeck=deck
-        try{withTimeout(20_000){service.sendRich(conversation.id,pendingId,draft,pendingDeck,reply=reply)};draft="";pendingId=UUID.randomUUID().toString();reply=null;share=false;pendingDeck=null}
+        busy=true;error=null;if(outboundText==null){outboundText=draft;outboundReply=reply};if(deck!=null)pendingDeck=deck
+        val sentDraft=outboundText.orEmpty();val sentReply=outboundReply
+        try{withTimeout(20_000){service.sendRich(conversation.id,pendingId,sentDraft,pendingDeck,reply=sentReply)};if(draft.startsWith(sentDraft))draft=draft.removePrefix(sentDraft);pendingId=UUID.randomUUID().toString();if(reply?.id==sentReply?.id)reply=null;share=false;pendingDeck=null;outboundText=null;outboundReply=null}
         catch(e:CancellationException){if(e is TimeoutCancellationException)error="Envoi non confirmé. Réessaie : le message ne sera pas envoyé deux fois." else throw e}
-        catch(e:Exception){error=communityError(e)}finally{busy=false}
+        catch(e:Exception){error=communityError(e)}finally{busy=false;share=false}
     }}
-    val shown=messages.filter{it.createdAt>state.hiddenBefore && it.id !in state.hiddenMessages}
+    val shown=if(stateLoaded)messages.filter{it.createdAt>state.hiddenBefore && it.id !in state.hiddenMessages} else emptyList()
     MessengerChatLayout(service.uid,peerName,shown,draft,{draft=it.take(2000)},busy,online,error,signal,reply,
         catalog,{send()},{share=true},{reply=it},{reply=null},
         {message->scope.launch{runCatching{service.saveThreadState(conversation.id,state.copy(hiddenMessages=state.hiddenMessages+message.id))}.onFailure{error=communityError(it)}}},
@@ -138,8 +143,8 @@ internal fun ColumnScope.MessengerChatLayout(uid:String,peerName:String,messages
     if(error!=null)Row(verticalAlignment=Alignment.CenterVertically){Text(error,Modifier.weight(1f),fontSize=12.sp,color=MaterialTheme.colorScheme.error);TextButton(onClick=onSend,enabled=online&&!busy){Text("Réessayer")}}
     if(reply!=null)Row(verticalAlignment=Alignment.CenterVertically){Text("Réponse : ${reply.text.ifBlank{reply.deckName}.take(100)}",Modifier.weight(1f),fontSize=12.sp);IconButton(onClick=onCancelReply){Icon(Icons.Default.Close,"Annuler la réponse")}}
     Row(Modifier.fillMaxWidth().testTag("messenger_composer"),verticalAlignment=Alignment.Bottom,horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-        IconButton(onClick=onShare,enabled=!busy&&online){Icon(Icons.Default.Add,"Partager un deck")}
-        OutlinedTextField(draft,onDraft,enabled=!busy && error==null,label={Text("Ton message")},modifier=Modifier.weight(1f).testTag("messenger_draft"),maxLines=4,
+        IconButton(onClick=onShare,enabled=!busy&&online&&error==null){Icon(Icons.Default.Add,"Partager un deck")}
+        OutlinedTextField(draft,onDraft,enabled=error==null,label={Text("Ton message")},modifier=Modifier.weight(1f).testTag("messenger_draft"),maxLines=4,
             keyboardOptions=KeyboardOptions(imeAction=ImeAction.Send),keyboardActions=KeyboardActions(onSend={if(draft.isNotBlank()&&online&&!busy)onSend()}))
         FilledIconButton(onClick=onSend,enabled=!busy&&online&&draft.isNotBlank(),modifier=Modifier.size(48.dp).testTag("messenger_send")){
             if(busy)CircularProgressIndicator(Modifier.size(20.dp),strokeWidth=2.dp) else Icon(Icons.Default.Send,"Envoyer")
