@@ -81,7 +81,7 @@ with sqlite3.connect(before) as db:
     db.commit()
     db.execute('PRAGMA wal_checkpoint(TRUNCATE)')
 expected = inventory(before)
-adb('shell', 'rm', '-f', remote+'-wal', remote+'-shm')
+adb('shell', 'rm', '-f', remote+'-wal', remote+'-shm', remote+'-journal')
 adb('push', before, remote)
 adb('shell', 'chown', uid+':'+uid, remote)
 adb('shell', 'chmod', '660', remote)

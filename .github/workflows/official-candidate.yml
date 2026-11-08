@@ -66,6 +66,7 @@ jobs:
           python3 .github/scripts/verify_packaged_card_details.py app/build/outputs/apk/release/app-release.apk
           python3 .github/scripts/prepare_release.py > "$RUNNER_TEMP/official-candidate-metadata.json"
           gradle --stop
+          jps -l | awk '/org.jetbrains.kotlin.daemon.KotlinCompileDaemon/ {print $1}' | xargs -r kill || true
       # No publisher or downloadable candidate APK in this validation workflow.
       - name: Enable emulator acceleration
         run: |
