@@ -1,11 +1,11 @@
 {
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "versionCode": 77,
-  "versionName": "0.8.19-test.18",
-  "notes": "Messagerie séparée depuis l’enveloppe de l’accueil : discussions, recherche, nouveaux messages et onglet Amis pour rechercher, ajouter ou retirer un ami. Compteur accessible par le cœur près de la recherche, avec choix mémorisé 1 ou 2 joueurs. Citations aléatoires sans répétition consécutive. Choix illustré lors d’un scan hésitant ; rubrique À vérifier pour corriger la collection ; correspondances d’échange sur les profils d’amis ; date et état de sauvegarde ; guide des premiers pas. Revue des parcours : titres et boutons en double retirés et navigation simplifiée. Tests Android, sauvegardes, confidentialité, signature et essais sur émulateur validés. La reconnaissance sur de vraies cartes reste à essayer sur ton téléphone.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_5caeb8d213348191a2631eae33212107&account_id=personal",
-  "sha256": "900ecca9d5948bb5fbc281543b2bce3e4e8fcfa3fe37145f626db77d8b6f7b40",
+  "versionCode": 78,
+  "versionName": "0.8.19-test.19",
+  "notes": "Collection et recherches optimisées : calculs et index réutilisés au lieu de les refaire à chaque rafraîchissement. Scanner prioritaire, ajout manuel clairement nommé, filtres actifs comptés et recherche effaçable en un geste. Choix d’affichage sans effet masqués, confirmation du scan simplifiée et affichage paysage compact pour garder la collection visible au-dessus de la navigation. Collection, langues, variantes et sauvegardes conservées, sans migration. Tests Android, restauration, confidentialité, compilation, signature et essais sur émulateur fermé/déplié/paysage validés.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_6c2a03ca080c81918b1534e977b118c8&account_id=personal",
+  "sha256": "25c8dd4a214063a51affbda224dbb201c01e0c46573ec1dc07327c553888a5cb",
   "size": 64349471,
-  "sourceSha": "efd8be333bda9bc8750d015f790284846a895154"
+  "sourceSha": "f8c6dd2fec4e2f0202b2eef641d6902c54b1b8cc"
 }
