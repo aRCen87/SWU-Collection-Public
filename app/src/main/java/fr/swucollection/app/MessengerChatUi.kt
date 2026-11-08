@@ -105,6 +105,7 @@ internal fun ColumnScope.CommunityChat(service: CommunityService, conversation: 
 internal fun ColumnScope.MessengerChatLayout(uid:String,peerName:String,messages:List<PlayerMessage>,draft:String,onDraft:(String)->Unit,
     busy:Boolean,online:Boolean,error:String?,signal:MessengerSignal,reply:PlayerMessage?,catalog:List<CatalogCard>,onSend:()->Unit,onShare:()->Unit,
     onReply:(PlayerMessage)->Unit,onCancelReply:()->Unit,onHide:(PlayerMessage)->Unit,onAttachment:(PlayerMessage)->Unit,onBack:(()->Unit)?=null) {
+    Column(Modifier.weight(1f).fillMaxWidth()) {
     val shortWindow=androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp<480
     val compactKeyboard=messengerCompactKeyboard()
     val scroll=rememberLazyListState();val clipboard=LocalClipboardManager.current
@@ -164,5 +165,6 @@ internal fun ColumnScope.MessengerChatLayout(uid:String,peerName:String,messages
         TextButton(onClick={hide=message;selected=null}){Text("Supprimer pour moi")}
     }},confirmButton={TextButton(onClick={selected=null}){Text("Fermer")}})}
     hide?.let{message->AlertDialog(onDismissRequest={hide=null},title={Text("Supprimer pour toi ?")},text={Text("Ce message restera visible pour ton ami.")},confirmButton={TextButton(onClick={onHide(message);hide=null}){Text("Supprimer")}},dismissButton={TextButton(onClick={hide=null}){Text("Annuler")}})}
+    }
 }
 internal fun messengerTime(at:Long):String=if(at<=0)"" else java.text.SimpleDateFormat("dd/MM · HH:mm",java.util.Locale.FRANCE).format(java.util.Date(at))
