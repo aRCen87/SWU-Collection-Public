@@ -20,6 +20,23 @@ OUT.mkdir(parents=True, exist_ok=True)
 def adb(*args):
     return subprocess.check_output(['adb', *map(str, args)], text=True, stderr=subprocess.STDOUT, timeout=90)
 
+def root_disposable_emulator():
+    assert adb('shell', 'getprop', 'ro.kernel.qemu').strip() == '1', 'Disposable Android emulator required'
+    diagnostics = []
+    for attempt in range(3):
+        result = subprocess.run(['adb', 'root'], text=True, capture_output=True, timeout=90)
+        diagnostics.append(result.stdout.strip() + result.stderr.strip())
+        # adbd restarts when switching UID; its transport may disappear before
+        # the root command receives its acknowledgement. Verify the new daemon.
+        try:
+            adb('wait-for-device')
+            if adb('shell', 'id', '-u').strip() == '0':
+                return
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+            diagnostics.append(str(error))
+        time.sleep(1)
+    raise AssertionError('Emulator root unavailable after reconnect: ' + '; '.join(diagnostics))
+
 def verify_apk(path):
     tools = Path(os.environ['ANDROID_HOME'])/'build-tools/36.0.0'
     cert = subprocess.check_output([str(tools/'apksigner'), 'verify', '--print-certs', str(path)], text=True)
@@ -73,7 +90,7 @@ adb('install', '-r', baseline)
 adb('shell', 'pm', 'grant', PACKAGE, 'android.permission.POST_NOTIFICATIONS')
 adb('logcat', '-c')
 launch()
-adb('root'); adb('wait-for-device')
+root_disposable_emulator()
 remote = '/data/data/'+PACKAGE+'/databases/swu_collection.db'
 uid = adb('shell', 'stat', '-c', '%u', remote).strip()
 assert uid.isdigit()
