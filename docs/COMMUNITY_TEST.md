@@ -1,3 +1,9 @@
+# Test 22 — accueil rapproché
+
+L’encart de citation est retiré de l’accueil Test. Le corps de l’accueil remonte de 48 dp sur le bas du bandeau, dont le dégradé rejoint exactement la couleur du fond. La recherche reste une vraie cible accessible ; avatar, paramètres, messages et compteur gardent leur zone sûre.
+
+Tous les raccourcis ont le même contour doré et le même reflet animé. Les tuiles secondaires réservent deux lignes aux titres et sous-titres et partagent la hauteur de leur rangée : Échanges garde les mêmes dimensions que les autres tuiles. Le défilement et l’ordre personnalisé restent disponibles. Les périodes du décor passent à 140 secondes pour la planète et 98 secondes pour la lune ; leurs axes indépendants et le respect de la réduction des animations sont conservés.
+
 # Test 20 — présentation
 
 Le bandeau spatial ne contient aucune commande imprimée. L’avatar est une cible de 64 dp à gauche ; les boutons Paramètres, Courrier et Compteur sont des cibles de 48 dp dans la colonne de droite. Paramètres ouvre directement sa page ; le menu général reste accessible dans les rubriques. Les entrées de messagerie et de compteur sont uniques sur l’accueil.

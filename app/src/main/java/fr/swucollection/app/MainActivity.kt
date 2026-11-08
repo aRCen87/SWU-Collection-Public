@@ -496,7 +496,7 @@ private fun CollectionScreen(
     val homeArtworkActive = selectedSection == "Accueil" && !menuOpen && !scannerOpen && scanCandidate == null && previewSession == null
     val homeHeaderProgress = rememberHomeHeaderProgress(homeArtworkActive)
     val headerReflection = rememberHeaderReflectionProgress(homeArtworkActive && reflectionsEnabled)
-    val homeFilmQuote = rememberHomeFilmQuote(homeArtworkActive)
+    val homeFilmQuote = rememberHomeFilmQuote(homeArtworkActive && !privateLayout)
     val updateScope = rememberCoroutineScope()
     val appUpdates = remember(appContext, database) { AppUpdates(appContext, database) }
     LaunchedEffect(previewDownloadRequest) {
@@ -685,7 +685,7 @@ private fun CollectionScreen(
         .then(if(immersiveHome) Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)) else Modifier.safeDrawingPadding()).imePadding()
         .then(if (privateLayout) Modifier.semantics { testTagsAsResourceId = true }
             .testTag("swu_content_window") else Modifier)) {
-        Box(Modifier.fillMaxSize().background(Color(0xFF02090F)))
+        Box(Modifier.fillMaxSize().background(PremiumHomeBackground))
         Column(
             Modifier.align(androidx.compose.ui.Alignment.TopCenter)
                 .then(if (privateLayout && !immersiveHome) Modifier.widthIn(max = when (selectedSection) {
@@ -768,8 +768,8 @@ private fun CollectionScreen(
                 })
             }
             if (selectedSection == "Accueil") {
-                Column(Modifier.then(if(privateLayout) Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)).widthIn(max=600.dp).fillMaxWidth().padding(horizontal=16.dp,vertical=12.dp) else Modifier.fillMaxWidth()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-                HomeFilmQuoteCard(homeFilmQuote)
+                Column(Modifier.then(if(privateLayout) Modifier.offset(y = -PremiumHomeOverlap).windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)).widthIn(max=600.dp).fillMaxWidth().padding(horizontal=16.dp,vertical=12.dp) else Modifier.fillMaxWidth()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+                if (!privateLayout) HomeFilmQuoteCard(homeFilmQuote)
                 if(immersiveHome) updateBanner()
                 Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedCard(onClick = { navigation.navigateTo("Recherche") },

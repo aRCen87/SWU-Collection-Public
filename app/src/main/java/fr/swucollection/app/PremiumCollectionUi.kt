@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.sp
 
 internal val PremiumGold = Color(0xFFE6C578)
 internal val PremiumNavy = Color(0xFF08121F)
+internal val PremiumHomeBackground = Color(0xFF02090F)
+internal val PremiumHomeOverlap = 48.dp
 internal val PremiumPanel = Brush.verticalGradient(listOf(Color(0xFF203145), Color(0xFF0B1726)))
 internal val PremiumMetal = Brush.verticalGradient(listOf(Color(0xFFFFEDB6), Color(0xFFD7AF57), Color(0xFFFFDE93)))
 
@@ -40,8 +42,10 @@ internal fun PremiumHomeBanner(active: Boolean, intro: State<Float>, reflection:
         val compact = maxWidth < 372.dp
         val bannerHeight=(if(compact) 220.dp else 246.dp)+topInset
         PremiumSpaceArtwork(orbitTime,Modifier.fillMaxWidth().height(bannerHeight))
-        Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(
-            Color(0x3308121F), Color.Transparent, Color(0xBB08121F)))))
+        Box(Modifier.matchParentSize().background(Brush.verticalGradient(
+            0f to Color(0x3308121F), .42f to Color.Transparent,
+            .64f to PremiumHomeBackground.copy(alpha = .18f),
+            .82f to PremiumHomeBackground.copy(alpha = .72f), 1f to PremiumHomeBackground)))
         PremiumLogoArtwork(intro,reflection,Modifier.align(Alignment.TopCenter)
             .padding(top=topInset+14.dp).width(if(compact) 154.dp else 196.dp).height(if(compact) 98.dp else 118.dp))
     }
@@ -66,8 +70,9 @@ internal fun PremiumHomeShortcuts(order: List<String>, reflection: State<BorderT
     arranged.take(2).forEach { shortcut -> PremiumHomeTile(shortcut, true, Modifier.fillMaxWidth(), reflection, shine, effectsEnabled, arranged.indexOf(shortcut)) { onOpen(shortcut.key) } }
     afterPrimary()
     arranged.drop(2).chunked(2).forEach { pair ->
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            pair.forEach { shortcut -> PremiumHomeTile(shortcut, false, Modifier.weight(1f), reflection, shine, effectsEnabled, arranged.indexOf(shortcut)) { onOpen(shortcut.key) } }
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            pair.forEach { shortcut -> PremiumHomeTile(shortcut, false, Modifier.weight(1f).fillMaxHeight(), reflection, shine, effectsEnabled, arranged.indexOf(shortcut)) { onOpen(shortcut.key) } }
+            if (pair.size == 1) Spacer(Modifier.weight(1f))
         }
     }
 }
@@ -89,8 +94,8 @@ private fun PremiumHomeTile(item: PremiumShortcut, prominent: Boolean, modifier:
     val interactions=remember {MutableInteractionSource()}
     val motion=if(effectsEnabled) Modifier.homeButtonMotion(interactions) else Modifier
     Surface(onClick = onClick, interactionSource=interactions,
-        modifier = modifier.then(motion).goldBorderReflection(reflection).homeTileShine(shine,index), color = PremiumNavy,
-        shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, PremiumGold.copy(alpha = if (prominent) .85f else .55f))) {
+        modifier = modifier.testTag("swu_home_tile_${item.key}").then(motion).goldBorderReflection(reflection).homeTileShine(shine,index), color = PremiumNavy,
+        shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, PremiumGold.copy(alpha = .85f))) {
         Box {
             Box(Modifier.matchParentSize().background(PremiumPanel)) {
                 Image(painterResource(homeShortcutArtwork(item.key)),null,
@@ -111,8 +116,8 @@ private fun PremiumHomeTile(item: PremiumShortcut, prominent: Boolean, modifier:
             } else Column(Modifier.heightIn(min = 120.dp).padding(14.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(item.icon, null, tint = PremiumGold, modifier = Modifier.size(27.dp))
-                Text(item.title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Color(0xFFF5F3ED))
-                Text(item.subtitle, fontSize = 11.sp, color = Color(0xFFE0E5EB))
+                Text(item.title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, minLines = 2, color = Color(0xFFF5F3ED))
+                Text(item.subtitle, fontSize = 11.sp, minLines = 2, color = Color(0xFFE0E5EB))
             }
         }
     }

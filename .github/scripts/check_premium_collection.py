@@ -56,6 +56,10 @@ def verify_motion():
     root=snapshot('motion-bounds')
     banner=next(n for n in root.iter('node') if n.attrib.get('resource-id')=='swu_premium_banner')
     x1,y1,x2,y2=bounds(banner); w=x2-x1; h=y2-y1
+    assert not any('«' in n.attrib.get('text','') for n in root.iter('node')), 'Quote card still on Test home'
+    search=find(root,'Carte, deck, extension…')
+    search_parent=[n for n in root.iter('node') if search in list(n.iter('node')) and n.attrib.get('clickable')=='true'][-1]
+    assert bounds(search_parent)[1]<y2, 'Search no longer overlaps the banner fade'
     assert x1==0 and y1==0, ('Banner has top/left margin', (x1,y1,x2,y2))
     display=adb('shell','wm','size')
     screen_width=int(re.findall(r'(\d+)x\d+',display)[-1])
@@ -80,12 +84,36 @@ def verify_motion():
     assert ImageChops.difference(Image.open(first).crop(area).convert('RGB'),Image.open(second).crop(area).convert('RGB')).getbbox() is None, 'Reduced-motion background keeps moving'
     print('Live orbital movement and reduced-motion pixels passed.', flush=True)
 
+def verify_secondary_shortcuts():
+    heights={}
+    keys=['MES DECKS','TOURNOIS & MÉTA','BADGES','STATISTIQUES','EXTENSIONS','ÉCHANGES']
+    for attempt in range(9):
+        root=snapshot('shortcuts-'+str(attempt))
+        for key in keys:
+            for node in root.iter('node'):
+                if node.attrib.get('resource-id')=='swu_home_tile_'+key:
+                    x1,y1,x2,y2=bounds(node)
+                    if 65<y1<y2<1320:
+                        heights[key]=(x2-x1,y2-y1)
+        if len(heights)==len(keys):break
+        adb('shell','input','swipe',360,1100,360,780,400);time.sleep(1)
+    assert len(heights)==len(keys), ('Missing full shortcut bounds',heights)
+    assert max(h for w,h in heights.values())-min(h for w,h in heights.values())<=2, heights
+    assert max(w for w,h in heights.values())-min(w for w,h in heights.values())<=2, heights
+    capture('secondary-shortcuts')
+    # Return to the very top before existing navigation checks.
+    for attempt in range(8):
+        adb('shell','input','swipe',360,500,360,1200,250)
+    time.sleep(2)
+    print('All six secondary shortcuts have matching dimensions, including Échanges.',flush=True)
+
 original_scale = adb('shell','settings','get','global','animator_duration_scale').strip()
 try:
     adb('shell','wm','size','720x1560'); adb('shell','wm','density',320)
     adb('shell','am','force-stop',PACKAGE)
     adb('shell','am','start','-W','-n',PACKAGE+'/fr.swucollection.app.MainActivity'); time.sleep(8)
     verify_motion()
+    verify_secondary_shortcuts()
     tap(find(snapshot('home'),'Extensions'))
     root = snapshot('extensions')
     tap(next(n for n in root.iter('node') if 'références possédées' in n.attrib.get('text','')))

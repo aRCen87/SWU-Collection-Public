@@ -1,3 +1,11 @@
+## Test 0.8.19-test.22
+
+- Suppression des citations sur l’accueil Test ; recherche et raccourcis remontés de 48 dp et libérés de la hauteur de l’ancien encart.
+- Fondu progressif du bandeau spatial vers le fond de l’accueil, derrière la recherche.
+- Même contour doré et reflet sur tous les raccourcis, y compris les six boutons du bas. Tuiles secondaires de même hauteur, dont Échanges, avec adaptation aux textes.
+- Planète et lune encore légèrement accélérées, avec leurs mouvements indépendants (périodes de 140 et 98 secondes).
+- Aucun changement de collection, de sauvegarde ni de services communautaires.
+
 ## Test 0.8.19-test.21
 
 - Bandeau bord à bord, sans marges noires ni coins arrondis en haut, à gauche et à droite. Le décor passe derrière la barre d’état ; avatar et raccourcis restent dans la zone sûre. Le contenu sous le bandeau garde sa largeur confortable.
