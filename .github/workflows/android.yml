@@ -158,10 +158,7 @@ jobs:
             adb shell am force-stop fr.swucollection.app
             adb shell am start -W -n fr.swucollection.app/fr.swucollection.app.MainActivity
             sleep 8
-            if [ "$SWU_RELEASE_VALIDATION" = true ]; then
-              python3 .github/scripts/check_official_account_entry.py
-              python3 .github/scripts/check_official_upgrade.py
-            fi
+            if [ "$SWU_RELEASE_VALIDATION" = true ]; then python3 .github/scripts/check_official_account_entry.py && python3 .github/scripts/check_official_upgrade.py; fi
       - name: Upload startup verification
         if: always()
         uses: actions/upload-artifact@v4
