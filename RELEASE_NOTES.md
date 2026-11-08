@@ -1,3 +1,13 @@
+## Test 0.8.19-test.23 — messagerie et partage
+
+- Discussions et Amis séparés, liste avec avatars, aperçus, dates et non-lus. Recherche d’ami par pseudo ; code ami retiré de l’interface. Fiches d’amis compactes et retrait confirmé dans le menu.
+- Champ et bouton Envoyer côte à côte au-dessus du clavier ; messages adaptatifs, réponse, copie et suppression pour soi par appui long. États envoyé/reçu/lu, indicateur de saisie et renvoi après échec sans doublon.
+- Menu des discussions : épinglage, sourdine 1 h/8 h/permanente et suppression pour soi synchronisés sur le compte. Un nouveau message réaffiche une discussion masquée sans rétablir son ancien historique.
+- Présence réservée aux amis acceptés, expiration après déconnexion et choix de masquer présence et lectures. Blocages appliqués côté serveur.
+- Partager à des amis depuis une fiche carte : aperçu exact langue/variante, pseudos et avatars, sélection multiple, note facultative et validation. Envoi distinct dans chaque conversation, sans changer les stocks. Les decks restent consultables et copiables dans Mes listes.
+- Alertes de messages, demandes/acceptations et échanges : vérification périodique et écoute pendant l’exécution. Client push et relais serveur préparés et testés ; relais non déployé sur le forfait Spark. Les notifications immédiates appli fermée ne sont pas encore actives et nécessitent une décision distincte sur le serveur/facturation.
+- Aucun changement de collection ni de sauvegarde. Les messages et réglages privés sont liés au compte.
+
 ## Test 0.8.19-test.22
 
 - Suppression des citations sur l’accueil Test ; recherche et raccourcis remontés de 48 dp et libérés de la hauteur de l’ancien encart.

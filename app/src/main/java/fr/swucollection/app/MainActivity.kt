@@ -235,6 +235,7 @@ private fun CollectionScreen(
     var cards by remember { mutableStateOf(database.allCards()) }
     var collectionRevision by remember { mutableIntStateOf(0) }
     var personalLists by remember { mutableStateOf(database.cardLists()) }
+    CommunityPresenceHost()
     val deckContext = LocalContext.current
     val privateLayout = deckContext.packageName == AppChannel.TEST_PACKAGE
     val homeStore = remember(deckContext) { HomeLayoutStore(deckContext) }
@@ -313,6 +314,7 @@ private fun CollectionScreen(
     var groupVersionsValue by rememberCollectionFilter("groupVersions", privateLayout.toString())
     val groupVersions = groupVersionsValue == "true"
     var collectionScope by rememberCollectionFilter("collectionScope", "Possédées")
+    var sharingPlayerCard by remember { mutableStateOf<SharedPlayerCard?>(null) }
     var previewSession by remember { mutableStateOf<CardPreviewSession?>(null) }
     var previewPrint by remember { mutableStateOf<CatalogCard?>(null) }
     var previewVariant by remember { mutableStateOf("Normale") }
@@ -325,8 +327,20 @@ private fun CollectionScreen(
         if (privateLayout && communityNavigationRequest != null) {
             previewSession = null; favoriteCard = null; scanCandidate = null
             scannerOpen = false; menuOpen = false
-            val tab = communityNavigationRequest.second
-            if (communityDestination(tab) == "Messagerie") { messengerInitialTab = tab; messengerConversation = null }
+            val tab = communityNavigationRequest.second.substringBefore('|')
+            if (communityDestination(tab) == "Messagerie") {
+                messengerInitialTab = tab; messengerConversation = null
+                val thread=communityNavigationRequest.second.substringAfter('|', "")
+                if(thread.isNotBlank())runCatching {
+                    val service=CommunityService.create(deckContext)?:return@runCatching
+                    val row=service.accountStore().collection("conversations").document(thread).get().communityAwait()
+                    val members=(row.get("members") as? List<*>)?.filterIsInstance<String>().orEmpty()
+                    if(service.uid in members) {
+                        val peer=members.firstOrNull{it!=service.uid}.orEmpty()
+                        messengerConversation=PlayerConversation(thread,members,row.getTimestamp("updatedAt")?.toDate()?.time?:0) to (service.profile(peer)?.name?:"Discussion")
+                    }
+                }
+            }
             else communityInitialTab = tab
             navigation.navigateTo(communityDestination(tab))
         }
@@ -659,6 +673,7 @@ private fun CollectionScreen(
                         CardLanguageChoices(previewLanguage, { previewLanguage = it; showReverse = false })
                         if (privateLayout) { collectionActions(); secondaryTools() }
                         else { secondaryTools(); collectionActions() }
+                        if(privateLayout) OutlinedButton(onClick={sharingPlayerCard=SharedPlayerCard(card.setCode,card.number,previewLanguage,previewVariant)}){Text("Partager à des amis")}
                         OutlinedButton(onClick = { previewSession = null }) { Text("Fermer") }
                         }
                 }
@@ -694,7 +709,7 @@ private fun CollectionScreen(
                     else -> 760.dp
                 }) else Modifier)
                 .fillMaxSize().padding(bottom = if (deckWorkspace || selectedSection == "Messagerie") 0.dp else 82.dp).then(
-                if (selectedSection in listOf("Collection", "Extensions", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta", "Prêts"))
+                if (selectedSection in listOf("Collection", "Extensions", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta", "Prêts", "Messagerie"))
                     Modifier else Modifier.verticalScroll(rememberScrollState())
             ).then(if(immersiveHome) Modifier else Modifier.padding(horizontal = 16.dp, vertical = 10.dp)),
             horizontalAlignment=if(immersiveHome) androidx.compose.ui.Alignment.CenterHorizontally else androidx.compose.ui.Alignment.Start,
@@ -1009,6 +1024,7 @@ private fun CollectionScreen(
                 key(communityNavigationRequest?.first, selectedSection) {
                 CommunityPanel(savedDecks, badgeProgress.filter { it.earned }, badgeBook?.definitions.orEmpty(), allCatalog, database, cardDetails,
                     initialTab = if (selectedSection == "Messagerie") messengerInitialTab else communityInitialTab,
+                    onOpenCard = { shared -> allCatalog.firstOrNull { it.setCode == shared.set && it.number.toIntOrNull() == shared.number.toIntOrNull() }?.let { openPreview(it, listOf(CardPreviewEntry(it, shared.variant, shared.language)), shared.variant, shared.language) } },
                     messaging = selectedSection == "Messagerie", initialConversation = if (selectedSection == "Messagerie") messengerConversation else null,
                     onOpenMessenger = { thread, name -> messengerInitialTab = "Messages"; messengerConversation = thread to name; navigation.navigateTo("Messagerie") },
                     onOpenFriends = { messengerInitialTab = "Amis"; messengerConversation = null; navigation.navigateTo("Messagerie") },
@@ -1451,6 +1467,7 @@ private fun CollectionScreen(
         }
     }
     }
+    sharingPlayerCard?.let { shared -> CardShareDialog(shared,allCatalog) { sharingPlayerCard=null } }
     editingOwnedLanguage?.let { owned ->
         var chosen by remember(owned.id) { mutableStateOf(owned.language) }
         var reassignedCopies by remember(owned.id) { mutableIntStateOf(owned.quantity) }

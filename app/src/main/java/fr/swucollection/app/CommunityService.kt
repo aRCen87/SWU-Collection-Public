@@ -17,9 +17,9 @@ internal data class PlayerProfile(
     val city: String = "", val formats: List<String> = emptyList(), val leaders: List<String> = emptyList(), val shareShowcase: Boolean = false,
     val firstName: String = "", val shareFirstName: Boolean = false
 )
-internal data class PlayerConversation(val id: String, val members: List<String>, val updatedAt: Long, val lastSenderId: String = "")
+internal data class PlayerConversation(val id: String, val members: List<String>, val updatedAt: Long, val lastSenderId: String = "", val lastText: String = "", val lastKind: String = "")
 internal data class PlayerMessage(val id: String, val senderId: String, val kind: String, val text: String,
-    val deckName: String, val deckJson: String, val createdAt: Long)
+    val deckName: String, val deckJson: String, val createdAt: Long, val cardJson: String = "", val replyId: String = "", val replyText: String = "")
 
 internal object CommunityValidation {
     val avatars = linkedMapOf("star" to "✦", "moon" to "☾", "planet" to "🪐", "robot" to "🤖", "ship" to "🚀", "comet" to "☄", "sun" to "☀", "crystal" to "💎")
@@ -115,7 +115,7 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
         val firstName = CommunityValidation.firstName(profile.firstName)
         val batch = db.batch()
         batch.set(db.collection("profiles").document(uid), mapOf(
-            "name" to CommunityValidation.name(profile.name), "bio" to profile.bio.trim(),
+            "name" to CommunityValidation.name(profile.name), "nameKey" to CommunityValidation.name(profile.name).lowercase(java.util.Locale.ROOT), "bio" to profile.bio.trim(),
             "avatar" to CommunityValidation.avatar(profile.avatar), "discoverable" to profile.discoverable,
             "shareBadges" to profile.shareBadges, "badgeIds" to if (profile.shareBadges) earnedIds.distinct().take(500) else emptyList<String>(),
             "messagePolicy" to profile.messagePolicy.also { require(it in listOf("testers", "friends", "nobody")) },
@@ -130,7 +130,7 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
     fun conversations(onValue: (List<PlayerConversation>) -> Unit, onError: (Exception) -> Unit): ListenerRegistration =
         db.collection("conversations").whereArrayContains("members", uid).limit(100).addSnapshotListener { rows, error ->
             if (error != null) onError(error) else onValue(rows?.documents.orEmpty().map { row ->
-                PlayerConversation(row.id, (row.get("members") as? List<*>)?.filterIsInstance<String>().orEmpty(), row.getTimestamp("updatedAt")?.toDate()?.time ?: 0L, row.getString("lastSenderId").orEmpty())
+                PlayerConversation(row.id, (row.get("members") as? List<*>)?.filterIsInstance<String>().orEmpty(), row.getTimestamp("updatedAt")?.toDate()?.time ?: 0L, row.getString("lastSenderId").orEmpty(), row.getString("lastText").orEmpty(), row.getString("lastKind").orEmpty())
             }.sortedByDescending { it.updatedAt })
         }
     fun messages(conversation: String, onValue: (List<PlayerMessage>) -> Unit, onError: (Exception) -> Unit): ListenerRegistration =
@@ -139,7 +139,7 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
                 if (error != null) onError(error) else onValue(rows?.documents.orEmpty().filterNot { it.metadata.hasPendingWrites() }.map { row ->
                     PlayerMessage(row.id, row.getString("senderId").orEmpty(), row.getString("kind").orEmpty(),
                         row.getString("text").orEmpty(), row.getString("deckName").orEmpty(), row.getString("deckJson").orEmpty(),
-                        row.getTimestamp("createdAt")?.toDate()?.time ?: 0L)
+                        row.getTimestamp("createdAt")?.toDate()?.time ?: 0L, row.getString("cardJson").orEmpty(), row.getString("replyId").orEmpty(), row.getString("replyText").orEmpty())
                 })
             }
     suspend fun openConversation(peer: String): String {
@@ -150,18 +150,7 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
         ref.set(mapOf("members" to listOf(me, peer).sorted(), "updatedAt" to FieldValue.serverTimestamp()), SetOptions.merge()).communityAwait()
         return id
     }
-    suspend fun send(conversation: String, messageId: String, text: String, deck: DeckStore.SavedDeck? = null) {
-        val raw = deck?.let { DeckInterchange.exportJson(it.deck, it.name) }.orEmpty()
-        if (deck != null) CommunityValidation.deck(raw)
-        val content = if (deck == null) CommunityValidation.text(text) else text.trim().take(2000)
-        val ref = db.collection("conversations").document(conversation)
-        val batch = db.batch()
-        batch.set(ref.collection("messages").document(messageId), mapOf(
-            "senderId" to uid, "kind" to if (deck == null) "text" else "deck", "text" to content,
-            "deckName" to (deck?.name?.take(120) ?: ""), "deckJson" to raw, "createdAt" to FieldValue.serverTimestamp()))
-        batch.update(ref, mapOf("updatedAt" to FieldValue.serverTimestamp(), "lastSenderId" to uid))
-        batch.commit().communityAwait()
-    }
+    suspend fun send(conversation: String, messageId: String, text: String, deck: DeckStore.SavedDeck? = null) = sendRich(conversation,messageId,text,deck)
     suspend fun block(peer: String, blocked: Boolean) {
         require(peer != uid)
         val ref = db.collection("blocks").document(uid).collection("users").document(peer)

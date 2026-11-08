@@ -36,6 +36,7 @@ internal object CommunityNoticePolicy {
 }
 
 internal object CommunityNotifications {
+    var activeThread: String? = null
     const val ACTION = "fr.swucollection.app.OPEN_COMMUNITY"
     const val OWNER = "community_owner"
     const val TAB = "community_tab"
@@ -45,7 +46,7 @@ internal object CommunityNotifications {
     private fun channel(tab: String) = when(tab) { "Messages" -> MESSAGES; "Échanges" -> SEARCH; else -> FRIENDS }
     private fun prefs(context: Context) = context.getSharedPreferences("community_notifications", Context.MODE_PRIVATE)
     fun pending(context: Context, uid: String, notice: CommunityNotice) = CommunityNoticePolicy.shouldNotify(notice, prefs(context).getLong("$uid.${notice.key}.notified", 0))
-    fun enabled(context: Context, uid: String, tab: String) = prefs(context).getBoolean("$uid.$tab.enabled", tab != "Échanges")
+    fun enabled(context: Context, uid: String, tab: String) = prefs(context).getBoolean("$uid.$tab.enabled", true)
     fun setEnabled(context: Context, uid: String, tab: String, value: Boolean) {
         prefs(context).edit().putBoolean("$uid.$tab.enabled", value).apply()
         if (!value) clear(context, channel(tab))
@@ -65,6 +66,7 @@ internal object CommunityNotifications {
         NotificationManagerCompat.from(context).areNotificationsEnabled()
     @SuppressLint("MissingPermission")
     fun offer(context: Context, uid: String, notice: CommunityNotice): Boolean {
+        if(notice.key=="message:$activeThread")return false
         if (context.packageName != AppChannel.TEST_PACKAGE || !enabled(context, uid, notice.tab) || !permission(context)) return false
         if (CommunityService.create(context)?.auth?.currentUser?.uid != uid) return false
         channels(context)
@@ -75,10 +77,11 @@ internal object CommunityNotifications {
         val intent = Intent(context, MainActivity::class.java).apply {
             action = ACTION; data = Uri.parse("swu-test://community/" + Uri.encode(uid) + "/" + Uri.encode(notice.key))
             putExtra(OWNER, uid); putExtra(TAB, notice.tab)
+            if(notice.key.startsWith("message:"))putExtra("community_thread",notice.key.removePrefix("message:"))
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
         val pending = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        val title = if (notice.key == "local-test") "Notification de test" else if (notice.tab == "Messages") "Nouveau message privé" else if (notice.tab == "Échanges") "Cartes recherchées chez un ami" else "Nouvelle demande d’ami"
+        val title = if (notice.key == "local-test") "Notification de test" else if (notice.tab == "Messages") "Nouveau message privé" else if (notice.key.startsWith("trade:")) "Échange mis à jour" else if (notice.tab == "Échanges") "Cartes recherchées chez un ami" else if(notice.key.startsWith("friend-accepted:"))"Demande d’ami acceptée" else "Nouvelle demande d’ami"
         val public = NotificationCompat.Builder(context, channel).setSmallIcon(R.drawable.ic_update_notification)
             .setContentTitle("SWU Collection Test").setContentText("Une activité est disponible dans la communauté.").build()
         val notification = NotificationCompat.Builder(context, channel).setSmallIcon(R.drawable.ic_update_notification)
@@ -99,7 +102,9 @@ internal object CommunityNotifications {
         if (context.packageName != AppChannel.TEST_PACKAGE || intent.action != ACTION) return null
         val uid = CommunityService.create(context)?.auth?.currentUser?.uid ?: return null
         if (intent.getStringExtra(OWNER) != uid) return null
-        return intent.getStringExtra(TAB)?.takeIf { it in listOf("Messages", "Amis", "Échanges") }
+        val tab=intent.getStringExtra(TAB)?.takeIf { it in listOf("Messages", "Amis", "Échanges") }?:return null
+        val thread=intent.getStringExtra("community_thread").orEmpty()
+        return tab+if(tab=="Messages" && Regex("[A-Za-z0-9_-]{1,260}").matches(thread))"|$thread" else ""
     }
     suspend fun check(context: Context, service: CommunityService) {
         val uid = service.auth.currentUser?.takeIf { it.isEmailVerified }?.uid ?: return
@@ -107,6 +112,7 @@ internal object CommunityNotifications {
         if (!enabled(context, uid, "Messages") && !enabled(context, uid, "Amis") && !enabled(context, uid, "Échanges")) return
         if (!service.allowed()) return
         val db = service.accountStore()
+        val threadStates=db.collection("messenger").document(uid).collection("threads").limit(100).get(Source.SERVER).communityAwait().documents.associate{it.id to it.toThreadState()}
         if (enabled(context, uid, "Messages")) {
             val conversations = db.collection("conversations").whereArrayContains("members", uid).limit(100).get(Source.SERVER).communityAwait().documents.map {
                 PlayerConversation(it.id, (it.get("members") as? List<*>)?.filterIsInstance<String>().orEmpty(),
@@ -115,7 +121,8 @@ internal object CommunityNotifications {
             val reads = db.collection("reads").document(uid).collection("threads").limit(100).get(Source.SERVER).communityAwait().documents
                 .associate { it.id to (it.getTimestamp("seenAt")?.toDate()?.time ?: 0L) }
             for (notice in CommunityNoticePolicy.messages(uid, conversations, reads)) {
-                if (!pending(context, uid, notice)) continue
+                val state=threadStates[notice.key.removePrefix("message:")]?:MessengerThreadState()
+                if(state.mutedUntil>System.currentTimeMillis() || notice.version<=state.hiddenBefore || !pending(context, uid, notice)) continue
                 check(service.auth.currentUser?.uid == uid)
                 val peer = conversations.first { "message:" + it.id == notice.key }.members.firstOrNull { it != uid } ?: continue
                 if (!service.isBlocked(peer)) offer(context, uid, notice)
@@ -123,11 +130,20 @@ internal object CommunityNotifications {
         }
         if (enabled(context, uid, "Amis")) {
             val pending = db.collection("friendships").whereArrayContains("members", uid).limit(100).get(Source.SERVER).communityAwait()
-            for (row in pending.documents.filter { it.getString("status") == "pending" && it.getString("requester") != uid }) {
+            for (row in pending.documents.filter { (it.getString("status") == "pending" && it.getString("requester") != uid) || (it.getString("status")=="accepted" && it.getString("requester")==uid) }) {
                 check(service.auth.currentUser?.uid == uid)
-                val peer = row.getString("requester") ?: continue
-                val notice = CommunityNotice("friend:" + row.id, "Amis", row.getTimestamp("updatedAt")?.toDate()?.time ?: 0)
+                val peer = (row.get("members") as? List<*>)?.filterIsInstance<String>()?.firstOrNull{it!=uid} ?: continue
+                val notice = CommunityNotice((if(row.getString("status")=="accepted")"friend-accepted:" else "friend:") + row.id, "Amis", row.getTimestamp("updatedAt")?.toDate()?.time ?: 0)
                 if (pending(context, uid, notice) && !service.isBlocked(peer)) offer(context, uid, notice)
+            }
+        }
+        if(enabled(context,uid,"Échanges")) {
+            for(row in db.collection("trades").whereArrayContains("members",uid).limit(100).get(Source.SERVER).communityAwait().documents) {
+                val requester=row.getString("requester");val status=row.getString("status")
+                val actor=if(status in listOf("pending","cancelled"))requester else (row.get("members") as? List<*>)?.firstOrNull{it!=requester}
+                if(actor==uid)continue
+                val peer=(row.get("members") as? List<*>)?.filterIsInstance<String>()?.firstOrNull{it!=uid}?:continue
+                if(!service.isBlocked(peer))offer(context,uid,CommunityNotice("trade:"+row.id,"Échanges",row.getTimestamp("updatedAt")?.toDate()?.time?:0))
             }
         }
         SearchCardAlerts.check(context, service)
@@ -179,7 +195,7 @@ internal fun CommunityNotificationControls(uid: String) {
     var testStatus by remember { mutableStateOf<String?>(null) }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text("Notifications de la communauté", style = MaterialTheme.typography.titleMedium)
-        listOf("Messages" to "Messages privés", "Amis" to "Demandes d’amis", "Échanges" to "Cartes recherchées chez mes amis").forEach { (key, label) ->
+        listOf("Messages" to "Messages privés", "Amis" to "Demandes d’amis", "Échanges" to "Échanges et cartes recherchées").forEach { (key, label) ->
             var enabled by remember(uid, key) { mutableStateOf(CommunityNotifications.enabled(context, uid, key)) }
             Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                 Text(label, Modifier.weight(1f)); Switch(enabled, { enabled = it; CommunityNotifications.setEnabled(context, uid, key, it) })

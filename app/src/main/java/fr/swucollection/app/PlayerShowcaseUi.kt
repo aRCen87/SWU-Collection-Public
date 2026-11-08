@@ -50,7 +50,7 @@ internal fun PlayerDirectory(service: CommunityService, profiles: List<PlayerPro
     if (!loading && error == null && visible.isEmpty()) Text("Aucun joueur visible pour ces critères.")
     Text("Jusqu’à 50 profils par recherche. Seuls les profils volontairement visibles apparaissent.", style = MaterialTheme.typography.bodySmall)
     visible.forEach { player -> OutlinedCard(onClick = { onSelect(player) }, modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(12.dp)) { Text(player.name, fontWeight = FontWeight.Bold); Text(listOf(player.city, player.formats.joinToString(" · ")).filter { it.isNotBlank() }.joinToString(" — ")); Text("Voir le profil et la vitrine ›") }
+        Row(Modifier.padding(12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)) { CommunityAvatar(player.avatar,Modifier.size(42.dp));Column {Text(player.name,fontWeight=FontWeight.Bold);Text(listOf(player.city,player.formats.joinToString(" · ")).filter{it.isNotBlank()}.joinToString(" — "));Text("Voir le profil et la vitrine ›")}}
     } }
 }
 @Composable

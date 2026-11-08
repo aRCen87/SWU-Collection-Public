@@ -21,9 +21,8 @@ service cloud.firestore {
         get(/databases/$(database)/documents/friendships/$(pair)).data.status == 'accepted';
     }
     function acceptsMessages(a, b) {
-      return !exists(/databases/$(database)/documents/profiles/$(b)) ||
-        get(/databases/$(database)/documents/profiles/$(b)).data.get('messagePolicy', 'testers') == 'testers' ||
-        (get(/databases/$(database)/documents/profiles/$(b)).data.get('messagePolicy', 'testers') == 'friends' && friends(a, b));
+      return friends(a,b) && (!exists(/databases/$(database)/documents/profiles/$(b)) ||
+        get(/databases/$(database)/documents/profiles/$(b)).data.get('messagePolicy','friends') != 'nobody');
     }
     function visibleProfile(uid) {
       return request.auth.uid == uid || get(/databases/$(database)/documents/profiles/$(uid)).data.discoverable == true || friends(request.auth.uid, uid);
@@ -34,8 +33,8 @@ service cloud.firestore {
     }
     function validProfile(d) {
       return d.keys().hasAll(['name','bio','avatar','discoverable','shareBadges','badgeIds','updatedAt']) &&
-        d.keys().hasOnly(['name','bio','avatar','discoverable','shareBadges','badgeIds','updatedAt','messagePolicy','shareDecks','city','cityKey','formats','leaders','shareShowcase']) &&
-        d.name is string && d.name.size() >= 2 && d.name.size() <= 32 &&
+        d.keys().hasOnly(['name','bio','avatar','discoverable','shareBadges','badgeIds','updatedAt','messagePolicy','shareDecks','city','cityKey','formats','leaders','shareShowcase','nameKey']) &&
+        d.name is string && d.name.size() >= 2 && d.name.size() <= 32 && d.get('nameKey','') is string && d.get('nameKey','').size() <= 64 &&
         d.bio is string && d.bio.size() <= 200 &&
         d.avatar is string && d.avatar.size() <= 18000 &&
         (d.avatar.matches('preset:(star|moon|planet|robot|ship|comet|sun|crystal)') || d.avatar.matches('jpeg:[A-Za-z0-9+/=]+')) &&
@@ -177,10 +176,21 @@ service cloud.firestore {
       allow update: if allowed() && validMembers(resource.data.members) &&
         acceptsMessages(request.auth.uid, resource.data.members[resource.data.members[0] == request.auth.uid ? 1 : 0]) &&
         request.resource.data.members == resource.data.members &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['updatedAt','lastSenderId']) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['updatedAt','lastSenderId','lastText','lastKind']) &&
         (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['lastSenderId']) ||
-          request.resource.data.lastSenderId == request.auth.uid) && request.resource.data.updatedAt == request.time;
+          request.resource.data.lastSenderId == request.auth.uid) && request.resource.data.get('lastText','') is string && request.resource.data.get('lastText','').size() <= 160 && request.resource.data.get('lastKind','text') in ['text','deck','card'] && request.resource.data.updatedAt == request.time;
       allow delete: if false;
+      match /signals/{uid} {
+        function member() { return allowed() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversation)).data.members && uid in get(/databases/$(database)/documents/conversations/$(conversation)).data.members; }
+        allow get: if member() && (request.auth.uid == uid || (friends(request.auth.uid,uid) && unblocked(request.auth.uid,uid) &&
+          (!exists(/databases/$(database)/documents/messengerSettings/$(uid)) || get(/databases/$(database)/documents/messengerSettings/$(uid)).data.shareRead == true)));
+        allow list,delete: if false;
+        allow create,update: if member() && request.auth.uid == uid &&
+          request.resource.data.keys().hasAll(['deliveredAt','seenAt','typingAt','typing']) && request.resource.data.keys().hasOnly(['deliveredAt','seenAt','typingAt','typing']) &&
+          request.resource.data.deliveredAt == request.time && request.resource.data.typingAt == request.time && request.resource.data.typing is bool &&
+          (request.resource.data.seenAt == null || request.resource.data.seenAt == request.time) &&
+          (request.resource.data.seenAt == null || !exists(/databases/$(database)/documents/messengerSettings/$(uid)) || get(/databases/$(database)/documents/messengerSettings/$(uid)).data.shareRead == true);
+      }
       match /messages/{message} {
         function participant() {
           return allowed() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversation)).data.members;
@@ -189,17 +199,54 @@ service cloud.firestore {
           let m = getAfter(/databases/$(database)/documents/conversations/$(conversation)).data.members;
           return allowed() && validMembers(m) && acceptsMessages(request.auth.uid, m[m[0] == request.auth.uid ? 1 : 0]) &&
             d.keys().hasAll(['senderId','kind','text','deckName','deckJson','createdAt']) &&
-            d.keys().hasOnly(['senderId','kind','text','deckName','deckJson','createdAt']) &&
+            d.keys().hasOnly(['senderId','kind','text','deckName','deckJson','createdAt','cardJson','replyId','replyText']) &&
             d.senderId == request.auth.uid && d.text is string && d.text.size() <= 2000 &&
             d.deckName is string && d.deckName.size() <= 120 && d.deckJson is string && d.deckJson.size() <= 40000 &&
             ((d.kind == 'text' && d.text.size() >= 1 && d.deckJson == '' && d.deckName == '') ||
-             (d.kind == 'deck' && d.deckName.size() >= 1 && d.deckJson.size() >= 2)) && d.createdAt == request.time;
+             (d.kind == 'deck' && d.deckName.size() >= 1 && d.deckJson.size() >= 2) ||
+             (d.kind == 'card' && d.get('cardJson','').size() >= 2 && d.deckJson == '' && d.deckName == '')) &&
+            d.get('cardJson','') is string && d.get('cardJson','').size() <= 300 &&
+            d.get('replyId','') is string && d.get('replyId','').size() <= 128 &&
+            d.get('replyText','') is string && d.get('replyText','').size() <= 180 && d.createdAt == request.time;
         }
         allow get: if participant();
         allow list: if participant() && request.query.limit != null && request.query.limit <= 50;
         allow create: if validMessage(request.resource.data);
         allow update, delete: if false;
       }
+    }
+    match /messengerSettings/{uid} {
+      allow get: if allowed() && request.auth.uid == uid;
+      allow list,delete: if false;
+      allow create,update: if allowed() && request.auth.uid == uid &&
+        request.resource.data.keys().hasAll(['sharePresence','shareRead']) && request.resource.data.keys().hasOnly(['sharePresence','shareRead','messages','friends','trades']) &&
+        request.resource.data.sharePresence is bool && request.resource.data.shareRead is bool &&
+        request.resource.data.get('messages',true) is bool && request.resource.data.get('friends',true) is bool && request.resource.data.get('trades',true) is bool;
+    }
+    match /messenger/{uid}/threads/{thread} {
+      allow get: if allowed() && request.auth.uid == uid;
+      allow list: if allowed() && request.auth.uid == uid && request.query.limit != null && request.query.limit <= 100;
+      allow delete: if allowed() && request.auth.uid == uid;
+      allow create,update: if allowed() && request.auth.uid == uid && uid in get(/databases/$(database)/documents/conversations/$(thread)).data.members &&
+        request.resource.data.keys().hasAll(['hiddenBefore','pinned','mutedUntil','hiddenMessages']) && request.resource.data.keys().hasOnly(['hiddenBefore','pinned','mutedUntil','hiddenMessages']) &&
+        request.resource.data.hiddenBefore is int && request.resource.data.hiddenBefore >= 0 && request.resource.data.pinned is bool &&
+        request.resource.data.mutedUntil is int && request.resource.data.mutedUntil >= 0 && request.resource.data.hiddenMessages is list && request.resource.data.hiddenMessages.size() <= 500;
+    }
+    match /presence/{uid} {
+      allow get: if allowed() && (request.auth.uid == uid || (friends(request.auth.uid,uid) && unblocked(request.auth.uid,uid) && enabled(uid) && resource.data.visible == true && (!exists(/databases/$(database)/documents/messengerSettings/$(uid)) || get(/databases/$(database)/documents/messengerSettings/$(uid)).data.sharePresence == true)));
+      allow list,delete: if false;
+      allow create,update: if allowed() && request.auth.uid == uid &&
+        request.resource.data.keys().hasAll(['visible','online','updatedAt']) && request.resource.data.keys().hasOnly(['visible','online','updatedAt']) &&
+        request.resource.data.visible is bool && request.resource.data.online is bool && request.resource.data.updatedAt == request.time && (!request.resource.data.visible || !exists(/databases/$(database)/documents/messengerSettings/$(uid)) || get(/databases/$(database)/documents/messengerSettings/$(uid)).data.sharePresence == true);
+    }
+    match /pushDevices/{uid}/devices/{device} {
+      allow get: if allowed() && request.auth.uid == uid;
+      allow list: if allowed() && request.auth.uid == uid && request.query.limit != null && request.query.limit <= 20;
+      allow delete: if allowed() && request.auth.uid == uid;
+      allow create,update: if allowed() && request.auth.uid == uid && device.matches('[a-f0-9]{64}') &&
+        request.resource.data.keys().hasAll(['token','package','updatedAt']) && request.resource.data.keys().hasOnly(['token','package','updatedAt']) &&
+        request.resource.data.token is string && request.resource.data.token.size() >= 20 && request.resource.data.token.size() <= 4096 &&
+        request.resource.data.package == 'fr.swucollection.app.test' && request.resource.data.updatedAt == request.time;
     }
     // Account snapshots are private, immutable and available only to their owner.
     match /accountBackups/{uid} {

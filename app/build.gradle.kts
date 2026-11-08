@@ -11,6 +11,7 @@ android {
         applicationId = "fr.swucollection.app"
         minSdk = 26
         targetSdk = 36
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         versionCode = 60
         versionName = "0.8.19"
     }
@@ -36,7 +37,7 @@ android {
         create("preview") {
             initWith(getByName("release"))
             applicationIdSuffix = ".test"
-            versionNameSuffix = "-test.22"
+            versionNameSuffix = "-test.23"
             signingConfig = signingConfigs.getByName("release")
             matchingFallbacks += listOf("release")
         }
@@ -58,11 +59,15 @@ android {
 // The private app has its own update sequence; the official release stays frozen.
 androidComponents {
     onVariants(selector().withBuildType("preview")) { variant ->
-        variant.outputs.forEach { it.versionCode.set(81) }
+        variant.outputs.forEach { it.versionCode.set(82) }
     }
 }
 kotlin { jvmToolchain(17) }
 dependencies {
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    add("previewImplementation", "com.google.firebase:firebase-messaging")
     implementation(platform("com.google.firebase:firebase-bom:34.6.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")

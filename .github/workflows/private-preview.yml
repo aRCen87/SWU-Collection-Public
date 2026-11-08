@@ -1,7 +1,7 @@
 name: Encrypted SWU Collection Test
 on:
   push:
-    branches: ["preview/private-sandbox", "preview/profile-avatars-test17", "preview/reliability-test18", "preview/performance-test19", "preview/premium-design-test20", "preview/immersive-home-test21", "preview/home-fade-test22"]
+    branches: ["preview/private-sandbox", "preview/profile-avatars-test17", "preview/reliability-test18", "preview/performance-test19", "preview/premium-design-test20", "preview/immersive-home-test21", "preview/home-fade-test22", "preview/messenger-test23"]
     paths-ignore: ["docs/preview-update.json"]
   workflow_dispatch:
 permissions:
@@ -69,7 +69,7 @@ jobs:
           python3 -m unittest discover -s .github/scripts -p 'test_*.py'
           for attempt in 1 2 3; do
             set +e
-            gradle --no-daemon testDebugUnitTest lintDebug assembleDebug testPreviewUnitTest lintPreview assemblePreview 2>&1 | tee "$RUNNER_TEMP/preview-gradle.log"
+            gradle --no-daemon testDebugUnitTest lintDebug assembleDebug testPreviewUnitTest lintPreview assemblePreview assembleDebugAndroidTest 2>&1 | tee "$RUNNER_TEMP/preview-gradle.log"
             result=${PIPESTATUS[0]}
             set -e
             if test "$result" -eq 0; then break; fi
@@ -153,7 +153,9 @@ jobs:
           emulator-boot-timeout: 300
           disable-animations: true
           emulator-options: -no-window -gpu swangle_indirect -noaudio -no-boot-anim -no-snapshot-save -feature GLESDynamicVersion
-          script: bash .github/scripts/smoke_premium_preview.sh
+          script: |
+            bash .github/scripts/check_messenger_keyboard.sh
+            bash .github/scripts/smoke_premium_preview.sh
       - name: Encrypt the empty-account layout check for private review
         if: always()
         run: |

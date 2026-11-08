@@ -1,3 +1,19 @@
+## Test 0.8.19-test.23 — messagerie et partage
+
+- Discussions et Amis séparés, liste avec avatars, aperçus, dates et non-lus. Recherche d’ami par pseudo ; code ami retiré de l’interface. Fiches d’amis compactes et retrait confirmé dans le menu.
+- Champ et bouton Envoyer côte à côte au-dessus du clavier ; messages adaptatifs, réponse, copie et suppression pour soi par appui long. États envoyé/reçu/lu, indicateur de saisie et renvoi après échec sans doublon.
+- Menu des discussions : épinglage, sourdine 1 h/8 h/permanente et suppression pour soi synchronisés sur le compte. Un nouveau message réaffiche une discussion masquée sans rétablir son ancien historique.
+- Présence réservée aux amis acceptés, expiration après déconnexion et choix de masquer présence et lectures. Blocages appliqués côté serveur.
+- Partager à des amis depuis une fiche carte : aperçu exact langue/variante, pseudos et avatars, sélection multiple, note facultative et validation. Envoi distinct dans chaque conversation, sans changer les stocks. Les decks restent consultables et copiables dans Mes listes.
+- Alertes de messages, demandes/acceptations et échanges : vérification périodique et écoute pendant l’exécution. Client push et relais serveur préparés et testés ; relais non déployé sur le forfait Spark. Les notifications immédiates appli fermée ne sont pas encore actives et nécessitent une décision distincte sur le serveur/facturation.
+- Aucun changement de collection ni de sauvegarde. Les messages et réglages privés sont liés au compte.
+
+Les règles sont étendues uniquement pour les données privées de messagerie. Les paramètres de conversation appartiennent à leur propriétaire ; une suppression ne supprime jamais les messages de l’autre personne. Les anciennes versions peuvent toujours lire les messages texte/deck existants. Les nouveaux messages exigent une amitié acceptée, sans blocage dans les deux sens. Le statut de saisie expire après 10 s et le statut en ligne après 75 s sans renouvellement ; une coupure brutale peut donc laisser le point vert visible jusqu’à cette expiration. La présence est approximative, liée au premier plan de l’application.
+
+Le sélecteur de partage n’envoie aucun message avant la validation explicite. Les identifiants d’envoi sont conservés pour les destinataires non confirmés et changent seulement après réussite, afin de pouvoir réessayer sans doublon. Les visuels reçus sont résolus dans le catalogue local ; aucun lien de suivi transmis par un joueur n’est utilisé comme image.
+
+Les tests d’intégration utilisent uniquement demo-swu-community-test. Le test de clavier installe une interface fictive qui appelle le vrai composant de discussion ; il n’envoie aucun message à un joueur. Les artefacts de rendu restent chiffrés.
+
 # Test 22 — accueil rapproché
 
 L’encart de citation est retiré de l’accueil Test. Le corps de l’accueil remonte de 48 dp sur le bas du bandeau, dont le dégradé rejoint exactement la couleur du fond. La recherche reste une vraie cible accessible ; avatar, paramètres, messages et compteur gardent leur zone sûre.

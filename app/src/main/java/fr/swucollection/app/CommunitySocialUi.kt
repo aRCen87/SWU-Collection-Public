@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.MonitorHeart
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -127,31 +128,31 @@ internal suspend fun loadCharacterAvatar(context: Context, card: CatalogCard): S
 internal fun ColumnScope.FriendPanel(service: CommunityService, friendships: List<PlayerFriendship>, profiles: Collection<PlayerProfile>, busy: Boolean,
     onAccept: (PlayerFriendship) -> Unit, onRemove: (PlayerFriendship) -> Unit, onRequest: (String) -> Unit,
     onProfile: (PlayerProfile) -> Unit, onMessage: (PlayerProfile) -> Unit, onTrade: (PlayerProfile) -> Unit, messaging: Boolean = false) {
-    var code by remember { mutableStateOf("") }
     var remove by remember { mutableStateOf<PlayerFriendship?>(null) }
     var search by remember { mutableStateOf("") }
     Text("Mes amis", style = MaterialTheme.typography.titleLarge)
-    Text(if (messaging) "Recherche un joueur avec le bouton ci-dessus, ou utilise son code ami." else "Trouve un joueur par pseudo dans Joueurs, ou utilise son code ami.", fontSize = 12.sp)
-    OutlinedTextField(code, { code = it.take(160) }, label = { Text("Code ami") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-    Button(onClick = { onRequest(code) }, enabled = !busy && code.isNotBlank()) { Text("Envoyer une demande") }
-    val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
-    TextButton(onClick = { clipboard.setText(androidx.compose.ui.text.AnnotatedString(service.uid)) }) { Text("Copier mon code ami") }
     if (friendships.isEmpty()) Text("Tes amis et demandes apparaîtront ici.")
     if (messaging && friendships.isNotEmpty()) OutlinedTextField(search, { search = it.take(80) }, label = { Text("Rechercher parmi mes amis") }, singleLine = true, modifier = Modifier.fillMaxWidth())
     val ordered = friendships.sortedBy { if (it.status == "pending" && it.requester != service.uid) 0 else if (it.status == "accepted") 1 else 2 }
     ordered.forEach { friend ->
         val player = profiles.firstOrNull { it.id == friend.peer(service.uid) } ?: PlayerProfile(friend.peer(service.uid), if (friend.requester != service.uid) friend.requesterName.ifBlank { "Joueur du test" } else "Joueur du test", avatar = if (friend.requester != service.uid) friend.requesterAvatar else "preset:star")
         if (!player.name.contains(search.trim(), true)) return@forEach
-        Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            PlayerHeading(player)
-            if (friend.status == "accepted") {
-                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    TextButton(onClick = { onProfile(player) }) { Text("Profil") }
-                    TextButton(onClick = { onMessage(player) }) { Text("Message") }
-                    if (!messaging) TextButton(onClick = { onTrade(player) }) { Text("Échange") }
+        OutlinedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                CommunityAvatar(player.avatar,Modifier.size(42.dp))
+                Column(Modifier.weight(1f)){Text(player.name,fontWeight=FontWeight.Bold);if(friend.status=="accepted")FriendPresence(service,player.id)}
+                TextButton(onClick={onProfile(player)},contentPadding=PaddingValues(4.dp)){Text("Profil",fontSize=12.sp)}
+                if(friend.status=="accepted")IconButton(onClick={onMessage(player)}){Icon(Icons.Default.MailOutline,"Message à ${player.name}")}
+                var menu by remember{mutableStateOf(false)}
+                Box{IconButton(onClick={menu=true}){Icon(Icons.Default.MoreVert,"Options pour ${player.name}")}
+                    DropdownMenu(menu,{menu=false}){
+                        if(friend.status=="accepted")DropdownMenuItem(text={Text("Retirer de mes amis")},onClick={menu=false;remove=friend})
+                        DropdownMenuItem(text={Text("Profil et blocage")},onClick={menu=false;onProfile(player)})
+                        if(!messaging && friend.status=="accepted")DropdownMenuItem(text={Text("Proposer un échange")},onClick={menu=false;onTrade(player)})
+                    }
                 }
-                TextButton(onClick = { remove = friend }) { Text("Retirer de mes amis") }
-            } else {
+            }
+            if (friend.status != "accepted") {
                 Text(if (friend.requester == service.uid) "Demande envoyée" else "Souhaite devenir ton ami")
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     if (friend.requester != service.uid) Button(onClick = { onAccept(friend) }, enabled = !busy) { Text("Accepter") }

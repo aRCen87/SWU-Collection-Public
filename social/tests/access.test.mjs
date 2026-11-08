@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { before, after, beforeEach, test } from 'node:test';
 import { initializeTestEnvironment, assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { doc, setDoc, getDoc, collection, getDocs, query, where, limit, serverTimestamp, updateDoc, writeBatch } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, getDocs, query, where, limit, serverTimestamp, updateDoc, writeBatch, deleteDoc } from 'firebase/firestore';
 let env;
 before(async()=>{env=await initializeTestEnvironment({projectId:'demo-swu-community-test',firestore:{rules:readFileSync('firestore.rules','utf8')}})});
 after(async()=>{await env.cleanup()});
@@ -14,7 +14,10 @@ beforeEach(async()=>{
 const db=(uid,verified=true)=>env.authenticatedContext(uid,{email_verified:verified,email:uid+'@example.test'}).firestore();
 const profile=(extra={})=>({name:'Joueur',bio:'',avatar:'preset:star',discoverable:true,shareBadges:false,badgeIds:[],updatedAt:serverTimestamp(),...extra});
 const message=(sender,extra={})=>({senderId:sender,kind:'text',text:'Bonjour',deckName:'',deckJson:'',createdAt:serverTimestamp(),...extra});
-async function thread(){await assertSucceeds(setDoc(doc(db('alice'),'conversations','alice__bob'),{members:['alice','bob'],updatedAt:serverTimestamp()}));}
+async function thread(){
+ await setDoc(doc(db('alice'),'friendships','alice__bob'),{members:['alice','bob'],requester:'alice',status:'pending',updatedAt:serverTimestamp()});
+ await updateDoc(doc(db('bob'),'friendships','alice__bob'),{status:'accepted',updatedAt:serverTimestamp()});
+ await assertSucceeds(setDoc(doc(db('alice'),'conversations','alice__bob'),{members:['alice','bob'],updatedAt:serverTimestamp()}));}
 
 test('anonymous, unverified and unapproved users cannot read or write profiles',async()=>{
  for(const store of [env.unauthenticatedContext().firestore(),db('alice',false),db('outsider')]){
@@ -96,6 +99,7 @@ test('friendship needs recipient consent and keeps private profiles hidden until
 });
 test('message privacy applies to existing conversations and read receipts stay private',async()=>{
  await thread();const a=db('alice'),b=db('bob');
+ await deleteDoc(doc(a,'friendships','alice__bob'));
  await setDoc(doc(b,'profiles','bob'),profile({messagePolicy:'friends'}));
  await assertFails(setDoc(doc(a,'conversations','alice__bob','messages','no-friend'),message('alice')));
  await setDoc(doc(a,'friendships','alice__bob'),{members:['alice','bob'],requester:'alice',status:'pending',updatedAt:serverTimestamp()});
