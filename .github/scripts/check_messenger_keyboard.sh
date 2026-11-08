@@ -11,8 +11,8 @@ for format in cover unfolded landscape; do
     landscape) adb shell wm size 1560x720; adb shell wm density 320 ;;
   esac
   adb shell am instrument -w -e class fr.swucollection.app.MessengerKeyboardTest fr.swucollection.app.test/androidx.test.runner.AndroidJUnitRunner | tee "smoke-private/messenger-instrumentation-$format.txt"
-  grep -q 'OK (1 test)' "smoke-private/messenger-instrumentation-$format.txt"
   adb pull /sdcard/Android/data/fr.swucollection.app/files/home-test-messenger-keyboard.png "smoke-private/home-test-messenger-keyboard-$format.png"
+  grep -q 'OK (1 test)' "smoke-private/messenger-instrumentation-$format.txt"
 done
 adb shell wm size reset
 adb shell wm density reset

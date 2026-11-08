@@ -107,7 +107,7 @@ internal fun ColumnScope.MessengerChatLayout(uid:String,peerName:String,messages
     var search by remember{mutableStateOf("")};var searching by remember{mutableStateOf(false)}
     var now by remember{mutableLongStateOf(System.currentTimeMillis())}
     LaunchedEffect(Unit){while(true){delay(5000);now=System.currentTimeMillis()}}
-    LaunchedEffect(messages.lastOrNull()?.id,search){if(messages.isNotEmpty())scroll.animateScrollToItem((messages.count{search.isBlank() || it.text.contains(search,true) || it.deckName.contains(search,true)}-1).coerceAtLeast(0))}
+    LaunchedEffect(messages.lastOrNull()?.id,search,compactKeyboard){if(messages.isNotEmpty()){withFrameNanos { };scroll.scrollToItem((messages.count{search.isBlank() || it.text.contains(search,true) || it.deckName.contains(search,true)}-1).coerceAtLeast(0))}}
     if(!compactKeyboard)Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
         if(onBack!=null)IconButton(onClick=onBack){Icon(Icons.Default.ArrowBack,"Mes discussions")}
         Text(peerName,Modifier.weight(1f),fontWeight=FontWeight.Bold)

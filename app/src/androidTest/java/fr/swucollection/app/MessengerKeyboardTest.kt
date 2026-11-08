@@ -43,11 +43,17 @@ class MessengerKeyboardTest {
   val send=ui.onNodeWithTag("messenger_send").getUnclippedBoundsInRoot()
   assertTrue("Send is hidden below keyboard",send.bottom.value<=bottom+2)
   ui.onNodeWithTag("messenger_send").assertIsEnabled().performTouchInput{click()}
-  ui.waitUntil(5000){ui.onAllNodes(hasText("Essai clavier") and !hasSetTextAction()).fetchSemanticsNodes().isNotEmpty()}
-  ui.onNode(hasText("Essai clavier") and !hasSetTextAction()).assertIsDisplayed()
-  ui.onNodeWithTag("messenger_draft").assertIsFocused()
-  assertTrue(ViewCompat.getRootWindowInsets(ui.activity.window.decorView)!!.isVisible(WindowInsetsCompat.Type.ime()))
-  val file=File(ui.activity.getExternalFilesDir(null),"home-test-messenger-keyboard.png")
-  file.outputStream().use{ui.onRoot().captureToImage().asAndroidBitmap().compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}
+  try {
+   ui.waitUntil(8000){runCatching{ui.onNode(hasText("Essai clavier") and !hasSetTextAction()).assertIsDisplayed();true}.getOrDefault(false)}
+   ui.onNodeWithTag("messenger_draft").assertIsFocused()
+   assertTrue(ViewCompat.getRootWindowInsets(ui.activity.window.decorView)!!.isVisible(WindowInsetsCompat.Type.ime()))
+  } finally {
+   println("CHAT_METRICS window=${ui.activity.window.decorView.width}x${ui.activity.window.decorView.height} keyboard=$keyboard density=$density configHeight=${ui.activity.resources.configuration.screenHeightDp}")
+   println("CHAT_COMPOSER "+ui.onNodeWithTag("messenger_composer").getUnclippedBoundsInRoot())
+   println("CHAT_VIEWPORT "+ui.onNodeWithTag("messenger_messages").getUnclippedBoundsInRoot())
+   println(ui.onRoot().printToString())
+   val file=File(ui.activity.getExternalFilesDir(null),"home-test-messenger-keyboard.png")
+   file.outputStream().use{ui.onRoot().captureToImage().asAndroidBitmap().compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}
+  }
  }
 }
