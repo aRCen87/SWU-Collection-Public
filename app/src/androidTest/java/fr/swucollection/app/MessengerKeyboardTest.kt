@@ -2,6 +2,7 @@ package fr.swucollection.app
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -24,11 +25,11 @@ class MessengerKeyboardTest {
  @Test fun sendRemainsAboveTheRealKeyboardAndKeepsItOpenAfterSending(){
   ui.activityRule.scenario.onActivity {it.enableEdgeToEdge()}
   ui.setContent {
-   MaterialTheme {
+   MaterialTheme(colorScheme=darkColorScheme(primary=PremiumGold,surface=PremiumNavy)) {
     var busy by remember{mutableStateOf(false)}
     var draft by remember{mutableStateOf("")};var messages by remember{mutableStateOf(listOf(PlayerMessage("first","friend","text","Bonjour","","",1L)))}
     LaunchedEffect(busy){if(busy){kotlinx.coroutines.delay(600);messages=messages+PlayerMessage("sent","me","text",draft,"","",2L);draft="";busy=false}}
-    Column(Modifier.fillMaxSize().testTag("fixture_root").safeDrawingPadding().imePadding().padding(16.dp)) {
+    Column(Modifier.fillMaxSize().background(PremiumHomeBackground).testTag("fixture_root").safeDrawingPadding().imePadding().padding(messengerContentPadding())) {
      MessengerChatLayout("me","Ami test",messages,draft,{draft=it},busy,true,null,MessengerSignal(),null,emptyList(),
       {busy=true},{},{},{},{},{})
     }
@@ -48,10 +49,9 @@ class MessengerKeyboardTest {
    ui.onNodeWithTag("messenger_draft").assertIsFocused()
    assertTrue(ViewCompat.getRootWindowInsets(ui.activity.window.decorView)!!.isVisible(WindowInsetsCompat.Type.ime()))
   } finally {
-   println("CHAT_METRICS window=${ui.activity.window.decorView.width}x${ui.activity.window.decorView.height} keyboard=$keyboard density=$density configHeight=${ui.activity.resources.configuration.screenHeightDp}")
-   println("CHAT_COMPOSER "+ui.onNodeWithTag("messenger_composer").getUnclippedBoundsInRoot())
-   println("CHAT_VIEWPORT "+ui.onNodeWithTag("messenger_messages").getUnclippedBoundsInRoot())
-   println(ui.onRoot().printToString())
+   val metrics="CHAT_METRICS window=${ui.activity.window.decorView.width}x${ui.activity.window.decorView.height} keyboard=$keyboard density=$density configHeight=${ui.activity.resources.configuration.screenHeightDp}\n"+
+       "CHAT_COMPOSER "+ui.onNodeWithTag("messenger_composer").getUnclippedBoundsInRoot()+"\nCHAT_VIEWPORT "+ui.onNodeWithTag("messenger_messages").getUnclippedBoundsInRoot()+"\n"+ui.onRoot().printToString()
+   File(ui.activity.getExternalFilesDir(null),"home-test-messenger-metrics.txt").writeText(metrics)
    val file=File(ui.activity.getExternalFilesDir(null),"home-test-messenger-keyboard.png")
    file.outputStream().use{ui.onRoot().captureToImage().asAndroidBitmap().compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}
   }

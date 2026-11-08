@@ -270,7 +270,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
                 val peer=selected.members.firstOrNull{it!=user.uid}.orEmpty()
                 val relatedTrades=trades.filter{peer in it.members}
                 var showTrades by remember(selected.id){mutableStateOf(false)}
-                if(relatedTrades.isNotEmpty())TextButton(onClick={showTrades=true}){Text("Échanges avec $peerName · ${relatedTrades.count{it.status=="pending"}} en attente")}
+                if(relatedTrades.isNotEmpty() && !messengerCompactKeyboard())TextButton(onClick={showTrades=true}){Text("Échanges avec $peerName · ${relatedTrades.count{it.status=="pending"}} en attente")}
                 if(showTrades)AlertDialog(onDismissRequest={showTrades=false},title={Text("Échanges avec $peerName")},text={
                     Column(Modifier.heightIn(max=460.dp).verticalScroll(rememberScrollState())) {
                         TradeRequestsPanel(service,relatedTrades,profiles+friendsProfiles.values,catalog,database,busy,

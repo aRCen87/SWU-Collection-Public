@@ -24,6 +24,10 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.*
 import java.util.UUID
 
+@Composable internal fun messengerCompactKeyboard():Boolean =
+    androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp<480 && WindowInsets.ime.getBottom(androidx.compose.ui.platform.LocalDensity.current)>0
+@Composable internal fun messengerContentPadding()=PaddingValues(horizontal=16.dp,vertical=if(messengerCompactKeyboard())0.dp else 10.dp)
+
 @Composable
 internal fun ColumnScope.CommunityChat(service: CommunityService, conversation: PlayerConversation, decks: List<DeckStore.SavedDeck>,
     catalog: List<CatalogCard>, onImportDeck: (String,PortableDeck)->Unit, peerName:String, onOpenCard:(SharedPlayerCard)->Unit, onBack:()->Unit) {
@@ -101,7 +105,7 @@ internal fun ColumnScope.CommunityChat(service: CommunityService, conversation: 
 internal fun ColumnScope.MessengerChatLayout(uid:String,peerName:String,messages:List<PlayerMessage>,draft:String,onDraft:(String)->Unit,
     busy:Boolean,online:Boolean,error:String?,signal:MessengerSignal,reply:PlayerMessage?,catalog:List<CatalogCard>,onSend:()->Unit,onShare:()->Unit,
     onReply:(PlayerMessage)->Unit,onCancelReply:()->Unit,onHide:(PlayerMessage)->Unit,onAttachment:(PlayerMessage)->Unit,onBack:(()->Unit)?=null) {
-    val compactKeyboard=androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp<480 && WindowInsets.ime.getBottom(androidx.compose.ui.platform.LocalDensity.current)>0
+    val compactKeyboard=messengerCompactKeyboard()
     val scroll=rememberLazyListState();val clipboard=LocalClipboardManager.current
     var selected by remember{mutableStateOf<PlayerMessage?>(null)};var hide by remember{mutableStateOf<PlayerMessage?>(null)}
     var search by remember{mutableStateOf("")};var searching by remember{mutableStateOf(false)}
@@ -115,28 +119,29 @@ internal fun ColumnScope.MessengerChatLayout(uid:String,peerName:String,messages
     }
     if(searching && !compactKeyboard)OutlinedTextField(search,{search=it.take(80)},label={Text("Rechercher un message")},singleLine=true,modifier=Modifier.fillMaxWidth())
     val visible=messages.filter{search.isBlank() || it.text.contains(search,true) || it.deckName.contains(search,true)}
-    LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("messenger_messages"),state=scroll,verticalArrangement=Arrangement.spacedBy(8.dp),contentPadding=PaddingValues(vertical=8.dp)) {
+    LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("messenger_messages"),state=scroll,verticalArrangement=Arrangement.spacedBy(8.dp),contentPadding=PaddingValues(vertical=if(compactKeyboard)0.dp else 8.dp)) {
         if(visible.isEmpty())item{Text(if(search.isBlank())"Le début de votre discussion." else "Aucun message trouvé.",style=MaterialTheme.typography.bodySmall)}
         items(visible,key={it.id}){message->
             val own=message.senderId==uid
             Column(Modifier.fillMaxWidth(),horizontalAlignment=if(own)Alignment.End else Alignment.Start){
                 Surface(Modifier.widthIn(max=360.dp).fillMaxWidth(.88f).combinedClickable(onClick={if(message.kind!="text")onAttachment(message)},onLongClick={selected=message}),
                     shape=RoundedCornerShape(18.dp),color=if(own)androidx.compose.ui.graphics.Color(0xFF1D4162) else PremiumNavy){
-                    Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(5.dp)) {
-                        if(message.replyText.isNotBlank())Text("↪ ${message.replyText}",fontSize=11.sp,color=PremiumGold)
-                        if(message.text.isNotBlank())Text(message.text)
-                        if(message.kind=="deck") {Text(message.deckName,fontWeight=FontWeight.Bold);Text("Voir le deck ›",color=PremiumGold)}
+                    Column(Modifier.padding(horizontal=12.dp,vertical=if(compactKeyboard)4.dp else 12.dp),verticalArrangement=Arrangement.spacedBy(5.dp)) {
+                        if(message.replyText.isNotBlank() && !compactKeyboard)Text("↪ ${message.replyText}",fontSize=11.sp,color=PremiumGold)
+                        if(message.text.isNotBlank() && (!compactKeyboard || message.kind=="text"))Text(message.text,maxLines=if(compactKeyboard)1 else Int.MAX_VALUE,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        if(message.kind=="deck") {Text(message.deckName,fontWeight=FontWeight.Bold,maxLines=if(compactKeyboard)1 else Int.MAX_VALUE,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis);if(!compactKeyboard)Text("Voir le deck ›",color=PremiumGold)}
                         if(message.kind=="card") {
                             val shared=remember(message.cardJson){runCatching{SharedPlayerCard.parse(message.cardJson)}.getOrNull()}
                             val card=remember(shared,catalog){catalog.firstOrNull{it.setCode==shared?.set && it.number.toIntOrNull()==shared?.number?.toIntOrNull()}}
-                            if(shared!=null){Row(horizontalArrangement=Arrangement.spacedBy(10.dp),verticalAlignment=Alignment.CenterVertically){
+                            if(shared!=null && compactKeyboard)Text(card?.name?:"${shared.set} ${shared.number}",maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis,color=PremiumGold)
+                            if(shared!=null && !compactKeyboard){Row(horizontalArrangement=Arrangement.spacedBy(10.dp),verticalAlignment=Alignment.CenterVertically){
                                 CardArtwork(card,Modifier.size(56.dp,78.dp),language=shared.language,variant=shared.variant)
                                 Column {Text(card?.name?:"${shared.set} ${shared.number}",fontWeight=FontWeight.Bold);Text("${shared.set} · ${shared.language} · ${shared.variant}",fontSize=11.sp);Text("Ouvrir la carte ›",color=PremiumGold,fontSize=12.sp)}
                             }}
                         }
                     }
                 }
-                Text(messengerTime(message.createdAt)+(if(own) when{signal.seenAt>=message.createdAt && message.createdAt>0->" · Lu";signal.deliveredAt>=message.createdAt && message.createdAt>0->" · Reçu";else->" · Envoyé"}else ""),fontSize=10.sp,color=MaterialTheme.colorScheme.onSurfaceVariant,modifier=Modifier.padding(horizontal=5.dp,vertical=3.dp))
+                if(!compactKeyboard)Text(messengerTime(message.createdAt)+(if(own) when{signal.seenAt>=message.createdAt && message.createdAt>0->" · Lu";signal.deliveredAt>=message.createdAt && message.createdAt>0->" · Reçu";else->" · Envoyé"}else ""),fontSize=10.sp,color=MaterialTheme.colorScheme.onSurfaceVariant,modifier=Modifier.padding(horizontal=5.dp,vertical=3.dp))
             }
         }
     }
@@ -146,7 +151,7 @@ internal fun ColumnScope.MessengerChatLayout(uid:String,peerName:String,messages
     if(reply!=null && !compactKeyboard)Row(verticalAlignment=Alignment.CenterVertically){Text("Réponse : ${reply.text.ifBlank{reply.deckName}.take(100)}",Modifier.weight(1f),fontSize=12.sp);IconButton(onClick=onCancelReply){Icon(Icons.Default.Close,"Annuler la réponse")}}
     Row(Modifier.fillMaxWidth().testTag("messenger_composer"),verticalAlignment=Alignment.Bottom,horizontalArrangement=Arrangement.spacedBy(6.dp)) {
         IconButton(onClick=onShare,enabled=!busy&&online&&error==null){Icon(Icons.Default.Add,"Partager un deck")}
-        OutlinedTextField(draft,onDraft,enabled=error==null,label={Text("Ton message")},modifier=Modifier.weight(1f).testTag("messenger_draft"),maxLines=if(compactKeyboard)2 else 4,
+        OutlinedTextField(draft,onDraft,enabled=error==null,label={Text("Ton message")},modifier=Modifier.weight(1f).testTag("messenger_draft"),singleLine=compactKeyboard,maxLines=if(compactKeyboard)1 else 4,
             keyboardOptions=KeyboardOptions(imeAction=ImeAction.Send),keyboardActions=KeyboardActions(onSend={if(draft.isNotBlank()&&online&&!busy)onSend()}))
         FilledIconButton(onClick=onSend,enabled=!busy&&online&&draft.isNotBlank(),modifier=Modifier.size(48.dp).testTag("messenger_send")){
             if(busy)CircularProgressIndicator(Modifier.size(20.dp),strokeWidth=2.dp) else Icon(Icons.Default.Send,"Envoyer")

@@ -715,7 +715,7 @@ private fun CollectionScreen(
                 .fillMaxSize().padding(bottom = if (deckWorkspace || selectedSection == "Messagerie") 0.dp else 82.dp).then(
                 if (selectedSection in listOf("Collection", "Extensions", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta", "Prêts", "Messagerie"))
                     Modifier else Modifier.verticalScroll(rememberScrollState())
-            ).then(if(immersiveHome) Modifier else Modifier.padding(horizontal = 16.dp, vertical = 10.dp)),
+            ).then(if(immersiveHome) Modifier else if(selectedSection=="Messagerie")Modifier.padding(messengerContentPadding()) else Modifier.padding(horizontal = 16.dp, vertical = 10.dp)),
             horizontalAlignment=if(immersiveHome) androidx.compose.ui.Alignment.CenterHorizontally else androidx.compose.ui.Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(if(immersiveHome) 0.dp else if (compactCollectionLayout) 4.dp else 12.dp)
         ) {

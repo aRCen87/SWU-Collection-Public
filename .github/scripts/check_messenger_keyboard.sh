@@ -12,6 +12,8 @@ for format in cover unfolded landscape; do
   esac
   adb shell am instrument -w -e class fr.swucollection.app.MessengerKeyboardTest fr.swucollection.app.test/androidx.test.runner.AndroidJUnitRunner | tee "smoke-private/messenger-instrumentation-$format.txt"
   adb pull /sdcard/Android/data/fr.swucollection.app/files/home-test-messenger-keyboard.png "smoke-private/home-test-messenger-keyboard-$format.png"
+  adb pull /sdcard/Android/data/fr.swucollection.app/files/home-test-messenger-metrics.txt "smoke-private/messenger-metrics-$format.txt"
+  cat "smoke-private/messenger-metrics-$format.txt"
   grep -q 'OK (1 test)' "smoke-private/messenger-instrumentation-$format.txt"
 done
 adb shell wm size reset
