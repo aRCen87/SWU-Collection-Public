@@ -12,7 +12,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.MonitorHeart
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -33,11 +35,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-internal fun CommunityHomeControls(onOpen: (String) -> Unit, onMenu: () -> Unit, modifier: Modifier = Modifier) {
+internal fun CommunityHomeControls(onOpen: (String) -> Unit, onMenu: () -> Unit, onCounter: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val service = remember(context) { CommunityService.create(context) }
     if (service == null) {
-        CommunityHomeActions(null, 0, "Messages", onOpen, onMenu, modifier)
+        CommunityHomeActions(null, 0, "Messages", onOpen, onMenu, onCounter, modifier)
         return
     }
     var uid by remember { mutableStateOf(service.auth.currentUser?.uid) }
@@ -60,24 +62,42 @@ internal fun CommunityHomeControls(onOpen: (String) -> Unit, onMenu: () -> Unit,
         }
         val count = if (ready) CommunitySocial.unread(uid.orEmpty(), threads, receipts) +
             friendships.count { it.status == "pending" && it.requester != uid } else 0
-        CommunityHomeActions(profile?.avatar, count, "Messages", onOpen, onMenu, modifier)
+        CommunityHomeActions(profile?.avatar, count, "Messages", onOpen, onMenu, onCounter, modifier)
     }
 
 }
 
 @Composable
 private fun CommunityHomeActions(avatar: String?, count: Int, destination: String,
-    onOpen: (String) -> Unit, onMenu: () -> Unit, modifier: Modifier) {
-    Column(modifier.width(48.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        IconButton(onClick = { onOpen("Mon profil") }, modifier = Modifier.size(48.dp).semantics { contentDescription = "Mon profil" }) {
-            CommunityAvatar(avatar ?: "preset:star", Modifier.size(34.dp).border(1.dp, badgeGold, CircleShape).clearAndSetSemantics {})
+    onOpen: (String) -> Unit, onMenu: () -> Unit, onCounter: () -> Unit, modifier: Modifier) {
+    Box(modifier.fillMaxWidth().padding(8.dp)) {
+        Surface(onClick = { onOpen("Mon profil") }, modifier = Modifier.align(Alignment.TopStart).size(64.dp)
+            .semantics { contentDescription = "Mon profil" }, shape = CircleShape, color = PremiumNavy,
+            border = androidx.compose.foundation.BorderStroke(1.5.dp, PremiumGold)) {
+            Box(contentAlignment = Alignment.Center) {
+                CommunityAvatar(avatar ?: "preset:star", Modifier.size(58.dp).clearAndSetSemantics {})
+            }
         }
-        IconButton(onClick = onMenu, modifier = Modifier.size(48.dp)) {
-            Icon(Icons.Default.Menu, "Ouvrir le menu", tint = badgeGold)
-        }
-        BadgedBox(modifier = Modifier.size(48.dp), badge = { if (count > 0) Badge { Text(if (count > 99) "99+" else "$count") } }) {
-            IconButton(onClick = { onOpen(destination) }, modifier = Modifier.size(48.dp)) {
-                Icon(Icons.Default.MailOutline, "Courrier, $count en attente", tint = badgeGold)
+        Column(Modifier.align(Alignment.TopEnd), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Surface(shape = RoundedCornerShape(14.dp), color = Color(0xDB08121F),
+                border = androidx.compose.foundation.BorderStroke(1.dp, PremiumGold.copy(alpha = .4f))) {
+                IconButton(onClick = onMenu, modifier = Modifier.size(48.dp)) {
+                    Icon(Icons.Default.Settings, "Paramètres", tint = PremiumGold)
+                }
+            }
+            Surface(shape = RoundedCornerShape(14.dp), color = Color(0xDB08121F),
+                border = androidx.compose.foundation.BorderStroke(1.dp, PremiumGold.copy(alpha = .4f))) {
+                BadgedBox(badge = { if (count > 0) Badge { Text(if (count > 99) "99+" else "$count") } }) {
+                    IconButton(onClick = { onOpen(destination) }, modifier = Modifier.size(48.dp)) {
+                        Icon(Icons.Default.MailOutline, "Courrier, $count en attente", tint = PremiumGold)
+                    }
+                }
+            }
+            Surface(shape = RoundedCornerShape(14.dp), color = Color(0xDB08121F),
+                border = androidx.compose.foundation.BorderStroke(1.dp, PremiumGold.copy(alpha = .4f))) {
+                IconButton(onClick = onCounter, modifier = Modifier.size(48.dp)) {
+                    Icon(Icons.Default.MonitorHeart, "Compteur de points de vie", tint = PremiumGold)
+                }
             }
         }
     }

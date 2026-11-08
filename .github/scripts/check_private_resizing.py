@@ -58,19 +58,10 @@ def home(root, width, height, density):
     left, top, right, bottom = rect(windows[0])
     usable_width = right-left
     print(f"Requested {width}x{height}; measured safe viewport {(left,top,right,bottom)}", flush=True)
-    x1, y1, x2, y2 = rect(find(root, "SWU Collection"))
-    # UIAutomator trims the banner's accessibility bounds where the real
-    # avatar/menu/mail targets overlap it. Its right bound is therefore not
-    # the painted image edge. Recover that edge from the measured height and
-    # verify it against the centered, padded content width independently.
-    painted_width = (y2-y1) * 475/185
-    expected_width = min(usable_width - 32*density, 568*density)
-    assert abs(painted_width - expected_width) < 3, (width,density,x1,y1,x2,y2)
-    assert abs(x1 + painted_width/2 - (left+right)/2) < 3, (left,right,x1,painted_width)
-    assert x1 < x2 <= x1 + painted_width + 2, (x1,x2,painted_width)
+    find(root, "SWU Collection")
     parents = {c:p for p in root.iter() for c in p}
     controls = []
-    for label in ("Mon profil", "Ouvrir le menu", "Courrier, 0 en attente"):
+    for label in ("Mon profil", "Paramètres", "Courrier, 0 en attente", "Compteur de points de vie"):
         node = find(root, label)
         while node.attrib.get("clickable") != "true" and node in parents:
             node = parents[node]
@@ -79,8 +70,9 @@ def home(root, width, height, density):
         assert r[2]-r[0] >= 47*density and r[3]-r[1] >= 47*density, (label,r)
         assert left <= r[0] < r[2] <= right and top <= r[1] < r[3] <= bottom, (label,r)
         controls.append(r)
-    assert controls[0][3] <= controls[1][1] and controls[1][3] <= controls[2][1], controls
-    assert max((r[0]+r[2])/2 for r in controls) - min((r[0]+r[2])/2 for r in controls) < 3, controls
+    assert controls[0][2] < controls[1][0], controls
+    assert controls[1][3] <= controls[2][1] and controls[2][3] <= controls[3][1], controls
+    assert max((r[0]+r[2])/2 for r in controls[1:]) - min((r[0]+r[2])/2 for r in controls[1:]) < 3, controls
 
 
 # Preserve the original phone/Fold sizes in dp while keeping the framebuffer
@@ -102,6 +94,8 @@ try:
         capture("home-test-" + name)
         home(root,width,height,dpi/160)
         if name == "unfolded":
+            touch(root,"Collection")
+            root = snapshot("unfolded-before-menu")
             touch(root,"Ouvrir le menu")
             menu = snapshot("unfolded-menu")
             # Dialogs have their own Android window; measure the actual frame,
@@ -111,6 +105,8 @@ try:
             assert x1 >= frame[2] - 400*dpi/160 - 2, (frame,x1)
             capture("home-test-unfolded-menu")
             touch(menu,"Fermer le menu")
+            root = snapshot("unfolded-collection-restored")
+            touch(root,"Accueil")
             root = snapshot("unfolded-home-restored")
         touch(root,"Collection")
         root = snapshot(name + "-collection")

@@ -18,7 +18,7 @@ try:
     adb('shell','wm','size','720x1560');adb('shell','wm','density','320')
     adb('shell','am','force-stop',PACKAGE);adb('shell','am','start','-W','-n',PACKAGE+'/fr.swucollection.app.MainActivity');time.sleep(8)
     root=snapshot('home');search=bounds(find(root,'Carte, deck, extension…'));heart=bounds(find(root,'Compteur de points de vie'))
-    assert heart[0]>=search[2] and abs((heart[1]+heart[3])-(search[1]+search[3]))<=12,(heart,search)
+    assert heart[3] <= search[1], (heart,search)
     assert not any(n.attrib.get('text')=='Compteur point de vie' for n in root.iter('node'))
     tap(find(root,'Courrier, 0 en attente'))
     root=snapshot('entry');find(root,'Messagerie');find(root,'Tes discussions et tes amis');find(root,'Me connecter')

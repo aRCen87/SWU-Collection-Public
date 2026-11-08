@@ -1,3 +1,9 @@
+# Test 20 — présentation
+
+Le bandeau spatial ne contient aucune commande imprimée. L’avatar est une cible de 64 dp à gauche ; les boutons Paramètres, Courrier et Compteur sont des cibles de 48 dp dans la colonne de droite. Paramètres ouvre directement sa page ; le menu général reste accessible dans les rubriques. Les entrées de messagerie et de compteur sont uniques sur l’accueil.
+
+La grille utilise les vrais visuels localisés et les mêmes familles que la liste. Une famille ouvre sa fiche et toutes ses versions. Le mode Liste reste accessible dans Filtres et affichage, y compris lorsque les versions sont regroupées. Aucune donnée, quantité, langue ou finition n’est modifiée par la présentation. L’ordre personnalisé de l’accueil reste conservé ; l’ordre initial donne la priorité à Collection et Scanner.
+
 # Communauté — application Test uniquement
 
 ## Parcours simplifié — Test 18

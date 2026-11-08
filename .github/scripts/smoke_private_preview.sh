@@ -32,10 +32,10 @@ if sys.argv[1]=='fr.swucollection.app.test':
   while node.attrib.get('clickable')!='true' and node in parents: node=parents[node]
   assert node.attrib.get('clickable')=='true',label
   return list(map(int,re.findall(r'\d+',node.attrib['bounds'])))
- avatar=rect('Mon profil');menu=rect('Ouvrir le menu');mail=rect('Courrier, 0 en attente')
- assert avatar[3]<=menu[1] and menu[3]<=mail[1],(avatar,menu,mail)
- assert abs((avatar[0]+avatar[2])-(menu[0]+menu[2]))<=4 and abs((menu[0]+menu[2])-(mail[0]+mail[2]))<=4,(avatar,menu,mail)
- assert all(r[2]-r[0]>=48 and r[3]-r[1]>=48 for r in [avatar,menu,mail]),(avatar,menu,mail)
+ avatar=rect('Mon profil');settings=rect('Paramètres');mail=rect('Courrier, 0 en attente');counter=rect('Compteur de points de vie')
+ assert avatar[2] < settings[0],(avatar,settings)
+ assert settings[3] <= mail[1] and mail[3] <= counter[1],(settings,mail,counter)
+ assert all(r[2]-r[0]>=48 and r[3]-r[1]>=48 for r in [avatar,settings,mail,counter])
  assert 'Mon compte · Communauté · Messages' not in texts
 PYUI
   adb logcat -d -s AndroidRuntime:E > "smoke-private/$package-crashes.txt"
@@ -107,6 +107,7 @@ sleep 3
 adb shell am force-stop "$package"
 adb shell am start -W -n "$package/fr.swucollection.app.MainActivity" >/dev/null
 sleep 8
+tap_private_label 'Collection'
 tap_private_label 'Ouvrir le menu'
 tap_private_label 'Scanner'
 sleep 5

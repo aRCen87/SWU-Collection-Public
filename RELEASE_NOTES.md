@@ -1,3 +1,12 @@
+# Test 20 — nouvelle présentation bleu et or
+
+- Fond spatial animé par une dérive orbitale très lente ; logo, avatar et commandes fixes. Animation suspendue hors accueil et respect des animations désactivées.
+- Nouveau bandeau spatial : horizon de planète, avatar à gauche et raccourcis Paramètres, Messagerie et Compteur de points de vie à droite.
+- Accueil plus lisible : Collection et Scanner en grand, rubriques secondaires en tuiles, ordre personnalisé conservé.
+- Collection en grille adaptative avec illustrations plus grandes, quantités et langues visibles. Les versions restent regroupées et le mode liste reste disponible dans les filtres.
+- Fiche recentrée sur la carte, sa langue, ses variantes et les quantités, puis les listes et outils complémentaires.
+- Palette bleu profond et or harmonisée dans Test. Aucun changement de base de données ni de sauvegardes.
+
 # Test 19 — fluidité et simplicité
 
 - Recherche et regroupement de la collection recalculés seulement quand leurs données changent.

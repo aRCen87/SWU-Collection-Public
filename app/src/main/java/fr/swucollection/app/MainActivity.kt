@@ -54,6 +54,9 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -177,7 +180,10 @@ class MainActivity : ComponentActivity() {
                 outline = Color(0xFF9C7941),
                 outlineVariant = Color(0xFF66583D)
             )
-            MaterialTheme(colorScheme = swuColors) {
+            MaterialTheme(colorScheme = if (packageName == AppChannel.TEST_PACKAGE) swuColors.copy(
+                primary = PremiumGold, surface = PremiumNavy, surfaceContainer = PremiumNavy,
+                surfaceContainerLow = PremiumNavy, surfaceContainerHigh = Color(0xFF142235),
+                outline = PremiumGold.copy(alpha = .6f), outlineVariant = Color(0xFF354255)) else swuColors) {
                 CompositionLocalProvider(LocalContentColor provides swuColors.onBackground) {
                     if (startupError != null) {
                         StartupRecoveryPanel(database, startupError.orEmpty(), canContinue = !recoveryOnly,
@@ -533,7 +539,7 @@ private fun CollectionScreen(
                 }
             )
         }
-        val artworkHeight = (LocalConfiguration.current.screenHeightDp.dp * .42f).coerceIn(180.dp, 350.dp)
+        val artworkHeight = (LocalConfiguration.current.screenHeightDp.dp * (if (privateLayout) .48f else .42f)).coerceIn(180.dp, if (privateLayout) 440.dp else 350.dp)
             Card(modifier = Modifier.safeDrawingPadding().padding(12.dp).widthIn(max = 720.dp).fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
                 Column(Modifier.fillMaxWidth().testTag("swu_card_sheet").fillMaxHeight(0.92f).padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -595,27 +601,7 @@ private fun CollectionScreen(
                                 modifier = Modifier.fillMaxWidth().height(artworkHeight).then(swipeCardModifier))
                         }
                         Text(card.name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                        val familyStock = remember(card, cards, allCatalog, cardDetails) { DeckCompanion.stock(card, cards, allCatalog, cardDetails) }
-                        Text("$familyStock exemplaire(s) possédé(s), versions reconnues comprises", color = ListPalette.Gold)
-                        CardDeckUsagePanel(card, savedDecks, allCatalog, cardDetails, enabled = !deckWorkspace,
-                            onAdd = { addingToDeck = card }, onOpen = ::openSavedDeck)
-                        RelatedPrintsPanel(card, allCatalog, cards, cardDetails, previewVariant, previewLanguage) { related, finish, language ->
-                            previewPrint = related
-                            previewVariant = finish
-                            previewLanguage = language
-                            showReverse = false
-                        }
-                        val inLists = personalLists.count { list -> list.entries.any {
-                            it.card.setCode == card.setCode && it.card.number == card.number
-                        } }
-                        OutlinedButton(onClick = { favoriteCard = card }) {
-                            Text(if (inLists > 0) "★ Dans $inLists liste(s) · Ajouter à une liste" else "☆ Ajouter à une liste")
-                        }
-                        CardLegalityBadge(premierLegality.status(card))
-                        Text("${card.setCode} • ${card.number} • ${card.rarity}")
-                        CardLanguageChoices(previewLanguage, { previewLanguage = it; showReverse = false })
-                        if (previewLanguage == CardLanguages.UNKNOWN) Text("Visuel du catalogue : précise la langue pour afficher ta version.",style=MaterialTheme.typography.bodySmall)
-                        if (card.imageUrl.isBlank() && previewLanguage in CardLanguages.supported) Text("Le visuel ${CardLanguages.label(previewLanguage).lowercase(java.util.Locale.FRANCE)} n’est pas publié pour cette référence. Un visuel disponible est affiché avec sa langue.", color = ListPalette.Secondary)
+                        val collectionActions: @Composable () -> Unit = {
                         Text("Ma collection — choisir une variante", fontWeight = FontWeight.SemiBold)
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             ScanVariants.detect(card).choices.forEach { option ->
@@ -641,6 +627,34 @@ private fun CollectionScreen(
                                 refresh()
                             }, enabled = previewLanguage in CardLanguages.supported && previewVariant in ScanVariants.detect(card).choices) { Text("+") }
                         }
+                        }
+                        val secondaryTools: @Composable () -> Unit = {
+                        val familyStock = remember(card, cards, allCatalog, cardDetails) { DeckCompanion.stock(card, cards, allCatalog, cardDetails) }
+                        Text("$familyStock exemplaire(s) possédé(s), versions reconnues comprises", color = ListPalette.Gold)
+                        CardDeckUsagePanel(card, savedDecks, allCatalog, cardDetails, enabled = !deckWorkspace,
+                            onAdd = { addingToDeck = card }, onOpen = ::openSavedDeck)
+                        RelatedPrintsPanel(card, allCatalog, cards, cardDetails, previewVariant, previewLanguage) { related, finish, language ->
+                            previewPrint = related
+                            previewVariant = finish
+                            previewLanguage = language
+                            showReverse = false
+                        }
+                        val inLists = personalLists.count { list -> list.entries.any {
+                            it.card.setCode == card.setCode && it.card.number == card.number
+                        } }
+                        if (privateLayout) Button(onClick = { favoriteCard = card }, modifier = Modifier.fillMaxWidth()) {
+                            Text(if (inLists > 0) "Dans $inLists liste(s) · Ajouter" else "Ajouter à une liste")
+                        } else OutlinedButton(onClick = { favoriteCard = card }) {
+                            Text(if (inLists > 0) "★ Dans $inLists liste(s) · Ajouter à une liste" else "☆ Ajouter à une liste")
+                        }
+                        CardLegalityBadge(premierLegality.status(card))
+                        Text("${card.setCode} • ${card.number} • ${card.rarity}")
+                        if (previewLanguage == CardLanguages.UNKNOWN) Text("Visuel du catalogue : précise la langue pour afficher ta version.",style=MaterialTheme.typography.bodySmall)
+                        if (card.imageUrl.isBlank() && previewLanguage in CardLanguages.supported) Text("Le visuel ${CardLanguages.label(previewLanguage).lowercase(java.util.Locale.FRANCE)} n’est pas publié pour cette référence. Un visuel disponible est affiché avec sa langue.", color = ListPalette.Secondary)
+                        }
+                        CardLanguageChoices(previewLanguage, { previewLanguage = it; showReverse = false })
+                        if (privateLayout) { collectionActions(); secondaryTools() }
+                        else { secondaryTools(); collectionActions() }
                         OutlinedButton(onClick = { previewSession = null }) { Text("Fermer") }
                         }
                 }
@@ -680,8 +694,9 @@ private fun CollectionScreen(
             if (selectedSection == "Accueil") {
             val privateHome = deckContext.packageName == AppChannel.TEST_PACKAGE
             Box(Modifier.fillMaxWidth().then(if (privateHome) Modifier.heightIn(min = 144.dp) else Modifier)) {
-                HomeHeaderArtwork(homeHeaderProgress, headerReflection,
-                    Modifier.fillMaxWidth().aspectRatio(475f / 185f), compactControls = privateHome,
+                if (privateHome) PremiumHomeBanner(homeArtworkActive && reflectionsEnabled)
+                else HomeHeaderArtwork(homeHeaderProgress, headerReflection,
+                    Modifier.fillMaxWidth().aspectRatio(475f / 185f), compactControls = false,
                     ambientActive = homeArtworkActive && reflectionsEnabled)
                 if (privateHome) CommunityHomeControls(
                     onOpen = { tab ->
@@ -689,7 +704,9 @@ private fun CollectionScreen(
                         else communityInitialTab = tab
                         navigation.navigateTo(communityDestination(tab))
                     },
-                    onMenu = { menuOpen = true }, modifier = Modifier.align(androidx.compose.ui.Alignment.TopEnd))
+                    onMenu = { navigation.navigateTo("Paramètres") },
+                    onCounter = { navigation.navigateTo("Compteur") },
+                    modifier = Modifier.align(androidx.compose.ui.Alignment.TopCenter))
                 else IconButton(onClick = { menuOpen = true },
                     modifier = Modifier.align(androidx.compose.ui.Alignment.TopEnd)) {
                     Icon(Icons.Default.Menu, "Ouvrir le menu", tint = Color.Transparent)
@@ -751,9 +768,6 @@ private fun CollectionScreen(
                         Text("Carte, deck, extension…", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-                if (privateLayout) OutlinedIconButton(onClick = { navigation.navigateTo("Compteur") }, modifier = Modifier.size(52.dp)) {
-                    Icon(Icons.Default.Favorite, "Compteur de points de vie", tint = MaterialTheme.colorScheme.primary)
-                }
                 }
                 if (!internetAvailable) OutlinedButton(onClick = { navigation.navigateTo("Hors connexion") }, modifier = Modifier.fillMaxWidth()) {
                     Text("Hors connexion · données disponibles sur ce téléphone ›")
@@ -765,7 +779,18 @@ private fun CollectionScreen(
                         }
                     }
                 }
-                (if (privateLayout) homeLayout.order else HomeLayoutStore.defaults).forEach { shortcut ->
+                if (privateLayout) PremiumHomeShortcuts(homeLayout.order, borderTilt) { shortcut ->
+                    when (shortcut) {
+                        "SCANNER" -> openScanner()
+                        "MA COLLECTION" -> navigation.navigateTo("Collection")
+                        "EXTENSIONS" -> navigation.navigateTo("Extensions")
+                        "MES DECKS" -> { deckLibraryVisible = true; navigation.navigateTo("Mes listes") }
+                        "TOURNOIS & MÉTA" -> navigation.navigateTo("Tournois & Méta")
+                        "ÉCHANGES" -> navigation.navigateTo("Échanges")
+                        "BADGES" -> navigation.navigateTo("Hauts faits")
+                        "STATISTIQUES" -> navigation.navigateTo("Statistiques")
+                    }
+                } else HomeLayoutStore.defaults.forEach { shortcut ->
                     when (shortcut) {
                     "SCANNER" -> HomeNavigationCard("◈", "SCANNER", "Scanner vos cartes", reflection = borderTilt, onClick = {
                     openScanner()
@@ -1253,7 +1278,7 @@ private fun CollectionScreen(
                     Text("Regrouper les versions", modifier = Modifier.weight(1f))
                     Switch(groupVersions, { groupVersionsValue = it.toString() })
                 }
-                if (!groupVersions) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (privateLayout || !groupVersions) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("Visuel", "Liste").forEach { option ->
                         FilterChip(selected = collectionView == option,
                             onClick = { collectionView = option },
@@ -1331,6 +1356,20 @@ private fun CollectionScreen(
                 if (selectedOwned.isEmpty()) {
                     Text(if (cards.isEmpty()) "Ta collection est vide. Scanne ta première carte pour commencer." else "Aucune carte possédée ne correspond aux filtres.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (cards.isNotEmpty()) TextButton(onClick = { search = ""; collectionSetFilter = "Toutes"; collectionScope = "Possédées"; collectionLanguage = "Toutes"; savedCollectionSort = CollectionPriceSort.CATALOG.name }) { Text("Afficher toute ma collection") }
+                } else if (privateLayout && collectionView == "Visuel") {
+                    val groups = remember(selectedOwned, allCatalog, cardDetails, groupVersions) {
+                        if (groupVersions) groupOwnedVersions(selectedOwned, allCatalog, cardDetails, acrossSets = true)
+                        else selectedOwned.map { listOf(it) }
+                    }
+                    LazyVerticalGrid(columns = GridCells.Adaptive(145.dp), modifier = Modifier.fillMaxWidth().weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp),
+                        contentPadding = PaddingValues(bottom = 12.dp)) {
+                        items(groups, key = { it.first().id }) { rows ->
+                            PremiumOwnedTile(rows, catalogByKey) { owned, card ->
+                                openPreview(card, familyPreviewEntries(groups, owned, catalogByKey), owned.variant, owned.language)
+                            }
+                        }
+                    }
                 } else if (groupVersions) {
                     val groups = remember(selectedOwned, allCatalog, cardDetails, privateLayout) {
                         groupOwnedVersions(selectedOwned, allCatalog, cardDetails, acrossSets = privateLayout)

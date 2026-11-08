@@ -30,7 +30,7 @@ try:
     adb('shell','wm','size','720x1560');adb('shell','wm','density','320')
     adb('shell','am','force-stop',PACKAGE)
     adb('shell','am','start','-W','-n',PACKAGE+'/fr.swucollection.app.MainActivity');time.sleep(8)
-    tap('Ouvrir le menu');tap('Paramètres');tap('Revoir le guide des premiers pas')
+    tap('Paramètres');tap('Revoir le guide des premiers pas')
     assert find(snapshot('one'),'1/3 · Scanner ta première carte') is not None
     tap('Suivant')
     assert find(snapshot('two'),'2/3 · Reconnaître les versions') is not None

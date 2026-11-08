@@ -41,7 +41,7 @@ try:
         adb('shell','wm','size',f'{w}x{h}');adb('shell','wm','density',d);time.sleep(4)
         root=snapshot(name);assert len(lives(root))==2,lives(root);assert all('30 points' in s for s in lives(root))
         find(root,'Options de la partie');capture(name)
-    tap(find(root,'Fermer le compteur'));root=snapshot('closed');find(root,'Ouvrir le menu')
+    tap(find(root,'Fermer le compteur'));root=snapshot('closed');find(root,'Paramètres')
     adb('shell','wm','size','720x1560');adb('shell','wm','density','320');time.sleep(3)
     root=snapshot('home-return');tap(find(root,'Compteur de points de vie'))
     root=snapshot('resumed');assert len(lives(root))==2
