@@ -59,3 +59,10 @@ test('hiding presence in settings revokes an old online document immediately',as
  await assertFails(getDoc(doc(db('bob'),'presence','alice')));
  await assertFails(setDoc(doc(db('alice'),'presence','alice'),{visible:true,online:true,updatedAt:serverTimestamp()}));
 });
+test('a background delivery preserves the previous read timestamp without claiming new reading',async()=>{
+ const ref=doc(db('alice'),'conversations','alice__bob','signals','alice');
+ await setDoc(ref,{deliveredAt:serverTimestamp(),seenAt:serverTimestamp(),typingAt:serverTimestamp(),typing:false});
+ const seen=(await getDoc(ref)).data().seenAt;
+ await assertSucceeds(setDoc(ref,{deliveredAt:serverTimestamp(),seenAt:seen,typingAt:serverTimestamp(),typing:false}));
+ const after=(await getDoc(ref)).data();if(!after.seenAt.isEqual(seen))throw Error('Read timestamp advanced in background');
+});

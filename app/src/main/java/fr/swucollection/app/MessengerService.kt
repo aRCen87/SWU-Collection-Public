@@ -75,3 +75,13 @@ internal suspend fun CommunityService.sendRich(thread:String,id:String,text:Stri
         }
     }.communityAwait()
 }
+
+/** Delivery is acknowledged separately from reading, including while the app is in the background. */
+internal suspend fun CommunityService.acknowledgeDelivery(thread:String) {
+    val me=uid;val db=accountStore();val ref=db.collection("conversations").document(thread).collection("signals").document(me)
+    db.runTransaction {tx ->
+        val old=tx.get(ref);val settings=tx.get(db.collection("messengerSettings").document(me))
+        tx.set(ref,mapOf("deliveredAt" to FieldValue.serverTimestamp(),"seenAt" to if(settings.getBoolean("shareRead")==false)null else old.getTimestamp("seenAt"),
+            "typingAt" to FieldValue.serverTimestamp(),"typing" to false))
+    }.communityAwait()
+}

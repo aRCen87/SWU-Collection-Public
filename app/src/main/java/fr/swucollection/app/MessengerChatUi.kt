@@ -35,6 +35,8 @@ internal fun ColumnScope.CommunityChat(service: CommunityService, conversation: 
     var reply by remember(conversation.id){mutableStateOf<PlayerMessage?>(null)}
     var state by remember(conversation.id){mutableStateOf(MessengerThreadState())}
     var preferences by remember{mutableStateOf(MessengerPreferences())};var signal by remember{mutableStateOf(MessengerSignal())}
+    val lifecycleOwner=androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsState()
     val scope=rememberCoroutineScope();val online=rememberInternetAvailable();val peer=conversation.members.firstOrNull{it!=service.uid}.orEmpty()
     DisposableEffect(service,conversation.id) {
         CommunityNotifications.activeThread=conversation.id
@@ -43,10 +45,11 @@ internal fun ColumnScope.CommunityChat(service: CommunityService, conversation: 
             service.messengerPreferences({preferences=it},{error=communityError(it)}),service.signal(conversation.id,peer){signal=it})
         onDispose{CommunityNotifications.activeThread=null;listeners.forEach{it.remove()}}
     }
-    LaunchedEffect(conversation.id,messages.lastOrNull()?.id,preferences.shareRead) {
-        if(messages.isNotEmpty()) {runCatching{service.markRead(conversation.id)};runCatching{service.publishSignal(conversation.id,preferences.shareRead,false)}}
+    LaunchedEffect(conversation.id,messages.lastOrNull()?.id,preferences.shareRead,lifecycleState) {
+        if(messages.isNotEmpty() && lifecycleState==androidx.lifecycle.Lifecycle.State.RESUMED) {runCatching{service.markRead(conversation.id)};runCatching{service.publishSignal(conversation.id,preferences.shareRead,false)}}
     }
-    LaunchedEffect(conversation.id,draft) {
+    LaunchedEffect(conversation.id,draft,lifecycleState) {
+        if(lifecycleState!=androidx.lifecycle.Lifecycle.State.RESUMED)return@LaunchedEffect
         delay(350)
         runCatching{service.publishSignal(conversation.id,preferences.shareRead,draft.isNotBlank())}
         if(draft.isNotBlank()) {delay(6000);runCatching{service.publishSignal(conversation.id,preferences.shareRead,false)}}

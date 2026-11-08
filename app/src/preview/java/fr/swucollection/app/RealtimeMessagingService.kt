@@ -15,6 +15,7 @@ import kotlinx.coroutines.*
 class RealtimeMessagingService:Service(){
     private val scope=CoroutineScope(SupervisorJob()+Dispatchers.Main.immediate)
     private var listeners=emptyList<ListenerRegistration>();private var authListener:FirebaseAuth.AuthStateListener?=null
+    private val delivered=mutableMapOf<String,Long>()
     private var backendService:CommunityService?=null;private var owner:String?=null;private var checkJob:Job?=null
     override fun onBind(intent:Intent?):IBinder?=null
     override fun onStartCommand(intent:Intent?,flags:Int,startId:Int):Int{
@@ -39,7 +40,13 @@ class RealtimeMessagingService:Service(){
         backend.auth.addAuthStateListener(authListener!!)
         fun changed(){checkJob?.cancel();checkJob=scope.launch{delay(600);withTimeoutOrNull(20_000){runCatching{CommunityNotifications.check(applicationContext,backend,includeSearchAlerts=false)}}}}
         fun failed(error:Exception){if(error is com.google.firebase.firestore.FirebaseFirestoreException && error.code==com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED)stopSelf()}
-        listeners=listOf(backend.conversations({changed()},{failed(it)}),backend.friendships({changed()},{failed(it)}),backend.trades({changed()},{failed(it)}))
+        listeners=listOf(backend.conversations({rows->
+            rows.filter{it.lastSenderId.isNotBlank() && it.lastSenderId!=user.uid && it.updatedAt>(delivered[it.id]?:0)}.forEach{thread->
+                delivered[thread.id]=thread.updatedAt
+                scope.launch{runCatching{backend.acknowledgeDelivery(thread.id)}.onFailure{delivered.remove(thread.id)}}
+            }
+            changed()
+        },{failed(it)}),backend.friendships({changed()},{failed(it)}),backend.trades({changed()},{failed(it)}))
         return START_STICKY
     }
     override fun onDestroy(){listeners.forEach{it.remove()};authListener?.let{backendService?.auth?.removeAuthStateListener(it)};scope.cancel();super.onDestroy()}

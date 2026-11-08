@@ -174,6 +174,8 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
         onDispose { subscriptions.forEach { it.remove() } }
     }
     fun talk(peer: PlayerProfile) { action {
+        require(friendships.any {it.status=="accepted" && peer.id in it.members}) {"Ajoute d’abord ce joueur à tes amis."}
+        require(peer.messagePolicy!="nobody") {"Ce joueur n’accepte pas les messages."}
         val id = service.openConversation(peer.id)
         val thread = PlayerConversation(id, listOf(user.uid, peer.id), 0L)
         val old=threadStates[id]?:MessengerThreadState()
@@ -304,7 +306,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
                 SharedProfileDecks(service, player, false, decks, catalog, onImportDeck)
                 OutlinedButton(onClick = { action { service.block(player.id, !blocked); blocked = !blocked } }, enabled = !busy) { Text(if (blocked) "Débloquer ce joueur" else "Bloquer ce joueur") }
             }
-        }, confirmButton = { Button(onClick = { talk(player) }, enabled = !busy && !blocked) { Text("Envoyer un message") } },
+        }, confirmButton = { Button(onClick = { talk(player) }, enabled = !busy && !blocked && player.messagePolicy!="nobody" && friendships.any {it.status=="accepted" && player.id in it.members}) { Text("Envoyer un message") } },
             dismissButton = { TextButton(onClick = { selectedProfile = null }) { Text("Fermer") } })
     }
     suggestedTrade?.let { suggestion -> TradeComposer(suggestion.peer, catalog, database, busy, { suggestedTrade = null }, { offer, wanted -> action {

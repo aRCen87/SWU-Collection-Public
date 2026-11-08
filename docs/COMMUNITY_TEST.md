@@ -1,4 +1,4 @@
-Les règles de messagerie Test23 ont été publiées sur swu-collection-test uniquement le 8 novembre 2026 à 13 h 53 (Paris), après réussite des 39 tests de sécurité. Le forfait Spark est conservé et aucun service payant n’est déployé.
+Les règles de messagerie Test23 ont été publiées sur swu-collection-test uniquement le 8 novembre 2026 à 13 h 53 (Paris), après réussite des 39 tests de sécurité. Les accusés de réception sont ensuite séparés des lectures : une connexion en arrière-plan ne marque pas de nouveau message comme lu. Le forfait Spark est conservé et aucun service payant n’est déployé.
 
 ## Test 0.8.19-test.23 — messagerie et partage
 

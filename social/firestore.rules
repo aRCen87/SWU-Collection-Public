@@ -188,7 +188,7 @@ service cloud.firestore {
         allow create,update: if member() && request.auth.uid == uid &&
           request.resource.data.keys().hasAll(['deliveredAt','seenAt','typingAt','typing']) && request.resource.data.keys().hasOnly(['deliveredAt','seenAt','typingAt','typing']) &&
           request.resource.data.deliveredAt == request.time && request.resource.data.typingAt == request.time && request.resource.data.typing is bool &&
-          (request.resource.data.seenAt == null || request.resource.data.seenAt == request.time) &&
+          (request.resource.data.seenAt == null || request.resource.data.seenAt == request.time || (resource != null && request.resource.data.seenAt == resource.data.seenAt)) &&
           (request.resource.data.seenAt == null || !exists(/databases/$(database)/documents/messengerSettings/$(uid)) || get(/databases/$(database)/documents/messengerSettings/$(uid)).data.shareRead == true);
       }
       match /messages/{message} {
