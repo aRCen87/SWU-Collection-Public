@@ -17,7 +17,7 @@ internal object UpdateBackups {
             .put("appVersion", context.packageManager.getPackageInfo(context.packageName, 0).versionName)
             .put("settings", JSONObject().put("leaderView",
                 context.getSharedPreferences("leader_view", Context.MODE_PRIVATE).getString("mode", "flip")))
-        if (context.packageName == AppChannel.TEST_PACKAGE) {
+        if (AppChannel.supportsExperience(context.packageName)) {
             root.put("homeLayout", JSONObject(HomeLayoutStore.json(HomeLayoutStore(context).read())))
             root.put("deckPins", org.json.JSONArray(DeckPins(context).all()))
         }
@@ -44,7 +44,7 @@ internal object UpdateBackups {
         require(mode == null || mode in listOf("flip", "stack")) { "Réglage de sauvegarde invalide." }
         root.optJSONObject("homeLayout")?.let { HomeLayoutStore.parse(it.toString()) }
         val count = database.importJson(json, replace = true)
-        if (context.packageName == AppChannel.TEST_PACKAGE) {
+        if (AppChannel.supportsExperience(context.packageName)) {
             root.optJSONObject("homeLayout")?.let { HomeLayoutStore(context).write(HomeLayoutStore.parse(it.toString())) }
             root.optJSONArray("deckPins")?.let { pins -> DeckPins(context).restore((0 until pins.length()).map { pins.getString(it) }, DeckStore(context).all().map { it.id }.toSet()) }
         }

@@ -56,11 +56,11 @@ internal fun ColumnScope.CommunityPanel(decks: List<DeckStore.SavedDeck>, earned
     onRestored: () -> Unit, onImportDeck: (String, PortableDeck) -> Unit, onOpenCard: (SharedPlayerCard) -> Unit = {}) {
     val context = LocalContext.current
     val service = remember(context) { CommunityService.create(context) }
-    if(!messaging) Text("Profils, échanges et decks · essais privés", color = MaterialTheme.colorScheme.primary)
+    if(!messaging) Text("Profils, échanges et decks", color = MaterialTheme.colorScheme.primary)
     if (service == null) {
         Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Les comptes de test ne sont pas encore activés", fontWeight = FontWeight.Bold)
-            Text("Le service privé doit être connecté avant de créer un compte ou d’envoyer des messages. Ta collection et tes decks restent disponibles sur ce téléphone.")
+            Text("Les comptes ne sont pas encore disponibles", fontWeight = FontWeight.Bold)
+            Text("Le service de comptes doit être connecté avant de créer un compte ou d’envoyer des messages. Ta collection et tes decks restent disponibles sur ce téléphone.")
             Text("À l’activation : pseudo, avatar modifiable, profils et badges, messages privés et partage de decks.")
         } }
         return
@@ -116,7 +116,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
             else service.login(email, password)
             password = ""; confirm = ""; refresh()
         } }, enabled = !busy && email.isNotBlank() && password.isNotBlank(), modifier = Modifier.fillMaxWidth()) {
-            Text(if (create) "Créer mon compte de test" else "Me connecter")
+            Text(if (create) "Créer mon compte" else "Me connecter")
         }
         TextButton(onClick = { action { service.resetPassword(email); status = "Si un compte correspond à cette adresse, un e-mail de récupération sera envoyé." } }, enabled = !busy && email.isNotBlank()) { Text("Mot de passe oublié") }
         Text("Le compte est facultatif. Après confirmation de l’e-mail, la sauvegarde privée est automatique et peut être désactivée dans Sauvegarde. La connexion ne remplace jamais les données de ce téléphone sans ton choix.", fontSize = 12.sp)
@@ -212,7 +212,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
             ProfileInterests(profile!!, catalog)
             ShowcasePanel(service, profile!!, database, catalog)
             if (profile!!.bio.isNotBlank()) Text(profile!!.bio)
-            Text(if (profile!!.discoverable) "Profil visible aux joueurs autorisés du test" else "Profil non listé parmi les joueurs")
+            Text(if (profile!!.discoverable) "Profil visible aux autres joueurs" else "Profil non listé parmi les joueurs")
             OutlinedButton(onClick = { editing = true }) { Text("Modifier mon profil et mon avatar") }
             CommunityNotificationControls(user.uid)
             Row(verticalAlignment=Alignment.CenterVertically){Text("Afficher mon statut en ligne",Modifier.weight(1f));Switch(preferences.sharePresence,{v->action{service.saveMessengerPreferences(preferences.copy(sharePresence=v))}})}

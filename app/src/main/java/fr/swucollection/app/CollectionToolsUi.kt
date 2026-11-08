@@ -73,7 +73,7 @@ internal fun CollectionHistoryPanel(database: CollectionDatabase,onChanged:()->U
 internal fun RelatedPrintsPanel(card: CatalogCard, catalog: List<CatalogCard>, owned: List<CollectionCard>,
     details: CardDetails, selectedVariant: String, selectedLanguage: String,
     onOpen: (CatalogCard, String, String) -> Unit) {
-    val visual = LocalContext.current.packageName == AppChannel.TEST_PACKAGE
+    val visual = AppChannel.supportsExperience(LocalContext.current.packageName)
     var expanded by remember(details.family(card)) { mutableStateOf(visual) }
     val prints = remember(card.setCode, card.number, catalog, owned, details) { familyPrints(card, catalog, owned, details) }
     TextButton(onClick = { expanded = !expanded }) {

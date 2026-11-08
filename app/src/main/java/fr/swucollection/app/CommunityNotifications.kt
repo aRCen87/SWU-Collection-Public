@@ -53,7 +53,7 @@ internal object CommunityNotifications {
         if (!value) clear(context, channel(tab))
     }
     fun channels(context: Context) {
-        if (context.packageName != AppChannel.TEST_PACKAGE) return
+        if (!AppChannel.supportsExperience(context.packageName)) return
         val manager = context.getSystemService(NotificationManager::class.java)
         listOf(MESSAGES to "Messages privés", FRIENDS to "Demandes d’amis", TRADES to "Échanges", SEARCH to "Cartes recherchées").forEach { (id, name) ->
             manager.createNotificationChannel(NotificationChannel(id, name, NotificationManager.IMPORTANCE_DEFAULT).apply {
@@ -70,7 +70,7 @@ internal object CommunityNotifications {
     @Synchronized
     fun offer(context: Context, uid: String, notice: CommunityNotice): Boolean {
         if(CommunityLiveConnection.activityVisible && notice.key=="message:$activeThread")return false
-        if (context.packageName != AppChannel.TEST_PACKAGE || !enabled(context, uid, if(notice.key.startsWith("search:"))"Recherches" else notice.tab) || !permission(context)) return false
+        if (!AppChannel.supportsExperience(context.packageName) || !enabled(context, uid, if(notice.key.startsWith("search:"))"Recherches" else notice.tab) || !permission(context)) return false
         if (CommunityService.create(context)?.auth?.currentUser?.uid != uid) return false
         channels(context)
         val channel = if(notice.key.startsWith("search:"))SEARCH else channel(notice.tab)
@@ -102,7 +102,7 @@ internal object CommunityNotifications {
             (channel == null || it.notification.channelId == channel) }.forEach { manager.cancel(it.tag, it.id) }
     }
     fun destination(context: Context, intent: Intent): String? {
-        if (context.packageName != AppChannel.TEST_PACKAGE || intent.action != ACTION) return null
+        if (!AppChannel.supportsExperience(context.packageName) || intent.action != ACTION) return null
         val uid = CommunityService.create(context)?.auth?.currentUser?.uid ?: return null
         if (intent.getStringExtra(OWNER) != uid) return null
         val tab=intent.getStringExtra(TAB)?.takeIf { it in listOf("Messages", "Amis", "Échanges") }?:return null
@@ -162,7 +162,7 @@ class CommunityNotificationWorker(context: Context, parameters: WorkerParameters
     }
     companion object {
         fun schedule(context: Context) {
-            if (context.packageName != AppChannel.TEST_PACKAGE) return
+            if (!AppChannel.supportsExperience(context.packageName)) return
             CommunityNotifications.channels(context)
             WorkManager.getInstance(context).enqueueUniquePeriodicWork("community-notifications", ExistingPeriodicWorkPolicy.KEEP,
                 PeriodicWorkRequestBuilder<CommunityNotificationWorker>(15, TimeUnit.MINUTES)

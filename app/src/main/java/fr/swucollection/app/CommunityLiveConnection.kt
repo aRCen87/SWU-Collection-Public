@@ -16,7 +16,7 @@ internal object CommunityLiveConnection {
     fun setEnabled(context:Context,enabled:Boolean){prefs(context).edit().putBoolean("enabled",enabled).apply();if(enabled)refresh(context) else context.stopService(intent(context))}
     private fun intent(context:Context)=Intent().setClassName(context.packageName,"fr.swucollection.app.RealtimeMessagingService")
     fun refresh(context:Context){
-        if(context.packageName!=AppChannel.TEST_PACKAGE || !activityVisible || !enabled(context))return
+        if(!AppChannel.supportsExperience(context.packageName) || !activityVisible || !enabled(context))return
         if(CommunityService.create(context)?.auth?.currentUser?.isEmailVerified!=true)return
         if(!NotificationManagerCompat.from(context).areNotificationsEnabled() || (Build.VERSION.SDK_INT>=33 && ContextCompat.checkSelfPermission(context,Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED))return
         runCatching{ContextCompat.startForegroundService(context,intent(context))}

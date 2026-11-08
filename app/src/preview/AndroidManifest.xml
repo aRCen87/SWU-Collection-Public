@@ -6,9 +6,6 @@
     <application android:label="SWU Collection Test" android:allowBackup="false"
         android:icon="@mipmap/ic_launcher_test" android:roundIcon="@mipmap/ic_launcher_test"
         tools:replace="android:label,android:allowBackup,android:icon,android:roundIcon">
-        <service android:name=".RealtimeMessagingService" android:exported="false" android:stopWithTask="false" android:foregroundServiceType="specialUse">
-            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-visible connection for private instant-message, friendship and exchange notifications while the app is closed; user can stop it from its notification or settings." />
-        </service>
         <activity android:name=".MainActivity" android:resizeableActivity="true" android:windowSoftInputMode="adjustResize"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|fontScale|density"
             tools:replace="android:configChanges" />

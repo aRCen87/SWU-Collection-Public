@@ -65,6 +65,14 @@ jobs:
           fi
           echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/swu-release.jks"
           echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/swu-release.jks" >> "$GITHUB_ENV"
+      - name: Prepare the official backend configuration
+        if: github.event_name != 'pull_request'
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          test -f docs/official-backend-config.enc.properties || { echo 'Official backend is not configured. Public release is blocked.' >&2; exit 1; }
+          java .github/scripts/DecryptOfficialConfig.java docs/official-backend-config.enc.properties
+          python3 .github/scripts/check_official_backend.py
       - name: Build signed release APK
         if: github.event_name != 'pull_request'
         env:

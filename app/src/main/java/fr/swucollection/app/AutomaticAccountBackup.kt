@@ -110,12 +110,12 @@ class AutomaticBackupWorker(context: Context, parameters: WorkerParameters) : Co
     companion object {
         private fun constraints() = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).setRequiresBatteryNotLow(true).build()
         fun schedule(context: Context) {
-            if (context.packageName != AppChannel.TEST_PACKAGE) return
+            if (!AppChannel.supportsExperience(context.packageName)) return
             WorkManager.getInstance(context).enqueueUniquePeriodicWork("account-auto-backup", ExistingPeriodicWorkPolicy.KEEP,
                 PeriodicWorkRequestBuilder<AutomaticBackupWorker>(15, TimeUnit.MINUTES).setConstraints(constraints()).build())
         }
         fun enqueue(context: Context, delay: Long = 0) {
-            if (context.packageName != AppChannel.TEST_PACKAGE) return
+            if (!AppChannel.supportsExperience(context.packageName)) return
             WorkManager.getInstance(context).enqueueUniqueWork(if (delay > 0) "account-auto-backup-delayed" else "account-auto-backup-now", ExistingWorkPolicy.KEEP,
                 OneTimeWorkRequestBuilder<AutomaticBackupWorker>().setInitialDelay(delay, TimeUnit.MILLISECONDS)
                     .setConstraints(constraints()).setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS).build())

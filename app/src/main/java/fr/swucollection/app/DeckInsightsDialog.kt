@@ -53,7 +53,7 @@ internal fun DeckInsightsDialog(deck: PortableDeck, owned: List<CollectionCard>,
             InsightsBars("Affinités", analysis.aspects)
             Text("Une carte à plusieurs affinités figure dans chacune d’elles. Le leader et la base ne sont pas comptés dans ces graphiques.", style = MaterialTheme.typography.bodySmall)
             HorizontalDivider()
-            if (context.packageName == AppChannel.TEST_PACKAGE) {
+            if (AppChannel.supportsExperience(context.packageName)) {
                 DeckAlternativesPanel(deck, availableOwned, catalog, details, rules, onReplace)
                 HorizontalDivider()
             }

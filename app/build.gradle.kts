@@ -12,8 +12,8 @@ android {
         minSdk = 26
         targetSdk = 36
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 60
-        versionName = "0.8.19"
+        versionCode = 84
+        versionName = "0.9.0"
     }
     signingConfigs {
         create("release") {
@@ -38,6 +38,7 @@ android {
             initWith(getByName("release"))
             applicationIdSuffix = ".test"
             versionNameSuffix = "-test.24"
+            // Keep the previously delivered Test version while preparing the official release.
             signingConfig = signingConfigs.getByName("release")
             matchingFallbacks += listOf("release")
         }
@@ -56,7 +57,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 }
-// The private app has its own update sequence; the official release stays frozen.
+// Test keeps its independent Android update sequence.
 androidComponents {
     onVariants(selector().withBuildType("preview")) { variant ->
         variant.outputs.forEach { it.versionCode.set(83) }

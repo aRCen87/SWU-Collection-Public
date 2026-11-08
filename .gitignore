@@ -23,3 +23,6 @@ __pycache__/
 
 social/node_modules/
 app/src/preview/res/values/community_config.xml
+
+app/src/release/res/values/community_config.xml
+social/.official-security-*/

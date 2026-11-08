@@ -114,7 +114,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         CommunityLiveConnection.activityVisible=false
-        if (packageName == AppChannel.TEST_PACKAGE) AutomaticBackupWorker.enqueue(applicationContext)
+        if (AppChannel.supportsExperience(packageName)) AutomaticBackupWorker.enqueue(applicationContext)
         super.onStop()
     }
 
@@ -138,8 +138,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if(packageName==AppChannel.TEST_PACKAGE) enableEdgeToEdge(statusBarStyle=SystemBarStyle.dark(android.graphics.Color.TRANSPARENT))
-        if (packageName == AppChannel.TEST_PACKAGE) {
+        if(AppChannel.supportsExperience(packageName)) enableEdgeToEdge(statusBarStyle=SystemBarStyle.dark(android.graphics.Color.TRANSPARENT))
+        if (AppChannel.supportsExperience(packageName)) {
             CommunityBackground.install(applicationContext)
             lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (true) { CommunityBackground.refresh(applicationContext); delay(30_000) }
@@ -188,7 +188,7 @@ class MainActivity : ComponentActivity() {
                 outline = Color(0xFF9C7941),
                 outlineVariant = Color(0xFF66583D)
             )
-            MaterialTheme(colorScheme = if (packageName == AppChannel.TEST_PACKAGE) swuColors.copy(
+            MaterialTheme(colorScheme = if (AppChannel.supportsExperience(packageName)) swuColors.copy(
                 primary = PremiumGold, surface = PremiumNavy, surfaceContainer = PremiumNavy,
                 surfaceContainerLow = PremiumNavy, surfaceContainerHigh = Color(0xFF142235),
                 outline = PremiumGold.copy(alpha = .6f), outlineVariant = Color(0xFF354255)) else swuColors) {
@@ -241,7 +241,7 @@ private fun CollectionScreen(
     var personalLists by remember { mutableStateOf(database.cardLists()) }
     CommunityPresenceHost()
     val deckContext = LocalContext.current
-    val privateLayout = deckContext.packageName == AppChannel.TEST_PACKAGE
+    val privateLayout = AppChannel.supportsExperience(deckContext.packageName)
     val homeStore = remember(deckContext) { HomeLayoutStore(deckContext) }
     var homeLayout by remember { mutableStateOf(homeStore.read()) }
     var homeEditing by remember { mutableStateOf(false) }
@@ -402,7 +402,7 @@ private fun CollectionScreen(
 
     LaunchedEffect(updateNavigationRequest) {
         if (updateNavigationRequest > 0) {
-            if (deckContext.packageName == AppChannel.TEST_PACKAGE) {
+            if (AppChannel.supportsExperience(deckContext.packageName)) {
                 // A notification may arrive while a modal is open. Keep stored batches and drafts.
                 scannerOpen = false
                 scanCandidate = null
@@ -601,15 +601,15 @@ private fun CollectionScreen(
                                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text("Recto")
                                 TransitioningCardArtwork(card, previewVariant, index = session.index,
-                                    enabled = deckContext.packageName == AppChannel.TEST_PACKAGE,
+                                    enabled = AppChannel.supportsExperience(deckContext.packageName),
                                     modifier = Modifier.fillMaxWidth().height(280.dp).then(swipeCardModifier))
                                 Text("Verso")
                                 TransitioningCardArtwork(card, previewVariant, reverse = true, index = session.index,
-                                    enabled = deckContext.packageName == AppChannel.TEST_PACKAGE,
+                                    enabled = AppChannel.supportsExperience(deckContext.packageName),
                                     modifier = Modifier.fillMaxWidth().height(280.dp).then(swipeCardModifier))
                             }
                         } else if (hasReverse) {
-                            if (deckContext.packageName == AppChannel.TEST_PACKAGE) {
+                            if (AppChannel.supportsExperience(deckContext.packageName)) {
                                 TransitioningCardArtwork(card, previewVariant, reverse = showReverse, index = session.index,
                                     enabled = true, modifier = Modifier.fillMaxWidth().height(artworkHeight)
                                         .then(swipeCardModifier).clickable { showReverse = !showReverse })
@@ -619,7 +619,7 @@ private fun CollectionScreen(
                             Text("Toucher la carte pour la retourner", fontSize = 12.sp)
                         } else {
                             TransitioningCardArtwork(card, previewVariant, index = session.index,
-                                enabled = deckContext.packageName == AppChannel.TEST_PACKAGE,
+                                enabled = AppChannel.supportsExperience(deckContext.packageName),
                                 modifier = Modifier.fillMaxWidth().height(artworkHeight).then(swipeCardModifier))
                         }
                         Text(card.name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
@@ -723,7 +723,7 @@ private fun CollectionScreen(
         ) {
             if (!immersiveHome && !messengerKeyboardOpen) updateBanner()
             if (selectedSection == "Accueil") {
-            val privateHome = deckContext.packageName == AppChannel.TEST_PACKAGE
+            val privateHome = AppChannel.supportsExperience(deckContext.packageName)
             Box(Modifier.fillMaxWidth().then(if (privateHome) Modifier.heightIn(min = 144.dp) else Modifier)) {
                 if (privateHome) PremiumHomeBanner(homeArtworkActive && reflectionsEnabled,
                     if(reflectionsEnabled) homeHeaderProgress else remember {mutableStateOf(1f)}, headerReflection)
@@ -1026,7 +1026,7 @@ private fun CollectionScreen(
                     onCard = { card, visible -> openPreview(card, visible.map { CardPreviewEntry(it) }) },
                     onDeck = ::openSavedDeck, onSet = { navigation.navigateTo("Extensions", it) })
             }
-            if (selectedSection in listOf("Communauté", "Messagerie") && deckContext.packageName == "fr.swucollection.app.test") {
+            if (selectedSection in listOf("Communauté", "Messagerie") && AppChannel.supportsExperience(deckContext.packageName)) {
                 key(communityNavigationRequest?.first, selectedSection) {
                 CommunityPanel(savedDecks, badgeProgress.filter { it.earned }, badgeBook?.definitions.orEmpty(), allCatalog, database, cardDetails,
                     initialTab = if (selectedSection == "Messagerie") messengerInitialTab else communityInitialTab,
@@ -1726,7 +1726,7 @@ private fun ReferenceArtwork(x: Int, y: Int, width: Int, height: Int,
 
 @Composable
 private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) {
-    val privateLayout = LocalContext.current.packageName == AppChannel.TEST_PACKAGE
+    val privateLayout = AppChannel.supportsExperience(LocalContext.current.packageName)
     Dialog(onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)) {
         BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding(), contentAlignment = androidx.compose.ui.Alignment.CenterEnd) {
@@ -1749,7 +1749,7 @@ private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) 
                             }
                         }
                         Spacer(Modifier.height(24.dp))
-                        val communityEntries = if (LocalContext.current.packageName == "fr.swucollection.app.test")
+                        val communityEntries = if (AppChannel.supportsExperience(LocalContext.current.packageName))
                             listOf(Triple(Icons.Default.Person, "Compte et communauté", "Communauté"),
                                 Triple(Icons.Default.Handshake, "Mes prêts de cartes", "Prêts")) else emptyList()
                         val entries = communityEntries + listOf(

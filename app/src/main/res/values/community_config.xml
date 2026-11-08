@@ -3,4 +3,7 @@
   <string name="swu_test_project_id" translatable="false" />
   <string name="swu_test_api_key" translatable="false" />
   <string name="swu_test_app_id" translatable="false" />
+  <string name="swu_official_project_id" translatable="false" />
+  <string name="swu_official_api_key" translatable="false" />
+  <string name="swu_official_app_id" translatable="false" />
 </resources>

@@ -8,7 +8,7 @@ internal fun rememberCollectionFilter(key: String, fallback: String): MutableSta
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("collection_filters", 0) }
     val state = remember(key) {
-        if (key == "groupVersions" && context.packageName == AppChannel.TEST_PACKAGE &&
+        if (key == "groupVersions" && AppChannel.supportsExperience(context.packageName) &&
             !prefs.getBoolean("visual_family_default", false)) {
             prefs.edit().putString(key, "true").putBoolean("visual_family_default", true).apply()
         }

@@ -103,7 +103,7 @@ fun CardScannerDialog(
     // Android can detach a Dialog's window when a fold changes the display
     // metrics without recreating the activity. Recreate only its Test window
     // and camera view; keep scanGate, pending cards and scanner choices below.
-    val windowKey = if (context.packageName == AppChannel.TEST_PACKAGE)
+    val windowKey = if (AppChannel.supportsExperience(context.packageName))
         listOf(configuration.orientation, configuration.screenWidthDp,
             configuration.screenHeightDp, configuration.densityDpi) else emptyList()
     val activity = context.scannerActivity()
@@ -124,7 +124,7 @@ fun CardScannerDialog(
     var visualChoices by remember { mutableStateOf<List<CatalogCard>>(emptyList()) }
     var visualChoiceError by remember { mutableStateOf<String?>(null) }
     val visualCatalog by produceState<List<CatalogCard>>(emptyList(), context) {
-        if (context.packageName == AppChannel.TEST_PACKAGE) value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        if (AppChannel.supportsExperience(context.packageName)) value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             val db = CollectionDatabase(context.applicationContext)
             try { db.allCatalogSets().flatMap { db.catalogCardsForSet(it.code) } } finally { db.close() }
         }
@@ -165,7 +165,7 @@ fun CardScannerDialog(
                 { matches -> if (active.get() && !pauseCheck()) {
                     matches.firstOrNull()?.let { landscapeCard = it.landscape }
                     val refs = matches.map { it.reference.set to it.reference.number }
-                    if (context.packageName == AppChannel.TEST_PACKAGE) {
+                    if (AppChannel.supportsExperience(context.packageName)) {
                         val choices = scannerVisualChoices(refs, latestVisualCatalog.value)
                         if (choices.isNotEmpty()) { visualChoices = choices; visualChoiceError = null; true } else false
                     } else latestUncertain.value?.let { callback -> callback(refs); true } ?: false

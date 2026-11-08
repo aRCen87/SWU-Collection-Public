@@ -46,7 +46,7 @@ internal suspend fun <T> Task<T>.communityAwait(): T = suspendCancellableCorouti
     addOnCanceledListener { continuation.cancel() }
 }
 
-/** The named test backend is never initialized for the official application. */
+/** Each package has its own backend; an official installation never initializes the test project. */
 internal class CommunityService private constructor(val auth: FirebaseAuth, private val db: FirebaseFirestore) {
     internal fun accountStore(): FirebaseFirestore = db
     val uid: String get() = auth.currentUser?.uid ?: error("Connecte-toi d’abord.")
@@ -68,7 +68,7 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
         val user = auth.currentUser ?: return false
         if (!user.isEmailVerified) return false
         val owner = user.uid
-        val ref = db.collection("testMembers").document(owner)
+        val ref = db.collection(if (auth.app.name == "swu-community-official") "members" else "testMembers").document(owner)
         // An existing disabled record is never overwritten by self-registration.
         val result = db.runTransaction { transaction ->
             val member = transaction.get(ref)
@@ -218,17 +218,19 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
     companion object {
         @Synchronized
         fun create(context: Context): CommunityService? {
-            if (context.packageName != "fr.swucollection.app.test") return null
-            val project = context.getString(R.string.swu_test_project_id)
-            val apiKey = context.getString(R.string.swu_test_api_key)
-            val appId = context.getString(R.string.swu_test_app_id)
-            if (!project.endsWith("-test") || apiKey.isBlank() || appId.isBlank()) return null
-            val app = FirebaseApp.getApps(context).firstOrNull { it.name == "swu-community-test" }
-                ?: FirebaseApp.initializeApp(context, FirebaseOptions.Builder().setProjectId(project).setApiKey(apiKey).setApplicationId(appId).build(), "swu-community-test")
+            val official = context.packageName == AppChannel.OFFICIAL_PACKAGE
+            if (!AppChannel.supportsExperience(context.packageName)) return null
+            val project = context.getString(if (official) R.string.swu_official_project_id else R.string.swu_test_project_id)
+            val apiKey = context.getString(if (official) R.string.swu_official_api_key else R.string.swu_test_api_key)
+            val appId = context.getString(if (official) R.string.swu_official_app_id else R.string.swu_test_app_id)
+            if (!CommunityBackendPolicy.accepts(context.packageName, project, apiKey, appId)) return null
+            val backendName = if (official) "swu-community-official" else "swu-community-test"
+            val app = FirebaseApp.getApps(context).firstOrNull { it.name == backendName }
+                ?: FirebaseApp.initializeApp(context, FirebaseOptions.Builder().setProjectId(project).setApiKey(apiKey).setApplicationId(appId).build(), backendName)
             val store = FirebaseFirestore.getInstance(app)
             // No shared persistent social cache between people using the same phone.
             if (instances[project] == null) store.firestoreSettings = FirebaseFirestoreSettings.Builder().setPersistenceEnabled(false).build()
-            return instances.getOrPut(project) { CommunityService(FirebaseAuth.getInstance(app), store) }
+            return instances.getOrPut(project) { CommunityService(FirebaseAuth.getInstance(app).apply { setLanguageCode("fr") }, store) }
         }
         private val instances = mutableMapOf<String, CommunityService>()
     }

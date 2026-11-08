@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Confirmation du compte · SWU Collection</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+  <main class="card">
+    <header><img class="logo" src="./assets/logo.jpg" width="100" height="100" alt="Logo SWU Collection"><p class="brand">SWU COLLECTION</p><p class="eyebrow">VOTRE COLLECTION. VOTRE GALAXIE.</p></header>
+    <section aria-live="polite" aria-atomic="true">
+      <div class="symbol" id="symbol" aria-hidden="true">✦</div>
+      <h1 id="title">Vérification du lien…</h1>
+      <p id="message">Un instant, nous vérifions votre demande.</p>
+    </section>
+    <form id="password-form" hidden>
+      <label for="password">Nouveau mot de passe</label>
+      <input id="password" name="new-password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required aria-describedby="password-hint">
+      <p id="password-hint" class="hint">De 12 à 128 caractères.</p>
+      <label for="confirmation">Confirmer le mot de passe</label>
+      <input id="confirmation" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+      <button type="submit" id="save-password">Enregistrer le mot de passe</button>
+      <p id="password-error" role="alert"></p>
+    </form>
+    <a id="return-app" class="button" hidden>Revenir à l’application</a>
+    <p id="return-hint" class="hint" hidden>Si l’application ne s’ouvre pas, ouvrez-la depuis votre téléphone puis revenez à votre compte.</p>
+    <footer>Collection · Decks · Amis<br><span>Une application communautaire indépendante.</span></footer>
+  </main>
+</body>
+</html>

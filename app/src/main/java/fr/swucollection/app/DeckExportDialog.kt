@@ -76,7 +76,7 @@ internal fun DeckExportDialog(deck: PortableDeck, name: String, catalog: List<Ca
             Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Un appui copie ton deck et ouvre la plateforme. Il te reste à le coller et à le valider.", color = ListPalette.Secondary)
-                if (context.packageName == AppChannel.TEST_PACKAGE) DeckImageShareButton(deck, name, catalog)
+                if (AppChannel.supportsExperience(context.packageName)) DeckImageShareButton(deck, name, catalog)
                 DeckDestination.entries.forEach { destination ->
                     Button(onClick = { openDestination(destination) }, modifier = Modifier.fillMaxWidth()) {
                         Text("Copier et ouvrir ${destination.title}")

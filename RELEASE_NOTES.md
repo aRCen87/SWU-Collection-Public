@@ -191,6 +191,13 @@
 - Collection et decks locaux conservés. Aucune synchronisation cloud des collections ni notification de messagerie téléphone fermé dans cette version.
 - Application Test séparée de l’application officielle ; cette version ne modifie pas sa distribution.
 
+## Version 0.9.0
+
+- Reprise de l’interface et des outils validés dans Test : accueil spatial, miniatures adaptatives, fiches et scanner, decks, favoris, vitrine et compteur de points de vie.
+- Comptes officiels séparés de Test, activation automatique après confirmation de l’e-mail, profils, amis, messages, partage de cartes et decks, échanges et sauvegarde privée.
+- Conservation de l’identifiant Android, de la signature permanente et de la base locale existante. Aucune importation automatique des données Test.
+- Version en préparation : les services officiels et la mise à jour complète doivent être validés avant publication.
+
 ## Version 0.8.19
 
 - Bandeau d’accueil : une lumière dorée suit le contour de chacune des lettres S, W et U, pendant le passage du reflet métallique, selon l’aperçu validé.

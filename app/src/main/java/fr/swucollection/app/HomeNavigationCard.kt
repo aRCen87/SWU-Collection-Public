@@ -48,7 +48,7 @@ internal fun HomeNavigationCard(symbol: String, title: String, subtitle: String,
         else -> Icons.Default.BarChart
     }
     val resources = LocalContext.current.resources
-    val privateLayout = LocalContext.current.packageName == AppChannel.TEST_PACKAGE
+    val privateLayout = AppChannel.supportsExperience(LocalContext.current.packageName)
     val artwork = remember(resources, drawable) { BitmapFactory.decodeResource(resources, drawable) }
     val gold = Color(0xFFE6C17A)
     val navy = Color(0xFF030D19)

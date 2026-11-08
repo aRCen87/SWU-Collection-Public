@@ -40,7 +40,7 @@ internal fun DeckBuilderPanel(
     onScanCollection: (() -> Unit)? = null, seedCard: CatalogCard? = null
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
-    val dualPane = LocalContext.current.packageName == AppChannel.TEST_PACKAGE && maxWidth >= 700.dp && maxHeight >= 480.dp
+    val dualPane = AppChannel.supportsExperience(LocalContext.current.packageName) && maxWidth >= 700.dp && maxHeight >= 480.dp
     val draftContext = LocalContext.current.applicationContext
     val draftStore = remember(draftContext) { DeckDraftStore(draftContext) }
     val baseline = remember(initial, initialName) { DeckInterchange.exportJson(initial, initialName) }

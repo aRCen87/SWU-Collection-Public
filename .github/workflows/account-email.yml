@@ -1,0 +1,18 @@
+name: Account email confirmation page
+on:
+  push:
+    paths: ['account-email/**', '.github/workflows/account-email.yml']
+  pull_request:
+    paths: ['account-email/**', '.github/workflows/account-email.yml']
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test account-email/tests/*.test.mjs
+      - run: node --check account-email/public/page.js
