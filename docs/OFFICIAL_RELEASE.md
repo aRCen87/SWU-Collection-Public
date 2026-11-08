@@ -4,7 +4,7 @@ Romain a autorisé le 8 novembre 2026 la reprise des fonctions de Test dans l'of
 
 ## État vérifié
 
-Le diagnostic `42520120938` est terminé : la relance de l'ancienne application renvoyait vers `GrantPermissionsActivity`, après un arrêt forcé du scénario de test ; aucun crash Java n'est présent. Le grant de notifications doit être rétabli après réinstallation de la fixture, avant son premier lancement. Le contrôle signé de conservation reste à relancer avec ce correctif du scénario.
+La validation complète [42522045027](https://github.com/aRCen87/SWU-Collection-Public/actions/runs/42522045027) a réussi le 8 novembre à 21 h 20 UTC, pour les sources `b845f84a566f8181ec4adc41b0611fa492b6163e`. Le précédent arrêt était celui du scénario devant une demande Android de notifications ; le grant a été rétabli après réinstallation de la fixture. Le contrôle de mise à jour signé est désormais réussi.
 
 - Source de départ : Test 24, commit 0e7d2b6b39c2bdc8b461765efacbbe049d0636a1. Les nouveautés et les comptes sont promus au paquet officiel, tout en conservant le paquet Test et son propre flux de mise à jour.
 - Projet officiel `swu-collection-official` créé sur Spark, sans Analytics, Gemini, Developer Program ou option payante.
@@ -12,8 +12,11 @@ Le diagnostic `42520120938` est terminé : la relance de l'ancienne application 
 - Connexion e-mail/mot de passe activée. Les modèles d'e-mail sont en français.
 - Firestore Standard `(default)` créé à Paris (`europe-west9`), d'abord en refus intégral puis avec les règles officielles vérifiées. Les 24 506 caractères de l'éditeur ont été comparés au fichier testé avant publication ; la console confirme la version active du 8 novembre à 20 h 49 (Paris).
 - Inscription autonome après e-mail confirmé : collection `members` dans l'officielle, `testMembers` dans Test. Un compte désactivé ne peut pas se réactiver.
-- Les 40 tests de sécurité officiels et 9 tests de la page de confirmation ont réussi. Les premières compilation, tests de code Android et lint ont réussi. L'APK optimisé signé a également passé ses tests et lint. Les parcours natifs de collection et l'ouverture des comptes ont réussi. Le contrôle de mise à jour signée attend une nouvelle passe : le diagnostic a identifié une autorisation de notifications restée ouverte dans le scénario, sans crash Java ; ce scénario est corrigé avant de conclure sur la conservation.
-- La conservation est vérifiée au niveau SQLite 11 → 12 (cartes, identifiants, quantités, variantes, langues, listes et decks). Un contrôle sur le véritable APK officiel publié est ajouté : fixtures exclusivement dans un émulateur, puis mise à jour signée sans désinstallation entre ancienne et nouvelle versions.
+- Les 40 tests de sécurité officiels, 9 tests de la page et 54 contrôles de préparation ont réussi, ainsi que les tests Android, lint et compilations debug/release optimisée signée.
+- Les parcours natifs ont réussi : animations et mouvement réduit, collection et prix, miniatures à 3/7/6 colonnes, recherche et filtres, gestion de collection, clavier et fiche conservés pendant les changements d'écran, caméra en redimensionnement, compteur solo/deux joueurs et résultats, ouverture des comptes.
+- La conservation est vérifiée au niveau SQLite 11 → 12 (cartes, identifiants, quantités, variantes, langues, listes et decks). Le vrai APK officiel publié 0.8.19 a également été mis à jour vers la candidate 0.9.0 sans désinstallation entre les versions : identifiants, cartes FR/EN, quantités, variantes, listes et decks identiques après mise à jour, UID conservé et schéma 12.
+- Précontrôles du serveur en direct : configuration publique Firebase reconnue pour l'application Android (HTTP 200), accès anonyme à un document de membres refusé par Firestore (HTTP 403, permissions insuffisantes). Aucun compte réel créé ni mail envoyé par ces contrôles.
+- APK privé `SWU-Collection-Official-Candidate-0.9.0.apk` récupéré, déchiffré et vérifié, puis enregistré pour l'essai réel. Paquet `fr.swucollection.app`, version 0.9.0, code 84, 63 056 047 octets, SHA-256 `472310755af4660383511f9b9ea36ba76d026c7d5efe61da17d3f9806304b040`, certificat permanent `54912449ae2e4ecd6e88243d3e11fb0bb2c1d2e7da77af2038752ee50e7b549b`. Empreinte des sources applicatives : `58945395f74bee47e117b2f19c7c1831dde50118f173007c52de2287ff8965fe`.
 
 ## Blocages et points non encore validés
 
@@ -21,7 +24,7 @@ Le diagnostic `42520120938` est terminé : la relance de l'ancienne application 
 - L'application Web de confirmation est enregistrée et associée au site Hosting officiel, mais les fichiers de la page ne sont pas déployés. Aucun changement du lien d'action tant que la page n'est pas disponible et validée.
 - La connexion de Firebase CLI a été bloquée précédemment par la politique d'URL du navigateur après l'accord de Romain. Ne pas contourner ce refus en rejouant l'autorisation par un chemin indirect. La session CLI en attente a été arrêtée, aucune connexion CLI utilisable n'a été confirmée.
 - Aucun parcours avec de vrais comptes officiels, aucune réception réelle de mail officiel et aucune validation sur les deux téléphones de Romain n'est encore confirmée. Les tests de sécurité utilisent exclusivement les émulateurs locaux.
-- Aucune mise à jour officielle n'est publiée par le workflow de validation de candidate. Le dernier état signé et tous les contrôles doivent être validés avant toute fusion/publication.
+- Aucune mise à jour officielle n'est publiée par le workflow de validation de candidate. Les contrôles automatiques ont réussi ; l'essai réel de compte, mail et sauvegarde reste requis avant fusion et publication. La dernière version publique vérifiée reste 0.8.19.
 
 ## Dernier essai réel avant ouverture publique
 
