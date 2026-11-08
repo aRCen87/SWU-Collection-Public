@@ -82,6 +82,8 @@ def verify_miniatures():
         capture('miniatures-' + name)
     assert columns[0] == 3 and all(c > columns[0] for c in columns[1:]), columns
     # Same remembered mode after recreation, and opening never edits the stock.
+    # Reopen on the cover so a freshly reset landscape header cannot hide the tap target.
+    adb('shell', 'wm', 'size', '720x1560'); adb('shell', 'wm', 'density', 320); time.sleep(4)
     adb('shell', 'am', 'force-stop', PACKAGE)
     adb('shell', 'am', 'start', '-W', '-n', PACKAGE+'/fr.swucollection.app.MainActivity'); time.sleep(6)
     tap(find(snapshot('miniatures-restart-home'), 'Collection'))
