@@ -131,11 +131,11 @@ jobs:
           python3 - <<'PYDIAG'
           from pathlib import Path
           from zipfile import ZipFile,ZIP_DEFLATED
-          files=[p for p in Path('/tmp/android-runner').glob('emu-crash*') if p.is_file() and p.stat().st_size < 50_000_000]
+          files=[p for root in Path('/tmp/android-runner').glob('emu-crash*') for p in ([root] if root.is_file() else root.rglob('*')) if p.is_file() and p.stat().st_size < 50_000_000]
           if files:
               Path('smoke-private').mkdir(exist_ok=True)
               with ZipFile('smoke-private/graphics-diagnostics.zip','w',ZIP_DEFLATED) as z:
-                  for p in files:z.write(p,p.name)
+                  for p in files:z.write(p,str(p.relative_to('/tmp/android-runner')))
           PYDIAG
           if test -f smoke-private/graphics-diagnostics.zip; then
             python3 .github/scripts/encrypt_private_preview.py docs/preview-recipient-public.pem smoke-private/graphics-diagnostics.zip distribution-layout-private/graphics-diagnostics

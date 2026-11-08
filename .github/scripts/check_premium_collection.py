@@ -57,9 +57,13 @@ def verify_motion():
     banner=next(n for n in root.iter('node') if n.attrib.get('resource-id')=='swu_premium_banner')
     x1,y1,x2,y2=bounds(banner); w=x2-x1; h=y2-y1
     area=(int(x1+w*.2),int(y1+h*.55),int(x1+w*.8),int(y2-h*.08))
+    collection_entry = find(root, 'Collection')
+    home_entry = find(root, 'Accueil')
     adb('shell','settings','put','global','animator_duration_scale',1)
-    adb('shell','am','force-stop',PACKAGE)
-    adb('shell','am','start','-W','-n',PACKAGE+'/fr.swucollection.app.MainActivity'); time.sleep(5)
+    # Recreate the home composition without killing its live graphics process.
+    # Both anchors belong to the fixed bottom navigation on the same viewport.
+    tap(collection_entry)
+    tap(home_entry)
     first=capture('orbit-first'); time.sleep(12); second=capture('orbit-second')
     diff=ImageChops.difference(Image.open(first).crop(area),Image.open(second).crop(area)).convert('L')
     assert sum(v>2 for v in diff.getdata())>diff.width*diff.height*.01, 'Background does not drift when animations are enabled'
