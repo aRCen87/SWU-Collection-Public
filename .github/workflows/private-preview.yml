@@ -7,7 +7,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: private-swu-preview
+  group: private-swu-preview-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   security:
@@ -61,7 +61,7 @@ jobs:
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: java .github/scripts/DecryptPreviewConfig.java docs/test-backend-config.enc.properties
-      - run: python3 -m pip install 'cryptography>=44,<47'
+      - run: python3 -m pip install 'cryptography>=44,<47' 'Pillow>=11,<13'
       - name: Test stable code and the isolated preview
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}

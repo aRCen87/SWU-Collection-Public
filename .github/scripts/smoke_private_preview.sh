@@ -56,6 +56,7 @@ python3 .github/scripts/check_private_fold_interactions.py
 python3 .github/scripts/check_match_counter.py
 python3 .github/scripts/check_test18_guidance.py
 python3 .github/scripts/check_messenger_entry.py
+python3 .github/scripts/check_premium_collection.py
 # Both identities still exist after launching each application.
 adb shell pm path fr.swucollection.app
 adb shell pm path fr.swucollection.app.test

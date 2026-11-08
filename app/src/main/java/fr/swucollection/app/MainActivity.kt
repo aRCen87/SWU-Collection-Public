@@ -1365,7 +1365,7 @@ private fun CollectionScreen(
                         horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp),
                         contentPadding = PaddingValues(bottom = 12.dp)) {
                         items(groups, key = { it.first().id }) { rows ->
-                            PremiumOwnedTile(rows, catalogByKey) { owned, card ->
+                            PremiumOwnedTile(rows, catalogByKey, collectionQuotes, premierLegality.status(rows.first())) { owned, card ->
                                 openPreview(card, familyPreviewEntries(groups, owned, catalogByKey), owned.variant, owned.language)
                             }
                         }

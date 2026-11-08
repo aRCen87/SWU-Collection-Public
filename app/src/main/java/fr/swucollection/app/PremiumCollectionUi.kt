@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import kotlin.math.sin
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
@@ -37,7 +38,7 @@ internal val PremiumMetal = Brush.verticalGradient(listOf(Color(0xFFFFEDB6), Col
 @Composable
 internal fun PremiumHomeBanner(active: Boolean, modifier: Modifier = Modifier) {
     val orbitTime = rememberHeaderAmbientTime(active)
-    BoxWithConstraints(modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp))) {
+    BoxWithConstraints(modifier.fillMaxWidth().testTag("swu_premium_banner").clip(RoundedCornerShape(22.dp))) {
         val compact = maxWidth < 340.dp
         val bannerHeight = if (compact) 220.dp else 246.dp
         Image(painterResource(R.drawable.home_premium_space), null,
@@ -112,9 +113,19 @@ private fun PremiumHomeTile(item: PremiumShortcut, prominent: Boolean, modifier:
 
 /** One tile per card family, always retaining the real language and print of its thumbnail. */
 @Composable
-internal fun PremiumOwnedTile(rows: List<CollectionCard>, catalogByKey: Map<String, CatalogCard>, onOpen: (CollectionCard, CatalogCard) -> Unit) {
+internal fun PremiumOwnedTile(rows: List<CollectionCard>, catalogByKey: Map<String, CatalogCard>,
+    quotes: Map<String, MarketQuote>, status: PremierStatus?, onOpen: (CollectionCard, CatalogCard) -> Unit) {
     val first = rows.first()
     val card = catalogByKey[MarketPricing.key(first.setCode, first.number)]
+    val priceLabel = remember(rows, quotes) {
+        val prices = rows.mapNotNull { row -> quotes[collectionPriceKey(row.setCode, row.number, row.variant)]?.amount
+            ?.takeIf { it.isFinite() && it > 0 } }
+        val money = java.text.NumberFormat.getCurrencyInstance(java.util.Locale.FRANCE)
+        if (prices.isEmpty()) "Cote indisponible" else {
+            val low = prices.minOrNull()!!; val high = prices.maxOrNull()!!
+            "Cote unitaire : " + if (low == high) money.format(low) else "${money.format(low)} – ${money.format(high)}"
+        }
+    }
     Surface(onClick = { if (card != null) onOpen(first, card) }, modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(15.dp), color = PremiumNavy,
         border = BorderStroke(1.dp, PremiumGold.copy(alpha = .45f))) {
@@ -130,6 +141,10 @@ internal fun PremiumOwnedTile(rows: List<CollectionCard>, catalogByKey: Map<Stri
                     Text("× ${rows.sumOf { it.quantity }}", Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
                         color = Color.White, fontWeight = FontWeight.Bold)
                 }
+            }
+            Column(Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                CardLegalityBadge(status)
+                Text(priceLabel, color = PremiumGold, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             }
             Text(first.name, Modifier.padding(horizontal = 10.dp, vertical = 6.dp), maxLines = 2,
                 overflow = TextOverflow.Ellipsis, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
