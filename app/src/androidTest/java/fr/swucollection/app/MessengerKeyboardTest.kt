@@ -43,8 +43,8 @@ class MessengerKeyboardTest {
   val send=ui.onNodeWithTag("messenger_send").getUnclippedBoundsInRoot()
   assertTrue("Send is hidden below keyboard",send.bottom.value<=bottom+2)
   ui.onNodeWithTag("messenger_send").assertIsEnabled().performTouchInput{click()}
-  ui.waitUntil(5000){ui.onAllNodesWithText("Essai clavier").fetchSemanticsNodes().isNotEmpty()}
-  ui.onNodeWithText("Essai clavier").assertIsDisplayed()
+  ui.waitUntil(5000){ui.onAllNodes(hasText("Essai clavier") and !hasSetTextAction()).fetchSemanticsNodes().isNotEmpty()}
+  ui.onNode(hasText("Essai clavier") and !hasSetTextAction()).assertIsDisplayed()
   ui.onNodeWithTag("messenger_draft").assertIsFocused()
   assertTrue(ViewCompat.getRootWindowInsets(ui.activity.window.decorView)!!.isVisible(WindowInsetsCompat.Type.ime()))
   val file=File(ui.activity.getExternalFilesDir(null),"home-test-messenger-keyboard.png")

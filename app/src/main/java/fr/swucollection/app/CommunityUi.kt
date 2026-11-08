@@ -56,7 +56,7 @@ internal fun ColumnScope.CommunityPanel(decks: List<DeckStore.SavedDeck>, earned
     onRestored: () -> Unit, onImportDeck: (String, PortableDeck) -> Unit, onOpenCard: (SharedPlayerCard) -> Unit = {}) {
     val context = LocalContext.current
     val service = remember(context) { CommunityService.create(context) }
-    Text(if (messaging) "Tes discussions et tes amis" else "Profils, échanges et decks · essais privés", color = MaterialTheme.colorScheme.primary)
+    if(!messaging) Text("Profils, échanges et decks · essais privés", color = MaterialTheme.colorScheme.primary)
     if (service == null) {
         Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("Les comptes de test ne sont pas encore activés", fontWeight = FontWeight.Bold)
@@ -193,7 +193,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
     val unread = CommunitySocial.unread(user.uid, conversations, receipts)
     val requests = friendships.count { it.status == "pending" && it.requester != user.uid }
     val exchangeRequests = trades.count { it.status == "pending" && it.requester != user.uid }
-    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    if(!messaging || conversation==null) Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         (if (messaging) listOf("Messages", "Amis") else listOf("Mon profil", "Joueurs", "Échanges", "Favoris", "Sauvegarde")).forEach { label ->
             FilterChip(tab == label, { tab = label; conversation = null }, label = { Text((if(messaging && label=="Messages")"Discussions" else label) + when {
                 label == "Amis" && requests > 0 -> " · $requests"
@@ -267,8 +267,17 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
                     states=threadStates,onState={id,state->action{service.saveThreadState(id,state);if(state.hiddenBefore>0)service.markRead(id)}},
                     onNew = { choosingRecipient = true }, onFriends = { tab = "Amis" }, onOpen = { thread, name -> conversation = thread; peerName = name })
             } else {
-                OutlinedButton(onClick = { conversation = null }) { Text("‹ Mes conversations") }
-                CommunityChat(service, selected, decks, catalog, onImportDeck, peerName, onOpenCard)
+                val peer=selected.members.firstOrNull{it!=user.uid}.orEmpty()
+                val relatedTrades=trades.filter{peer in it.members}
+                var showTrades by remember(selected.id){mutableStateOf(false)}
+                if(relatedTrades.isNotEmpty())TextButton(onClick={showTrades=true}){Text("Échanges avec $peerName · ${relatedTrades.count{it.status=="pending"}} en attente")}
+                if(showTrades)AlertDialog(onDismissRequest={showTrades=false},title={Text("Échanges avec $peerName")},text={
+                    Column(Modifier.heightIn(max=460.dp).verticalScroll(rememberScrollState())) {
+                        TradeRequestsPanel(service,relatedTrades,profiles+friendsProfiles.values,catalog,database,busy,
+                            {trade,answer->action{service.answerTrade(trade,answer)}},{showTrades=false},onRestored)
+                    }
+                },confirmButton={TextButton(onClick={showTrades=false}){Text("Fermer")}})
+                CommunityChat(service, selected, decks, catalog, onImportDeck, peerName, onOpenCard) {conversation=null}
             }
         }
     }

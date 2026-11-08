@@ -11,7 +11,7 @@ internal object SearchCardAlertPolicy {
 internal object SearchCardAlerts {
     suspend fun check(context: Context,service: CommunityService) {
         val owner=service.uid
-        if(!CommunityNotifications.enabled(context,owner,"Échanges")) return
+        if(!CommunityNotifications.enabled(context,owner,"Recherches")) return
         val prefs=context.getSharedPreferences("community_notifications",Context.MODE_PRIVATE)
         val mine=CollectionDatabase(context.applicationContext).use {db ->
             val catalog=db.allCatalogSets().flatMap {db.catalogCardsForSet(it.code)}

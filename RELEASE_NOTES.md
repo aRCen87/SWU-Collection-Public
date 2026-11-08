@@ -1,5 +1,7 @@
 ## Test 0.8.19-test.23 — messagerie et partage
 
+- Planète et lune encore légèrement plus rapides : périodes indépendantes de 125 et 86 secondes.
+
 - Discussions et Amis séparés, liste avec avatars, aperçus, dates et non-lus. Recherche d’ami par pseudo ; code ami retiré de l’interface. Fiches d’amis compactes et retrait confirmé dans le menu.
 - Champ et bouton Envoyer côte à côte au-dessus du clavier ; messages adaptatifs, réponse, copie et suppression pour soi par appui long. États envoyé/reçu/lu, indicateur de saisie et renvoi après échec sans doublon.
 - Menu des discussions : épinglage, sourdine 1 h/8 h/permanente et suppression pour soi synchronisés sur le compte. Un nouveau message réaffiche une discussion masquée sans rétablir son ancien historique.

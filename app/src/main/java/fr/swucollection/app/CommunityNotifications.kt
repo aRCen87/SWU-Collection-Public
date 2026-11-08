@@ -43,10 +43,11 @@ internal object CommunityNotifications {
     private const val MESSAGES = "community_messages"
     private const val FRIENDS = "community_friends"
     private const val SEARCH = "community_search_cards"
-    private fun channel(tab: String) = when(tab) { "Messages" -> MESSAGES; "Échanges" -> SEARCH; else -> FRIENDS }
+    private const val TRADES = "community_trades"
+    private fun channel(tab: String) = when(tab) { "Messages" -> MESSAGES; "Échanges" -> TRADES; "Recherches" -> SEARCH; else -> FRIENDS }
     private fun prefs(context: Context) = context.getSharedPreferences("community_notifications", Context.MODE_PRIVATE)
     fun pending(context: Context, uid: String, notice: CommunityNotice) = CommunityNoticePolicy.shouldNotify(notice, prefs(context).getLong("$uid.${notice.key}.notified", 0))
-    fun enabled(context: Context, uid: String, tab: String) = prefs(context).getBoolean("$uid.$tab.enabled", true)
+    fun enabled(context: Context, uid: String, tab: String) = prefs(context).getBoolean("$uid.$tab.enabled", tab!="Recherches")
     fun setEnabled(context: Context, uid: String, tab: String, value: Boolean) {
         prefs(context).edit().putBoolean("$uid.$tab.enabled", value).apply()
         if (!value) clear(context, channel(tab))
@@ -54,7 +55,7 @@ internal object CommunityNotifications {
     fun channels(context: Context) {
         if (context.packageName != AppChannel.TEST_PACKAGE) return
         val manager = context.getSystemService(NotificationManager::class.java)
-        listOf(MESSAGES to "Messages privés", FRIENDS to "Demandes d’amis", SEARCH to "Cartes recherchées").forEach { (id, name) ->
+        listOf(MESSAGES to "Messages privés", FRIENDS to "Demandes d’amis", TRADES to "Échanges", SEARCH to "Cartes recherchées").forEach { (id, name) ->
             manager.createNotificationChannel(NotificationChannel(id, name, NotificationManager.IMPORTANCE_DEFAULT).apply {
                 description = "Messages, invitations et échanges de la communauté Test"
                 enableVibration(true)
@@ -66,12 +67,13 @@ internal object CommunityNotifications {
         context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) &&
         NotificationManagerCompat.from(context).areNotificationsEnabled()
     @SuppressLint("MissingPermission")
+    @Synchronized
     fun offer(context: Context, uid: String, notice: CommunityNotice): Boolean {
         if(CommunityLiveConnection.activityVisible && notice.key=="message:$activeThread")return false
-        if (context.packageName != AppChannel.TEST_PACKAGE || !enabled(context, uid, notice.tab) || !permission(context)) return false
+        if (context.packageName != AppChannel.TEST_PACKAGE || !enabled(context, uid, if(notice.key.startsWith("search:"))"Recherches" else notice.tab) || !permission(context)) return false
         if (CommunityService.create(context)?.auth?.currentUser?.uid != uid) return false
         channels(context)
-        val channel = channel(notice.tab)
+        val channel = if(notice.key.startsWith("search:"))SEARCH else channel(notice.tab)
         if (context.getSystemService(NotificationManager::class.java).getNotificationChannel(channel)?.importance == NotificationManager.IMPORTANCE_NONE) return false
         val marker = "$uid.${notice.key}.notified"
         if (!CommunityNoticePolicy.shouldNotify(notice, prefs(context).getLong(marker, 0))) return false
@@ -96,7 +98,7 @@ internal object CommunityNotifications {
     }
     fun clear(context: Context, channel: String? = null) {
         val manager = context.getSystemService(NotificationManager::class.java)
-        manager.activeNotifications.filter { it.notification.channelId in listOf(MESSAGES, FRIENDS, SEARCH) &&
+        manager.activeNotifications.filter { it.notification.channelId in listOf(MESSAGES, FRIENDS, SEARCH, TRADES) &&
             (channel == null || it.notification.channelId == channel) }.forEach { manager.cancel(it.tag, it.id) }
     }
     fun destination(context: Context, intent: Intent): String? {
@@ -110,7 +112,7 @@ internal object CommunityNotifications {
     suspend fun check(context: Context, service: CommunityService, includeSearchAlerts: Boolean = true) {
         val uid = service.auth.currentUser?.takeIf { it.isEmailVerified }?.uid ?: return
         if (!permission(context)) return
-        if (!enabled(context, uid, "Messages") && !enabled(context, uid, "Amis") && !enabled(context, uid, "Échanges")) return
+        if (!enabled(context, uid, "Messages") && !enabled(context, uid, "Amis") && !enabled(context, uid, "Échanges") && !enabled(context,uid,"Recherches")) return
         if (!service.allowed()) return
         val db = service.accountStore()
         val threadStates=db.collection("messenger").document(uid).collection("threads").limit(100).get(Source.SERVER).communityAwait().documents.associate{it.id to it.toThreadState()}
@@ -202,7 +204,7 @@ internal fun CommunityNotificationControls(uid: String) {
             Text("Connexion en arrière-plan · gratuite",Modifier.weight(1f));Switch(live,{live=it;CommunityLiveConnection.setEnabled(context,it)})
         }
         Text("Une notification discrète Messagerie connectée maintient l’écoute des nouveaux messages, invitations et échanges. Tu peux l’arrêter ici ou depuis la notification. Cette connexion peut consommer davantage de batterie et de données. Android ou le téléphone peuvent l’interrompre ; rouvre alors l’application.",style=MaterialTheme.typography.bodySmall)
-        listOf("Messages" to "Messages privés", "Amis" to "Demandes d’amis", "Échanges" to "Échanges et cartes recherchées").forEach { (key, label) ->
+        listOf("Messages" to "Messages privés", "Amis" to "Demandes d’amis", "Échanges" to "Propositions et réponses d’échange", "Recherches" to "Cartes recherchées chez mes amis").forEach { (key, label) ->
             var enabled by remember(uid, key) { mutableStateOf(CommunityNotifications.enabled(context, uid, key)) }
             Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                 Text(label, Modifier.weight(1f)); Switch(enabled, { enabled = it; CommunityNotifications.setEnabled(context, uid, key, it) })

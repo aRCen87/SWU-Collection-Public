@@ -684,6 +684,7 @@ private fun CollectionScreen(
     }
     }
     val immersiveHome=privateLayout && selectedSection=="Accueil"
+    val messengerKeyboardOpen=selectedSection=="Messagerie" && WindowInsets.ime.getBottom(LocalDensity.current)>0
     val updateBanner: @Composable () -> Unit = {
         if (!deckWorkspace && appUpdates.availableVersion != null && selectedSection != "Mises à jour") {
                 OutlinedButton(onClick = {
@@ -718,7 +719,7 @@ private fun CollectionScreen(
             horizontalAlignment=if(immersiveHome) androidx.compose.ui.Alignment.CenterHorizontally else androidx.compose.ui.Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(if(immersiveHome) 0.dp else if (compactCollectionLayout) 4.dp else 12.dp)
         ) {
-            if (!immersiveHome) updateBanner()
+            if (!immersiveHome && !messengerKeyboardOpen) updateBanner()
             if (selectedSection == "Accueil") {
             val privateHome = deckContext.packageName == AppChannel.TEST_PACKAGE
             Box(Modifier.fillMaxWidth().then(if (privateHome) Modifier.heightIn(min = 144.dp) else Modifier)) {
@@ -742,7 +743,7 @@ private fun CollectionScreen(
                 }
             }
             }
-            if (selectedSection != "Accueil") {
+            if (selectedSection != "Accueil" && !messengerKeyboardOpen) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                     IconButton(onClick = {
                         if (backDispatcher != null) backDispatcher.onBackPressed() else navigation.back()

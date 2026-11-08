@@ -7,8 +7,8 @@ internal data class PremiumSpaceFit(val scale: Float, val left: Float, val top: 
 internal data class PremiumOrbitFrame(val planetX: Float, val planetY: Float, val moonX: Float, val moonY: Float)
 /** Fractions of source artwork: the moon has its own orbit, not a second copy of the whole scene. */
 internal object PremiumOrbit {
-    const val PLANET_SECONDS = 140f
-    const val MOON_SECONDS = 98f
+    const val PLANET_SECONDS = 125f
+    const val MOON_SECONDS = 86f
     fun fit(width: Float,height: Float,sourceWidth: Float,sourceHeight: Float): PremiumSpaceFit {
         val scale=maxOf(width/sourceWidth,height/sourceHeight)*1.07f
         val moonLeft=(185f/1610f*sourceWidth-sourceWidth*.006f-32f/977f*sourceHeight)*scale

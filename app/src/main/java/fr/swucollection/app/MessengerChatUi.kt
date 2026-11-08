@@ -26,7 +26,7 @@ import java.util.UUID
 
 @Composable
 internal fun ColumnScope.CommunityChat(service: CommunityService, conversation: PlayerConversation, decks: List<DeckStore.SavedDeck>,
-    catalog: List<CatalogCard>, onImportDeck: (String,PortableDeck)->Unit, peerName:String, onOpenCard:(SharedPlayerCard)->Unit) {
+    catalog: List<CatalogCard>, onImportDeck: (String,PortableDeck)->Unit, peerName:String, onOpenCard:(SharedPlayerCard)->Unit, onBack:()->Unit) {
     var messages by remember(conversation.id){mutableStateOf<List<PlayerMessage>>(emptyList())}
     var draft by remember(conversation.id){mutableStateOf("")};var pendingId by remember(conversation.id){mutableStateOf(UUID.randomUUID().toString())}
     var busy by remember{mutableStateOf(false)};var error by remember{mutableStateOf<String?>(null)}
@@ -70,7 +70,7 @@ internal fun ColumnScope.CommunityChat(service: CommunityService, conversation: 
     MessengerChatLayout(service.uid,peerName,shown,draft,{draft=it.take(2000)},busy,online,error,signal,reply,
         catalog,{send()},{share=true},{reply=it},{reply=null},
         {message->scope.launch{runCatching{service.saveThreadState(conversation.id,state.copy(hiddenMessages=state.hiddenMessages+message.id))}.onFailure{error=communityError(it)}}},
-        {message->if(message.kind=="deck")received=message else runCatching{SharedPlayerCard.parse(message.cardJson)}.onSuccess(onOpenCard).onFailure{error="Référence de carte indisponible."}})
+        {message->if(message.kind=="deck")received=message else runCatching{SharedPlayerCard.parse(message.cardJson)}.onSuccess(onOpenCard).onFailure{error="Référence de carte indisponible."}},onBack=onBack)
     if(share) AlertDialog(onDismissRequest={if(!busy)share=false},title={Text("Partager un deck")},text={
         Column(Modifier.heightIn(max=360.dp).verticalScroll(rememberScrollState())) {
             if(decks.isEmpty())Text("Aucun deck enregistré.")
@@ -100,7 +100,7 @@ internal fun ColumnScope.CommunityChat(service: CommunityService, conversation: 
 @Composable
 internal fun ColumnScope.MessengerChatLayout(uid:String,peerName:String,messages:List<PlayerMessage>,draft:String,onDraft:(String)->Unit,
     busy:Boolean,online:Boolean,error:String?,signal:MessengerSignal,reply:PlayerMessage?,catalog:List<CatalogCard>,onSend:()->Unit,onShare:()->Unit,
-    onReply:(PlayerMessage)->Unit,onCancelReply:()->Unit,onHide:(PlayerMessage)->Unit,onAttachment:(PlayerMessage)->Unit) {
+    onReply:(PlayerMessage)->Unit,onCancelReply:()->Unit,onHide:(PlayerMessage)->Unit,onAttachment:(PlayerMessage)->Unit,onBack:(()->Unit)?=null) {
     val scroll=rememberLazyListState();val clipboard=LocalClipboardManager.current
     var selected by remember{mutableStateOf<PlayerMessage?>(null)};var hide by remember{mutableStateOf<PlayerMessage?>(null)}
     var search by remember{mutableStateOf("")};var searching by remember{mutableStateOf(false)}
@@ -108,6 +108,7 @@ internal fun ColumnScope.MessengerChatLayout(uid:String,peerName:String,messages
     LaunchedEffect(Unit){while(true){delay(5000);now=System.currentTimeMillis()}}
     LaunchedEffect(messages.lastOrNull()?.id,search){if(messages.isNotEmpty())scroll.animateScrollToItem((messages.count{search.isBlank() || it.text.contains(search,true) || it.deckName.contains(search,true)}-1).coerceAtLeast(0))}
     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+        if(onBack!=null)IconButton(onClick=onBack){Icon(Icons.Default.ArrowBack,"Mes discussions")}
         Text(peerName,Modifier.weight(1f),fontWeight=FontWeight.Bold)
         IconButton(onClick={searching=!searching;if(!searching)search=""}){Icon(Icons.Default.Search,"Rechercher dans la discussion")}
     }
@@ -140,7 +141,7 @@ internal fun ColumnScope.MessengerChatLayout(uid:String,peerName:String,messages
     }
     if(signal.typing && now-signal.typingAt in 0..10_000)Text("$peerName écrit…",fontSize=12.sp,color=PremiumGold)
     if(!online)Text("Hors connexion",fontSize=12.sp)
-    if(error!=null)Row(verticalAlignment=Alignment.CenterVertically){Text(error,Modifier.weight(1f),fontSize=12.sp,color=MaterialTheme.colorScheme.error);TextButton(onClick=onSend,enabled=online&&!busy){Text("Réessayer")}}
+    if(error!=null)Row(verticalAlignment=Alignment.CenterVertically){Text(error,Modifier.weight(1f),fontSize=12.sp,maxLines=2,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis,color=MaterialTheme.colorScheme.error);TextButton(onClick=onSend,enabled=online&&!busy){Text("Réessayer")}}
     if(reply!=null)Row(verticalAlignment=Alignment.CenterVertically){Text("Réponse : ${reply.text.ifBlank{reply.deckName}.take(100)}",Modifier.weight(1f),fontSize=12.sp);IconButton(onClick=onCancelReply){Icon(Icons.Default.Close,"Annuler la réponse")}}
     Row(Modifier.fillMaxWidth().testTag("messenger_composer"),verticalAlignment=Alignment.Bottom,horizontalArrangement=Arrangement.spacedBy(6.dp)) {
         IconButton(onClick=onShare,enabled=!busy&&online&&error==null){Icon(Icons.Default.Add,"Partager un deck")}

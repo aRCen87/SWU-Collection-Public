@@ -6,7 +6,7 @@ import kotlin.math.abs
 
 class PremiumOrbitTest {
     @Test fun planetIsOnlySlightlyFasterAndMoonHasAnotherPeriodAndAxis() {
-        assertTrue(PremiumOrbit.PLANET_SECONDS in 130f..150f)
+        assertTrue(PremiumOrbit.PLANET_SECONDS in 115f..135f)
         assertNotEquals(PremiumOrbit.PLANET_SECONDS,PremiumOrbit.MOON_SECONDS)
         val f=PremiumOrbit.frame(12f)
         assertTrue(abs(f.planetX)>abs(f.planetY))
