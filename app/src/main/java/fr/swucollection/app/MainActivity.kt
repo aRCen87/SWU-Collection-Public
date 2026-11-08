@@ -1313,7 +1313,7 @@ private fun CollectionScreen(
                     Switch(groupVersions, { groupVersionsValue = it.toString() })
                 }
                 if (privateLayout || !groupVersions) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf("Visuel", "Liste").forEach { option ->
+                    (if (privateLayout) listOf("Visuel", "Liste", "Miniatures") else listOf("Visuel", "Liste")).forEach { option ->
                         FilterChip(selected = collectionView == option,
                             onClick = { collectionView = option },
                             label = { Text(option, fontSize = 12.sp) })
@@ -1390,17 +1390,26 @@ private fun CollectionScreen(
                 if (selectedOwned.isEmpty()) {
                     Text(if (cards.isEmpty()) "Ta collection est vide. Scanne ta première carte pour commencer." else "Aucune carte possédée ne correspond aux filtres.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (cards.isNotEmpty()) TextButton(onClick = { search = ""; collectionSetFilter = "Toutes"; collectionScope = "Possédées"; collectionLanguage = "Toutes"; savedCollectionSort = CollectionPriceSort.CATALOG.name }) { Text("Afficher toute ma collection") }
-                } else if (privateLayout && collectionView == "Visuel") {
+                } else if (privateLayout && collectionView in listOf("Visuel", "Miniatures")) {
                     val groups = remember(selectedOwned, allCatalog, cardDetails, groupVersions) {
                         if (groupVersions) groupOwnedVersions(selectedOwned, allCatalog, cardDetails, acrossSets = true)
                         else selectedOwned.map { listOf(it) }
                     }
-                    LazyVerticalGrid(columns = GridCells.Adaptive(145.dp), modifier = Modifier.fillMaxWidth().weight(1f),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp),
-                        contentPadding = PaddingValues(bottom = 12.dp)) {
-                        items(groups, key = { it.first().id }) { rows ->
-                            PremiumOwnedTile(rows, catalogByKey, collectionQuotes, premierLegality.status(rows.first())) { owned, card ->
-                                openPreview(card, familyPreviewEntries(groups, owned, catalogByKey), owned.variant, owned.language)
+                    BoxWithConstraints(Modifier.fillMaxWidth().weight(1f)) {
+                        val miniatures = collectionView == "Miniatures"
+                        // Three on a phone; more columns as the actual window widens (Fold or landscape).
+                        val miniatureColumns = ((maxWidth.value + 6f) / 110f).toInt().coerceAtLeast(3)
+                        LazyVerticalGrid(columns = if (miniatures) GridCells.Fixed(miniatureColumns) else GridCells.Adaptive(145.dp),
+                            modifier = Modifier.fillMaxSize().testTag(if (miniatures) "swu_miniature_grid" else "swu_visual_grid"),
+                            horizontalArrangement = Arrangement.spacedBy(if (miniatures) 6.dp else 10.dp),
+                            verticalArrangement = Arrangement.spacedBy(if (miniatures) 6.dp else 10.dp),
+                            contentPadding = PaddingValues(bottom = 12.dp)) {
+                            items(groups, key = { it.first().id }) { rows ->
+                                val onOpen: (CollectionCard, CatalogCard) -> Unit = { owned, card ->
+                                    openPreview(card, familyPreviewEntries(groups, owned, catalogByKey), owned.variant, owned.language)
+                                }
+                                if (miniatures) OwnedMiniatureTile(rows, catalogByKey, onOpen)
+                                else PremiumOwnedTile(rows, catalogByKey, collectionQuotes, premierLegality.status(rows.first()), onOpen)
                             }
                         }
                     }
@@ -1820,13 +1829,13 @@ private fun GalaxyBackground() {
 
 @Composable
 internal fun CardArtwork(card: CatalogCard?, modifier: Modifier = Modifier, language: String = card?.language ?: CardLanguages.UNKNOWN,
-    variant: String? = null, reverse: Boolean = false, grayscale: Boolean = false) {
+    variant: String? = null, reverse: Boolean = false, grayscale: Boolean = false, showLanguageLabel: Boolean = true) {
     if (card == null) { CardArtwork("",modifier,grayscale); return }
     val context = LocalContext.current
     val face = remember(card,language,variant,reverse) { CardLanguageArtwork.displayFace(context,card,language,variant,reverse) }
     Box(modifier) {
         CardArtwork(face.first, Modifier.fillMaxSize(), grayscale)
-        if (face.second != null && face.second != language) {
+        if (showLanguageLabel && face.second != null && face.second != language) {
             Surface(color = Color(0xEE071322), shape = RoundedCornerShape(4.dp),
                 modifier = Modifier.align(androidx.compose.ui.Alignment.BottomCenter)) {
                 Text("Visuel ${face.second}", color = Color.White, fontSize = 10.sp, modifier = Modifier.padding(horizontal=4.dp,vertical=2.dp))

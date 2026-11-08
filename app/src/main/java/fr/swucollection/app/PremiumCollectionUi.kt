@@ -1,5 +1,9 @@
 package fr.swucollection.app
 
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -164,5 +168,21 @@ internal fun PremiumOwnedTile(rows: List<CollectionCard>, catalogByKey: Map<Stri
                 Modifier.padding(start = 10.dp, end = 10.dp, bottom = 10.dp), fontSize = 10.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
+    }
+}
+
+/** Image-only browsing; identity and stock remain available to accessibility and in the usual detail. */
+@Composable
+internal fun OwnedMiniatureTile(rows: List<CollectionCard>, catalogByKey: Map<String, CatalogCard>,
+    onOpen: (CollectionCard, CatalogCard) -> Unit) {
+    val first = rows.first()
+    val card = catalogByKey[MarketPricing.key(first.setCode, first.number)]
+    Box(Modifier.fillMaxWidth().aspectRatio(0.716f).testTag("swu_miniature_tile")
+        .clip(RoundedCornerShape(5.dp))
+        .clickable(enabled = card != null, role = Role.Button) { card?.let { onOpen(first, it) } }
+        .semantics(mergeDescendants = true) {
+            contentDescription = "${first.name}, ${CardLanguages.label(first.language)}, ${first.variant}, ${rows.sumOf { it.quantity }} exemplaires"
+        }) {
+        CardArtwork(card, Modifier.fillMaxSize(), language = first.language, variant = first.variant, showLanguageLabel = false)
     }
 }

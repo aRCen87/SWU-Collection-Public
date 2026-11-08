@@ -1,3 +1,10 @@
+## Test 0.8.19-test.24 — miniatures de collection
+
+- Troisième affichage « Miniatures » dans Filtres et affichage : uniquement les images de cartes, sans nom, quantité, cote ni pastille sur la grille.
+- Trois cartes par ligne sur téléphone en portrait, davantage selon la largeur disponible sur un pliant déplié ou en paysage. Images sans déformation et grille paresseuse pour garder un défilement fluide.
+- Choix mémorisé ; filtres, tris, regroupement des versions et ouverture de la fiche habituelle conservés. Les informations restent accessibles au lecteur d’écran et dans la fiche.
+- Aucun changement des quantités, collections, sauvegardes ou services communautaires.
+
 Les règles de messagerie Test23 ont été publiées sur swu-collection-test uniquement le 8 novembre 2026 à 14 h 05 (Paris), après réussite des 40 tests de sécurité. Les accusés de réception sont ensuite séparés des lectures : une connexion en arrière-plan ne marque pas de nouveau message comme lu. Le forfait Spark est conservé et aucun service payant n’est déployé.
 
 ## Test 0.8.19-test.23 — messagerie et partage

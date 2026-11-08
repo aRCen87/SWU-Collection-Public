@@ -51,6 +51,43 @@ def reveal_quantity(name):
         adb('shell','input','swipe',x,bottom-220,x,bottom-620,450); time.sleep(1)
     raise AssertionError('Owned quantity is not reachable in the visual grid')
 
+def choose_view(label):
+    tap(find(snapshot('filters-button'), 'Filtres'))
+    tap(find(snapshot('view-options'), label))
+    adb('shell', 'input', 'keyevent', 'KEYCODE_BACK'); time.sleep(2)
+
+def verify_miniatures():
+    choose_view('Miniatures')
+    widths = []
+    columns = []
+    for name, size, density in [('cover', '720x1560', 320), ('unfolded', '1766x1472', 336), ('landscape', '1560x720', 320)]:
+        adb('shell', 'wm', 'size', size); adb('shell', 'wm', 'density', density); time.sleep(4)
+        root = snapshot('miniatures-' + name)
+        grid = next(n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_miniature_grid')
+        tile = next(n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_miniature_tile')
+        gx1,gy1,gx2,gy2 = bounds(grid); tx1,ty1,tx2,ty2 = bounds(tile)
+        assert gx2 > gx1 and gy2 > gy1 and ty2 > ty1, ('Collapsed miniature viewport', name, bounds(grid), bounds(tile))
+        assert not any(n.attrib.get('text', '') for n in tile.iter('node')), ('Visible text on thumbnail', name)
+        count = round((gx2-gx1 + 6*density/160) / (tx2-tx1 + 6*density/160))
+        columns.append(count); widths.append(tx2-tx1)
+        capture('miniatures-' + name)
+    assert columns[0] == 3 and all(c > columns[0] for c in columns[1:]), columns
+    # Same remembered mode after recreation, and opening never edits the stock.
+    adb('shell', 'am', 'force-stop', PACKAGE)
+    adb('shell', 'am', 'start', '-W', '-n', PACKAGE+'/fr.swucollection.app.MainActivity'); time.sleep(6)
+    tap(find(snapshot('miniatures-restart-home'), 'Collection'))
+    root = snapshot('miniatures-restored')
+    tile = next(n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_miniature_tile')
+    tap(tile)
+    find(snapshot('miniatures-detail'), 'Fermer la carte')
+    tap(find(snapshot('miniatures-detail-close'), 'Fermer la carte'))
+    adb('shell', 'wm', 'size', '720x1560'); adb('shell', 'wm', 'density', 320); time.sleep(4)
+    choose_view('Liste')
+    assert not any(n.attrib.get('resource-id') == 'swu_miniature_grid' for n in snapshot('list-mode').iter('node'))
+    choose_view('Visuel')
+    find(reveal_quantity('miniatures-stock'), '× 1')
+    print('Image-only miniatures passed: column counts', columns, 'open/detail, remembered view, list/visual and unchanged stock.', flush=True)
+
 def verify_motion():
     # UIAutomator waits for an idle window; collect geometry before continuous motion.
     root=snapshot('motion-bounds')
@@ -127,6 +164,7 @@ try:
     capture('collection-cover')
     adb('shell','wm','size','1766x1472'); adb('shell','wm','density',336); time.sleep(4)
     root = reveal_quantity('grid-unfolded'); find(root,'× 1'); capture('collection-unfolded')
+    verify_miniatures()
     adb('shell','wm','size','720x1560'); adb('shell','wm','density',320); time.sleep(4)
     tap(find(reveal_quantity('grid-return'),'× 1'))
     tap(reveal('−'))
