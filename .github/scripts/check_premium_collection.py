@@ -34,6 +34,19 @@ def reveal(label):
         adb('shell','input','swipe',360,1100,360,600,400); time.sleep(1)
     raise AssertionError('Unreachable card action: ' + label)
 
+def reveal_quantity(name):
+    for attempt in range(5):
+        root = snapshot(name + '-' + str(attempt))
+        visible = [n for n in root.iter('node') if n.attrib.get('text') == '× 1' and bounds(n)[3] > bounds(n)[1]]
+        if visible: return root
+        window = next(n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_content_window')
+        left,top,right,bottom = bounds(window)
+        # A reflowed card can be taller than the visible grid viewport on Fold.
+        # Scroll within the left pane, above its bottom navigation, to its quantity.
+        x = (left + right)//2
+        adb('shell','input','swipe',x,bottom-220,x,bottom-620,450); time.sleep(1)
+    raise AssertionError('Owned quantity is not reachable in the visual grid')
+
 original_scale = adb('shell','settings','get','global','animator_duration_scale').strip()
 try:
     adb('shell','wm','size','720x1560'); adb('shell','wm','density',320)
@@ -51,9 +64,9 @@ try:
     assert any('Cote' in n.attrib.get('text','') for n in root.iter('node')), 'Visual grid lost price information'
     capture('collection-cover')
     adb('shell','wm','size','1766x1472'); adb('shell','wm','density',336); time.sleep(4)
-    root = snapshot('grid-unfolded'); find(root,'× 1'); capture('collection-unfolded')
+    root = reveal_quantity('grid-unfolded'); find(root,'× 1'); capture('collection-unfolded')
     adb('shell','wm','size','720x1560'); adb('shell','wm','density',320); time.sleep(4)
-    tap(find(snapshot('grid-return'),'× 1'))
+    tap(find(reveal_quantity('grid-return'),'× 1'))
     tap(reveal('−'))
     tap(find(snapshot('removed'),'Fermer la carte'))
     find(snapshot('empty'),'Ta collection est vide. Scanne ta première carte pour commencer.')
@@ -70,9 +83,12 @@ try:
     assert sum(v>2 for v in diff.getdata())>diff.width*diff.height*.01, 'Background does not drift when animations are enabled'
     adb('shell','settings','put','global','animator_duration_scale',0); time.sleep(3)
     first=capture('still-first'); time.sleep(3); second=capture('still-second')
-    assert ImageChops.difference(Image.open(first).crop(area),Image.open(second).crop(area)).getbbox() is None, 'Reduced-motion background keeps moving'
+    assert ImageChops.difference(Image.open(first).crop(area).convert('RGB'),Image.open(second).crop(area).convert('RGB')).getbbox() is None, 'Reduced-motion background keeps moving'
     assert 'FATAL EXCEPTION' not in adb('logcat','-d','-s','AndroidRuntime:E')
     print('Premium collection passed: add/open/remove, cover/unfolded, price visibility, live drift and reduced motion.')
+except Exception:
+    capture('failure')
+    raise
 finally:
     adb('shell','settings','put','global','animator_duration_scale',original_scale)
     adb('shell','wm','size','reset'); adb('shell','wm','density','reset')

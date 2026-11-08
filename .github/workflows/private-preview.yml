@@ -106,7 +106,7 @@ jobs:
           ram-size: 3072M
           emulator-boot-timeout: 300
           disable-animations: true
-          script: bash .github/scripts/smoke_private_preview.sh
+          script: bash .github/scripts/smoke_premium_preview.sh
       - name: Encrypt the empty-account layout check for private review
         if: always()
         run: |
