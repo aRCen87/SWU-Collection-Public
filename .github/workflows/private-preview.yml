@@ -105,6 +105,9 @@ jobs:
       - uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
+          # Chromium pins 37.1.11 to avoid 37.2.13 ProcessCleanupThread crashes.
+          # https://chromium.googlesource.com/chromium/src/tools/android/+/0d2c7590ad90c5e3e5390a1d732ef2b2305d343d
+          emulator-build: 15917651
           arch: x86_64
           target: google_apis
           disk-size: 2048M
