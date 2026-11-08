@@ -112,6 +112,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onStop() {
+        CommunityLiveConnection.activityVisible=false
         if (packageName == AppChannel.TEST_PACKAGE) AutomaticBackupWorker.enqueue(applicationContext)
         super.onStop()
     }
@@ -129,6 +130,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        CommunityLiveConnection.activityVisible=true
+        CommunityLiveConnection.refresh(this)
         foregroundRequest.intValue++
     }
 

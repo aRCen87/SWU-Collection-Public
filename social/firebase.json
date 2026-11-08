@@ -14,9 +14,5 @@
     "auth": {
       "port": 9099
     }
-  },
-  "functions": {
-    "source": "functions",
-    "runtime": "nodejs22"
   }
 }

@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <application android:name=".TestCommunityApplication" android:label="SWU Collection Test" android:allowBackup="false"
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <application android:label="SWU Collection Test" android:allowBackup="false"
         android:icon="@mipmap/ic_launcher_test" android:roundIcon="@mipmap/ic_launcher_test"
         tools:replace="android:label,android:allowBackup,android:icon,android:roundIcon">
-        <service android:name=".CommunityPushService" android:exported="false"><intent-filter><action android:name="com.google.firebase.MESSAGING_EVENT" /></intent-filter></service>
-        <meta-data android:name="firebase_messaging_auto_init_enabled" android:value="false" />
+        <service android:name=".RealtimeMessagingService" android:exported="false" android:stopWithTask="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-visible connection for private instant-message, friendship and exchange notifications while the app is closed; user can stop it from its notification or settings." />
+        </service>
         <activity android:name=".MainActivity" android:resizeableActivity="true" android:windowSoftInputMode="adjustResize"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|fontScale|density"
             tools:replace="android:configChanges" />

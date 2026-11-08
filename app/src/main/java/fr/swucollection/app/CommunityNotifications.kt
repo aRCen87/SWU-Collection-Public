@@ -66,7 +66,7 @@ internal object CommunityNotifications {
         NotificationManagerCompat.from(context).areNotificationsEnabled()
     @SuppressLint("MissingPermission")
     fun offer(context: Context, uid: String, notice: CommunityNotice): Boolean {
-        if(notice.key=="message:$activeThread")return false
+        if(CommunityLiveConnection.activityVisible && notice.key=="message:$activeThread")return false
         if (context.packageName != AppChannel.TEST_PACKAGE || !enabled(context, uid, notice.tab) || !permission(context)) return false
         if (CommunityService.create(context)?.auth?.currentUser?.uid != uid) return false
         channels(context)
@@ -106,7 +106,7 @@ internal object CommunityNotifications {
         val thread=intent.getStringExtra("community_thread").orEmpty()
         return tab+if(tab=="Messages" && Regex("[A-Za-z0-9_-]{1,260}").matches(thread))"|$thread" else ""
     }
-    suspend fun check(context: Context, service: CommunityService) {
+    suspend fun check(context: Context, service: CommunityService, includeSearchAlerts: Boolean = true) {
         val uid = service.auth.currentUser?.takeIf { it.isEmailVerified }?.uid ?: return
         if (!permission(context)) return
         if (!enabled(context, uid, "Messages") && !enabled(context, uid, "Amis") && !enabled(context, uid, "Échanges")) return
@@ -146,7 +146,7 @@ internal object CommunityNotifications {
                 if(!service.isBlocked(peer))offer(context,uid,CommunityNotice("trade:"+row.id,"Échanges",row.getTimestamp("updatedAt")?.toDate()?.time?:0))
             }
         }
-        SearchCardAlerts.check(context, service)
+        if(includeSearchAlerts) SearchCardAlerts.check(context, service)
     }
 }
 
@@ -186,6 +186,7 @@ internal object CommunityBackground {
         if (service.auth.currentUser?.isEmailVerified != true) return
         AutomaticBackupWorker.schedule(context); AutomaticBackupWorker.enqueue(context)
         CommunityNotificationWorker.schedule(context)
+        CommunityLiveConnection.refresh(context)
     }
 }
 
@@ -195,13 +196,18 @@ internal fun CommunityNotificationControls(uid: String) {
     var testStatus by remember { mutableStateOf<String?>(null) }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text("Notifications de la communauté", style = MaterialTheme.typography.titleMedium)
+        var live by remember {mutableStateOf(CommunityLiveConnection.enabled(context))}
+        Row(Modifier.fillMaxWidth(),verticalAlignment=androidx.compose.ui.Alignment.CenterVertically){
+            Text("Connexion en arrière-plan · gratuite",Modifier.weight(1f));Switch(live,{live=it;CommunityLiveConnection.setEnabled(context,it)})
+        }
+        Text("Une notification discrète Messagerie connectée maintient l’écoute des nouveaux messages, invitations et échanges. Tu peux l’arrêter ici ou depuis la notification. Cette connexion peut consommer davantage de batterie et de données. Android ou le téléphone peuvent l’interrompre ; rouvre alors l’application.",style=MaterialTheme.typography.bodySmall)
         listOf("Messages" to "Messages privés", "Amis" to "Demandes d’amis", "Échanges" to "Échanges et cartes recherchées").forEach { (key, label) ->
             var enabled by remember(uid, key) { mutableStateOf(CommunityNotifications.enabled(context, uid, key)) }
             Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                 Text(label, Modifier.weight(1f)); Switch(enabled, { enabled = it; CommunityNotifications.setEnabled(context, uid, key, it) })
             }
         }
-        Text("Vérification périodique, environ toutes les 15 minutes. Android peut la retarder quand le téléphone dort. Les alertes ne sont pas instantanées et nécessitent Internet et l’autorisation Android. Aucun texte de message n’apparaît sur l’écran verrouillé.", style = MaterialTheme.typography.bodySmall)
+        Text("En secours, une vérification périodique a lieu environ toutes les 15 minutes. Android peut la retarder quand le téléphone dort. Sans connexion en arrière-plan active, les alertes peuvent être retardées et nécessitent Internet et l’autorisation Android. Aucun texte de message n’apparaît sur l’écran verrouillé.", style = MaterialTheme.typography.bodySmall)
         Text("Alertes de recherche : active ce réglage, définis tes objectifs dans Compléter mon set, puis tes amis doivent partager leur liste d’échange. Les correspondances sont recalculées sans publier tes recherches. Une liste privée, retirée ou bloquée ne déclenche aucune alerte.", style = MaterialTheme.typography.bodySmall)
         OutlinedButton(onClick = { context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)) }) {
             Text("Paramètres des notifications Android")

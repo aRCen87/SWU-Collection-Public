@@ -5,7 +5,7 @@
 - Menu des discussions : épinglage, sourdine 1 h/8 h/permanente et suppression pour soi synchronisés sur le compte. Un nouveau message réaffiche une discussion masquée sans rétablir son ancien historique.
 - Présence réservée aux amis acceptés, expiration après déconnexion et choix de masquer présence et lectures. Blocages appliqués côté serveur.
 - Partager à des amis depuis une fiche carte : aperçu exact langue/variante, pseudos et avatars, sélection multiple, note facultative et validation. Envoi distinct dans chaque conversation, sans changer les stocks. Les decks restent consultables et copiables dans Mes listes.
-- Alertes de messages, demandes/acceptations et échanges : vérification périodique et écoute pendant l’exécution. Client push et relais serveur préparés et testés ; relais non déployé sur le forfait Spark. Les notifications immédiates appli fermée ne sont pas encore actives et nécessitent une décision distincte sur le serveur/facturation.
+- Alertes de messages, demandes/acceptations et échanges : connexion gratuite en arrière-plan avec notification permanente discrète et interrupteur d’arrêt, plus vérification périodique de secours. Aucun relais payant ni changement de forfait. Android peut interrompre la connexion ; un arrêt forcé ou un redémarrage du téléphone nécessite de rouvrir l’application.
 - Aucun changement de collection ni de sauvegarde. Les messages et réglages privés sont liés au compte.
 
 ## Test 0.8.19-test.22

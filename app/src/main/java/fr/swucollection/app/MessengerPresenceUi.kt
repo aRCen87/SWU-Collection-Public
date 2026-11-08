@@ -17,16 +17,10 @@ import kotlinx.coroutines.*
 }
 @Composable internal fun CommunityPresenceHost() {
     val context=LocalContext.current;val service=remember{CommunityService.create(context)}?:return
-    var revision by remember { mutableIntStateOf(0) }
     var user by remember{mutableStateOf(service.auth.currentUser)};val owner=LocalLifecycleOwner.current
     var settings by remember{mutableStateOf(MessengerPreferences())}
     DisposableEffect(service){val l=FirebaseAuth.AuthStateListener{user=it.currentUser};service.auth.addAuthStateListener(l);onDispose{service.auth.removeAuthStateListener(l)}}
     DisposableEffect(user?.uid){val l=if(user?.isEmailVerified==true)service.messengerPreferences({settings=it},{}) else null;onDispose{l?.remove()}}
-    DisposableEffect(user?.uid){
-        val subscriptions=if(user?.isEmailVerified==true)listOf(service.conversations({revision++},{}),service.friendships({revision++},{}),service.trades({revision++},{})) else emptyList()
-        onDispose{subscriptions.forEach{it.remove()}}
-    }
-    LaunchedEffect(revision,user?.uid){delay(700);if(user?.isEmailVerified==true)runCatching{CommunityNotifications.check(context,service)}}
     LaunchedEffect(user?.uid,settings.sharePresence,owner){
         val uid=user?.takeIf{it.isEmailVerified}?.uid?:return@LaunchedEffect
         owner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED){
