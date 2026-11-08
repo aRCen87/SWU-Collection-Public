@@ -30,10 +30,10 @@ internal class PremiumSpacePainter(private val art: Bitmap) {
     }
     fun draw(canvas: NativeCanvas,width: Float,height: Float,seconds: Float) {
         val orbit=PremiumOrbit.frame(seconds)
-        val scale=maxOf(width/art.width,height/art.height)*1.07f
+        val fit=PremiumOrbit.fit(width,height,art.width.toFloat(),art.height.toFloat())
+        val scale=fit.scale
         val save=canvas.save()
-        canvas.translate((width-art.width*scale)/2f+orbit.planetX*width,
-            (height-art.height*scale)/2f+orbit.planetY*height)
+        canvas.translate(fit.left+orbit.planetX*width, fit.top+orbit.planetY*height)
         canvas.scale(scale,scale)
         canvas.drawBitmap(art,0f,0f,paint)
         // Cover only the baked moon with neighbouring star field, feathered outside its limb.

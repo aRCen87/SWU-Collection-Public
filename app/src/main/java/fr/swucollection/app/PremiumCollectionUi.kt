@@ -37,7 +37,7 @@ internal fun PremiumHomeBanner(active: Boolean, intro: State<Float>, reflection:
     val orbitTime = rememberHeaderAmbientTime(active)
     val topInset=WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
     BoxWithConstraints(modifier.fillMaxWidth().testTag("swu_premium_banner").clipToBounds()) {
-        val compact = maxWidth < 340.dp
+        val compact = maxWidth < 372.dp
         val bannerHeight=(if(compact) 220.dp else 246.dp)+topInset
         PremiumSpaceArtwork(orbitTime,Modifier.fillMaxWidth().height(bannerHeight))
         Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(

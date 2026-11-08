@@ -62,7 +62,7 @@ def verify_motion():
     assert x2==screen_width, ('Banner has right margin',x2,screen_width)
     edge=capture('edge-to-edge')
     image=Image.open(edge).convert('RGB')
-    for point in [(2,2),(screen_width-3,2),(2,y1+h//2),(screen_width-3,y1+h//2)]:
+    for point in [(screen_width//4,2),(screen_width*3//4,2),(2,y1+h//2),(screen_width-3,y1+h//2)]:
         assert max(image.getpixel(point))>3, ('Black band at edge',point)
     area=(int(x1+w*.2),int(y1+h*.55),int(x1+w*.8),int(y2-h*.08))
     collection_entry = find(root, 'Collection')

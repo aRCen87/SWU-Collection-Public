@@ -768,7 +768,7 @@ private fun CollectionScreen(
                 })
             }
             if (selectedSection == "Accueil") {
-                Column(Modifier.then(if(privateLayout) Modifier.widthIn(max=600.dp).fillMaxWidth().padding(horizontal=16.dp,vertical=12.dp) else Modifier.fillMaxWidth()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.then(if(privateLayout) Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)).widthIn(max=600.dp).fillMaxWidth().padding(horizontal=16.dp,vertical=12.dp) else Modifier.fillMaxWidth()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
                 HomeFilmQuoteCard(homeFilmQuote)
                 if(immersiveHome) updateBanner()
                 Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

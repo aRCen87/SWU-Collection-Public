@@ -28,4 +28,18 @@ class PremiumOrbitTest {
         assertEquals(0f,homeTilePhase(Float.NaN,4),0f)
         assertTrue(homeTilePhase(.4f,0)>homeTilePhase(.4f,7))
     }
+    @Test fun smallMoonStaysCompletelyVisibleAndSceneCoversEveryEdge() {
+        listOf(320f to 252f,360f to 244f,360f to 270f,750f to 270f,960f to 270f,1280f to 270f).forEach { (w,h) ->
+            val fit=PremiumOrbit.fit(w,h,1610f,977f)
+            (0..1000).forEach {t ->
+                val f=PremiumOrbit.frame(t.toFloat());val left=fit.left+f.planetX*w;val top=fit.top+f.planetY*h
+                assertTrue(left<=0f && top<=0f)
+                assertTrue(left+1610f*fit.scale>=w && top+977f*fit.scale>=h)
+                val moonX=left+(185f+f.moonX*1610f)*fit.scale
+                val moonY=top+(661f+f.moonY*977f)*fit.scale;val radius=32f*fit.scale
+                assertTrue("Moon clipped at $w x $h / $t",moonX-radius>=0f && moonY-radius>=0f && moonX+radius<=w && moonY+radius<=h)
+            }
+        }
+    }
+
 }
