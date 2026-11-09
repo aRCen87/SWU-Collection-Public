@@ -2,7 +2,7 @@ import unittest
 import json
 from unittest.mock import patch
 from types import SimpleNamespace
-from sync_legality import suspension_refs,legal_product_names,publish
+from sync_legality import suspension_refs,legal_product_names,publish,resolve_code
 class LegalityParserTest(unittest.TestCase):
  def test_suspensions(self):
   row='<p><a data-card="1">Card</a> (<i>Homeworlds</i>, 12)</p>'
@@ -22,6 +22,11 @@ class LegalityParserTest(unittest.TestCase):
   self.assertEqual(['Homeworlds','Intro Battle: Hoth'],legal_product_names(text))
   with self.assertRaises(AssertionError):legal_product_names('Missing list')
   with self.assertRaises(ValueError):legal_product_names(text.replace('● Homeworlds','Loading...'))
+
+ def test_icons_official_product_resolves_without_an_extra_api_request(self):
+  text='The following products are legal for Premier format events:\n ● Homeworlds\n ● Icons 2027 Edition\nThe following cards are suspended'
+  with patch('sync_legality.get',side_effect=AssertionError('Unexpected network request')):
+   self.assertEqual(['HMW','IC27'],[resolve_code(n) for n in legal_product_names(text)])
 
  def test_large_feed_uses_stdin_not_command_arguments(self):
   feed={'legalCards':['x'*200000]}

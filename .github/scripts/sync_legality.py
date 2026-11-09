@@ -9,7 +9,8 @@ OP = 'https://starwarsunlimited.com/organized-play'
 PUBLIC = 'aRCen87/SWU-Collection-Releases'
 NAMES = {'Spark of Rebellion':'SOR','Shadows of the Galaxy':'SHD','Twilight of the Republic':'TWI',
  'Jump to Lightspeed':'JTL','Legends of the Force':'LOF','Intro Battle: Hoth':'IBH',
- 'Secrets of Power':'SEC','A Lawless Time':'LAW','Ashes of the Empire':'ASH','Homeworlds':'HMW'}
+ 'Secrets of Power':'SEC','A Lawless Time':'LAW','Ashes of the Empire':'ASH','Homeworlds':'HMW',
+ 'Icons 2027 Edition':'IC27'}
 
 def get(url, limit=12_000_000):
     assert urllib.parse.urlparse(url).scheme == 'https'

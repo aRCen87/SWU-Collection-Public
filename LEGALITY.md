@@ -9,6 +9,8 @@ Sources :
 
 Le guide PDF peut contenir une liste de suspensions différente ; le flux utilise exclusivement la section dédiée du site pour les suspensions. Les deux sources ont des rôles distincts.
 
+Icons — Édition 2027 (`IC27`, sortie le 20 novembre 2026) est reconnu explicitement dans la liste officielle des produits Premier. Sa présence en prévisualisation dans le catalogue ne le rend pas légal : le guide officiel pilote l'activation. Dès son activation, les identités complètes de ses rééditions rejoignent `legalCards`, ce qui rétablit aussi la légalité des anciennes éditions et variantes correspondantes, sans remettre tout leur set en rotation. Les suspensions restent prioritaires.
+
 Le générateur rejette les listes ambiguës, les limites manquantes, les références absentes du catalogue et les produits inconnus non résolus. L’échec ne publie rien et laisse le dernier flux en place. Les noms de produits futurs sont résolus via la base officielle lorsque possible ; toute modification de structure non reconnue nécessite une maintenance du générateur, pas une réinstallation de l’application.
 
 Le téléphone vérifie le flux à l’ouverture (au maximum toutes les six heures hors bouton manuel) et via WorkManager toutes les six heures avec réseau. Android peut retarder les tâches. Après un échec, les tentatives automatiques sont espacées de quinze minutes au minimum. Les règles téléchargées sont validées et enregistrées avec AtomicFile, indépendamment de la collection. La dernière règle valide et une copie embarquée restent disponibles hors connexion. Un ancien flux ne remplace pas un plus récent. Une liste de suspensions explicitement vide lève les suspensions précédentes. Une erreur de téléchargement ou de structure ne vide jamais cette liste.
