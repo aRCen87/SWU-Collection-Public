@@ -34,7 +34,9 @@ def build(catalog, upstream, official):
             'aspects':c.get('aspects')or[],'traits':[x.strip() for x in traits.split(',') if x.strip()],
             'arena':c.get('arena')or''}
     for row in official:
-        c=row.get('attributes',row); key='HMW:'+str(c['cardNumber']).zfill(3)
+        c=row.get('attributes',row)
+        code=(((c.get('expansion')or{}).get('data')or{}).get('attributes')or{}).get('code','HMW')
+        key=code+':'+str(c['cardNumber']).zfill(3)
         if key not in allowed: continue
         # Tokens restart numbering within an expansion. Never let Shield/Weakness/
         # Beast replace an unrelated numbered leader in the collectible catalogue.
@@ -61,21 +63,24 @@ def main():
         catalog=json.loads((root/'app/src/main/assets/catalog-fr.json').read_text())
         upstream=download('https://raw.githubusercontent.com/Team-Zura/swu-cards-json/main/data/v1/all-cards.json')
         dest=root/'app/src/main/assets/card-details.json.gz'
-    def page(n):
-        q=urllib.parse.urlencode({'locale':'fr','filters[expansion][code][$eq]':'HMW','pagination[page]':n,'pagination[pageSize]':100})
+    def page(code,n):
+        q=urllib.parse.urlencode({'locale':'fr','filters[expansion][code][$eq]':code,'pagination[page]':n,'pagination[pageSize]':100})
         return download('https://admin.starwarsunlimited.com/api/card-list?'+q)
-    first=page(1); pages=[first]
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
-        pages+=list(pool.map(page,range(2,first['meta']['pagination']['pageCount']+1)))
-    official=[c for p in pages for c in p['data']]
-    assert len(official)==first['meta']['pagination']['total']
+    official=[]
+    for code in ('HMW','IC27'):
+        first=page(code,1); pages=[first]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+            pages+=list(pool.map(lambda n:page(code,n),range(2,first['meta']['pagination']['pageCount']+1)))
+        rows=[c for p in pages for c in p['data']]
+        assert len(rows)==first['meta']['pagination']['total']
+        official+=rows
     details=build(catalog,upstream,official)
     if dest.exists():
         old=json.loads(gzip.decompress(dest.read_bytes()))['cards']
         # Preserve previously publisher-verified HMW localizations only. Unknown
         # other identities must stay explicit instead of retaining promo collisions.
         for k,v in old.items():
-            if k.startswith('HMW:'):details.setdefault(k,v)
+            if k.startswith(('HMW:','IC27:')):details.setdefault(k,v)
     payload={'format':'SWU_CARD_DETAILS','version':1,'source':'Team-Zura CC0 / official card-list','cards':details}
     dest.write_bytes(gzip.compress(json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode(),mtime=0))
     print(json.dumps({'mapped':len(details),'catalog':len(catalog['cards']),'gzipBytes':dest.stat().st_size},ensure_ascii=False),flush=True)

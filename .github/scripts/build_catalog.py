@@ -17,6 +17,7 @@ SET_NAMES = {
   "LAW": "Un temps sans loi",
   "ASH": "Cendres de l’Empire",
   "HMW": "Mondes Natals",
+  "IC27": "Icons — Édition 2027",
   "HMWP": "Jeu organisé hebdomadaire — Mondes Natals",
   "IBH": "Bataille d’introduction : Hoth",
   "C24": "Exclusivité convention 2024",
@@ -77,13 +78,13 @@ for card in source:
     }
 
 
-# Official French source for HMW, including collector-numbered variants.
-# Fail closed: never publish a partial HMW set if the official API is unavailable.
+# Official French source, including collector-numbered variants.
 def official_set_cards(set_code):
     import urllib.parse
     result = []
     page = 1
     expected = None
+    received = 0
     while True:
         query = urllib.parse.urlencode({
             "locale": "fr",
@@ -98,6 +99,7 @@ def official_set_cards(set_code):
         with urllib.request.urlopen(req, timeout=45) as response:
             payload = json.load(response)
         batch = payload.get("data", [])
+        received += len(batch)
         meta = payload.get("meta", {}).get("pagination", {})
         if expected is None:
             expected = meta.get("total", 0)
@@ -108,6 +110,12 @@ def official_set_cards(set_code):
             expansion = ((item.get("expansion") or {}).get("data") or {}).get("attributes") or {}
             if item.get("locale") != "fr" or expansion.get("code") != set_code:
                 continue
+            # Icons tokens reuse leader numbers 1/2. Their serials contain 't';
+            # only numbered collectible prints belong in this catalogue.
+            if set_code == "IC27":
+                serial = str(item.get("serialCode", "")).lower()
+                if not serial.startswith("ic27") or not serial[4:].isdigit():
+                    continue
             number = item.get("cardNumber")
             title = item.get("title")
             if not number or not title:
@@ -135,8 +143,15 @@ def official_set_cards(set_code):
         page += 1
         if page > 100:
             raise RuntimeError("Official card pagination exceeds safety limit")
-    if len(result) != expected or expected < 1:
-        raise RuntimeError(f"Incomplete official response: {len(result)}/{expected}")
+    # Tokens were deliberately excluded above; pagination must still be complete.
+    if received != expected or expected < 1:
+        raise RuntimeError(f"Incomplete official response: {received}/{expected}")
+    if set_code != "IC27" and len(result) != expected:
+        raise RuntimeError(f"Incomplete localized response: {len(result)}/{expected}")
+    if set_code == "IC27":
+        main_numbers = {str(number).zfill(3) for number in range(1, 195)}
+        if not main_numbers.issubset({card["n"] for card in result}):
+            raise RuntimeError("Incomplete Icons response: missing main collector numbers")
     # Multiple official records can share a collector number; prefer entries with artwork.
     deduplicated = OrderedDict()
     for card in result:
@@ -148,7 +163,7 @@ def official_set_cards(set_code):
 
 # Keep the upstream French metadata, and overlay verified official French images.
 # A failed request for one expansion must never erase the other expansions.
-for set_code in ("SOR", "SHD", "TWI", "JTL", "LOF", "SEC", "LAW", "ASH", "HMW"):
+for set_code in ("SOR", "SHD", "TWI", "JTL", "LOF", "SEC", "LAW", "ASH", "HMW", "IC27"):
     try:
         official_cards = official_set_cards(set_code)
         image_count = 0

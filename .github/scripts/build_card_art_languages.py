@@ -23,8 +23,9 @@ TREATMENTS={'01':'Normale','02':'Hyperspace','03':'Showcase','31':'Foil','32':'H
 EXPANSIONS={'SOR':'01','SHD':'02','TWI':'03','JTL':'04','LOF':'05','SEC':'06','LAW':'07','ASH':'08','HMW':'09'}
 def norm(value):return re.sub('[^a-z0-9]','',unicodedata.normalize('NFKD',value or '').encode('ascii','ignore').decode().lower())
 def finish(code,serial):
- serial=str(serial or '')
- return TREATMENTS.get(serial[2:4]) if serial.startswith(EXPANSIONS.get(code,'!')) else None
+ serial=str(serial or '').lower()
+ prefix='ic27' if code=='IC27' else EXPANSIONS.get(code,'!')
+ return TREATMENTS.get(serial[len(prefix):len(prefix)+2]) if serial.startswith(prefix) else None
 
 cache=pathlib.Path(a.official_cache);cache.mkdir(parents=True,exist_ok=True)
 def url(value):
@@ -89,13 +90,14 @@ def add_official(code,lang,payload,only_number=None):
   kind_map.update({'Unité':'Unit','Événement':'Event','Évènement':'Event','Amélioration':'Upgrade','Jeton':'Token'})
   kind=kind_map.get(kind,kind)
   add(code+':'+number,kind,lang,face('artFront'),face('artBack'),treatment=finish(code,c.get('serialCode')))
-# HMW is not yet in the community mirror. Download the complete localized publisher sets.
-for lang in LANGUAGES[1:]:
- first=official('HMW',lang,1);meta=first.get('meta',{}).get('pagination',{})
- with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
-  batches=[first]+list(pool.map(lambda page:official('HMW',lang,page),range(2,meta.get('pageCount',0)+1)))
- assert sum(len(b.get('data',[])) for b in batches)==meta.get('total') and meta.get('total',0)>900,'Incomplete HMW '+lang
- for payload in batches:add_official('HMW',lang,payload)
+# Publisher-only sets need full localized records, including numbered finishes.
+for code,languages,minimum in (('HMW',LANGUAGES[1:],900),('IC27',LANGUAGES,566)):
+ for lang in languages:
+  first=official(code,lang,1);meta=first.get('meta',{}).get('pagination',{})
+  with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
+   batches=[first]+list(pool.map(lambda page:official(code,lang,page),range(2,meta.get('pageCount',0)+1)))
+  assert sum(len(b.get('data',[])) for b in batches)==meta.get('total') and meta.get('total',0)>=minimum,'Incomplete '+code+' '+lang
+  for payload in batches:add_official(code,lang,payload)
 # Prefer the validated French catalogue for the French face (corrected identities included).
 for key,c in byref.items():
  faces=[]
