@@ -10,7 +10,6 @@ import urllib.request
 from datetime import datetime, timezone
 
 from build_card_details import build
-from build_scan_visual_index import signature
 from card_art_identity import language_marker
 
 LANGUAGES = ('FR', 'EN', 'DE', 'ES', 'IT')
@@ -83,6 +82,7 @@ def fetch_promos(code, language, cache):
 def main():
     import argparse
     from PIL import Image, ImageOps
+    from build_scan_visual_index import signature
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--assets', default='app/src/main/assets')
     parser.add_argument('--cache', default='/tmp/swu-homeworlds-promos')
