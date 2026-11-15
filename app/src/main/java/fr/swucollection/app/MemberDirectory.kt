@@ -1,6 +1,8 @@
 package fr.swucollection.app
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -54,7 +56,8 @@ internal fun MemberDirectory(uid: String, friendships: List<PlayerFriendship>, b
     Text("Retrouve les membres et invite-les en amis. Seuls les profils visibles apparaissent.", style = MaterialTheme.typography.bodySmall)
     val found = remember(members, uid, query) { matchingMembers(members, uid, query) }
     val relations = remember(friendships, uid) { friendships.associateBy { it.peer(uid) } }
-    found.take(visibleCount).forEach { player -> key(player.id) {
+    LazyColumn(Modifier.fillMaxWidth().heightIn(max = 280.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        items(found.take(visibleCount), key = { it.id }) { player ->
         val friend = relations[player.id]
         OutlinedCard(Modifier.fillMaxWidth()) {
             Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

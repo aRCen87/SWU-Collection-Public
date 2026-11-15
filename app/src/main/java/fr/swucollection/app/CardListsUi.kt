@@ -116,6 +116,7 @@ internal fun CardListsPanel(lists: List<CardList>, selectedId: String?, modifier
     onPreview: (CatalogCard, List<CatalogCard>) -> Unit,
     owned: List<CollectionCard>, catalog: List<CatalogCard>, details: CardDetails, rules: LegalityRules, onFormat: (String,String) -> Unit) {
     val selected = lists.firstOrNull { it.id == selectedId }
+    var editing by remember(selectedId) { mutableStateOf(false) }
     var naming by remember(selectedId) { mutableStateOf(false) }
     var deleting by remember(selectedId) { mutableStateOf(false) }
     CompositionLocalProvider(LocalContentColor provides ListPalette.Text) {
@@ -165,8 +166,9 @@ internal fun CardListsPanel(lists: List<CardList>, selectedId: String?, modifier
                     Text("← Toutes mes listes")
                 }
                 ListHero(selected.name, "${selected.entries.size} références", "${selected.entries.sumOf { it.quantity }} cartes")
-                DeckSummary(selected,owned,catalog,details,rules,onFormat={onFormat(selected.id,it)})
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                DeckSummary(selected,owned,catalog,details,rules,onFormat={onFormat(selected.id,it)}, editable = editing)
+                OutlinedButton(onClick = { editing = !editing }) { Text(if (editing) "Terminer les modifications" else "Modifier la liste") }
+                if (editing) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     TextButton(onClick = { naming = true }, colors = ButtonDefaults.textButtonColors(contentColor = ListPalette.Gold)) { Text("Renommer") }
                     TextButton(onClick = { deleting = true }, colors = ButtonDefaults.textButtonColors(contentColor = ListPalette.Danger)) { Text("Supprimer la liste") }
                 }
@@ -189,7 +191,8 @@ internal fun CardListsPanel(lists: List<CardList>, selectedId: String?, modifier
                                     }
                                     Icon(Icons.Default.ChevronRight, null, tint = ListPalette.Gold)
                                 }
-                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                if (!editing) Text("${entry.quantity} exemplaire(s)", color = ListPalette.Secondary)
+                                if (editing) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                     IconButton(onClick = { onQuantity(selected.id, entry.card, entry.quantity - 1) }, enabled = entry.quantity > 1) {
                                         Icon(Icons.Default.Remove, "Diminuer la quantité de ${entry.card.name}",
                                             tint = if (entry.quantity > 1) ListPalette.Gold else ListPalette.Secondary.copy(alpha = 0.5f))

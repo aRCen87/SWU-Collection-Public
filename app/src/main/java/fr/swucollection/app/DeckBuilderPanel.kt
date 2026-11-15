@@ -137,6 +137,11 @@ internal fun DeckBuilderPanel(
     var correctingScan by remember { mutableStateOf<ScanBatchEntry?>(null) }
     var lastScanCollected by remember { mutableStateOf(false) }
     var pendingFinish by remember { mutableStateOf<String?>(null) }
+    fun keepForLater() {
+        draftStarted = true
+        if (storeDraft(snapshot())) { closing = true; onCancel() }
+        else error = "Le brouillon n’a pas pu être sauvegardé. Le deck reste ouvert."
+    }
     fun saveDeck() {
         closing = true
         runCatching { onSave(name.trim(), deck, collectionBatchId, collectionEntries); draftStore.clear(draftKey) }
@@ -312,8 +317,10 @@ internal fun DeckBuilderPanel(
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TextButton(onClick = { preparing = true }, enabled = leaderChosen && baseChosen) { Text("Préparer") }
             Button(onClick = {
-                if (collectionEntries.isEmpty()) saveDeck() else confirmingSave = true
-            }, contentPadding = PaddingValues(horizontal = 10.dp), enabled = name.isNotBlank() && leaderChosen && baseChosen) { Text("Enregistrer") }
+                if (!leaderChosen || !baseChosen) keepForLater()
+                else if (collectionEntries.isEmpty()) saveDeck() else confirmingSave = true
+            }, contentPadding = PaddingValues(horizontal = 10.dp), enabled = name.isNotBlank()) { Text(if (!leaderChosen || !baseChosen) "Garder le brouillon" else "Enregistrer") }
+            if (leaderChosen && baseChosen) TextButton(onClick = { keepForLater() }, enabled = name.isNotBlank()) { Text("Garder pour plus tard") }
             OutlinedButton(onClick = { exportMenu = true }, contentPadding = PaddingValues(horizontal = 10.dp), enabled = leaderChosen && baseChosen) { Text("Exporter") }
             TextButton(enabled = undo.any { it != snapshot() }, contentPadding = PaddingValues(0.dp), onClick = {
                 val previous = undo.indexOfLast { it != snapshot() }
