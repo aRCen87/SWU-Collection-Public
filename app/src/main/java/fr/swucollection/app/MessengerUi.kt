@@ -1,20 +1,30 @@
 package fr.swucollection.app
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.testTag
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 internal data class MessengerThread(val conversation: PlayerConversation, val peer: PlayerProfile, val unread: Boolean)
+internal fun messengerPreview(uid:String,conversation:PlayerConversation):String =
+    (if(conversation.lastSenderId==uid) "Toi : " else "")+conversation.lastText.ifBlank {"Discussion privée"}
 internal fun messengerThreads(uid: String, conversations: List<PlayerConversation>, receipts: Map<String, Long>, profiles: Collection<PlayerProfile>, search: String): List<MessengerThread> {
     val players = profiles.associateBy { it.id }
     return conversations.filter { uid in it.members }.sortedByDescending { it.updatedAt }.mapNotNull { thread ->
@@ -26,32 +36,43 @@ internal fun messengerThreads(uid: String, conversations: List<PlayerConversatio
 }
 
 @Composable
-internal fun MessengerInbox(uid: String, conversations: List<PlayerConversation>, receipts: Map<String, Long>, profiles: Collection<PlayerProfile>,
+internal fun ColumnScope.MessengerInbox(uid: String, conversations: List<PlayerConversation>, receipts: Map<String, Long>, profiles: Collection<PlayerProfile>,
     states: Map<String, MessengerThreadState> = emptyMap(), onState: (String,MessengerThreadState) -> Unit = {_,_->},
+    presence: @Composable (String) -> PlayerPresence = { PlayerPresence() },
     onNew: () -> Unit, onFriends: () -> Unit, onOpen: (PlayerConversation, String) -> Unit) {
-    var search by remember { mutableStateOf("") }
+    var search by rememberSaveable(uid) { mutableStateOf("") }
     var removing by remember { mutableStateOf<PlayerConversation?>(null) }
-    Text("Discussions", style = MaterialTheme.typography.titleLarge)
-    Button(onClick = onNew, modifier = Modifier.fillMaxWidth()) { Text("Nouveau message") }
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(uid) { while(true){delay(15_000);now=System.currentTimeMillis()} }
+    Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
     OutlinedTextField(search, { search = it.take(80) }, label = { Text("Rechercher une discussion") },
         trailingIcon = { if (search.isNotEmpty()) IconButton(onClick = { search = "" }) {
             Icon(Icons.Default.Close, "Effacer la recherche")
-        } }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        } }, singleLine = true, modifier = Modifier.weight(1f))
+    IconButton(onClick=onNew,modifier=Modifier.size(48.dp)){Icon(Icons.Default.Edit,"Nouveau message")}
+    }
     val rows = remember(uid, conversations, receipts, profiles, search) { messengerThreads(uid, conversations, receipts, profiles, search) }.filter { messengerVisible(it.conversation,states[it.conversation.id]?:MessengerThreadState()) }.sortedByDescending { states[it.conversation.id]?.pinned==true }
     if (rows.isEmpty()) {
         Text(if (conversations.isEmpty()) "Tes discussions apparaîtront ici. Choisis un ami pour lui écrire." else "Aucune discussion pour cette recherche.")
         TextButton(onClick = onFriends) { Text("Voir mes amis · Ajouter un ami") }
     }
-    rows.forEach { row -> OutlinedCard(onClick = { onOpen(row.conversation, row.peer.name) }, modifier = Modifier.fillMaxWidth()) {
-        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            CommunityAvatar(row.peer.avatar, Modifier.size(48.dp))
+    LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("messenger_threads")) {
+    items(rows,key={it.conversation.id}) { row ->
+        Row(Modifier.fillMaxWidth().clickable{onOpen(row.conversation,row.peer.name)}.padding(vertical=12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            MessengerPeerAvatar(row.peer,presence(row.peer.id),now)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(row.peer.name, style = MaterialTheme.typography.titleMedium)
+                Text(row.peer.name, style = MaterialTheme.typography.titleMedium,fontWeight=if(row.unread)FontWeight.Bold else FontWeight.Medium,maxLines=1,overflow=TextOverflow.Ellipsis)
                 val preferences=states[row.conversation.id]?:MessengerThreadState()
-                Text((if(preferences.pinned)"📌 " else "")+(if(preferences.mutedUntil>System.currentTimeMillis())"Silencieux · " else "")+row.conversation.lastText.ifBlank { if(row.unread)"Nouveau message" else "Discussion privée" },maxLines=2,style=MaterialTheme.typography.bodySmall)
-                if (row.conversation.updatedAt > 0) Text(SimpleDateFormat("dd/MM · HH:mm", Locale.FRANCE).format(Date(row.conversation.updatedAt)), style = MaterialTheme.typography.labelSmall)
+                Text((if(preferences.pinned)"📌 " else "")+(if(preferences.mutedUntil>now)"Silencieux · " else "")+messengerPreview(uid,row.conversation),maxLines=1,overflow=TextOverflow.Ellipsis,style=MaterialTheme.typography.bodyMedium,color=if(row.unread)MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            if (row.unread) Badge { Text("Nouveau") }
+            Column(horizontalAlignment=Alignment.End,verticalArrangement=Arrangement.spacedBy(6.dp)) {
+                if(row.conversation.updatedAt>0) {
+                    val today=SimpleDateFormat("yyyyMMdd",Locale.FRANCE)
+                    val pattern=if(today.format(Date(now))==today.format(Date(row.conversation.updatedAt)))"HH:mm" else "dd/MM"
+                    Text(SimpleDateFormat(pattern,Locale.FRANCE).format(Date(row.conversation.updatedAt)),style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                if(row.unread) Badge {Text("Nouveau",style=MaterialTheme.typography.labelSmall)}
+            }
             var menu by remember(row.conversation.id){mutableStateOf(false)}
             Box {
                 IconButton(onClick={menu=true}){Icon(Icons.Default.MoreVert,"Options de la conversation")}

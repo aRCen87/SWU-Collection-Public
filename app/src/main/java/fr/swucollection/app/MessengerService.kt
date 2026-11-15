@@ -20,9 +20,10 @@ internal data class MessengerPreferences(val sharePresence: Boolean = true, val 
 internal data class MessengerThreadState(val hiddenBefore: Long = 0, val pinned: Boolean = false, val mutedUntil: Long = 0, val hiddenMessages: List<String> = emptyList())
 internal data class MessengerSignal(val deliveredAt: Long = 0, val seenAt: Long = 0, val typingAt: Long = 0, val typing: Boolean = false)
 internal data class PlayerPresence(val online: Boolean = false, val at: Long = 0) {
+    fun isOnline(now: Long): Boolean = online && now-at in 0..75_000
     fun label(now: Long): String = when {
         at<=0 -> "Statut masqué"
-        online && now-at in 0..75_000 -> "En ligne"
+        isOnline(now) -> "En ligne"
         now-at<120_000 -> "Actif à l’instant"
         now-at<3_600_000 -> "Actif il y a ${(now-at).coerceAtLeast(0)/60_000} min"
         else -> "Hors ligne"

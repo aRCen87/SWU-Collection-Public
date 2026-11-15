@@ -13,6 +13,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 
+private data class DeckView(val key:String,val draft:DeckDraft,val savedId:String?=null,val storedDraft:Boolean=true)
+
 @Composable
 internal fun DeckLibraryPanel(
     decks: List<DeckStore.SavedDeck>, modifier: Modifier = Modifier, catalog: List<CatalogCard> = emptyList(),
@@ -20,7 +22,9 @@ internal fun DeckLibraryPanel(
     onCreate: () -> Unit, onResumeDraft: (String) -> Unit, onImport: () -> Unit, onOpen: (DeckStore.SavedDeck) -> Unit,
     onDuplicate: (DeckStore.SavedDeck) -> Unit, onDelete: (DeckStore.SavedDeck) -> Unit,
     onExport: (DeckStore.SavedDeck) -> Unit = {},
-    owned: List<CollectionCard> = emptyList(), details: CardDetails? = null
+    owned: List<CollectionCard> = emptyList(), details: CardDetails? = null,
+    onPreview: (CatalogCard,List<CatalogCard>) -> Unit = {_,_->},
+    onInlineSave: ((String,PortableDeck,PortableDeck)->Unit)? = null
 ) {
     val context = LocalContext.current.applicationContext
     val draftStore = remember(context) { DeckDraftStore(context) }
@@ -28,10 +32,12 @@ internal fun DeckLibraryPanel(
     val drafts = remember(decks, draftRevision) { draftStore.newDrafts() }
     var deletingDraft by remember { mutableStateOf<Pair<String, DeckDraft>?>(null) }
     var draftError by remember { mutableStateOf<String?>(null) }
-    var viewing by remember { mutableStateOf<Pair<DeckDraft, () -> Unit>?>(null) }
+    var viewing by remember { mutableStateOf<DeckView?>(null) }
     var deleting by remember { mutableStateOf<DeckStore.SavedDeck?>(null) }
-    fun consultation(saved: DeckStore.SavedDeck) = draftStore.read(saved.id, DeckInterchange.exportJson(saved.deck, saved.name))
-        ?: DeckDraft(saved.name, saved.deck, true, true)
+    fun consultation(saved: DeckStore.SavedDeck) {
+        val recovered=draftStore.read(saved.id,DeckInterchange.exportJson(saved.deck,saved.name))
+        viewing=DeckView(saved.id,recovered?:DeckDraft(saved.name,saved.deck,true,true),saved.id,recovered!=null)
+    }
     val byId = remember(catalog) { catalog.associateBy(DeckConstruction::reference) }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -41,7 +47,7 @@ internal fun DeckLibraryPanel(
         draftError?.let { Text(it, color = ListPalette.Danger) }
         LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
             items(drafts, key = { "draft:${it.first}" }) { (key, draft) ->
-                OutlinedCard(onClick = { viewing = draft to { onResumeDraft(key) } }, modifier = Modifier.fillMaxWidth(),
+                OutlinedCard(onClick = { viewing = DeckView(key,draft) }, modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.outlinedCardColors(containerColor = ListPalette.Background, contentColor = ListPalette.Text)) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(draft.name.ifBlank { "Mon deck" }, maxLines = 2, overflow = TextOverflow.Ellipsis,
@@ -55,7 +61,7 @@ internal fun DeckLibraryPanel(
                             "${draft.collectionEntries.sumOf { it.quantity }} ajout(s) à la collection en attente",
                             style = MaterialTheme.typography.bodySmall, color = ListPalette.Secondary)
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(onClick = { viewing = draft to { onResumeDraft(key) } }) { Text("Consulter") }
+                            TextButton(onClick = { viewing = DeckView(key,draft) }) { Text("Consulter") }
                             TextButton(onClick = { onResumeDraft(key) }) { Text("Modifier") }
                             TextButton(onClick = { deletingDraft = key to draft }) { Text("Supprimer", color = ListPalette.Danger) }
                         }
@@ -65,7 +71,7 @@ internal fun DeckLibraryPanel(
             if (decks.isEmpty() && drafts.isEmpty()) item { Text("Crée ton premier deck ou importe un fichier JSON.", color = ListPalette.Secondary) }
             items(decks, key = { it.id }) { saved ->
                 var more by remember(saved.id) { mutableStateOf(false) }
-                OutlinedCard(onClick = { viewing = consultation(saved) to { onOpen(saved) } }, modifier = Modifier.fillMaxWidth(),
+                OutlinedCard(onClick = { consultation(saved) }, modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.outlinedCardColors(containerColor = ListPalette.Background, contentColor = ListPalette.Text)) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -90,7 +96,7 @@ internal fun DeckLibraryPanel(
                                 style = MaterialTheme.typography.bodySmall, color = ListPalette.Gold)
                         }
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(onClick = { viewing = consultation(saved) to { onOpen(saved) } }) { Text("Consulter") }
+                            TextButton(onClick = { consultation(saved) }) { Text("Consulter") }
                             TextButton(onClick = { onOpen(saved) }) { Text("Modifier") }
                             TextButton(onClick = { onPin(saved) }) { Text(if (saved.id in pinned) "★ Épinglé" else "☆ Épingler") }
                             TextButton(onClick = { onPrepare(saved) }) { Text("Préparer") }
@@ -111,8 +117,18 @@ internal fun DeckLibraryPanel(
             }
         }
     }
-    viewing?.let { (draft, edit) ->
-        DeckConsultation(draft, catalog, { viewing = null }, { viewing = null; edit() })
+    viewing?.let { target ->
+        DeckConsultation(target.draft, catalog, { viewing = null }, {
+            viewing=null
+            if(target.savedId==null)onResumeDraft(target.key)
+            else decks.firstOrNull{it.id==target.savedId}?.let(onOpen)
+        },details=details?:CardDetails.empty(),onPreview=onPreview,
+            onChange=if(target.storedDraft || onInlineSave!=null) { next ->
+                val current=viewing?:error("Ce deck a été fermé.")
+                if(current.storedDraft)draftStore.update(current.key,current.draft,next)
+                else onInlineSave?.invoke(current.savedId!!,current.draft.deck,next.deck)
+                viewing=current.copy(draft=next);draftRevision++
+            } else null)
     }
     deletingDraft?.let { (key, draft) ->
         AlertDialog(onDismissRequest = { deletingDraft = null }, title = { Text("Supprimer « ${draft.name.ifBlank { "Mon deck" }} » ?") },

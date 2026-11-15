@@ -119,6 +119,7 @@ internal fun CardListsPanel(lists: List<CardList>, selectedId: String?, modifier
     var editing by remember(selectedId) { mutableStateOf(false) }
     var naming by remember(selectedId) { mutableStateOf(false) }
     var deleting by remember(selectedId) { mutableStateOf(false) }
+    var adding by remember(selectedId) { mutableStateOf(false) }
     CompositionLocalProvider(LocalContentColor provides ListPalette.Text) {
         Column(modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (selected == null) {
@@ -168,7 +169,8 @@ internal fun CardListsPanel(lists: List<CardList>, selectedId: String?, modifier
                 ListHero(selected.name, "${selected.entries.size} références", "${selected.entries.sumOf { it.quantity }} cartes")
                 DeckSummary(selected,owned,catalog,details,rules,onFormat={onFormat(selected.id,it)}, editable = editing)
                 OutlinedButton(onClick = { editing = !editing }) { Text(if (editing) "Terminer les modifications" else "Modifier la liste") }
-                if (editing) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                if (editing) FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick = { adding = true }, colors = ButtonDefaults.textButtonColors(contentColor = ListPalette.Gold)) { Text("Ajouter des cartes") }
                     TextButton(onClick = { naming = true }, colors = ButtonDefaults.textButtonColors(contentColor = ListPalette.Gold)) { Text("Renommer") }
                     TextButton(onClick = { deleting = true }, colors = ButtonDefaults.textButtonColors(contentColor = ListPalette.Danger)) { Text("Supprimer la liste") }
                 }
@@ -212,6 +214,10 @@ internal fun CardListsPanel(lists: List<CardList>, selectedId: String?, modifier
                 }
             }
         }
+    }
+    if(adding && selected!=null)InlineCardPicker(catalog,"Liste",{adding=false}){card->
+        val quantity=selected.entries.firstOrNull{it.card.setCode==card.setCode && it.card.number==card.number}?.quantity?:0
+        if(quantity<99)onQuantity(selected.id,card,quantity+1)
     }
     if (naming) CardListNameDialog(initial = selected?.name ?: "", onDismiss = { naming = false }, onSave = {
         if (selected == null) onCreate(it) else onRename(selected.id, it)

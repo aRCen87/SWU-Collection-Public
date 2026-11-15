@@ -46,6 +46,13 @@ internal class DeckDraftStore(context: Context) {
         }.getOrNull() }
     }
     fun hasNewDraft(): Boolean = newDrafts().isNotEmpty()
+    /** Edit an existing draft in place without losing its baseline or pending scans. */
+    fun update(key: String, expected: DeckDraft, value: DeckDraft) {
+        val root = file(key).openRead().bufferedReader(Charsets.UTF_8).use { JSONObject(it.readText()) }
+        val baseline = root.getString("baseline")
+        check(read(key, baseline) == expected) { "Ce brouillon a changé. Rouvre-le avant de le modifier." }
+        write(key, baseline, value)
+    }
     fun write(key: String, baseline: String, value: DeckDraft) {
         require(value.name.length <= 120)
         val bytes = JSONObject().put("key", key).put("baseline", baseline).put("name", value.name)

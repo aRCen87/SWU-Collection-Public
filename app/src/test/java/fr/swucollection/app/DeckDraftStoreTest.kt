@@ -70,5 +70,29 @@ class DeckDraftStoreTest {
         } finally { db.close() }
     }
 
+    @Test fun inlineUpdatePreservesBaselinePendingScansOtherDraftAndInventoryAndRejectsStaleChanges() {
+        val card = CatalogCard("SOR", "095", "Carte test", "Unité", "Rare")
+        val original = DeckDraft("À finir", deck, false, false,
+            listOf(ScanBatchEntry(card, "Foil", 2)), "scan-pending")
+        val store = DeckDraftStore(context)
+        store.write("new:inline", "original baseline", original)
+        store.write("new:other", "other baseline", original.copy(name = "Autre"))
+        val db = CollectionDatabase(context)
+        try {
+            db.addOrIncrement("Carte déjà possédée", "SOR", "095", "Normale")
+            val inventory = db.exportJson()
+            val changed = original.copy(deck = deck.copy(deck = listOf(DeckEntry("SOR-095", 2))))
+            store.update("new:inline", original, changed)
+            assertEquals(changed, DeckDraftStore(context).read("new:inline", "original baseline"))
+            assertFalse(changed.leaderChosen); assertFalse(changed.baseChosen)
+            assertEquals(original.collectionEntries, changed.collectionEntries)
+            assertEquals(original.collectionBatchId, changed.collectionBatchId)
+            assertTrue(runCatching { store.update("new:inline", original, original) }.isFailure)
+            assertEquals(changed, store.read("new:inline", "original baseline"))
+            assertEquals(original.copy(name = "Autre"), store.read("new:other", "other baseline"))
+            assertEquals(inventory, db.exportJson())
+        } finally { db.close() }
+    }
+
 }
 

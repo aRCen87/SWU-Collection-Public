@@ -1,5 +1,6 @@
 package fr.swucollection.app
 
+import androidx.compose.runtime.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -47,4 +48,31 @@ class UnfinishedDeckUiTest {
             assertTrue(restored.deck.deck.isEmpty())
         }
     }
+    @Test fun incompleteDeckSupportsCardPreviewAndInlineQuantityChangesWithoutLosingPendingScans() {
+        val card = CatalogCard("SOR", "095", "Carte test", "Unité", "Rare")
+        val original = DeckDraft("À compléter", empty.copy(deck = listOf(DeckEntry("SOR-095", 1))), false, false,
+            listOf(ScanBatchEntry(card, "Foil", 2)), "pending-scan")
+        var latest = original
+        var preview: CatalogCard? = null
+        ui.setContent { MaterialTheme {
+            var value by remember { mutableStateOf(original) }
+            DeckConsultation(value, listOf(card), {}, {}, onChange = { value = it; latest = it },
+                onPreview = { selected, _ -> preview = selected })
+        } }
+        ui.onNodeWithText("1 × Carte test").performScrollTo().performClick()
+        ui.runOnIdle { assertEquals(card, preview) }
+        ui.onNodeWithContentDescription("Augmenter SOR-095").performScrollTo().performClick()
+        ui.runOnIdle {
+            assertEquals(2, latest.deck.deck.single().count)
+            assertFalse(latest.leaderChosen); assertFalse(latest.baseChosen)
+            assertEquals(original.collectionEntries, latest.collectionEntries)
+            assertEquals("pending-scan", latest.collectionBatchId)
+        }
+        ui.onNodeWithContentDescription("Diminuer SOR-095").performClick()
+        ui.runOnIdle { assertEquals(1, latest.deck.deck.single().count) }
+        ui.onNodeWithText("Retirer").performClick()
+        ui.onNodeWithText("Aucune carte pour le moment.").performScrollTo().assertExists()
+        ui.runOnIdle { assertTrue(latest.deck.deck.isEmpty()) }
+    }
+
 }
