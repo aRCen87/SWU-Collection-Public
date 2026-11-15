@@ -160,7 +160,6 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
     var conversation by remember { mutableStateOf(initialConversation?.first) }
     var peerName by remember { mutableStateOf(initialConversation?.second.orEmpty()) }
     var blocked by remember { mutableStateOf(false) }
-    var findingPlayers by remember { mutableStateOf(false) }
     var choosingRecipient by remember { mutableStateOf(false) }
     BackHandler(enabled = messaging && conversation != null && selectedProfile == null) { conversation = null }
     DisposableEffect(service, user.uid) {
@@ -223,10 +222,9 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
             TextButton(onClick = { service.signOut() }) { Text("Me déconnecter") }
         }
         "Amis" -> {
-            if (messaging) {
-                OutlinedButton(onClick = { findingPlayers = !findingPlayers }, modifier = Modifier.fillMaxWidth()) { Text(if (findingPlayers) "Masquer la recherche de joueurs" else "Ajouter un ami · Rechercher un joueur") }
-                if (findingPlayers) MessengerFriendSearch(profiles) { selectedProfile = it }
-            }
+            MemberDirectory(service.uid, friendships, busy, service::memberPage,
+                { id -> action { service.requestFriend(id); status = "Demande d’ami envoyée." } },
+                { selectedProfile = it })
             FriendPanel(service, friendships, profiles + friendsProfiles.values, busy,
                 { f -> action { service.acceptFriend(f) } }, { f -> action { service.removeFriend(f) } },
                 { id -> action { service.requestFriend(id); status = "Demande d’ami envoyée." } },

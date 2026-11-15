@@ -107,6 +107,14 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
         db.collection("profiles").whereEqualTo("discoverable", true).limit(50).addSnapshotListener { rows, error ->
             if (error != null) onError(error) else onValue(rows?.documents.orEmpty().map { it.toPlayerProfile() }.sortedBy { it.name.lowercase() })
         }
+    /** Document-id cursors also include older profiles without a nameKey. */
+    suspend fun memberPage(after: String? = null): MemberPage {
+        var query: Query = db.collection("profiles").whereEqualTo("discoverable", true)
+            .orderBy(FieldPath.documentId()).limit(50)
+        if (after != null) query = query.startAfter(after)
+        val rows = query.get().communityAwait().documents
+        return MemberPage(rows.map { it.toPlayerProfile() }, rows.lastOrNull()?.id, rows.size == 50)
+    }
     suspend fun profile(id: String): PlayerProfile? = db.collection("profiles").document(id).get().communityAwait().takeIf { it.exists() }?.toPlayerProfile()
     suspend fun saveProfile(profile: PlayerProfile, earnedIds: List<String>) {
         require(profile.id == uid)

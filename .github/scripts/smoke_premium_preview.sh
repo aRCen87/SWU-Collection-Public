@@ -21,7 +21,7 @@ root=ET.parse('smoke-private/'+sys.argv[1]+'.xml').getroot()
 nodes=list(root.iter('node'))
 parents={child:parent for parent in root.iter() for child in parent}
 texts={n.attrib.get('text','') for n in nodes}
-assert 'SCANNER' in texts or (sys.argv[1]=='fr.swucollection.app.test' and any('SWU Collection' in n.attrib.get('content-desc','') for n in nodes)),texts
+assert any(label in texts for label in ('SCANNER', 'Scanner mes cartes')) or (sys.argv[1]=='fr.swucollection.app.test' and any('SWU Collection' in n.attrib.get('content-desc','') for n in nodes)),texts
 assert any(n.attrib.get('package')==sys.argv[1] for n in nodes)
 if sys.argv[1]=='fr.swucollection.app.test':
  import re

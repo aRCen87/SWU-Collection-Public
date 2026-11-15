@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.json.JSONArray
@@ -14,6 +15,8 @@ import org.json.JSONObject
 import java.util.UUID
 
 internal data class ScanBatchEntry(val card: CatalogCard, val variant: String, val quantity: Int, val needsIdentity: Boolean = false, val reviewId: String = "") {
+    // Stable across row reordering and quantity changes; distinct pending scans keep their reviewId.
+    val reviewKey get() = org.json.JSONArray(listOf(card.setCode, card.number, card.language, variant, needsIdentity.toString(), reviewId)).toString()
     val resolved get() = !needsIdentity && card.language in CardLanguages.supported && variant in ScanVariants.detect(card).choices
 }
 
@@ -122,7 +125,7 @@ internal fun ScanBatchPanel(batch: ScanBatchStore, committed: Boolean, catalog: 
             Text("${batch.entries.count { it.resolved }} ligne(s) prête(s) · ${batch.entries.count { !it.resolved }} à vérifier. Les lignes en attente apparaissent en premier.")
             Text(if (committed) "Ce lot a déjà été ajouté. Termine sa fermeture avant de scanner de nouvelles cartes." else "Vérifie les références, variantes et quantités. Ce lot est conservé si tu fermes l’appli.")
             LazyColumn(Modifier.fillMaxWidth().heightIn(max = 300.dp)) {
-                items(batch.entries.sortedBy { it.resolved }) { entry ->
+                items(batch.entries.sortedBy { it.resolved }, key = { it.reviewKey }) { entry ->
                     Column(Modifier.clickable(enabled = !committed) { correction = entry }) {
                         if (entry.needsIdentity) Text("Suggestion à confirmer · carte non identifiée", color = MaterialTheme.colorScheme.primary)
                         ScannerCardSummary(entry.card, entry.variant)
@@ -157,8 +160,8 @@ internal fun ScanBatchPanel(batch: ScanBatchStore, committed: Boolean, catalog: 
 
 @Composable
 internal fun ScanEntryReview(entry: ScanBatchEntry, onResolve: (String, String, Int) -> Unit) {
-    var language by remember(entry) { mutableStateOf(entry.card.language) }
-    var variant by remember(entry) { mutableStateOf(entry.variant) }
+    var language by rememberSaveable(entry.reviewKey) { mutableStateOf(entry.card.language) }
+    var variant by rememberSaveable(entry.reviewKey) { mutableStateOf(entry.variant) }
     var variantMenu by remember(entry) { mutableStateOf(false) }
     if (entry.card.language !in CardLanguages.supported) CardLanguageChoices(language, { language = it })
     if (entry.variant !in ScanVariants.detect(entry.card).choices) Box {

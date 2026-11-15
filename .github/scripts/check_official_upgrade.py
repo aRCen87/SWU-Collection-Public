@@ -96,7 +96,8 @@ uid = adb('shell', 'stat', '-c', '%u', remote).strip()
 assert uid.isdigit()
 before = copy_database('before')
 with sqlite3.connect(before) as db:
-    assert db.execute('PRAGMA user_version').fetchone()[0] == 11
+    baseline_schema = db.execute('PRAGMA user_version').fetchone()[0]
+    assert baseline_schema in (11, 12), ('Unexpected published database schema', baseline_schema)
     assert db.execute('SELECT count(*) FROM collection_cards').fetchone()[0] == 0
     db.executemany('INSERT INTO collection_cards(name,set_code,card_number,variant,quantity,language) VALUES(?,?,?,?,?,?)', [
         ('R2-D2', 'SOR', '236', 'Foil', 3, 'FR'), ('C-3PO', 'SOR', '238', 'Normale', 2, 'EN')])

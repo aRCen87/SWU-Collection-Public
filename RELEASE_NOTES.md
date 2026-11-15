@@ -1,3 +1,12 @@
+## Test 0.9.0-test.25 — membres, finitions et decks en cours
+
+- Dans Amis, les membres visibles apparaissent directement avec leur avatar, pseudo et bouton Ajouter. Les amis et invitations existantes sont signalés sans doublon.
+- Liste paginée et recherche par pseudo conservée, y compris au-delà des 50 premiers profils. Les profils masqués restent masqués.
+- Les choix de langue et finition restent indépendants pour chaque ligne, même après défilement ou validation d’une autre carte, dans le lot de scan et la confirmation du deck.
+- Les listes et decks, même incomplets, s’ouvrent en consultation avec un bouton Modifier. Les listes restent accessibles sans condition de construction.
+- Un deck sans leader ou base peut être conservé explicitement en brouillon. « Garder pour plus tard » conserve aussi les ajouts de scan en attente sans toucher à la collection.
+- Aucune migration ni modification des collections et quantités existantes.
+
 ## Test 0.8.19-test.24 — miniatures de collection
 
 - Troisième affichage « Miniatures » dans Filtres et affichage : uniquement les images de cartes, sans nom, quantité, cote ni pastille sur la grille.
@@ -190,6 +199,13 @@
 - Conversations privées, blocage de joueurs et partage d’une copie de deck à consulter avant enregistrement.
 - Collection et decks locaux conservés. Aucune synchronisation cloud des collections ni notification de messagerie téléphone fermé dans cette version.
 - Application Test séparée de l’application officielle ; cette version ne modifie pas sa distribution.
+
+## Version 0.9.1
+
+- Amis : affichage des membres visibles avec avatar, pseudo et invitation ; recherche conservée sur toutes les pages.
+- Scanner et ajout au deck : les choix de langue et finition restent indépendants pour chaque carte, même après défilement.
+- Listes et decks incomplets consultables avant de choisir Modifier ; conservation des brouillons sans leader ou base et des scans en attente.
+- Collections, quantités, comptes et signature officielle conservés. Aucune migration de base de données.
 
 ## Version 0.9.0
 

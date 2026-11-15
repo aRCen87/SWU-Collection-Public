@@ -12,8 +12,8 @@ android {
         minSdk = 26
         targetSdk = 36
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 84
-        versionName = "0.9.0"
+        versionCode = 86
+        versionName = "0.9.1"
     }
     signingConfigs {
         create("release") {
@@ -37,8 +37,8 @@ android {
         create("preview") {
             initWith(getByName("release"))
             applicationIdSuffix = ".test"
-            versionNameSuffix = "-test.24"
-            // Keep the previously delivered Test version while preparing the official release.
+            versionNameSuffix = "-test.25"
+            // Test keeps its own identity and version sequence.
             signingConfig = signingConfigs.getByName("release")
             matchingFallbacks += listOf("release")
         }
@@ -60,7 +60,10 @@ android {
 // Test keeps its independent Android update sequence.
 androidComponents {
     onVariants(selector().withBuildType("preview")) { variant ->
-        variant.outputs.forEach { it.versionCode.set(83) }
+        variant.outputs.forEach {
+            it.versionCode.set(85)
+            it.versionName.set("0.9.0-test.25")
+        }
     }
 }
 kotlin { jvmToolchain(17) }
@@ -94,6 +97,7 @@ dependencies {
     implementation("com.google.mlkit:text-recognition:16.0.1")
     implementation("com.google.android.gms:play-services-oss-licenses:17.1.0")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("androidx.compose.ui:ui-test-junit4")
     testImplementation("org.robolectric:robolectric:4.17")
     testImplementation("org.json:json:20240303")
     debugImplementation("androidx.compose.ui:ui-tooling")

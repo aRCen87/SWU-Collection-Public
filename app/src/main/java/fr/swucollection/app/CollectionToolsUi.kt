@@ -118,14 +118,15 @@ internal fun RelatedPrintsPanel(card: CatalogCard, catalog: List<CatalogCard>, o
     }
 }
 @Composable
-internal fun DeckSummary(list: CardList,owned: List<CollectionCard>,catalog: List<CatalogCard>,details: CardDetails,rules: LegalityRules,onFormat:(String)->Unit) {
+internal fun DeckSummary(list: CardList,owned: List<CollectionCard>,catalog: List<CatalogCard>,details: CardDetails,rules: LegalityRules,onFormat:(String)->Unit, editable: Boolean = true) {
     var menu by remember {mutableStateOf(false)};var show by remember {mutableStateOf(false)}
     val report=remember(list,owned,catalog,details,rules){DeckAudit.report(list,owned,catalog,details,rules)}
     var formatsVisible by remember(list.id) { mutableStateOf(list.format != "Liste") }
     OutlinedCard(Modifier.fillMaxWidth()) {Column(Modifier.padding(10.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
         if (!formatsVisible) TextButton(onClick = { formatsVisible = true }) { Text("Options de vérification") }
         if (formatsVisible) Box {
-            TextButton(onClick={menu=true}) {Text("Format : ${list.format}  ▾")}
+            if (editable) TextButton(onClick={menu=true}) {Text("Format : ${list.format}  ▾")}
+            else Text("Format : ${list.format}")
             DropdownMenu(expanded=menu,onDismissRequest={menu=false}) {listOf("Liste","Premier","Twin Suns","Éternel").forEach {format->DropdownMenuItem(text={Text(format)},onClick={onFormat(format);menu=false})}}
         }
         Text("${report.needs.sumOf {minOf(it.required,it.owned)}} / ${report.needs.sumOf {it.required}} exemplaires disponibles pour cette liste")
