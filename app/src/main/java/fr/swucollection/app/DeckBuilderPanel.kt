@@ -463,7 +463,7 @@ internal fun DeckBuilderPanel(
         text = {
             LazyColumn(Modifier.heightIn(max = 360.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 item { Text("${collectionEntries.sumOf { it.quantity }} exemplaire(s) seront ajoutés à ta collection.") }
-                items(collectionEntries) { entry ->
+                items(collectionEntries, key = { it.reviewKey }) { entry ->
                     Text("${entry.quantity} × ${entry.card.name} · ${entry.card.setCode} ${entry.card.number} · ${entry.variant.ifBlank { "Finition à vérifier" }} · ${CardLanguages.label(entry.card.language)}")
                     if (!entry.resolved) ScanEntryReview(entry) { language, variant, quantity ->
                         runCatching {

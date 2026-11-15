@@ -86,18 +86,3 @@ internal fun MessengerRecipientPicker(friends: List<PlayerProfile>, onClose: () 
         }
     }, confirmButton = { TextButton(onClick = onAdd) { Text("Ajouter un ami") } }, dismissButton = { TextButton(onClick = onClose) { Text("Fermer") } })
 }
-
-@Composable internal fun MessengerFriendSearch(profiles:List<PlayerProfile>,onSelect:(PlayerProfile)->Unit) {
-    var query by remember{mutableStateOf("")}
-    OutlinedTextField(query,{query=it.take(32)},label={Text("Rechercher un pseudo")},singleLine=true,modifier=Modifier.fillMaxWidth())
-    Text("Seuls les joueurs ayant rendu leur profil visible apparaissent. Jusqu’à 50 profils disponibles.",style=MaterialTheme.typography.bodySmall)
-    if(query.trim().length>=2){
-        val found=profiles.filter{it.name.contains(query.trim(),true)}.sortedBy{it.name.lowercase()}
-        if(found.isEmpty())Text("Aucun joueur trouvé pour ce pseudo.")
-        found.forEach{player->OutlinedCard(onClick={onSelect(player)},modifier=Modifier.fillMaxWidth()){
-            Row(Modifier.padding(10.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)){
-                CommunityAvatar(player.avatar,Modifier.size(42.dp));Text(player.name,Modifier.weight(1f));Text("Voir ›",color=PremiumGold)
-            }
-        }}
-    }else Text("Saisis au moins deux caractères.")
-}

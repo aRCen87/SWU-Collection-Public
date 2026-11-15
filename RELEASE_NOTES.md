@@ -1,3 +1,10 @@
+## En préparation — membres et choix des finitions
+
+- Dans Amis, les membres visibles apparaissent directement avec leur avatar, pseudo et bouton Ajouter. Les amis et invitations existantes sont signalés sans doublon.
+- Liste paginée et recherche par pseudo conservée, y compris au-delà des 50 premiers profils. Les profils masqués restent masqués.
+- Les choix de langue et finition restent indépendants pour chaque ligne, même après défilement ou validation d’une autre carte, dans le lot de scan et la confirmation du deck.
+- Aucune migration ni modification des collections et quantités existantes.
+
 ## Test 0.8.19-test.24 — miniatures de collection
 
 - Troisième affichage « Miniatures » dans Filtres et affichage : uniquement les images de cartes, sans nom, quantité, cote ni pastille sur la grille.
