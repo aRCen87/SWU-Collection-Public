@@ -191,7 +191,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
     if (profile == null || editing) {
         ProfileEditor(profile ?: PlayerProfile(user.uid, ""), catalog, earned.map { it.badge.id }, busy, { saved -> action {
             service.saveProfile(saved, earned.map { it.badge.id }); editing = false
-        } }, if (profile == null) null else { { editing = false } })
+        } }, if (profile == null) null else { { editing = false } }, scroll = messaging)
         TextButton(onClick = { service.signOut() }) { Text("Me déconnecter") }
         return
     }
@@ -343,8 +343,8 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
 }
 
 @Composable
-private fun ColumnScope.ProfileEditor(initial: PlayerProfile, catalog: List<CatalogCard>, earnedIds: List<String>, busy: Boolean,
-    onSave: (PlayerProfile) -> Unit, onCancel: (() -> Unit)?) {
+internal fun ColumnScope.ProfileEditor(initial: PlayerProfile, catalog: List<CatalogCard>, earnedIds: List<String>, busy: Boolean,
+    onSave: (PlayerProfile) -> Unit, onCancel: (() -> Unit)?, scroll: Boolean = false) {
     var name by remember(initial.id) { mutableStateOf(initial.name) }
     var firstName by remember(initial.id) { mutableStateOf(initial.firstName) }
     var shareFirstName by remember(initial.id) { mutableStateOf(initial.shareFirstName) }
@@ -361,6 +361,8 @@ private fun ColumnScope.ProfileEditor(initial: PlayerProfile, catalog: List<Cata
     val photo = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> if (uri != null) scope.launch {
         runCatching { readCommunityAvatar(context, uri) }.onSuccess { avatar = it; photoError = null }.onFailure { photoError = "Cette image ne peut pas être utilisée. Choisis une autre photo." }
     } }
+    Column(Modifier.fillMaxWidth().then(if (scroll) Modifier.weight(1f).verticalScroll(rememberScrollState()) else Modifier),
+        verticalArrangement = Arrangement.spacedBy(8.dp)) {
     Text(if (initial.name.isBlank()) "Créer mon profil" else "Modifier mon profil", fontWeight = FontWeight.Bold)
     CommunityAvatar(avatar, Modifier.size(72.dp))
     Text("Personnages des cartes", fontWeight = FontWeight.SemiBold)
@@ -386,9 +388,10 @@ private fun ColumnScope.ProfileEditor(initial: PlayerProfile, catalog: List<Cata
         Row(verticalAlignment = Alignment.CenterVertically) { RadioButton(policy == id, { policy = id }); Text(label) }
     }
     Row(verticalAlignment = Alignment.CenterVertically) { Switch(shareDecks, { shareDecks = it }); Text("Afficher mes decks partagés sur mon profil", Modifier.padding(start = 8.dp)) }
-    Text("Seuls les joueurs autorisés aux essais pourront consulter le profil. Ni ton e-mail ni ta collection ne sont affichés.", fontSize = 12.sp)
+    Text("Ton e-mail et ta collection complète ne sont pas affichés sur ton profil.", fontSize = 12.sp)
     Button(onClick = { onSave(initial.copy(name = name, firstName = firstName, shareFirstName = shareFirstName, bio = bio, avatar = avatar, discoverable = visible, shareBadges = badges, badgeIds = if (badges) earnedIds else emptyList(), messagePolicy = policy, shareDecks = shareDecks, city = interests.city, formats = interests.formats, leaders = interests.leaders, shareShowcase = interests.shareShowcase)) }, enabled = !busy && !avatarLoading && name.trim().length >= 2) { Text("Enregistrer mon profil") }
     onCancel?.let { TextButton(onClick = it) { Text("Annuler") } }
+    }
 }
 
 @Composable
