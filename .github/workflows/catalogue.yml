@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
@@ -52,8 +54,8 @@ jobs:
             if git push; then
               exit 0
             fi
-            git fetch origin main
-            git rebase origin/main
+            git fetch origin "$GITHUB_REF_NAME"
+            git rebase "origin/$GITHUB_REF_NAME"
           done
           echo "Unable to push catalogue after three retries" >&2
           exit 1
