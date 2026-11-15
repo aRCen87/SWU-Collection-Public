@@ -1,11 +1,11 @@
 {
-  "versionCode": 83,
-  "versionName": "0.8.19-test.24",
-  "sha256": "41751fb55fc62f73f135bb9b2a81381c727f1b05bc8969fe121cdd827077d868",
-  "size": 63055951,
-  "sourceSha": "1d6c8759d95db9923599281cb6602338540a102f",
+  "versionCode": 85,
+  "versionName": "0.9.0-test.25",
+  "sha256": "294afa856e06c3e9b5a73cb6bbf5a7fec58621ea7237bce78e13bbea47782c8b",
+  "size": 63887683,
+  "sourceSha": "2dba73dd7c0bc01652bcb8fb142eefd241e33129",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "notes": "Collection : nouvel affichage « Miniatures » avec uniquement les images de cartes. Trois cartes par ligne sur téléphone en portrait, davantage selon la largeur disponible sur Z Fold déplié ou en paysage. La grille utilise toute la largeur ; toucher une miniature ouvre la fiche habituelle. Le choix d’affichage est mémorisé, filtres, tris et regroupement des versions conservés. Tests Android sur trois formats, ouverture des fiches, mémorisation et conservation des quantités validés. Aucun changement des collections, sauvegardes ou services communautaires.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_69802c704a1c8191847be8d190952881&account_id=personal"
+  "notes": "Amis : liste des membres visibles avec avatar, pseudo, bouton Ajouter et état des invitations. Recherche par pseudo sur toutes les pages. Scanner : les choix de langue et finition restent indépendants par carte, même après défilement ou validation d’une autre ligne, y compris depuis un deck. Listes et decks : consultation sans modification obligatoire, bouton Modifier et conservation des brouillons incomplets, même sans leader ou base. Les ajouts de scan en attente restent conservés. Tests Android, compilation, contrôles de sécurité, signature et essais sur émulateur validés. Aucune migration des collections.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_a578b876bd0c819193f8ea06972e367c&account_id=personal"
 }
