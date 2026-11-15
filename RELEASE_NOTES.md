@@ -1,4 +1,11 @@
-## Test 0.9.0-test.25 — membres, finitions et decks en cours (en validation)
+## Version 0.9.1 — membres, finitions et decks en cours
+
+- Amis : affichage des membres visibles avec avatar, pseudo et invitation ; recherche conservée sur toutes les pages.
+- Scanner et ajout au deck : les choix de langue et finition restent indépendants pour chaque carte, même après défilement.
+- Listes et decks incomplets consultables avant de choisir Modifier ; conservation des brouillons sans leader ou base et des scans en attente.
+- Collections, quantités, comptes et signature officielle conservés. Aucune migration de base de données.
+
+## Test 0.9.0-test.25 — membres, finitions et decks en cours
 
 - Dans Amis, les membres visibles apparaissent directement avec leur avatar, pseudo et bouton Ajouter. Les amis et invitations existantes sont signalés sans doublon.
 - Liste paginée et recherche par pseudo conservée, y compris au-delà des 50 premiers profils. Les profils masqués restent masqués.
