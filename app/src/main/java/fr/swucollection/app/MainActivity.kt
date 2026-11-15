@@ -910,6 +910,7 @@ private fun CollectionScreen(
                     }
                     deckMessage?.let { Text(it, color = Color(0xFFFFD47D)) }
                     if (deckLibraryVisible) DeckLibraryPanel(savedDecks, Modifier.weight(1f), catalog = allCatalog, owned = cards, details = cardDetails,
+                        previewOpen = previewSession != null,
                         onPreview = { card, visible -> openPreview(card, visible.map { CardPreviewEntry(it) }) },
                         onInlineSave = { id, expected, next ->
                             val latest=deckStore.all().firstOrNull{it.id==id}?:error("Ce deck a été supprimé.")

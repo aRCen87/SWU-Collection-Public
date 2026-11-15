@@ -24,7 +24,8 @@ internal fun DeckLibraryPanel(
     onExport: (DeckStore.SavedDeck) -> Unit = {},
     owned: List<CollectionCard> = emptyList(), details: CardDetails? = null,
     onPreview: (CatalogCard,List<CatalogCard>) -> Unit = {_,_->},
-    onInlineSave: ((String,PortableDeck,PortableDeck)->Unit)? = null
+    onInlineSave: ((String,PortableDeck,PortableDeck)->Unit)? = null,
+    previewOpen: Boolean = false
 ) {
     val context = LocalContext.current.applicationContext
     val draftStore = remember(context) { DeckDraftStore(context) }
@@ -117,7 +118,7 @@ internal fun DeckLibraryPanel(
             }
         }
     }
-    viewing?.let { target ->
+    viewing?.takeUnless { previewOpen }?.let { target ->
         DeckConsultation(target.draft, catalog, { viewing = null }, {
             viewing=null
             if(target.savedId==null)onResumeDraft(target.key)
