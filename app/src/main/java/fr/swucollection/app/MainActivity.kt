@@ -910,6 +910,14 @@ private fun CollectionScreen(
                     }
                     deckMessage?.let { Text(it, color = Color(0xFFFFD47D)) }
                     if (deckLibraryVisible) DeckLibraryPanel(savedDecks, Modifier.weight(1f), catalog = allCatalog, owned = cards, details = cardDetails,
+                        previewOpen = previewSession != null,
+                        onPreview = { card, visible -> openPreview(card, visible.map { CardPreviewEntry(it) }) },
+                        onInlineSave = { id, expected, next ->
+                            val latest=deckStore.all().firstOrNull{it.id==id}?:error("Ce deck a été supprimé.")
+                            check(latest.deck==expected){"Ce deck a changé. Rouvre-le avant de le modifier."}
+                            deckStore.save(latest.name,latest.format,next,latest.id)
+                            refresh()
+                        },
                         onCreate = { beginNewDeck() },
                         onResumeDraft = { key -> creatingSeed = null; creatingDraftKey = key; creatingDeck = true },
                         onImport = { importingDeck = true },

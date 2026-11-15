@@ -31,4 +31,16 @@ class MessengerTest {
         assertEquals("Conversation privée", row.peer.name); assertFalse(row.unread)
         assertTrue(messengerThreads("me", listOf(thread), emptyMap(), emptyList(), "private-id").isEmpty())
     }
+    @Test fun previewDistinguishesSentAndReceivedAndPresenceExpiresWithoutInventingHiddenStatus() {
+        val sent = PlayerConversation("a", listOf("me", "alice"), 100, "me", "Bonjour")
+        assertEquals("Toi : Bonjour", messengerPreview("me", sent))
+        assertEquals("Bonjour", messengerPreview("me", sent.copy(lastSenderId = "alice")))
+        val now = 200_000L
+        assertTrue(PlayerPresence(true, now - 45_000).isOnline(now))
+        assertFalse(PlayerPresence(true, now - 76_000).isOnline(now))
+        assertFalse(PlayerPresence(false, now).isOnline(now))
+        assertFalse(PlayerPresence().isOnline(now))
+        assertEquals("Statut masqué", PlayerPresence().label(now))
+    }
+
 }

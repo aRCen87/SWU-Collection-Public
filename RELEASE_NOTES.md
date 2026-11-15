@@ -200,6 +200,13 @@
 - Collection et decks locaux conservés. Aucune synchronisation cloud des collections ni notification de messagerie téléphone fermé dans cette version.
 - Application Test séparée de l’application officielle ; cette version ne modifie pas sa distribution.
 
+## Version 0.9.2
+
+- Messages : liste simple avec avatar, pseudo, dernier message envoyé ou reçu, date, non-lus et pastille de connexion pour les statuts partagés.
+- Membres : une seule liste avec recherche par pseudo, défilement continu, invitation ou accès direct au message ; demandes reçues et envoyées regroupées.
+- Listes et decks incomplets : cartes ouvrables en consultation ; ajout, retrait, quantités, leader et base modifiables sur place. Changements enregistrés et annulation disponible pour le deck ; scans en attente conservés sans ajout automatique à la collection.
+- Catalogue : ajout des 40 références de Jeu organisé Mondes Natals et des récompenses Store Showdown P26-026 à P26-031 avec leurs visuels exacts.
+
 ## Version 0.9.1
 
 - Amis : affichage des membres visibles avec avatar, pseudo et invitation ; recherche conservée sur toutes les pages.

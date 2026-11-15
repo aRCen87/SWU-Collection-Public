@@ -1,6 +1,9 @@
 package fr.swucollection.app
 
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import org.junit.Assert.*
@@ -47,4 +50,58 @@ class UnfinishedDeckUiTest {
             assertTrue(restored.deck.deck.isEmpty())
         }
     }
+    @Test fun incompleteDeckSupportsCardPreviewAndInlineQuantityChangesWithoutLosingPendingScans() {
+        val card = CatalogCard("SOR", "095", "Carte test", "Unité", "Rare")
+        val original = DeckDraft("À compléter", empty.copy(deck = listOf(DeckEntry("SOR-095", 1))), false, false,
+            listOf(ScanBatchEntry(card, "Foil", 2)), "pending-scan")
+        var latest = original
+        var preview: CatalogCard? = null
+        ui.setContent { MaterialTheme {
+            var value by remember { mutableStateOf(original) }
+            DeckConsultation(value, listOf(card), {}, {}, onChange = { value = it; latest = it },
+                onPreview = { selected, _ -> preview = selected })
+        } }
+        ui.onNodeWithText("1 × Carte test").performScrollTo().performClick()
+        ui.runOnIdle { assertEquals(card, preview) }
+        ui.onNodeWithContentDescription("Augmenter SOR-095").performScrollTo().performClick()
+        ui.runOnIdle {
+            assertEquals(2, latest.deck.deck.single().count)
+            assertFalse(latest.leaderChosen); assertFalse(latest.baseChosen)
+            assertEquals(original.collectionEntries, latest.collectionEntries)
+            assertEquals("pending-scan", latest.collectionBatchId)
+        }
+        ui.onNodeWithContentDescription("Diminuer SOR-095").performScrollTo().assertIsDisplayed().performClick()
+        ui.runOnIdle { assertEquals(1, latest.deck.deck.single().count) }
+        ui.onNodeWithText("Retirer").performScrollTo().assertIsDisplayed().performClick()
+        ui.onNodeWithText("Aucune carte pour le moment.").performScrollTo().assertExists()
+        ui.runOnIdle { assertTrue(latest.deck.deck.isEmpty()) }
+    }
+
+    @Test fun openingACardHidesTheDeckDialogAndClosingTheCardReturnsToTheUpdatedDraft() {
+        val context = RuntimeEnvironment.getApplication()
+        context.filesDir.resolve("deck-drafts").deleteRecursively()
+        val card = CatalogCard("SOR", "095", "Carte test", "Unité", "Rare")
+        val draft = DeckDraft("Mon brouillon", empty.copy(deck = listOf(DeckEntry("SOR-095", 1))), false, false)
+        DeckDraftStore(context).write("new:preview", "baseline", draft)
+        ui.setContent { MaterialTheme { Column(Modifier.fillMaxSize()) {
+            var preview by remember { mutableStateOf(false) }
+            DeckLibraryPanel(emptyList(), Modifier.weight(1f), catalog = listOf(card),
+                onCreate = {}, onResumeDraft = {}, onImport = {}, onOpen = {}, onDuplicate = {}, onDelete = {},
+                onPreview = { _, _ -> preview = true }, previewOpen = preview)
+            if (preview) Button(onClick = { preview = false }) { Text("Fermer la fiche") }
+        } } }
+        ui.onNodeWithText("Consulter").performClick()
+        ui.onNodeWithContentDescription("Augmenter SOR-095").performScrollTo().performClick()
+        ui.onNodeWithText("2 × Carte test").performScrollTo().performClick()
+        ui.onNodeWithText("Fermer la fiche").assertExists()
+        ui.onNodeWithText("Ajouter au deck").assertDoesNotExist()
+        ui.onNodeWithText("Fermer la fiche").performClick()
+        ui.onNodeWithText("2 × Carte test").performScrollTo().assertExists()
+        ui.runOnIdle {
+            val restored = DeckDraftStore(context).read("new:preview", "baseline")!!
+            assertEquals(2, restored.deck.deck.single().count)
+            assertFalse(restored.leaderChosen); assertFalse(restored.baseChosen)
+        }
+    }
+
 }

@@ -149,6 +149,11 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
     var preferences by remember { mutableStateOf(MessengerPreferences()) }
     var receipts by remember { mutableStateOf<Map<String, Long>>(emptyMap()) }
     var friendsProfiles by remember { mutableStateOf<Map<String, PlayerProfile>>(emptyMap()) }
+    var conversationProfiles by remember { mutableStateOf<Map<String, PlayerProfile>>(emptyMap()) }
+    LaunchedEffect(conversations.map { it.members }) {
+        conversationProfiles = conversations.flatMap { it.members }.filter { it != user.uid }.distinct()
+            .mapNotNull { id -> runCatching { service.profile(id) }.getOrNull()?.let { id to it } }.toMap()
+    }
     var proposingTrade by remember { mutableStateOf<PlayerProfile?>(null) }
     var suggestedTrade by remember { mutableStateOf<SuggestedTrade?>(null) }
     LaunchedEffect(friendships) {
@@ -161,6 +166,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
     var peerName by remember { mutableStateOf(initialConversation?.second.orEmpty()) }
     var blocked by remember { mutableStateOf(false) }
     var choosingRecipient by remember { mutableStateOf(false) }
+    var removingFriend by remember { mutableStateOf<PlayerFriendship?>(null) }
     BackHandler(enabled = messaging && conversation != null && selectedProfile == null) { conversation = null }
     DisposableEffect(service, user.uid) {
         val subscriptions = listOf(service.ownProfile({ profile = it; profileLoaded = true }, { status = communityError(it) }),
@@ -192,7 +198,17 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
     val unread = CommunitySocial.unread(user.uid, conversations, receipts)
     val requests = friendships.count { it.status == "pending" && it.requester != user.uid }
     val exchangeRequests = trades.count { it.status == "pending" && it.requester != user.uid }
-    if(!messaging || conversation==null) Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    if (messaging && conversation == null) TabRow(selectedTabIndex = if (tab == "Amis") 1 else 0) {
+        listOf("Messages", "Amis").forEach { label -> Tab(selected = tab == label,
+            onClick = { tab = label; conversation = null }, text = {
+                Text((if (label == "Amis") "Membres" else "Messages") + when {
+                    label == "Amis" && requests > 0 -> " · $requests"
+                    label == "Messages" && unread > 0 -> " · $unread"
+                    else -> ""
+                })
+            }) }
+    }
+    if(!messaging) Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         (if (messaging) listOf("Messages", "Amis") else listOf("Mon profil", "Joueurs", "Échanges", "Favoris", "Sauvegarde")).forEach { label ->
             FilterChip(tab == label, { tab = label; conversation = null }, label = { Text((if(messaging && label=="Messages")"Discussions" else label) + when {
                 label == "Amis" && requests > 0 -> " · $requests"
@@ -202,8 +218,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
             }, fontSize = 12.sp) })
         }
     }
-    Column(Modifier.fillMaxWidth().then(if(messaging) Modifier.weight(1f) else Modifier)
-        .then(if(messaging && !(tab=="Messages" && conversation!=null)) Modifier.verticalScroll(rememberScrollState()) else Modifier),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+    Column(Modifier.fillMaxWidth().then(if(messaging) Modifier.weight(1f) else Modifier),verticalArrangement=Arrangement.spacedBy(10.dp)) {
     when (tab) {
         "Sauvegarde" -> AccountBackupPanel(database, {}, onRestored)
         "Mon profil" -> {
@@ -224,11 +239,9 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
         "Amis" -> {
             MemberDirectory(service.uid, friendships, busy, service::memberPage,
                 { id -> action { service.requestFriend(id); status = "Demande d’ami envoyée." } },
-                { selectedProfile = it })
-            FriendPanel(service, friendships, profiles + friendsProfiles.values, busy,
-                { f -> action { service.acceptFriend(f) } }, { f -> action { service.removeFriend(f) } },
-                { id -> action { service.requestFriend(id); status = "Demande d’ami envoyée." } },
-                { selectedProfile = it }, { talk(it) }, { proposingTrade = it }, messaging = messaging)
+                { selectedProfile = it }, fillHeight = messaging, knownProfiles = profiles + friendsProfiles.values,
+                onAccept = { f -> action { service.acceptFriend(f) } }, onRemove = { f -> action { service.removeFriend(f) } },
+                onMessage = { talk(it) })
         }
         "Échanges" -> {
             val friends = friendships.filter { it.status == "accepted" }.map { f ->
@@ -261,8 +274,9 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
         "Messages" -> {
             val selected = conversation
             if (selected == null) {
-                if(!threadStatesLoaded)Text("Chargement des discussions…") else MessengerInbox(user.uid, conversations, receipts, profiles + friendsProfiles.values,
+                if(!threadStatesLoaded)Text("Chargement des discussions…") else MessengerInbox(user.uid, conversations, receipts, profiles + friendsProfiles.values + conversationProfiles.values,
                     states=threadStates,onState={id,state->action{service.saveThreadState(id,state);if(state.hiddenBefore>0)service.markRead(id)}},
+                    presence = { id -> rememberPlayerPresence(service, id) },
                     onNew = { choosingRecipient = true }, onFriends = { tab = "Amis" }, onOpen = { thread, name -> conversation = thread; peerName = name })
             } else {
                 val peer=selected.members.firstOrNull{it!=user.uid}.orEmpty()
@@ -301,6 +315,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
                 if (friendship == null) OutlinedButton(onClick = { action { service.requestFriend(player.id); status = "Demande d’ami envoyée." } }, enabled = !busy && !blocked) { Text("Ajouter aux amis") }
                 else if (friendship.status == "accepted") {
                     Text("Dans mes amis")
+                    TextButton(onClick = { removingFriend = friendship }, enabled = !busy) { Text("Retirer de mes amis") }
                     if (!blocked) FriendProfileTradeSummary(service, player, database, catalog, details) { suggestion ->
                         selectedProfile = null; suggestedTrade = suggestion
                     }
@@ -315,6 +330,10 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
         }, confirmButton = { Button(onClick = { talk(player) }, enabled = !busy && !blocked && player.messagePolicy!="nobody" && friendships.any {it.status=="accepted" && player.id in it.members}) { Text("Envoyer un message") } },
             dismissButton = { TextButton(onClick = { selectedProfile = null }) { Text("Fermer") } })
     }
+    removingFriend?.let { friend -> AlertDialog(onDismissRequest = { removingFriend = null }, title = { Text("Retirer cet ami ?") },
+        text = { Text("Il faudra accepter une nouvelle demande pour redevenir amis.") },
+        confirmButton = { TextButton(onClick = { action { service.removeFriend(friend); removingFriend = null; selectedProfile = null } }, enabled = !busy) { Text("Retirer") } },
+        dismissButton = { TextButton(onClick = { removingFriend = null }) { Text("Annuler") } }) }
     suggestedTrade?.let { suggestion -> TradeComposer(suggestion.peer, catalog, database, busy, { suggestedTrade = null }, { offer, wanted -> action {
         service.proposeTrade(suggestion.peer.id, offer, wanted); suggestedTrade = null; tab = if (messaging) "Messages" else "Échanges"; status = "Proposition envoyée. Retrouve-la dans Échanges."
     } }, initialOffer = suggestion.offer, initialWanted = suggestion.wanted) }
