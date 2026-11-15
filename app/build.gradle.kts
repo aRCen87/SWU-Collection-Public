@@ -37,8 +37,8 @@ android {
         create("preview") {
             initWith(getByName("release"))
             applicationIdSuffix = ".test"
-            versionNameSuffix = "-test.24"
-            // Keep the previously delivered Test version while preparing the official release.
+            versionNameSuffix = "-test.25"
+            // Test keeps its own identity and version sequence.
             signingConfig = signingConfigs.getByName("release")
             matchingFallbacks += listOf("release")
         }
@@ -60,7 +60,7 @@ android {
 // Test keeps its independent Android update sequence.
 androidComponents {
     onVariants(selector().withBuildType("preview")) { variant ->
-        variant.outputs.forEach { it.versionCode.set(83) }
+        variant.outputs.forEach { it.versionCode.set(85) }
     }
 }
 kotlin { jvmToolchain(17) }

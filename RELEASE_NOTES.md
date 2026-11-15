@@ -1,4 +1,4 @@
-## En préparation — membres, finitions et decks en cours
+## Test 0.9.0-test.25 — membres, finitions et decks en cours (en validation)
 
 - Dans Amis, les membres visibles apparaissent directement avec leur avatar, pseudo et bouton Ajouter. Les amis et invitations existantes sont signalés sans doublon.
 - Liste paginée et recherche par pseudo conservée, y compris au-delà des 50 premiers profils. Les profils masqués restent masqués.
