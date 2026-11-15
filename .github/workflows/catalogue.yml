@@ -35,6 +35,7 @@ jobs:
       - name: Refresh offline visual recognition
         run: |
           python -m pip install 'Pillow>=11,<14'
+          python .github/scripts/sync_homeworlds_promos.py
           python .github/scripts/build_scan_visual_index.py --cache .visual-image-cache
       - name: Commit catalogue if changed
         run: |
