@@ -70,9 +70,9 @@ class UnfinishedDeckUiTest {
             assertEquals(original.collectionEntries, latest.collectionEntries)
             assertEquals("pending-scan", latest.collectionBatchId)
         }
-        ui.onNodeWithContentDescription("Diminuer SOR-095").performClick()
+        ui.onNodeWithContentDescription("Diminuer SOR-095").performScrollTo().assertIsDisplayed().performClick()
         ui.runOnIdle { assertEquals(1, latest.deck.deck.single().count) }
-        ui.onNodeWithText("Retirer").performClick()
+        ui.onNodeWithText("Retirer").performScrollTo().assertIsDisplayed().performClick()
         ui.onNodeWithText("Aucune carte pour le moment.").performScrollTo().assertExists()
         ui.runOnIdle { assertTrue(latest.deck.deck.isEmpty()) }
     }
