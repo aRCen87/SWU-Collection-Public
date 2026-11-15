@@ -12,8 +12,8 @@ android {
         minSdk = 26
         targetSdk = 36
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 84
-        versionName = "0.9.0"
+        versionCode = 86
+        versionName = "0.9.1"
     }
     signingConfigs {
         create("release") {
@@ -60,7 +60,10 @@ android {
 // Test keeps its independent Android update sequence.
 androidComponents {
     onVariants(selector().withBuildType("preview")) { variant ->
-        variant.outputs.forEach { it.versionCode.set(85) }
+        variant.outputs.forEach {
+            it.versionCode.set(85)
+            it.versionName.set("0.9.0-test.25")
+        }
     }
 }
 kotlin { jvmToolchain(17) }
