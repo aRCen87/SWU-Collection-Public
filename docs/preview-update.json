@@ -1,11 +1,11 @@
 {
-  "versionCode": 86,
-  "versionName": "0.9.3-test.26",
-  "sha256": "b6172b2b4503fc88c4b52b44460a2fc61d6840f8bb69ff2afca346c399fc2009",
+  "versionCode": 87,
+  "versionName": "0.9.3-test.27",
+  "sha256": "4e0ab2d5cc836be3943ecf34db2a0663f9ebf65182e89a82b54c4305b225f940",
   "size": 63969751,
-  "sourceSha": "0da5f286558bb02b99ff7349b0acc31c68ff59df",
+  "sourceSha": "8cc72e810708a712152a1fd41464bc16c064ae17",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "notes": "Création de deck plus lisible : « Cartes du deck » et « Cartes de réserve », nom et bouton Quitter visibles, quantités regroupées et outils secondaires dans Actions. À la sortie : conserver un brouillon, quitter sans enregistrer ou continuer. Aucun ajout des scans en attente à la collection en cas d’abandon. Onglet « Listes de cartes ». Nouveaux profils visibles par défaut, avec possibilité de masquer son profil. Tests, compilation, signature et contrôles sur émulateur validés.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_3152b374badc8191bc7d8ec0f26438c2&account_id=personal"
+  "notes": "Bouton doré « Ajouter » directement sous le visuel de chaque carte dans le créateur de deck, avant les informations. Commandes plus grandes et stables pour ajouter plusieurs exemplaires rapidement, sans ouvrir la fiche. Retrait à côté et quantité visible sur la carte. Limites du deck et de la réserve conservées. Les changements de Test 26 sont inclus. Tests Android, compilation, signature et essais sur émulateur validés.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_b6f378713f5c8191beee71d802cf1bc3&account_id=personal"
 }
