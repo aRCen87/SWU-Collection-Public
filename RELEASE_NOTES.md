@@ -1,3 +1,11 @@
+## Test 0.9.3-test.26 — création de deck simplifiée
+
+- Nom du deck et bouton Quitter toujours visibles ; vues « Ajouter des cartes » et « Cartes du deck » / « Cartes de réserve » explicites.
+- Quitter permet de conserver un brouillon ou d'abandonner sans enregistrer ni ajouter les scans en attente à la collection.
+- Résumé des quantités plus lisible ; analyse, préparation, export et annulation regroupés dans Actions.
+- L'onglet des listes libres devient « Listes de cartes ». Nouveaux profils visibles par défaut, avec possibilité de masquer leur profil.
+- Aucune publication officielle et aucune migration de collection.
+
 ## Test 0.9.0-test.25 — membres, finitions et decks en cours
 
 - Dans Amis, les membres visibles apparaissent directement avec leur avatar, pseudo et bouton Ajouter. Les amis et invitations existantes sont signalés sans doublon.
