@@ -12,7 +12,7 @@ import kotlin.coroutines.resumeWithException
 
 internal data class PlayerProfile(
     val id: String, val name: String, val bio: String = "", val avatar: String = "preset:star",
-    val discoverable: Boolean = false, val shareBadges: Boolean = false, val badgeIds: List<String> = emptyList(),
+    val discoverable: Boolean = true, val shareBadges: Boolean = false, val badgeIds: List<String> = emptyList(),
     val messagePolicy: String = "testers", val shareDecks: Boolean = false,
     val city: String = "", val formats: List<String> = emptyList(), val leaders: List<String> = emptyList(), val shareShowcase: Boolean = false,
     val firstName: String = "", val shareFirstName: Boolean = false

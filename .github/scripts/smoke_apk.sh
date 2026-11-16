@@ -255,7 +255,8 @@ tap_label "Nom du deck"
 adb shell input keyevent 123
 adb shell input text X
 tap_label "Valider"
-tap_label "Annuler"
+tap_label "Actions"
+tap_label "Annuler la dernière action"
 sleep 1
 # An unsaved creation must survive a force stop and be offered as a local draft.
 adb shell am force-stop "$package"
@@ -273,12 +274,14 @@ PYDRAFTLIBRARY
 adb exec-out screencap -p > smoke/deck-draft-library.png
 tap_label "Modifier"
 tap_label "Reprendre"
-tap_label "Analyse & budget"
+tap_label "Actions"
+tap_label "Analyse et budget"
 adb exec-out screencap -p > smoke/deck-analysis.png
 tap_label "Fermer"
-tap_label "Affinités"
-tap_label "Affinités"
-tap_label "Exporter"
+tap_label "Même affinité"
+tap_label "Même affinité"
+tap_label "Actions"
+tap_label "Exporter le deck"
 # Generate actual illustrated and physical-size proxy PDFs through Android's save dialog.
 wait_for_pdf_save() {
   for attempt in $(seq 1 30); do
@@ -367,7 +370,7 @@ adb shell am start -W -n "$package/.MainActivity" > smoke/deck-relaunch.txt
 sleep 8
 tap_label "Mes listes"
 tap_label "Mon deck"
-tap_label "Ma sélection"
+tap_label "Cartes du deck"
 adb shell input swipe 160 330 160 450 300
 sleep 2
 dump_window >/dev/null
@@ -575,7 +578,8 @@ tap_description "Agrandir Leader"
 adb exec-out screencap -p > smoke/deck-card-preview.png
 tap_description "Fermer la carte"
 # Cover convenient deck access, explicit image downloads and fold-like resizing.
-tap_label "Préparer"
+tap_label "Actions"
+tap_label "Préparer les cartes"
 tap_label "Exporter la liste d’achat"
 wait_for_pdf_save
 pull_file /sdcard/Download/SWU-manquantes.txt smoke/SWU-manquantes.txt
@@ -601,7 +605,7 @@ PYDIM
 import sys,xml.etree.ElementTree as ET
 nodes=list(ET.parse('smoke/deck-resize-'+sys.argv[1]+'.xml').iter('node'))
 labels={n.attrib.get('text','') for n in nodes}
-assert {'Construire un deck','Enregistrer','Exporter','Préparer'} <= labels, labels
+assert {'Construire un deck','Enregistrer','Actions','Quitter'} <= labels, labels
 assert {'Leader','Base','Deck','Réserve'} <= labels, labels
 PYRESIZE
   adb exec-out screencap -p > "smoke/deck-width-$width.png"
@@ -627,7 +631,7 @@ pull_file /sdcard/swu-window.xml smoke/deck-large-font.xml >/dev/null
 python3 - <<'PYFONT'
 import re,xml.etree.ElementTree as ET
 nodes=list(ET.parse('smoke/deck-large-font.xml').iter('node'))
-for label in ['Leader','Base','Deck','Réserve','Enregistrer','Exporter','Préparer']:
+for label in ['Leader','Base','Deck','Réserve','Enregistrer','Actions','Quitter']:
     matches=[n for n in nodes if n.attrib.get('text')==label]
     assert matches,label
     assert any((lambda b:b[2]>b[0] and b[3]>b[1])(list(map(int,re.findall(r'\d+',n.attrib['bounds'])))) for n in matches),label

@@ -128,7 +128,7 @@ try:
             capture("home-test-unfolded-deck-builder")
             touch(builder,"Retour à l’écran précédent")
             leave = snapshot("unfolded-leave-deck")
-            touch(leave,"Conserver et quitter")
+            touch(leave,"Garder un brouillon")
             library = snapshot("unfolded-deck-preserved")
             touch(library,"Collection")
             root = snapshot("unfolded-collection-restored")

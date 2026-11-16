@@ -200,6 +200,18 @@
 - Collection et decks locaux conservés. Aucune synchronisation cloud des collections ni notification de messagerie téléphone fermé dans cette version.
 - Application Test séparée de l’application officielle ; cette version ne modifie pas sa distribution.
 
+## Version 0.9.3
+
+- Bouton doré « Ajouter » directement sous le visuel des cartes du créateur de deck, avant les informations, avec commandes plus grandes et position stable pour les appuis répétés.
+
+- Création de deck simplifiée : nom et bouton Quitter fixes, résumé des quantités plus lisible et outils secondaires regroupés dans Actions.
+- « Ma sélection » devient « Cartes du deck » (ou « Cartes de réserve ») ; l'onglet des listes libres s'appelle « Listes de cartes ».
+- À la sortie, choix entre conserver un brouillon, quitter sans enregistrer ou continuer. Abandonner supprime le brouillon de travail sans enregistrer le deck ni ajouter les scans en attente à la collection.
+
+- « Afficher mon profil parmi les joueurs » est activé par défaut à la création d'un profil. Chaque membre peut désactiver cette option avant l'enregistrement ou ensuite dans son profil.
+- L'application respecte le choix enregistré lors des modifications suivantes. La visibilité des deux profils déjà inscrits dans la base officielle a été activée le 16 novembre 2026, séparément de cette version.
+- Les collections, sauvegardes, e-mails et paramètres de partage restent inchangés.
+
 ## Version 0.9.2
 
 - Messages : liste simple avec avatar, pseudo, dernier message envoyé ou reçu, date, non-lus et pastille de connexion pour les statuts partagés.

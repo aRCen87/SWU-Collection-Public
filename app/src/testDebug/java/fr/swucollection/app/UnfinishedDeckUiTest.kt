@@ -104,4 +104,47 @@ class UnfinishedDeckUiTest {
         }
     }
 
+    @Test fun quittingAtTheNamePromptDoesNotSaveOrKeepADraft() {
+        val context = RuntimeEnvironment.getApplication()
+        context.filesDir.resolve("deck-drafts").deleteRecursively()
+        var closed = false; var saved = false
+        ui.setContent { MaterialTheme {
+            DeckBuilderPanel(emptyList(), emptyList(), empty, newDeck = true,
+                draftKey = "new:cancel-name", details = CardDetails.empty(), rules = LegalityRules.DEFAULT,
+                onCancel = { closed = true }, onSave = { _, _, _, _ -> saved = true }, onPreview = { _, _ -> })
+        } }
+        ui.onNodeWithText("Quitter sans enregistrer").performClick()
+        ui.runOnIdle {
+            assertTrue(closed); assertFalse(saved)
+            assertTrue(DeckDraftStore(context).newDrafts().isEmpty())
+        }
+    }
+
+    @Test fun discardingAResumedDraftDoesNotRecreateItOnDisposalOrSavePendingScans() {
+        val context = RuntimeEnvironment.getApplication()
+        context.filesDir.resolve("deck-drafts").deleteRecursively()
+        val card = CatalogCard("SOR", "095", "Carte en attente", "Unité", "Rare")
+        val baseline = DeckInterchange.exportJson(empty, "Mon deck enregistré")
+        val key = "new:discard-scans"
+        DeckDraftStore(context).write(key, baseline, DeckDraft("Modifications", empty.copy(deck = listOf(DeckEntry("SOR-095", 2))),
+            true, true, listOf(ScanBatchEntry(card, "Foil", 2)), "uncommitted-scans"))
+        var closed = false; var saved = false
+        ui.setContent { MaterialTheme {
+            var open by remember { mutableStateOf(true) }
+            if (open) DeckBuilderPanel(listOf(card), emptyList(), empty, initialName = "Mon deck enregistré",
+                draftKey = key, details = CardDetails.empty(), rules = LegalityRules.DEFAULT,
+                onCancel = { closed = true; open = false }, onSave = { _, _, _, _ -> saved = true }, onPreview = { _, _ -> })
+        } }
+        ui.onNodeWithText("Reprendre").performClick()
+        ui.onNodeWithText("Quitter").performClick()
+        ui.onNodeWithText("Continuer le deck").performClick()
+        ui.onNodeWithText("Quitter").assertExists().performClick()
+        ui.onNodeWithText("Quitter sans enregistrer").performClick()
+        ui.mainClock.advanceTimeBy(1000)
+        ui.runOnIdle {
+            assertTrue(closed); assertFalse(saved)
+            assertNull(DeckDraftStore(context).read(key, baseline))
+        }
+    }
+
 }

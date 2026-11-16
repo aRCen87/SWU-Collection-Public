@@ -26,8 +26,30 @@ class ProfileEditorUiTest {
         ui.onNodeWithText("Enregistrer mon profil").performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
         ui.runOnIdle {
             assertEquals("Nouveau membre", saved?.name)
-            assertFalse(saved!!.discoverable)
+            assertTrue(saved!!.discoverable)
             assertEquals("friends", saved?.messagePolicy)
         }
+    }
+
+    @Test fun existingHiddenProfileStaysHiddenWhenEdited() {
+        var saved: PlayerProfile? = null
+        ui.setContent { MaterialTheme { Column(Modifier.fillMaxSize()) {
+            ProfileEditor(PlayerProfile("me", "Membre masqué", discoverable = false), emptyList(), emptyList(), false,
+                onSave = { saved = it }, onCancel = null, scroll = true)
+        } } }
+        ui.onNodeWithText("Enregistrer mon profil").performScrollTo().performClick()
+        ui.runOnIdle { assertFalse(saved!!.discoverable) }
+    }
+
+    @Test fun newMemberCanDisableDefaultVisibilityBeforeSaving() {
+        var saved: PlayerProfile? = null
+        ui.setContent { MaterialTheme { Column(Modifier.fillMaxSize()) {
+            ProfileEditor(PlayerProfile("me", "Nouveau membre"), emptyList(), emptyList(), false,
+                onSave = { saved = it }, onCancel = null, scroll = true)
+        } } }
+        ui.onNodeWithText("Afficher mon profil parmi les joueurs").performScrollTo()
+        ui.onNode(isToggleable() and isOn()).performClick()
+        ui.onNodeWithText("Enregistrer mon profil").performScrollTo().performClick()
+        ui.runOnIdle { assertFalse(saved!!.discoverable) }
     }
 }

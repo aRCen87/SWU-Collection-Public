@@ -905,7 +905,7 @@ private fun CollectionScreen(
                 } else {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(deckLibraryVisible, onClick = { deckLibraryVisible = true }, label = { Text("Mes decks") })
-                        FilterChip(!deckLibraryVisible, onClick = { deckLibraryVisible = false }, label = { Text("Sélections") })
+                        FilterChip(!deckLibraryVisible, onClick = { deckLibraryVisible = false }, label = { Text("Listes de cartes") })
                         OutlinedButton(onClick = { proxyBuilderOpen = true }) { Text("Proxies") }
                     }
                     deckMessage?.let { Text(it, color = Color(0xFFFFD47D)) }
