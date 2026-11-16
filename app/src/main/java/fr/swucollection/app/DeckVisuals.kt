@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -68,25 +67,31 @@ internal fun DeckCardTile(card: CatalogCard, visual: Boolean, quantity: Int, own
                     Text(if (selected) "✓ Sélectionné" else "Choisir", color = ListPalette.Gold)
                 }
             } else Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween) {
-                IconButton(onClick = { onQuantity(quantity - 1) }, enabled = quantity > 0, modifier = Modifier.size(40.dp)) {
+                horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                IconButton(onClick = { onQuantity(quantity - 1) }, enabled = quantity > 0, modifier = Modifier.size(48.dp)) {
                     Icon(Icons.Default.Remove, contentDescription = "Retirer ${card.name}")
                 }
-                Text(quantity.toString(), color = ListPalette.Gold)
-                IconButton(onClick = { onQuantity(quantity + 1) }, enabled = canAdd, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.Default.Add, contentDescription = "Ajouter ${card.name}")
+                Button(onClick = { onQuantity(quantity + 1) }, enabled = canAdd,
+                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                        .semantics { contentDescription = "Ajouter ${card.name}" },
+                    contentPadding = PaddingValues(horizontal = 4.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = ListPalette.Gold,
+                        contentColor = ListPalette.Background, disabledContainerColor = ListPalette.Gold.copy(alpha = .18f),
+                        disabledContentColor = ListPalette.Secondary)) {
+                    Text("Ajouter", maxLines = 1, style = MaterialTheme.typography.labelMedium)
                 }
             }
         }
         Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             if (visual) {
                 artwork(Modifier.fillMaxWidth().aspectRatio(if (DeckConstruction.type(card) in setOf("leader", "chef", "base")) 1.4f else 5f / 7f))
+                controls()
                 information()
             } else Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 artwork(Modifier.size(58.dp, 82.dp))
                 information(Modifier.weight(1f))
             }
-            controls()
+            if (!visual) controls()
             if (!slot && quantity > 0) TextButton(onClick = onMove, enabled = canMove,
                 modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(0.dp)) {
                 Text(moveLabel, style = MaterialTheme.typography.labelSmall)

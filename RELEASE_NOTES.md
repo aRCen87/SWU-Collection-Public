@@ -1,3 +1,10 @@
+## Test 0.9.3-test.27 — ajout rapide dans les decks
+
+- Bouton doré « Ajouter » directement sous le visuel de chaque carte, avant ses informations.
+- Commandes Ajouter et Retirer de 48 dp de hauteur, avec une position stable pour ajouter plusieurs exemplaires rapidement sans ouvrir la fiche.
+- Quantité visible sur la carte ; limites du deck et de la réserve conservées.
+- Les commandes restent accessibles dans le mode Liste. Aucun changement de collection ni de données enregistrées.
+
 ## Test 0.9.3-test.26 — création de deck simplifiée
 
 - Nom du deck et bouton Quitter toujours visibles ; vues « Ajouter des cartes » et « Cartes du deck » / « Cartes de réserve » explicites.
