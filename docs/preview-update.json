@@ -1,11 +1,11 @@
 {
-  "versionCode": 85,
-  "versionName": "0.9.0-test.25",
-  "sha256": "294afa856e06c3e9b5a73cb6bbf5a7fec58621ea7237bce78e13bbea47782c8b",
-  "size": 63887683,
-  "sourceSha": "2dba73dd7c0bc01652bcb8fb142eefd241e33129",
+  "versionCode": 86,
+  "versionName": "0.9.3-test.26",
+  "sha256": "b6172b2b4503fc88c4b52b44460a2fc61d6840f8bb69ff2afca346c399fc2009",
+  "size": 63969751,
+  "sourceSha": "0da5f286558bb02b99ff7349b0acc31c68ff59df",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "notes": "Amis : liste des membres visibles avec avatar, pseudo, bouton Ajouter et état des invitations. Recherche par pseudo sur toutes les pages. Scanner : les choix de langue et finition restent indépendants par carte, même après défilement ou validation d’une autre ligne, y compris depuis un deck. Listes et decks : consultation sans modification obligatoire, bouton Modifier et conservation des brouillons incomplets, même sans leader ou base. Les ajouts de scan en attente restent conservés. Tests Android, compilation, contrôles de sécurité, signature et essais sur émulateur validés. Aucune migration des collections.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_a578b876bd0c819193f8ea06972e367c&account_id=personal"
+  "notes": "Création de deck plus lisible : « Cartes du deck » et « Cartes de réserve », nom et bouton Quitter visibles, quantités regroupées et outils secondaires dans Actions. À la sortie : conserver un brouillon, quitter sans enregistrer ou continuer. Aucun ajout des scans en attente à la collection en cas d’abandon. Onglet « Listes de cartes ». Nouveaux profils visibles par défaut, avec possibilité de masquer son profil. Tests, compilation, signature et contrôles sur émulateur validés.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_3152b374badc8191bc7d8ec0f26438c2&account_id=personal"
 }
