@@ -202,8 +202,12 @@
 
 ## Version 0.9.3
 
+- Création de deck simplifiée : nom et bouton Quitter fixes, résumé des quantités plus lisible et outils secondaires regroupés dans Actions.
+- « Ma sélection » devient « Cartes du deck » (ou « Cartes de réserve ») ; l'onglet des listes libres s'appelle « Listes de cartes ».
+- À la sortie, choix entre conserver un brouillon, quitter sans enregistrer ou continuer. Abandonner supprime le brouillon de travail sans enregistrer le deck ni ajouter les scans en attente à la collection.
+
 - « Afficher mon profil parmi les joueurs » est activé par défaut à la création d'un profil. Chaque membre peut désactiver cette option avant l'enregistrement ou ensuite dans son profil.
-- L'application respecte le choix enregistré lors des modifications suivantes. L'activation ponctuelle des profils déjà inscrits nécessite une mise à jour distincte de la base officielle.
+- L'application respecte le choix enregistré lors des modifications suivantes. La visibilité des deux profils déjà inscrits dans la base officielle a été activée le 16 novembre 2026, séparément de cette version.
 - Les collections, sauvegardes, e-mails et paramètres de partage restent inchangés.
 
 ## Version 0.9.2

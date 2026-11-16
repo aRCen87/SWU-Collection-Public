@@ -48,7 +48,7 @@ class ProfileEditorUiTest {
                 onSave = { saved = it }, onCancel = null, scroll = true)
         } } }
         ui.onNodeWithText("Afficher mon profil parmi les joueurs").performScrollTo()
-        ui.onNode(isToggleable() and hasAnySibling(hasText("Afficher mon profil parmi les joueurs"))).performClick()
+        ui.onNode(isToggleable() and isOn()).performClick()
         ui.onNodeWithText("Enregistrer mon profil").performScrollTo().performClick()
         ui.runOnIdle { assertFalse(saved!!.discoverable) }
     }

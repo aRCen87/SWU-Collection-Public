@@ -60,7 +60,7 @@ fun FavoriteListDialog(card: CatalogCard, lists: List<CardList>, onDismiss: () -
                 Text(card.name, fontWeight = FontWeight.Bold)
                 Text("Choisis une liste pour cette carte.")
                 Button(onClick = { creating = true }, modifier = Modifier.fillMaxWidth()) { Text("+ Créer une nouvelle liste") }
-                if (lists.isEmpty()) Text("Tes favoris et cartes à rechercher apparaîtront dans Mes listes, onglet Sélections.")
+                if (lists.isEmpty()) Text("Tes favoris et cartes à rechercher apparaîtront dans Mes listes, onglet Listes de cartes.")
                 lists.forEach { list ->
                     val present = list.entries.any { it.card.setCode == card.setCode && it.card.number == card.number }
                     OutlinedButton(onClick = { onAdd(list.id) }, enabled = !present, modifier = Modifier.fillMaxWidth()) {
@@ -123,7 +123,7 @@ internal fun CardListsPanel(lists: List<CardList>, selectedId: String?, modifier
     CompositionLocalProvider(LocalContentColor provides ListPalette.Text) {
         Column(modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (selected == null) {
-                ListHero("Tes sélections", "Favoris et cartes à rechercher", "${lists.size} liste(s)")
+                ListHero("Tes listes de cartes", "Favoris et cartes à rechercher", "${lists.size} liste(s)")
                 Button(onClick = { naming = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = ListPalette.Gold, contentColor = ListPalette.Background)) {
                     Icon(Icons.Default.Add, null, modifier = Modifier.size(20.dp))

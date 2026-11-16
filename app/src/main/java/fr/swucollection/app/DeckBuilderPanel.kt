@@ -21,7 +21,6 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -39,6 +38,7 @@ internal fun DeckBuilderPanel(
     startScanning: Boolean = false, onScanStarted: () -> Unit = {},
     onScanCollection: (() -> Unit)? = null, seedCard: CatalogCard? = null
 ) {
+    CompositionLocalProvider(LocalContentColor provides ListPalette.Text) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
     val dualPane = AppChannel.supportsExperience(LocalContext.current.packageName) && maxWidth >= 700.dp && maxHeight >= 480.dp
     val draftContext = LocalContext.current.applicationContext
@@ -121,6 +121,7 @@ internal fun DeckBuilderPanel(
     var preparing by remember { mutableStateOf(false) }
     val largeText = LocalDensity.current.fontScale > 1.3f
     var exportMenu by remember { mutableStateOf(false) }
+    var actionsOpen by remember { mutableStateOf(false) }
     var scanning by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(startScanning) {
         if (startScanning) { scanning = true; onScanStarted() }
@@ -163,6 +164,12 @@ internal fun DeckBuilderPanel(
     val zone = if (tab == "Réserve") DeckEditor.Zone.SIDEBOARD else DeckEditor.Zone.MAIN
     val entries = if (zone == DeckEditor.Zone.MAIN) deck.deck else deck.sideboard
     fun requestBack() { if (dirty(snapshot())) leaving = true else { closing = true; onCancel() } }
+    fun discardAndLeave() {
+        closing = true
+        runCatching { draftStore.clear(draftKey) }
+            .onSuccess { onCancel() }
+            .onFailure { closing = false; leaving = false; error = "Impossible de supprimer le brouillon. Le deck reste ouvert." }
+    }
     BackHandler { requestBack() }
     val filtered = remember(catalog, query, tab, catalogueOpen, deck, details, filters, sort, ownedByFamily, affinityOnly, affinityPool, dualPane) {
         val candidates = if (tab == "Leader" || tab == "Base" || catalogueOpen || dualPane) catalog else entries.mapNotNull { byId[it.cardId] }
@@ -181,6 +188,13 @@ internal fun DeckBuilderPanel(
             .sortedWith(DeckBrowser.comparator(sort, details, DeckBrowser.extensionOrder(catalog)))
     }
     Column(Modifier.fillMaxWidth().fillMaxHeight().padding(horizontal = 8.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            TextButton(onClick = { checkpoint(); naming = true }, modifier = Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 4.dp)) {
+                Text(name.ifBlank { "Nommer mon deck" }, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleMedium, color = gold)
+            }
+            TextButton(onClick = { requestBack() }) { Text("Quitter", color = gold) }
+        }
         FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp), maxItemsInEachRow = if (largeText) 2 else 4) {
             listOf("Leader", "Base", "Deck", "Réserve").forEach { label ->
                 TextButton(
@@ -194,6 +208,9 @@ internal fun DeckBuilderPanel(
                 ) { Text(label, maxLines = 1, style = MaterialTheme.typography.labelMedium) }
             }
         }
+        Text(if (tab == "Leader") "Choisis le leader de ton deck." else if (tab == "Base") "Choisis la base de ton deck." else
+            "Deck : ${deck.deck.sumOf { it.count }}/50 min. · Réserve : ${deck.sideboard.sumOf { it.count }}/10 max.",
+            color = ListPalette.Secondary, style = MaterialTheme.typography.bodyMedium)
         OutlinedTextField(query, { query = it }, label = { Text("Rechercher une carte") },
             modifier = Modifier.fillMaxWidth(), singleLine = true)
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -220,20 +237,6 @@ internal fun DeckBuilderPanel(
             }
             item(key = "deck-heading", span = { GridItemSpan(maxLineSpan) }) {
                 Column {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = { checkpoint(); naming = true }, modifier = Modifier.weight(1f), contentPadding = PaddingValues(0.dp)) {
-                Text(name.ifBlank { "Nommer mon deck" }, maxLines = 1, color = gold)
-                Text(" ✎", color = ListPalette.Secondary)
-            }
-            Text("Premier", color = ListPalette.Secondary, style = MaterialTheme.typography.labelSmall)
-            TextButton(onClick = { resetting = true }, contentPadding = PaddingValues(horizontal = 6.dp)) { Text("Effacer", style = MaterialTheme.typography.labelSmall) }
-        }
-        TextButton(onClick = { showingReport = true }, enabled = leaderChosen && baseChosen, modifier = Modifier.fillMaxWidth(),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp), contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)) {
-            Text(if (!leaderChosen) "1 · Choisis ton leader" else if (!baseChosen) "2 · Choisis ta base" else
-                "${deck.deck.sumOf { it.count }}/50 · Réserve ${deck.sideboard.sumOf { it.count }}/10 · ${missing.values.sum()} manquantes\n${if (report.issues.isEmpty()) "Contrôles généraux réussis" else "${report.issues.size} point(s) à vérifier"} ›", modifier = Modifier.weight(1f), textAlign = TextAlign.Start, color = gold, style = MaterialTheme.typography.labelSmall)
-        }
-        if (leaderChosen && baseChosen) TextButton(onClick = { showingInsights = true }, contentPadding = PaddingValues(0.dp)) { Text("Analyse & budget", color = gold) }
         draftMessage?.let { Text(it, color = ListPalette.Secondary, style = MaterialTheme.typography.labelSmall) }
         if (collectionEntries.isNotEmpty()) TextButton(onClick = { confirmingSave = true }) {
             Text("${collectionEntries.sumOf { it.quantity }} ajout(s) à la collection à vérifier", color = gold)
@@ -252,10 +255,10 @@ internal fun DeckBuilderPanel(
             }
             if (tab in listOf("Deck", "Réserve")) item(key = "catalogue-toggle", span = { GridItemSpan(maxLineSpan) }) {
                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    FilterChip(catalogueOpen, onClick = { catalogueOpen = true }, label = { Text("Catalogue") })
-                    FilterChip(!catalogueOpen, onClick = { catalogueOpen = false; affinityOnly = false }, label = { Text("Ma sélection") })
+                    FilterChip(catalogueOpen, onClick = { catalogueOpen = true }, label = { Text("Ajouter des cartes") })
+                    FilterChip(!catalogueOpen, onClick = { catalogueOpen = false; affinityOnly = false }, label = { Text(if (tab == "Réserve") "Cartes de réserve" else "Cartes du deck") })
                     FilterChip(affinityOnly && affinityPool != null, enabled = affinityPool != null,
-                        onClick = { affinityOnly = !affinityOnly; catalogueOpen = true }, label = { Text("Affinités") })
+                        onClick = { affinityOnly = !affinityOnly; catalogueOpen = true }, label = { Text("Même affinité") })
                 }
             }
             item(key = "result-summary", span = { GridItemSpan(maxLineSpan) }) {
@@ -314,23 +317,39 @@ internal fun DeckBuilderPanel(
             onPreview = onPreview)
         }
         error?.let { Text(it, color = ListPalette.Danger) }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            TextButton(onClick = { preparing = true }, enabled = leaderChosen && baseChosen) { Text("Préparer") }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box {
+                OutlinedButton(onClick = { actionsOpen = true }) { Text("Actions") }
+                DropdownMenu(actionsOpen, onDismissRequest = { actionsOpen = false }) {
+                    DropdownMenuItem(text = { Text("Vérifier le deck") }, enabled = leaderChosen && baseChosen,
+                        onClick = { actionsOpen = false; showingReport = true })
+                    DropdownMenuItem(text = { Text("Analyse et budget") }, enabled = leaderChosen && baseChosen,
+                        onClick = { actionsOpen = false; showingInsights = true })
+                    DropdownMenuItem(text = { Text("Préparer les cartes") }, enabled = leaderChosen && baseChosen,
+                        onClick = { actionsOpen = false; preparing = true })
+                    DropdownMenuItem(text = { Text("Exporter le deck") }, enabled = leaderChosen && baseChosen,
+                        onClick = { actionsOpen = false; exportMenu = true })
+                    DropdownMenuItem(text = { Text("Garder un brouillon et quitter") }, enabled = name.isNotBlank(),
+                        onClick = { actionsOpen = false; keepForLater() })
+                    DropdownMenuItem(text = { Text("Annuler la dernière action") }, enabled = undo.any { it != snapshot() }, onClick = {
+                        actionsOpen = false
+                        val previous = undo.indexOfLast { it != snapshot() }
+                        if (previous >= 0) {
+                            val value = undo[previous]; undo = undo.take(previous)
+                            name = value.name; deck = value.deck; leaderChosen = value.leaderChosen; baseChosen = value.baseChosen
+                            collectionEntries = value.collectionEntries; collectionBatchId = value.collectionBatchId.ifBlank { collectionBatchId }
+                            if (!leaderChosen) tab = "Leader" else if (!baseChosen) tab = "Base"
+                        }
+                    })
+                    DropdownMenuItem(text = { Text("Recommencer le deck") }, onClick = { actionsOpen = false; resetting = true })
+                }
+            }
             Button(onClick = {
                 if (!leaderChosen || !baseChosen) keepForLater()
                 else if (collectionEntries.isEmpty()) saveDeck() else confirmingSave = true
-            }, contentPadding = PaddingValues(horizontal = 10.dp), enabled = name.isNotBlank()) { Text(if (!leaderChosen || !baseChosen) "Garder le brouillon" else "Enregistrer") }
-            if (leaderChosen && baseChosen) TextButton(onClick = { keepForLater() }, enabled = name.isNotBlank()) { Text("Garder pour plus tard") }
-            OutlinedButton(onClick = { exportMenu = true }, contentPadding = PaddingValues(horizontal = 10.dp), enabled = leaderChosen && baseChosen) { Text("Exporter") }
-            TextButton(enabled = undo.any { it != snapshot() }, contentPadding = PaddingValues(0.dp), onClick = {
-                val previous = undo.indexOfLast { it != snapshot() }
-                if (previous >= 0) {
-                    val value = undo[previous]; undo = undo.take(previous)
-                    name = value.name; deck = value.deck; leaderChosen = value.leaderChosen; baseChosen = value.baseChosen
-                    collectionEntries = value.collectionEntries; collectionBatchId = value.collectionBatchId.ifBlank { collectionBatchId }
-                    if (!leaderChosen) tab = "Leader" else if (!baseChosen) tab = "Base"
-                }
-            }) { Text("Annuler", style = MaterialTheme.typography.labelMedium) }
+            }, modifier = Modifier.weight(1f), enabled = name.isNotBlank()) {
+                Text(if (!leaderChosen || !baseChosen) "Garder le brouillon" else "Enregistrer")
+            }
         }
     }
     correctingScan?.let { entry -> QuickScanCorrection(entry, { correctingScan = null }) { language, finish ->
@@ -489,7 +508,8 @@ internal fun DeckBuilderPanel(
         text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Format Premier · un leader, une base, au moins 50 cartes et jusqu’à 10 en réserve.", style = MaterialTheme.typography.bodySmall)
             OutlinedTextField(name, { if (name != it.take(120)) checkpoint(); name = it.take(120) }, label = { Text("Nom du deck") }, singleLine = true)
-        } }, confirmButton = { TextButton(onClick = { draftStarted = true; naming = false }, enabled = name.isNotBlank()) { Text(if (newDeck && !leaderChosen) "Commencer" else "Valider") } })
+        } }, confirmButton = { TextButton(onClick = { draftStarted = true; naming = false }, enabled = name.isNotBlank()) { Text(if (newDeck && !leaderChosen) "Commencer" else "Valider") } },
+        dismissButton = { TextButton(onClick = { naming = false; if (newDeck && !draftStarted) requestBack() }) { Text(if (newDeck && !draftStarted) "Quitter sans enregistrer" else "Annuler") } })
     if (resetting) AlertDialog(onDismissRequest = { resetting = false }, title = { Text("Recommencer ce deck ?") },
         text = { Text("Le nom est conservé. Choisis à nouveau un leader et une base, puis ajoute tes cartes. La collection reste inchangée. Enregistre pour remplacer le deck sauvegardé.") },
         confirmButton = { TextButton(onClick = { checkpoint(); collectionEntries = emptyList(); collectionBatchId = java.util.UUID.randomUUID().toString(); deck = initial.copy(deck = emptyList(), sideboard = emptyList()); leaderChosen = false; baseChosen = false; tab = "Leader"; query = ""; filters = DeckBrowserFilters(); catalogueOpen = true; resetting = false }) { Text("Recommencer") } },
@@ -511,10 +531,13 @@ internal fun DeckBuilderPanel(
             }
         }, confirmButton = { TextButton(onClick = { showingReport = false }) { Text("Fermer") } })
     if (leaving) AlertDialog(onDismissRequest = { leaving = false },
-        title = { Text("Quitter le deck ?") }, text = { Text("La création est conservée comme brouillon sur ce téléphone. Le deck enregistré reste inchangé.") },
-        confirmButton = { TextButton(onClick = { if (storeDraft(snapshot())) { closing = true; onCancel() } else { leaving = false; error = "Le brouillon n’a pas pu être sauvegardé. Le deck reste ouvert." } }) { Text("Conserver et quitter") } },
-        dismissButton = { TextButton(onClick = { leaving = false }) { Text("Continuer") } })
+        title = { Text("Quitter le deck ?") },
+        text = { Text("Tu peux reprendre plus tard avec un brouillon, ou abandonner les modifications. Les cartes scannées en attente ne seront pas ajoutées à ta collection.") },
+        confirmButton = { TextButton(onClick = { keepForLater() }) { Text("Garder un brouillon") } },
+        dismissButton = { Column(horizontalAlignment = Alignment.End) {
+            TextButton(onClick = { discardAndLeave() }) { Text("Quitter sans enregistrer") }
+            TextButton(onClick = { leaving = false }) { Text("Continuer le deck") }
+        } })
+    }
     }
 }
-
-
