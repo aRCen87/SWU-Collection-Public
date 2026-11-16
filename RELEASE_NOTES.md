@@ -202,6 +202,8 @@
 
 ## Version 0.9.3
 
+- Bouton doré « Ajouter » directement sous le visuel des cartes du créateur de deck, avant les informations, avec commandes plus grandes et position stable pour les appuis répétés.
+
 - Création de deck simplifiée : nom et bouton Quitter fixes, résumé des quantités plus lisible et outils secondaires regroupés dans Actions.
 - « Ma sélection » devient « Cartes du deck » (ou « Cartes de réserve ») ; l'onglet des listes libres s'appelle « Listes de cartes ».
 - À la sortie, choix entre conserver un brouillon, quitter sans enregistrer ou continuer. Abandonner supprime le brouillon de travail sans enregistrer le deck ni ajouter les scans en attente à la collection.
