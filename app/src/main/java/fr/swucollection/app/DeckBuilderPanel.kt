@@ -254,9 +254,9 @@ internal fun DeckBuilderPanel(
                 }
             }
             if (tab in listOf("Deck", "Réserve")) item(key = "catalogue-toggle", span = { GridItemSpan(maxLineSpan) }) {
-                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    FilterChip(catalogueOpen, onClick = { catalogueOpen = true }, label = { Text("Ajouter des cartes") })
-                    FilterChip(!catalogueOpen, onClick = { catalogueOpen = false; affinityOnly = false }, label = { Text(if (tab == "Réserve") "Cartes de réserve" else "Cartes du deck") })
+                FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), maxItemsInEachRow = 2) {
+                    FilterChip(catalogueOpen, onClick = { catalogueOpen = true }, modifier = Modifier.weight(1f), label = { Text("Ajouter des cartes") })
+                    FilterChip(!catalogueOpen, onClick = { catalogueOpen = false; affinityOnly = false }, modifier = Modifier.weight(1f), label = { Text(if (tab == "Réserve") "Cartes de réserve" else "Cartes du deck") })
                     FilterChip(affinityOnly && affinityPool != null, enabled = affinityPool != null,
                         onClick = { affinityOnly = !affinityOnly; catalogueOpen = true }, label = { Text("Même affinité") })
                 }
