@@ -200,6 +200,12 @@
 - Collection et decks locaux conservés. Aucune synchronisation cloud des collections ni notification de messagerie téléphone fermé dans cette version.
 - Application Test séparée de l’application officielle ; cette version ne modifie pas sa distribution.
 
+## Version 0.9.3
+
+- « Afficher mon profil parmi les joueurs » est activé par défaut à la création d'un profil. Chaque membre peut désactiver cette option avant l'enregistrement ou ensuite dans son profil.
+- L'application respecte le choix enregistré lors des modifications suivantes. L'activation ponctuelle des profils déjà inscrits nécessite une mise à jour distincte de la base officielle.
+- Les collections, sauvegardes, e-mails et paramètres de partage restent inchangés.
+
 ## Version 0.9.2
 
 - Messages : liste simple avec avatar, pseudo, dernier message envoyé ou reçu, date, non-lus et pastille de connexion pour les statuts partagés.
