@@ -47,6 +47,7 @@ internal fun DeckBuilderPanel(
     val recoverable = remember(draftKey, baseline) { draftStore.read(draftKey, baseline) }
     var restoring by rememberSaveable { mutableStateOf(recoverable != null) }
     var closing by remember { mutableStateOf(false) }
+    val draftWritesAllowed = remember(draftKey) { java.util.concurrent.atomic.AtomicBoolean(true) }
     var draftStarted by rememberSaveable { mutableStateOf(recoverable != null || seedCard != null) }
     var draftMessage by remember { mutableStateOf<String?>(null) }
     var undo by remember { mutableStateOf<List<DeckDraft>>(emptyList()) }
@@ -70,6 +71,7 @@ internal fun DeckBuilderPanel(
     fun checkpoint() { val value = snapshot(); if (undo.lastOrNull() != value) undo = (undo + value).takeLast(30) }
     fun dirty(value: DeckDraft) = (newDeck && draftStarted) || value.name != initialName || value.deck != initial || value.leaderChosen != !newDeck || value.baseChosen != !newDeck || value.collectionEntries.isNotEmpty()
     fun storeDraft(value: DeckDraft): Boolean {
+        if (!draftWritesAllowed.get()) return true
         return runCatching { if (dirty(value)) draftStore.write(draftKey, baseline, value) else draftStore.clear(draftKey) }
             .onSuccess { draftMessage = if (dirty(value)) "Brouillon sauvegardé sur ce téléphone" else null }
             .onFailure { draftMessage = "Brouillon non sauvegardé : garde le deck ouvert et utilise Enregistrer." }.isSuccess
@@ -88,7 +90,7 @@ internal fun DeckBuilderPanel(
         lifecycle.addObserver(observer)
         onDispose {
             lifecycle.removeObserver(observer)
-            if (latestActive.value()) runCatching {
+            if (draftWritesAllowed.get() && latestActive.value()) runCatching {
                 val value = latestSnapshot.value()
                 if (dirty(value)) draftStore.write(draftKey, baseline, value) else draftStore.clear(draftKey)
             }
@@ -140,13 +142,13 @@ internal fun DeckBuilderPanel(
     var pendingFinish by remember { mutableStateOf<String?>(null) }
     fun keepForLater() {
         draftStarted = true
-        if (storeDraft(snapshot())) { closing = true; onCancel() }
+        if (storeDraft(snapshot())) { draftWritesAllowed.set(false); closing = true; onCancel() }
         else error = "Le brouillon n’a pas pu être sauvegardé. Le deck reste ouvert."
     }
     fun saveDeck() {
-        closing = true
+        draftWritesAllowed.set(false); closing = true
         runCatching { onSave(name.trim(), deck, collectionBatchId, collectionEntries); draftStore.clear(draftKey) }
-            .onFailure { closing = false; error = "Enregistrement impossible. Ton deck et les ajouts en attente restent ouverts." }
+            .onFailure { draftWritesAllowed.set(true); closing = false; error = "Enregistrement impossible. Ton deck et les ajouts en attente restent ouverts." }
     }
     val gold = ListPalette.Gold
     val byId = remember(catalog) { catalog.associateBy { DeckInterchange.normalizeId(it.setCode + "-" + it.number) } }
@@ -163,12 +165,12 @@ internal fun DeckBuilderPanel(
     }
     val zone = if (tab == "Réserve") DeckEditor.Zone.SIDEBOARD else DeckEditor.Zone.MAIN
     val entries = if (zone == DeckEditor.Zone.MAIN) deck.deck else deck.sideboard
-    fun requestBack() { if (dirty(snapshot())) leaving = true else { closing = true; onCancel() } }
+    fun requestBack() { if (dirty(snapshot())) leaving = true else { draftWritesAllowed.set(false); closing = true; onCancel() } }
     fun discardAndLeave() {
-        closing = true
+        draftWritesAllowed.set(false); closing = true
         runCatching { draftStore.clear(draftKey) }
             .onSuccess { onCancel() }
-            .onFailure { closing = false; leaving = false; error = "Impossible de supprimer le brouillon. Le deck reste ouvert." }
+            .onFailure { draftWritesAllowed.set(true); closing = false; leaving = false; error = "Impossible de supprimer le brouillon. Le deck reste ouvert." }
     }
     BackHandler { if (!dualPane && (catalogueOpen || tab in listOf("Leader", "Base"))) { catalogueOpen = false; tab = "Deck"; query = "" } else requestBack() }
     val filtered = remember(catalog, query, tab, catalogueOpen, deck, details, filters, sort, ownedByFamily, affinityOnly, affinityPool, dualPane) {
@@ -375,7 +377,7 @@ internal fun DeckBuilderPanel(
         scanLastCard = entry.copy(card = entry.card.copy(language = language), variant = finish)
         correctingScan = null; scanReadToken++
     } }
-    if (restoring && recoverable != null) AlertDialog(onDismissRequest = { closing = true; onCancel() }, title = { Text("Reprendre le brouillon ?") },
+    if (restoring && recoverable != null) AlertDialog(onDismissRequest = { draftWritesAllowed.set(false); closing = true; onCancel() }, title = { Text("Reprendre le brouillon ?") },
         text = { Text("${recoverable.name} · ${recoverable.deck.deck.sumOf { it.count }} cartes. Le deck enregistré reste inchangé tant que tu n’appuies pas sur Enregistrer.") },
         confirmButton = { TextButton(onClick = {
             name = recoverable.name; deck = recoverable.deck; leaderChosen = recoverable.leaderChosen; baseChosen = recoverable.baseChosen
