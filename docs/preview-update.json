@@ -1,11 +1,11 @@
 {
-  "versionCode": 89,
-  "versionName": "0.9.3-test.28",
-  "sha256": "089c7adc2f7db2a643452551ffd3a6617257ac1fb98cbfed20c3a72b20ca2848",
+  "versionCode": 90,
+  "versionName": "0.9.3-test.29",
+  "sha256": "7187cdb15c625a9cf733bc9b842b0ae54aad4037df9f5839d40935d936f0e656",
   "size": 63986135,
-  "sourceSha": "178c365e0ecb4d8ea22b50868aa92cf3e61c757e",
+  "sourceSha": "5b30423e20881e53a614b4f1242300d74bd1ed3d",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "notes": "Construction de deck visuelle : cartes entières triées par coût, quantités visibles, leader et base, catalogue et deck côte à côte sur grand écran. Bouton + dans les fiches et menu d’ajout Collection, Deck ou Liste. Appui long pour gérer les cartes et retrait confirmé. Listes simplifiées. Filtres combinables avec plusieurs couleurs, traits, extensions, arènes terrestres/spatiales et raretés. Sauvegarde et suppression des brouillons vérifiées. Tests Android, compilation, signature et essais sur émulateur validés.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_87eb423c0aec8191875e3ab71e8f7a18&account_id=personal"
+  "notes": "Collection et Extensions réunies : Possédées, Toutes les cartes, Manquantes et filtre d’extension commun. Bouton mémorisé pour griser les non possédées. Ajout à la collection confirmé avec langue et finition, retour visible après réussite. Consultation des decks et brouillons en plein écran avec cartes entières et réserve. Commandes défilantes en Visuel et Miniatures pour garder les cartes, quantités et cotes accessibles sur téléphone, écran déplié et paysage. Inclut les filtres multiples et le constructeur visuel de Test 28. Tests Android, sauvegardes, sécurité, lint, compilation, signature et essais sur émulateur validés.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_2953544f18588191b6e057d924ef1651&account_id=personal"
 }
