@@ -22,7 +22,7 @@ try:
     adb('shell','am','force-stop',PACKAGE);adb('shell','am','start','-W','-n',PACKAGE+'/fr.swucollection.app.MainActivity');time.sleep(8)
     tap(find(snapshot('home'),'Collection'))
     tap(find(snapshot('collection'),'Gérer ma collection'))
-    root=snapshot('opened');find(root,'Gérer ma collection');find(root,'Sélection');find(root,'Disponibilité');find(root,'À vérifier')
+    root=snapshot('opened');find(root,'Gérer ma collection');find(root,'Modifier par lot');find(root,'Disponibilité');find(root,'À vérifier')
     for name,w,h,d in [('cover',720,1560,320),('unfolded',1766,1472,336),('landscape',1680,756,294)]:
         adb('shell','wm','size',f'{w}x{h}');adb('shell','wm','density',d);time.sleep(4)
         root=snapshot(name);find(root,'Fermer');find(root,'Disponibilité');capture(name)

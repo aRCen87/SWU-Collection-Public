@@ -117,7 +117,7 @@ try:
             px1,py1,px2,py2 = rect(panes[0])
             assert px2 > px1 and py2 > py1
             capture("home-test-unfolded-collection")
-            touch(root,"Mes listes")
+            touch(root,"Mes decks")
             library = snapshot("unfolded-deck-library")
             touch(library,"+ Créer un deck")
             naming = snapshot("unfolded-deck-name")

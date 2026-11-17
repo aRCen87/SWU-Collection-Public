@@ -40,7 +40,7 @@ internal fun CardDeckUsagePanel(card: CatalogCard, decks: List<DeckStore.SavedDe
             Text("Utilisée dans mes decks", color = ListPalette.Gold)
             if (usages.isEmpty()) Text("Aucun deck pour le moment.", style = MaterialTheme.typography.bodySmall)
             usages.forEach { (saved, count) -> TextButton(onClick = { onOpen(saved) }, modifier = Modifier.fillMaxWidth()) { Text("${saved.name} · ×$count ›") } }
-            Button(onClick = onAdd, enabled = enabled && supported, modifier = Modifier.fillMaxWidth()) { Text("Ajouter à un deck") }
+
             if (!supported) Text("Ce type de carte ne peut pas être ajouté à un deck.", style = MaterialTheme.typography.bodySmall)
             else if (!enabled) Text("Utilise les quantités du constructeur pour modifier le deck ouvert.", style = MaterialTheme.typography.bodySmall)
             Text("Les versions et réimpressions reconnues sont comptées ensemble.", style = MaterialTheme.typography.bodySmall)

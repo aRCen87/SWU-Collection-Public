@@ -47,6 +47,7 @@ internal fun DeckBuilderPanel(
     val recoverable = remember(draftKey, baseline) { draftStore.read(draftKey, baseline) }
     var restoring by rememberSaveable { mutableStateOf(recoverable != null) }
     var closing by remember { mutableStateOf(false) }
+    val draftWritesAllowed = remember(draftKey) { java.util.concurrent.atomic.AtomicBoolean(true) }
     var draftStarted by rememberSaveable { mutableStateOf(recoverable != null || seedCard != null) }
     var draftMessage by remember { mutableStateOf<String?>(null) }
     var undo by remember { mutableStateOf<List<DeckDraft>>(emptyList()) }
@@ -70,6 +71,7 @@ internal fun DeckBuilderPanel(
     fun checkpoint() { val value = snapshot(); if (undo.lastOrNull() != value) undo = (undo + value).takeLast(30) }
     fun dirty(value: DeckDraft) = (newDeck && draftStarted) || value.name != initialName || value.deck != initial || value.leaderChosen != !newDeck || value.baseChosen != !newDeck || value.collectionEntries.isNotEmpty()
     fun storeDraft(value: DeckDraft): Boolean {
+        if (!draftWritesAllowed.get()) return true
         return runCatching { if (dirty(value)) draftStore.write(draftKey, baseline, value) else draftStore.clear(draftKey) }
             .onSuccess { draftMessage = if (dirty(value)) "Brouillon sauvegardé sur ce téléphone" else null }
             .onFailure { draftMessage = "Brouillon non sauvegardé : garde le deck ouvert et utilise Enregistrer." }.isSuccess
@@ -88,14 +90,14 @@ internal fun DeckBuilderPanel(
         lifecycle.addObserver(observer)
         onDispose {
             lifecycle.removeObserver(observer)
-            if (latestActive.value()) runCatching {
+            if (draftWritesAllowed.get() && latestActive.value()) runCatching {
                 val value = latestSnapshot.value()
                 if (dirty(value)) draftStore.write(draftKey, baseline, value) else draftStore.clear(draftKey)
             }
         }
     }
-    var tab by rememberSaveable { mutableStateOf(if (!newDeck) "Deck" else if (leaderChosen) "Base" else "Leader") }
-    var catalogueOpen by rememberSaveable { mutableStateOf(initial.deck.isEmpty()) }
+    var tab by rememberSaveable { mutableStateOf("Deck") }
+    var catalogueOpen by rememberSaveable { mutableStateOf(false) }
     var filters by rememberSaveable(stateSaver = Saver<DeckBrowserFilters, ArrayList<String>>(
         save = { arrayListOf(it.aspect, it.type, it.set, it.rarity, it.cost, it.arena, it.trait, it.stock) },
         restore = { DeckBrowserFilters(it[0], it[1], it[2], it[3], it[4], it[5], it[6], it[7]) }
@@ -140,13 +142,13 @@ internal fun DeckBuilderPanel(
     var pendingFinish by remember { mutableStateOf<String?>(null) }
     fun keepForLater() {
         draftStarted = true
-        if (storeDraft(snapshot())) { closing = true; onCancel() }
+        if (storeDraft(snapshot())) { draftWritesAllowed.set(false); closing = true; onCancel() }
         else error = "Le brouillon n’a pas pu être sauvegardé. Le deck reste ouvert."
     }
     fun saveDeck() {
-        closing = true
+        draftWritesAllowed.set(false); closing = true
         runCatching { onSave(name.trim(), deck, collectionBatchId, collectionEntries); draftStore.clear(draftKey) }
-            .onFailure { closing = false; error = "Enregistrement impossible. Ton deck et les ajouts en attente restent ouverts." }
+            .onFailure { draftWritesAllowed.set(true); closing = false; error = "Enregistrement impossible. Ton deck et les ajouts en attente restent ouverts." }
     }
     val gold = ListPalette.Gold
     val byId = remember(catalog) { catalog.associateBy { DeckInterchange.normalizeId(it.setCode + "-" + it.number) } }
@@ -163,14 +165,14 @@ internal fun DeckBuilderPanel(
     }
     val zone = if (tab == "Réserve") DeckEditor.Zone.SIDEBOARD else DeckEditor.Zone.MAIN
     val entries = if (zone == DeckEditor.Zone.MAIN) deck.deck else deck.sideboard
-    fun requestBack() { if (dirty(snapshot())) leaving = true else { closing = true; onCancel() } }
+    fun requestBack() { if (dirty(snapshot())) leaving = true else { draftWritesAllowed.set(false); closing = true; onCancel() } }
     fun discardAndLeave() {
-        closing = true
+        draftWritesAllowed.set(false); closing = true
         runCatching { draftStore.clear(draftKey) }
             .onSuccess { onCancel() }
-            .onFailure { closing = false; leaving = false; error = "Impossible de supprimer le brouillon. Le deck reste ouvert." }
+            .onFailure { draftWritesAllowed.set(true); closing = false; leaving = false; error = "Impossible de supprimer le brouillon. Le deck reste ouvert." }
     }
-    BackHandler { requestBack() }
+    BackHandler { if (!dualPane && (catalogueOpen || tab in listOf("Leader", "Base"))) { catalogueOpen = false; tab = "Deck"; query = "" } else requestBack() }
     val filtered = remember(catalog, query, tab, catalogueOpen, deck, details, filters, sort, ownedByFamily, affinityOnly, affinityPool, dualPane) {
         val candidates = if (tab == "Leader" || tab == "Base" || catalogueOpen || dualPane) catalog else entries.mapNotNull { byId[it.cardId] }
         candidates.filter { card ->
@@ -181,10 +183,10 @@ internal fun DeckBuilderPanel(
                 else -> type in listOf("unite", "unit", "evenement", "event", "amelioration", "upgrade")
             }
             val identity = tab == "Leader" || tab == "Base"
-            (correctType || (!catalogueOpen && tab in listOf("Deck", "Réserve"))) &&
-                (identity || !catalogueOpen || !affinityOnly || affinityPool == null || DeckInsights.affinity(card, affinityPool, details) == DeckInsights.Affinity.MATCH) &&
+            (correctType || (!catalogueOpen && !dualPane && tab in listOf("Deck", "Réserve"))) &&
+                (identity || (!catalogueOpen && !dualPane) || !affinityOnly || affinityPool == null || DeckInsights.affinity(card, affinityPool, details) == DeckInsights.Affinity.MATCH) &&
                 DeckBrowser.search(card, query) && filters.matches(card, details.get(card), ownedByFamily[details.family(card)] ?: 0, identity)
-        }.distinctBy { if (catalogueOpen || tab == "Leader" || tab == "Base") details.family(it) else it.setCode + "-" + it.number }
+        }.distinctBy { if (catalogueOpen || dualPane || tab == "Leader" || tab == "Base") details.family(it) else it.setCode + "-" + it.number }
             .sortedWith(DeckBrowser.comparator(sort, details, DeckBrowser.extensionOrder(catalog)))
     }
     Column(Modifier.fillMaxWidth().fillMaxHeight().padding(horizontal = 8.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -194,6 +196,18 @@ internal fun DeckBuilderPanel(
                     style = MaterialTheme.typography.titleMedium, color = gold)
             }
             TextButton(onClick = { requestBack() }) { Text("Quitter", color = gold) }
+        }
+        val browsing = dualPane || catalogueOpen || tab in listOf("Leader", "Base")
+        if (!browsing) {
+            DeckSelectionPane(name, deck, catalog, details, zone, leaderChosen, baseChosen,
+                Modifier.weight(1f).fillMaxWidth(),
+                onZone = { tab = if (it == DeckEditor.Zone.MAIN) "Deck" else "Réserve" },
+                onQuantity = { id, count, target -> runCatching { checkpoint(); deck = DeckEditor.setQuantity(deck, id, count, target) }.onFailure { error = it.message } },
+                onPreview = onPreview, onIdentity = { tab = it; query = "" },
+                onAdd = { catalogueOpen = true; query = "" }, ownedByFamily = ownedByFamily)
+        } else {
+        if (!dualPane) TextButton(onClick = { catalogueOpen = false; tab = if (zone == DeckEditor.Zone.SIDEBOARD) "Réserve" else "Deck"; query = "" }) {
+            Text("← Revenir au deck · ${deck.deck.sumOf { it.count }} cartes")
         }
         FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp), maxItemsInEachRow = if (largeText) 2 else 4) {
             listOf("Leader", "Base", "Deck", "Réserve").forEach { label ->
@@ -243,7 +257,7 @@ internal fun DeckBuilderPanel(
         }
                 }
             }
-            if (!catalogueOpen && query.isBlank() && tab in listOf("Deck", "Réserve")) item(key = "deck-identities", span = { GridItemSpan(maxLineSpan) }) {
+            if (!dualPane && !catalogueOpen && query.isBlank() && tab in listOf("Deck", "Réserve")) item(key = "deck-identities", span = { GridItemSpan(maxLineSpan) }) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     DeckIdentityCard("Leader", if (leaderChosen) byId[deck.leader] else null, "À choisir", Modifier.weight(1f),
                         onPreview = { byId[deck.leader]?.let { onPreview(it, listOfNotNull(byId[deck.leader], byId[deck.base])) } },
@@ -253,7 +267,7 @@ internal fun DeckBuilderPanel(
                         onChange = { tab = "Base"; query = "" })
                 }
             }
-            if (tab in listOf("Deck", "Réserve")) item(key = "catalogue-toggle", span = { GridItemSpan(maxLineSpan) }) {
+            if (!dualPane && tab in listOf("Deck", "Réserve")) item(key = "catalogue-toggle", span = { GridItemSpan(maxLineSpan) }) {
                 FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), maxItemsInEachRow = 2) {
                     FilterChip(catalogueOpen, onClick = { catalogueOpen = true }, modifier = Modifier.weight(1f), label = { Text("Ajouter des cartes") })
                     FilterChip(!catalogueOpen, onClick = { catalogueOpen = false; affinityOnly = false }, modifier = Modifier.weight(1f), label = { Text(if (tab == "Réserve") "Cartes de réserve" else "Cartes du deck") })
@@ -287,7 +301,7 @@ internal fun DeckBuilderPanel(
                             if (!baseChosen) tab = "Base"
                         } else {
                             deck = deck.copy(base = id); baseChosen = true
-                            if (leaderChosen) { tab = "Deck"; catalogueOpen = true }
+                            if (leaderChosen) { tab = "Deck"; catalogueOpen = dualPane }
                         }
                         query = ""; filters = DeckBrowserFilters()
                     },
@@ -314,7 +328,8 @@ internal fun DeckBuilderPanel(
         if (dualPane) DeckSelectionPane(name, deck, catalog, details, zone, leaderChosen, baseChosen,
             Modifier.weight(.8f).fillMaxHeight(), onZone = { tab = if (it == DeckEditor.Zone.MAIN) "Deck" else "Réserve"; query = "" },
             onQuantity = { id, count, target -> runCatching { checkpoint(); deck = DeckEditor.setQuantity(deck, id, count, target) }.onFailure { error = it.message } },
-            onPreview = onPreview)
+            onPreview = onPreview, onIdentity = { tab = it; query = "" }, ownedByFamily = ownedByFamily)
+        }
         }
         error?.let { Text(it, color = ListPalette.Danger) }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -362,7 +377,7 @@ internal fun DeckBuilderPanel(
         scanLastCard = entry.copy(card = entry.card.copy(language = language), variant = finish)
         correctingScan = null; scanReadToken++
     } }
-    if (restoring && recoverable != null) AlertDialog(onDismissRequest = { closing = true; onCancel() }, title = { Text("Reprendre le brouillon ?") },
+    if (restoring && recoverable != null) AlertDialog(onDismissRequest = { draftWritesAllowed.set(false); closing = true; onCancel() }, title = { Text("Reprendre le brouillon ?") },
         text = { Text("${recoverable.name} · ${recoverable.deck.deck.sumOf { it.count }} cartes. Le deck enregistré reste inchangé tant que tu n’appuies pas sur Enregistrer.") },
         confirmButton = { TextButton(onClick = {
             name = recoverable.name; deck = recoverable.deck; leaderChosen = recoverable.leaderChosen; baseChosen = recoverable.baseChosen

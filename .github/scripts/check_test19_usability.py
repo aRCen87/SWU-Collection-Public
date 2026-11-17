@@ -49,7 +49,7 @@ try:
     time.sleep(8)
     tap(snapshot('home'), 'Collection')
     root = snapshot('collection')
-    tap(root, 'Rechercher dans ma collection')
+    tap(root, 'Rechercher une carte')
     adb('shell', 'input', 'text', 'R2')
     adb('shell', 'input', 'keyevent', 4); time.sleep(2)
     root = snapshot('search'); tap(root, 'Effacer la recherche')
@@ -57,7 +57,21 @@ try:
     field = next(n for n in root.iter('node') if n.attrib.get('class') == 'android.widget.EditText')
     assert 'R2' not in field.attrib.get('text', '')
     tap(root, 'Filtres')
-    root = snapshot('filters'); tap(root, 'Doublons')
+    root = snapshot('filters')
+    def named_switch(tree, label):
+        left, top, right, bottom = rect(find(tree, label))
+        matches = [node for node in tree.iter('node') if node.attrib.get('checkable') == 'true'
+                   and rect(node)[0] >= right - 2
+                   and top <= (rect(node)[1] + rect(node)[3]) / 2 <= bottom]
+        assert len(matches) == 1, (label, [node.attrib for node in matches])
+        return matches[0]
+    switch = named_switch(root, 'Uniquement mes doublons')
+    assert switch.attrib.get('checked') == 'false', 'Double filter should start disabled'
+    x1,y1,x2,y2 = rect(switch)
+    assert x2 > x1 and y2 > y1, 'Double filter switch is not reachable'
+    adb('shell', 'input', 'tap', (x1+x2)//2, (y1+y2)//2); time.sleep(2)
+    selected = snapshot('double-switch')
+    assert named_switch(selected, 'Uniquement mes doublons').attrib.get('checked') == 'true', 'Double filter did not activate'
     tap(snapshot('doubles'), 'Voir les cartes')
     root = snapshot('active-filter'); find(root, 'Filtres (1)')
     tap(root, 'Filtres (1)')

@@ -1,4 +1,7 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package fr.swucollection.app
+import androidx.compose.foundation.combinedClickable
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
@@ -14,31 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-internal val primaryDestinations = listOf("Accueil", "Collection", "Extensions", "Mes listes", "Échanges")
-
-@Composable
-internal fun CollectionBottomBar(section: String, onNavigate: (String) -> Unit) {
-    val selected = when (section) {
-        "Compléter mon set", "Recherche" -> "Extensions"
-        "Ajouter", "Historique", "Scanner" -> "Collection"
-        else -> section
-    }
-    val icons = listOf(Icons.Default.Home, Icons.Default.CollectionsBookmark, Icons.Default.AutoStories,
-        Icons.Default.Star, Icons.Default.SwapHoriz)
-    Surface(color = Color(0xFF0B1B2D), border = BorderStroke(1.dp, Color(0xFF9C7941)),
-        shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)) {
-        NavigationBar(containerColor = Color.Transparent, tonalElevation = 0.dp, windowInsets = WindowInsets(0,0,0,0)) {
-            primaryDestinations.forEachIndexed { index, destination ->
-                NavigationBarItem(selected = selected == destination, onClick = { onNavigate(destination) },
-                    icon = { Icon(icons[index], destination) }, alwaysShowLabel = true,
-                    label = { Text(if (destination == "Mes listes") "Mes listes" else destination, fontSize = 10.sp, maxLines = 1) },
-                    colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFFFFD47D),
-                        selectedTextColor = Color(0xFFFFD47D), indicatorColor = Color(0xFF213951),
-                        unselectedIconColor = Color(0xFFB4C0D4), unselectedTextColor = Color(0xFFB4C0D4)))
-            }
-        }
-    }
-}
+internal val primaryDestinations = listOf("Accueil", "Collection", "Mes decks", "Mes proxies", "Mes listes")
 
 @Composable
 internal fun ObjectiveControls(playset: Boolean, acceptVariants: Boolean, precise: Boolean = false, onChange: (Boolean, Boolean) -> Unit) {
@@ -129,12 +108,12 @@ internal fun familyPreviewEntries(groups: List<List<CollectionCard>>, clicked: C
 
 @Composable
 internal fun GroupedOwnedCard(rows: List<CollectionCard>, catalogByKey: Map<String, CatalogCard>, quotes: Map<String, MarketQuote>,
-    onPreview: (CollectionCard, CatalogCard) -> Unit, onQuantity: (Long, Int) -> Unit, onLanguage: (CollectionCard) -> Unit = {}, openDirect: Boolean = false) {
+    onPreview: (CollectionCard, CatalogCard) -> Unit, onQuantity: (Long, Int) -> Unit, onLanguage: (CollectionCard) -> Unit = {}, openDirect: Boolean = false, onLongPress: (CatalogCard) -> Unit = {}) {
     val prints = remember(rows) { groupOwnedPrints(rows) }
     var expanded by remember(rows.first().id) { mutableStateOf(false) }
     val first = rows.first()
     val representative = catalogByKey[MarketPricing.key(first.setCode, first.number)]
-    OutlinedCard(onClick = { if (openDirect && representative != null) onPreview(first, representative) else expanded = !expanded }, modifier = Modifier.fillMaxWidth(),
+    OutlinedCard(modifier = Modifier.fillMaxWidth().combinedClickable(onClick = { if (openDirect && representative != null) onPreview(first, representative) else expanded = !expanded }, onLongClickLabel = "Gérer cette carte", onLongClick = { representative?.let(onLongPress) }),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {

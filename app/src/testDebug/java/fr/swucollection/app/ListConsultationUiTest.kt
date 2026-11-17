@@ -45,7 +45,11 @@ class ListConsultationUiTest {
             onFormat = { _, _ -> }) } }
         ui.onNodeWithText("Modifier la liste").performClick()
         ui.onNodeWithText("Ajouter des cartes").performClick()
-        ui.onNodeWithText("Carte test").performClick()
+        ui.onNodeWithTag("deck_picker_card_SOR-095").performClick()
+        ui.onNodeWithTag("deck_gallery_title").assertTextEquals("Carte test")
+        ui.runOnIdle { assertNull(selected); assertEquals(0, quantity) }
+        ui.onNodeWithContentDescription("Fermer la carte").performClick()
+        ui.onNodeWithTag("deck_picker_add_SOR-095").performClick()
         ui.runOnIdle { assertEquals(card, selected); assertEquals(1, quantity) }
         ui.onNodeWithText("Terminer").performClick()
         ui.onNodeWithText("Terminer les modifications").assertExists()
