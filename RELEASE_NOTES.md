@@ -1,3 +1,12 @@
+## 0.9.3-test.30 — decks plus visuels et parcours simplifiés
+
+- Vue du deck : grille plus compacte (trois cartes par ligne sur téléphone standard, davantage selon la largeur), quantités sur les images, leader/base encadrés et progression vers 50 cartes. Noms nettoyés des balises d’affichage.
+- Toucher une carte ouvre une visionneuse plein écran avec navigation dans le deck, zoom par pincement, double toucher ou boutons, recentrage et retournement du leader. Consultation sans ajout implicite.
+- Ajouter une carte : catalogue plein écran avec grandes images, recherche et filtres combinables. Toucher pour lire en grand, bouton Ajouter distinct avec retour de réussite et erreur visible en cas de refus.
+- Revue de navigation : actions secondaires des decks regroupées, accès Consulter redondants retirés, extension choisie à un seul endroit et filtre Doublons explicite.
+- Membres, vitrines favorites et modification par lot nommés plus clairement. Sauvegardes du compte accessibles depuis l’écran Sauvegardes commun ; menu regroupé et proxies nommés Choisir des cartes / À imprimer.
+- Version Test uniquement, sans migration de collection.
+
 ## 0.9.3-test.29 — Collection unifiée et deck en plein écran
 
 - En Visuel et Miniatures, les commandes défilent avec la grille pour garder les cartes, quantités et cotes accessibles sur téléphone et pliant déplié.

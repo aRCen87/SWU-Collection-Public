@@ -800,6 +800,7 @@ private fun CollectionScreen(
                         "Sauvegardes" -> "Sauvegardes"
                         "Mes listes" -> if (deckWorkspace) "Construire un deck" else "Mes listes"
                         "Hauts faits" -> "Badges"
+                        "Communauté" -> "Mon compte"
                         else -> selectedSection
                     },
                         modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
@@ -1004,7 +1005,8 @@ private fun CollectionScreen(
                 if (privateLayout) {
                     CommunityPanel(savedDecks, badgeProgress.filter { it.earned }, badgeBook?.definitions.orEmpty(), allCatalog, database, cardDetails, initialTab = "Échanges",
                         onOpenMessenger = { thread, name -> messengerInitialTab = "Messages"; messengerConversation = thread to name; navigation.navigateTo("Messagerie") },
-                        onOpenFriends = { messengerInitialTab = "Amis"; messengerConversation = null; navigation.navigateTo("Messagerie") },
+                        onOpenBackups = { navigation.navigateTo("Sauvegardes") },
+                    onOpenFriends = { messengerInitialTab = "Amis"; messengerConversation = null; navigation.navigateTo("Messagerie") },
                         onRestored = { refresh(); homeLayout = homeStore.read(); pinnedDecks = deckPins.all() },
                         onImportDeck = { title, imported ->
                             editingDeck = DeckStore.SavedDeck(java.util.UUID.randomUUID().toString(), title, "Premier", imported, System.currentTimeMillis())
@@ -1067,6 +1069,7 @@ private fun CollectionScreen(
                     onOpenCard = { shared -> allCatalog.firstOrNull { it.setCode == shared.set && it.number.toIntOrNull() == shared.number.toIntOrNull() }?.let { openPreview(it, listOf(CardPreviewEntry(it, shared.variant, shared.language)), shared.variant, shared.language) } },
                     messaging = selectedSection == "Messagerie", initialConversation = if (selectedSection == "Messagerie") messengerConversation else null,
                     onOpenMessenger = { thread, name -> messengerInitialTab = "Messages"; messengerConversation = thread to name; navigation.navigateTo("Messagerie") },
+                    onOpenBackups = { navigation.navigateTo("Sauvegardes") },
                     onOpenFriends = { messengerInitialTab = "Amis"; messengerConversation = null; navigation.navigateTo("Messagerie") },
                     onRestored = { refresh(); homeLayout = homeStore.read(); pinnedDecks = deckPins.all() },
                     onImportDeck = { title, imported ->
@@ -1250,12 +1253,9 @@ private fun CollectionScreen(
                     savedCollectionSort = CollectionPriceSort.CATALOG.name; collectionScope = "Possédées"
                     ownershipFilter = "Toutes"
                 }) { Text("Tout réinitialiser") }
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf("Possédées", "Doublons").forEach { option ->
-                        FilterChip(selected = collectionScope == option,
-                            onClick = { collectionScope = option },
-                            label = { Text(option, fontSize = 12.sp) })
-                    }
+                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Text("Uniquement mes doublons", Modifier.weight(1f))
+                    Switch(collectionScope == "Doublons", { collectionScope = if (it) "Doublons" else "Possédées" })
                 }
                 Text("Doublons : au moins 2 exemplaires d’une même carte et variante. Ils ne sont pas forcément disponibles à l’échange.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
@@ -1298,21 +1298,7 @@ private fun CollectionScreen(
                         }
                     }
                 }
-                var collectionSetMenuOpen by remember { mutableStateOf(false) }
-                Box {
-                    OutlinedButton(onClick = { collectionSetMenuOpen = true }) {
-                        Text("Extension : " + collectionSetFilter)
-                    }
-                    DropdownMenu(expanded = collectionSetMenuOpen,
-                        onDismissRequest = { collectionSetMenuOpen = false }) {
-                        DropdownMenuItem(text = { Text("Toutes les extensions") },
-                            onClick = { collectionSetFilter = "Toutes"; collectionSetMenuOpen = false })
-                        sets.forEach { catalogSet ->
-                            DropdownMenuItem(text = { Text(catalogSet.code + " — " + catalogSet.name) },
-                                onClick = { collectionSetFilter = catalogSet.code; collectionSetMenuOpen = false })
-                        }
-                    }
-                }
+
                             }
                         },
                         confirmButton = { TextButton(onClick = { collectionFiltersOpen = false }) { Text("Voir les cartes") } })
@@ -1735,7 +1721,7 @@ private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) 
                         }
                         Spacer(Modifier.height(24.dp))
                         val communityEntries = if (AppChannel.supportsExperience(LocalContext.current.packageName))
-                            listOf(Triple(Icons.Default.Person, "Compte et communauté", "Communauté"),
+                            listOf(Triple(Icons.Default.Person, "Mon compte", "Communauté"),
                                 Triple(Icons.Default.Handshake, "Mes prêts de cartes", "Prêts")) else emptyList()
                         val entries = communityEntries + listOf(
                             Triple(Icons.Default.PhotoCamera, "Scanner", "Scanner"),
@@ -1748,7 +1734,14 @@ private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) 
                             Triple(Icons.Default.Download, "Mises à jour", "Mises à jour"),
                             Triple(Icons.Default.Settings, "Paramètres", "Paramètres")
                         )
-                        entries.forEach { (icon, label, section) ->
+                        entries.forEachIndexed { index, (icon, label, section) ->
+                            val group = when {
+                                index == 0 && communityEntries.isNotEmpty() -> "Compte et partage"
+                                section == "Scanner" -> "Collection et jeu"
+                                section == "Historique" -> "Outils et réglages"
+                                else -> null
+                            }
+                            if (group != null) Text(group, color = Color(0xFFE6C17A), fontSize = 12.sp, modifier = Modifier.padding(top = 18.dp, bottom = 4.dp))
                             Row(Modifier.fillMaxWidth().clickable { onNavigate(section) }.padding(vertical = 17.dp),
                                 verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(18.dp)) {

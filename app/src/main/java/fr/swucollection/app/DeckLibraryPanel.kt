@@ -62,7 +62,6 @@ internal fun DeckLibraryPanel(
                             "${draft.collectionEntries.sumOf { it.quantity }} ajout(s) à la collection en attente",
                             style = MaterialTheme.typography.bodySmall, color = ListPalette.Secondary)
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(onClick = { viewing = DeckView(key,draft) }) { Text("Consulter") }
                             TextButton(onClick = { onResumeDraft(key) }) { Text("Modifier") }
                             TextButton(onClick = { deletingDraft = key to draft }) { Text("Supprimer", color = ListPalette.Danger) }
                         }
@@ -97,16 +96,15 @@ internal fun DeckLibraryPanel(
                                 style = MaterialTheme.typography.bodySmall, color = ListPalette.Gold)
                         }
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(onClick = { consultation(saved) }) { Text("Consulter") }
                             TextButton(onClick = { onOpen(saved) }) { Text("Modifier") }
-                            TextButton(onClick = { onPin(saved) }) { Text(if (saved.id in pinned) "★ Épinglé" else "☆ Épingler") }
                             TextButton(onClick = { onPrepare(saved) }) { Text("Préparer") }
-                            TextButton(onClick = { onExport(saved) }) { Text("Exporter") }
                             Box {
                                 IconButton(onClick = { more = true }) {
                                     Icon(Icons.Default.MoreVert, "Autres actions pour ${saved.name}")
                                 }
                                 DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
+                                    DropdownMenuItem(text = { Text(if (saved.id in pinned) "Retirer de l’accueil" else "Épingler à l’accueil") }, onClick = { more = false; onPin(saved) })
+                                    DropdownMenuItem(text = { Text("Exporter le deck") }, onClick = { more = false; onExport(saved) })
                                     DropdownMenuItem(text = { Text("Dupliquer") }, onClick = { more = false; onDuplicate(saved) })
                                     DropdownMenuItem(text = { Text("Supprimer", color = ListPalette.Danger) },
                                         onClick = { more = false; deleting = saved })

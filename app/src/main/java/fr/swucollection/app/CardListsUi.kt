@@ -227,7 +227,7 @@ internal fun CardListsPanel(lists: List<CardList>, selectedId: String?, modifier
     }
     if(adding && selected!=null)InlineCardPicker(catalog,"Liste",{adding=false}, details = details){card->
         val quantity=selected.entries.firstOrNull{it.card.setCode==card.setCode && it.card.number==card.number}?.quantity?:0
-        if(quantity<99)onQuantity(selected.id,card,quantity+1)
+        require(quantity < 99) { "Cette liste contient déjà 99 exemplaires de cette carte." }; onQuantity(selected.id,card,quantity+1)
     }
     if (naming) CardListNameDialog(initial = selected?.name ?: "", onDismiss = { naming = false }, onSave = {
         if (selected == null) onCreate(it) else onRename(selected.id, it)

@@ -155,6 +155,7 @@ jobs:
           emulator-options: -no-window -gpu swangle_indirect -noaudio -no-boot-anim -no-snapshot-save -feature GLESDynamicVersion
           script: |
             bash .github/scripts/check_messenger_keyboard.sh
+            bash .github/scripts/check_deck_presentation.sh
             bash .github/scripts/smoke_premium_preview.sh
       - name: Encrypt the empty-account layout check for private review
         if: always()

@@ -81,7 +81,7 @@ internal fun CollectionWorkbench(database: CollectionDatabase, catalog: List<Cat
                 Row { Text("Gérer ma collection", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge); TextButton(onClick = close) { Text("Fermer") } }
                 LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 item {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { listOf("Sélection", "Disponibilité", "À vérifier").forEach { title -> FilterChip(tab == title, { tab = title }, label = { Text(title) }) } }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { listOf("Sélection", "Disponibilité", "À vérifier").forEach { title -> FilterChip(tab == title, { tab = title }, label = { Text(if (title == "Sélection") "Modifier par lot" else title) }) } }
                 OutlinedTextField(search, { search = it.take(100) }, label = { Text("Nom, extension ou numéro") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 status?.let { Text(it) }
                 if (tab == "À vérifier") CollectionReviewPanel(database, visible, catalog) { rows = database.allCards(); changed() }

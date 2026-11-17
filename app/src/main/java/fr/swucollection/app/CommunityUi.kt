@@ -52,7 +52,7 @@ internal fun communityError(error: Throwable): String = when ((error as? Firebas
 internal fun ColumnScope.CommunityPanel(decks: List<DeckStore.SavedDeck>, earned: List<BadgeProgress>,
     definitions: List<BadgeDefinition>, catalog: List<CatalogCard>, database: CollectionDatabase, details: CardDetails, initialTab: String = "Mon profil", messaging: Boolean = false,
     initialConversation: Pair<PlayerConversation, String>? = null, onOpenMessenger: ((PlayerConversation, String) -> Unit)? = null,
-    onOpenFriends: (() -> Unit)? = null,
+    onOpenFriends: (() -> Unit)? = null, onOpenBackups: (() -> Unit)? = null,
     onRestored: () -> Unit, onImportDeck: (String, PortableDeck) -> Unit, onOpenCard: (SharedPlayerCard) -> Unit = {}) {
     val context = LocalContext.current
     val service = remember(context) { CommunityService.create(context) }
@@ -209,8 +209,8 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
             }) }
     }
     if(!messaging) Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        (if (messaging) listOf("Messages", "Amis") else listOf("Mon profil", "Joueurs", "Échanges", "Favoris", "Sauvegarde")).forEach { label ->
-            FilterChip(tab == label, { tab = label; conversation = null }, label = { Text((if(messaging && label=="Messages")"Discussions" else label) + when {
+        (if (messaging) listOf("Messages", "Amis") else (listOf("Mon profil", "Joueurs", "Échanges", "Favoris") + if (onOpenBackups == null) listOf("Sauvegarde") else emptyList())).forEach { label ->
+            FilterChip(tab == label, { tab = label; conversation = null }, label = { Text((when (label) { "Joueurs" -> "Membres"; "Favoris" -> "Vitrines favorites"; "Sauvegarde" -> "Sauvegarde du compte"; else -> label }) + when {
                 label == "Amis" && requests > 0 -> " · $requests"
                 label == "Messages" && unread > 0 -> " · $unread"
                 label == "Échanges" && exchangeRequests > 0 -> " · $exchangeRequests"
@@ -228,6 +228,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
             if (profile!!.bio.isNotBlank()) Text(profile!!.bio)
             Text(if (profile!!.discoverable) "Profil visible aux autres joueurs" else "Profil non listé parmi les joueurs")
             OutlinedButton(onClick = { editing = true }) { Text("Modifier mon profil et mon avatar") }
+            if (onOpenBackups != null) OutlinedButton(onClick = onOpenBackups) { Text("Mes sauvegardes") }
             CommunityNotificationControls(user.uid)
             Row(verticalAlignment=Alignment.CenterVertically){Text("Afficher mon statut en ligne",Modifier.weight(1f));Switch(preferences.sharePresence,{v->action{service.saveMessengerPreferences(preferences.copy(sharePresence=v))}})}
             Row(verticalAlignment=Alignment.CenterVertically){Text("Partager les confirmations de lecture",Modifier.weight(1f));Switch(preferences.shareRead,{v->action{service.saveMessengerPreferences(preferences.copy(shareRead=v))}})}

@@ -74,12 +74,12 @@ internal fun ProxyBuilderPanel(catalog: List<CatalogCard>, owned: List<Collectio
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TextButton(onClick = onBack) { Text("Retour") }
             Text("Proxies", Modifier.weight(1f).padding(top = 12.dp), color = ListPalette.Gold)
-            TextButton(onClick = { clearing = true }, enabled = selected.isNotEmpty()) { Text("Vider") }
+            TextButton(onClick = { clearing = true }, enabled = selected.isNotEmpty()) { Text("Tout retirer") }
         }
         OutlinedTextField(query, { query = it }, singleLine = true, modifier = Modifier.fillMaxWidth(), label = { Text("Rechercher une carte") })
         FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            FilterChip(!selectionOnly, onClick = { selectionOnly = false }, label = { Text("Catalogue") })
-            FilterChip(selectionOnly, onClick = { selectionOnly = true; query = ""; filters = DeckBrowserFilters() }, label = { Text("Sélection (${selected.size})") })
+            FilterChip(!selectionOnly, onClick = { selectionOnly = false }, label = { Text("Choisir des cartes") })
+            FilterChip(selectionOnly, onClick = { selectionOnly = true; query = ""; filters = DeckBrowserFilters() }, label = { Text("À imprimer (${selected.size})") })
             TextButton(onClick = { filtering = true }) { Text("Filtres") }
         }
         LazyVerticalGrid(GridCells.Adaptive(if (largeText) 168.dp else 128.dp), modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -108,6 +108,6 @@ internal fun ProxyBuilderPanel(catalog: List<CatalogCard>, owned: List<Collectio
     if (printing) CardPrintDialog("Ma sélection", selected.map { PrintCard(byId.getValue(it.key), it.value) }, true, onDismiss = { printing = false })
     if (clearing) AlertDialog(onDismissRequest = { clearing = false }, title = { Text("Vider la sélection de proxies ?") },
         text = { Text("Tes decks et ta collection restent inchangés.") },
-        confirmButton = { TextButton(onClick = { selectionJson = "{}"; prefs.edit().remove("cards").apply(); clearing = false }) { Text("Vider") } },
+        confirmButton = { TextButton(onClick = { selectionJson = "{}"; prefs.edit().remove("cards").apply(); clearing = false }) { Text("Tout retirer") } },
         dismissButton = { TextButton(onClick = { clearing = false }) { Text("Annuler") } })
 }
