@@ -79,12 +79,20 @@ try:
     tap(edit); adb("shell", "input", "keyevent", *(["67"] * len("FoldProbe")))
     adb("shell", "input", "keyevent", "4"); time.sleep(2)
     resize(756,1680,294)
-    root = snapshot("collection-restored"); tap(find(root,"Extensions"))
-    root = snapshot("extensions")
-    extension = next(n for n in root.iter("node") if "références possédées" in n.attrib.get("text", ""))
-    tap(extension)
-    root = snapshot("catalogue")
-    artwork = next(n for n in root.iter("node") if n.attrib.get("content-desc") == "Visuel de la carte" and bounds(n)[3] > bounds(n)[1])
+    root = snapshot("collection-restored"); tap(find(root,"Toutes les cartes"))
+    # The extension catalogue now lives in the unified Collection page. Keep
+    # testing the real ordered card reader, using the visible gallery bounds.
+    for attempt in range(12):
+        root = snapshot("catalogue-" + str(attempt))
+        images = [n for n in root.iter("node") if n.attrib.get("content-desc") == "Visuel de la carte" and bounds(n)[3] - bounds(n)[1] >= 48]
+        if images:
+            artwork = images[0]
+            break
+        grid = next(n for n in root.iter("node") if n.attrib.get("resource-id") == "swu_unified_catalog")
+        x1,y1,x2,y2 = bounds(grid)
+        assert x2 > x1 and y2 > y1, "Unified catalogue has collapsed"
+        adb("shell","input","swipe",(x1+x2)//2,y2-8,(x1+x2)//2,y1+8,400); time.sleep(1)
+    else: raise AssertionError("No reachable card in the unified catalogue")
     tap(artwork)
     root = snapshot("card-phone"); first = page(root)
     assert first.startswith("1 / "), first
