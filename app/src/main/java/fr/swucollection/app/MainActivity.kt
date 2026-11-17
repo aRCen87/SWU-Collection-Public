@@ -1324,13 +1324,17 @@ private fun CollectionScreen(
                         onActions = { quickCard = it }, dimMissing = dimMissing,
                         header = if (scrollingMiniatureControls) collectionControls else null)
                 } else {
-                if (scrollingMiniatureControls && selectedOwned.isEmpty()) collectionControls()
-                if ((!scrollingMiniatureControls || selectedOwned.isEmpty()) && !(compactCollectionLayout && selectedOwned.isEmpty())) Text(if (compactCollectionLayout) "${selectedOwned.sumOf { it.quantity }} exemplaires affichés"
+                if (!scrollingMiniatureControls && selectedOwned.isNotEmpty()) Text(if (compactCollectionLayout) "${selectedOwned.sumOf { it.quantity }} exemplaires affichés"
                     else "${selectedOwned.map { MarketPricing.key(it.setCode,it.number) + ":" + it.variant }.distinct().size} références et variantes possédées · ${selectedOwned.sumOf { it.quantity }} exemplaires", fontSize = 12.sp)
-                if (collectionScope == "Doublons") Text("Filtre Doublons actif", color = MaterialTheme.colorScheme.primary)
+                if (collectionScope == "Doublons" && selectedOwned.isNotEmpty()) Text("Filtre Doublons actif", color = MaterialTheme.colorScheme.primary)
                 if (selectedOwned.isEmpty()) {
+                    Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (scrollingMiniatureControls) collectionControls()
+                    if (!compactCollectionLayout) Text("0 références et variantes possédées · 0 exemplaires", fontSize = 12.sp)
+                    if (collectionScope == "Doublons") Text("Filtre Doublons actif", color = MaterialTheme.colorScheme.primary)
                     Text(if (cards.isEmpty()) "Ta collection est vide. Scanne ta première carte pour commencer." else "Aucune carte possédée ne correspond aux filtres.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (cards.isNotEmpty()) TextButton(onClick = { search = ""; collectionSetFilter = "Toutes"; collectionScope = "Possédées"; collectionLanguage = "Toutes"; savedCollectionSort = CollectionPriceSort.CATALOG.name }) { Text("Afficher toute ma collection") }
+                    }
                 } else if (privateLayout && collectionView in listOf("Visuel", "Miniatures")) {
                     val groups = remember(selectedOwned, allCatalog, cardDetails, groupVersions) {
                         if (groupVersions) groupOwnedVersions(selectedOwned, allCatalog, cardDetails, acrossSets = true)
