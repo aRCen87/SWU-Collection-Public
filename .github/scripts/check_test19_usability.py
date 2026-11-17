@@ -58,16 +58,20 @@ try:
     assert 'R2' not in field.attrib.get('text', '')
     tap(root, 'Filtres')
     root = snapshot('filters')
-    parents = {child: parent for parent in root.iter() for child in parent}
-    row = find(root, 'Uniquement mes doublons')
-    while not any(n.attrib.get('class') == 'android.widget.Switch' for n in row.iter('node')) and row in parents:
-        row = parents[row]
-    switch = next(n for n in row.iter('node') if n.attrib.get('class') == 'android.widget.Switch')
+    def named_switch(tree, label):
+        left, top, right, bottom = rect(find(tree, label))
+        matches = [node for node in tree.iter('node') if node.attrib.get('checkable') == 'true'
+                   and rect(node)[0] >= right - 2
+                   and top <= (rect(node)[1] + rect(node)[3]) / 2 <= bottom]
+        assert len(matches) == 1, (label, [node.attrib for node in matches])
+        return matches[0]
+    switch = named_switch(root, 'Uniquement mes doublons')
+    assert switch.attrib.get('checked') == 'false', 'Double filter should start disabled'
     x1,y1,x2,y2 = rect(switch)
     assert x2 > x1 and y2 > y1, 'Double filter switch is not reachable'
     adb('shell', 'input', 'tap', (x1+x2)//2, (y1+y2)//2); time.sleep(2)
     selected = snapshot('double-switch')
-    assert any(n.attrib.get('class') == 'android.widget.Switch' and n.attrib.get('checked') == 'true' for n in selected.iter('node')), 'Double filter did not activate'
+    assert named_switch(selected, 'Uniquement mes doublons').attrib.get('checked') == 'true', 'Double filter did not activate'
     tap(snapshot('doubles'), 'Voir les cartes')
     root = snapshot('active-filter'); find(root, 'Filtres (1)')
     tap(root, 'Filtres (1)')
