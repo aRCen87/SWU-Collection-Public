@@ -71,7 +71,9 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
             LazyVerticalGrid(columns = if (miniatures) GridCells.Fixed(columns) else GridCells.Adaptive(135.dp),
                 modifier = Modifier.fillMaxSize().testTag("swu_unified_catalog"), horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 12.dp)) {
-                if (header != null) item(key = "catalogue-controls", span = { GridItemSpan(maxLineSpan) }) { header() }
+                if (header != null) item(key = "catalogue-controls", span = { GridItemSpan(maxLineSpan) }) {
+                    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) { header() }
+                }
                 gridItems(visible, key = { MarketPricing.key(it.setCode, it.number) }) { card ->
                     val quantity = quantities[MarketPricing.key(card.setCode, card.number)] ?: 0
                     Column(Modifier.fillMaxWidth().combinedClickable(onClick = { onPreview(card, visible) },
