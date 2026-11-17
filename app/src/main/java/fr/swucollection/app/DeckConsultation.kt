@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
@@ -51,7 +52,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun DeckConsultation(draft: DeckDraft, catalog: List<CatalogCard>, onClose: () -> Unit, onEdit: () -> Unit,
     details: CardDetails = CardDetails.empty(), onChange: ((DeckDraft) -> Unit)? = null,
-    onPreview: (CatalogCard, List<CatalogCard>) -> Unit = { _, _ -> }) {
+    onPreview: ((CatalogCard, List<CatalogCard>) -> Unit)? = null) {
     val byId = remember(catalog) { catalog.associateBy(DeckConstruction::reference) }
     var error by remember { mutableStateOf<String?>(null) }
     var adding by remember { mutableStateOf<String?>(null) }
@@ -135,7 +136,7 @@ internal fun DeckConsultation(draft: DeckDraft, catalog: List<CatalogCard>, onCl
        }
       }
      }
-    previewId?.let { id -> DeckCardGallery(gallery, id, { previewId = null }) }
+    previewId?.let { id -> DeckCardGallery(gallery, id, { previewId = null }, onPreview?.let { callback -> { selected -> previewId = null; callback(selected, gallery) } }) }
     adding?.let { target -> InlineCardPicker(catalog, target, { adding = null }, details = details) { card ->
         val next = DeckCompanion.add(draft.deck, card, catalog, details, if (target == "Réserve") DeckEditor.Zone.SIDEBOARD else DeckEditor.Zone.MAIN)
         check(change(draft.copy(deck = next, leaderChosen = draft.leaderChosen || target == "Leader", baseChosen = draft.baseChosen || target == "Base"))) { error ?: "Ajout non enregistré. Réessaie." }
@@ -195,7 +196,7 @@ private fun DeckConsultationCard(entry: DeckEntry, cards: Map<String, CatalogCar
 
 /** Shared reader above both full-screen dialogs; navigation never edits quantities. */
 @Composable
-internal fun DeckCardGallery(cards: List<CatalogCard>, initialId: String, onClose: () -> Unit) {
+internal fun DeckCardGallery(cards: List<CatalogCard>, initialId: String, onClose: () -> Unit, onDetails: ((CatalogCard) -> Unit)? = null) {
     if (cards.isEmpty()) return
     var index by remember(initialId) { mutableStateOf(cards.indexOfFirst { DeckConstruction.reference(it) == initialId }.coerceAtLeast(0)) }
     val card = cards[index.coerceIn(0, cards.lastIndex)]
@@ -214,6 +215,7 @@ internal fun DeckCardGallery(cards: List<CatalogCard>, initialId: String, onClos
             Column(Modifier.fillMaxSize().safeDrawingPadding().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(deckCardLabel(card.name), Modifier.weight(1f).testTag("deck_gallery_title"), maxLines = 2, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
+                    if (onDetails != null) IconButton(onClick = { onDetails(card) }) { Icon(Icons.Default.Info, "Ouvrir la fiche complète") }
                     IconButton(onClick = onClose) { Icon(Icons.Default.Close, "Fermer la carte") }
                 }
                 Box(Modifier.weight(1f).fillMaxWidth().clipToBounds().testTag("deck_gallery_artwork").onSizeChanged { frame = it }.transformable(transform)
