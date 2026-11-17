@@ -74,7 +74,7 @@ internal fun ColumnScope.CommunityPanel(decks: List<DeckStore.SavedDeck>, earned
     }
     Column(Modifier.fillMaxWidth().then(if(messaging)Modifier.weight(1f) else Modifier).then(if(messaging && (user==null || user?.isEmailVerified!=true))Modifier.verticalScroll(rememberScrollState()) else Modifier),verticalArrangement=Arrangement.spacedBy(8.dp)) {
     key(user?.uid, identityRevision) {
-        CommunitySession(service, user, decks, earned, definitions, catalog, database, details, initialTab, messaging, initialConversation, onOpenMessenger, onOpenFriends, { identityRevision++ }, onRestored, onImportDeck, onOpenCard)
+        CommunitySession(service, user, decks, earned, definitions, catalog, database, details, initialTab, messaging, initialConversation, onOpenMessenger, onOpenFriends, onOpenBackups, { identityRevision++ }, onRestored, onImportDeck, onOpenCard)
     }
     }
 }
@@ -82,7 +82,7 @@ internal fun ColumnScope.CommunityPanel(decks: List<DeckStore.SavedDeck>, earned
 @Composable
 private fun ColumnScope.CommunitySession(service: CommunityService, user: FirebaseUser?, decks: List<DeckStore.SavedDeck>,
     earned: List<BadgeProgress>, definitions: List<BadgeDefinition>, catalog: List<CatalogCard>, database: CollectionDatabase, details: CardDetails, initialTab: String, messaging: Boolean,
-    initialConversation: Pair<PlayerConversation, String>?, onOpenMessenger: ((PlayerConversation, String) -> Unit)?, onOpenFriends: (() -> Unit)?, refresh: () -> Unit,
+    initialConversation: Pair<PlayerConversation, String>?, onOpenMessenger: ((PlayerConversation, String) -> Unit)?, onOpenFriends: (() -> Unit)?, onOpenBackups: (() -> Unit)?, refresh: () -> Unit,
     onRestored: () -> Unit, onImportDeck: (String, PortableDeck) -> Unit, onOpenCard: (SharedPlayerCard) -> Unit) {
     val scope = rememberCoroutineScope()
     var busy by remember { mutableStateOf(false) }
