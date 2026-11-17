@@ -1,3 +1,11 @@
+## 0.9.3-test.28 — listes et actions cartes
+
+- Bouton + visible dans chaque fiche : choix Collection, Deck ou Liste.
+- Appui long dans les grilles Collection, Extensions, listes et consultation de decks ; ouverture sans modification automatique.
+- Quantités et retrait confirmé depuis le menu d’une carte ; ajout de cartes accessible directement dans une liste.
+- Les listes simples n’affichent plus les diagnostics de construction de deck.
+- Version Test uniquement, données et services séparés de l’officielle.
+
 ## Test 0.9.3-test.27 — ajout rapide dans les decks
 
 - Bouton doré « Ajouter » directement sous le visuel de chaque carte, avant ses informations.

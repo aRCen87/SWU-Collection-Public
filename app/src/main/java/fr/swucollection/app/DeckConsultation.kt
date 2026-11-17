@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package fr.swucollection.app
 
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -98,18 +101,16 @@ internal fun DeckConsultation(draft: DeckDraft, catalog: List<CatalogCard>, onCl
 private fun DeckConsultationCard(entry: DeckEntry, cards: Map<String, CatalogCard>, onPreview: (CatalogCard) -> Unit,
     onQuantity: ((Int) -> Unit)? = null) {
     val card = cards[entry.cardId]
+    var managing by remember(entry.cardId) { mutableStateOf(false) }
     Column {
-        Row(Modifier.fillMaxWidth().clickable(enabled=card!=null){card?.let(onPreview)},verticalAlignment = Alignment.CenterVertically,
+        Row(Modifier.fillMaxWidth().combinedClickable(enabled=card!=null, onClick={card?.let(onPreview)}, onLongClickLabel="Modifier la quantité", onLongClick={if(onQuantity!=null)managing=true}),verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             CardArtwork(card, Modifier.size(48.dp, 64.dp))
             Text("${entry.count} × ${card?.name ?: entry.cardId}",modifier=Modifier.weight(1f),maxLines=3,overflow=TextOverflow.Ellipsis)
         }
-        if(onQuantity!=null) Row(verticalAlignment=Alignment.CenterVertically) {
-            IconButton(onClick={onQuantity(-1)}){Icon(Icons.Default.Remove,"Diminuer ${entry.cardId}")}
-            Text("${entry.count}")
-            IconButton(onClick={onQuantity(1)}){Icon(Icons.Default.Add,"Augmenter ${entry.cardId}")}
-            TextButton(onClick={onQuantity(-entry.count)}){Text("Retirer")}
-        }
+        if (onQuantity != null) TextButton(onClick = { managing = true }) { Text("Gérer · ×${entry.count}") }
+        if (managing && onQuantity != null) CardQuantityDialog(card?.name ?: entry.cardId, entry.count,
+            { managing = false }, { target -> onQuantity(target - entry.count) }, maximum = 3)
     }
 }
 

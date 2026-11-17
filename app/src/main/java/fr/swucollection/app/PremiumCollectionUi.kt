@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package fr.swucollection.app
 
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
@@ -130,7 +133,7 @@ private fun PremiumHomeTile(item: PremiumShortcut, prominent: Boolean, modifier:
 /** One tile per card family, always retaining the real language and print of its thumbnail. */
 @Composable
 internal fun PremiumOwnedTile(rows: List<CollectionCard>, catalogByKey: Map<String, CatalogCard>,
-    quotes: Map<String, MarketQuote>, status: PremierStatus?, onOpen: (CollectionCard, CatalogCard) -> Unit) {
+    quotes: Map<String, MarketQuote>, status: PremierStatus?, onOpen: (CollectionCard, CatalogCard) -> Unit, onLongPress: (CatalogCard) -> Unit = {}) {
     val first = rows.first()
     val card = catalogByKey[MarketPricing.key(first.setCode, first.number)]
     val priceLabel = remember(rows, quotes) {
@@ -142,7 +145,9 @@ internal fun PremiumOwnedTile(rows: List<CollectionCard>, catalogByKey: Map<Stri
             "Cote unitaire : " + if (low == high) money.format(low) else "${money.format(low)} – ${money.format(high)}"
         }
     }
-    Surface(onClick = { if (card != null) onOpen(first, card) }, modifier = Modifier.fillMaxWidth(),
+    Surface(modifier = Modifier.fillMaxWidth().combinedClickable(
+        onClick = { if (card != null) onOpen(first, card) },
+        onLongClickLabel = "Gérer cette carte", onLongClick = { card?.let(onLongPress) }),
         shape = RoundedCornerShape(15.dp), color = PremiumNavy,
         border = BorderStroke(1.dp, PremiumGold.copy(alpha = .45f))) {
         Column {
@@ -174,12 +179,12 @@ internal fun PremiumOwnedTile(rows: List<CollectionCard>, catalogByKey: Map<Stri
 /** Image-only browsing; identity and stock remain available to accessibility and in the usual detail. */
 @Composable
 internal fun OwnedMiniatureTile(rows: List<CollectionCard>, catalogByKey: Map<String, CatalogCard>,
-    onOpen: (CollectionCard, CatalogCard) -> Unit) {
+    onOpen: (CollectionCard, CatalogCard) -> Unit, onLongPress: (CatalogCard) -> Unit = {}) {
     val first = rows.first()
     val card = catalogByKey[MarketPricing.key(first.setCode, first.number)]
     Box(Modifier.fillMaxWidth().aspectRatio(0.716f).testTag("swu_miniature_tile")
         .clip(RoundedCornerShape(5.dp))
-        .clickable(enabled = card != null, role = Role.Button) { card?.let { onOpen(first, it) } }
+        .combinedClickable(enabled = card != null, role = Role.Button, onClick = { card?.let { onOpen(first, it) } }, onLongClickLabel = "Gérer cette carte", onLongClick = { card?.let(onLongPress) })
         .semantics(mergeDescendants = true) {
             contentDescription = "${first.name}, ${CardLanguages.label(first.language)}, ${first.variant}, ${rows.sumOf { it.quantity }} exemplaires"
         }) {

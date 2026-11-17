@@ -1,13 +1,16 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package fr.swucollection.app
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,10 +42,11 @@ internal fun DeckIdentityCard(label: String, card: CatalogCard?, reference: Stri
 internal fun DeckCardTile(card: CatalogCard, visual: Boolean, quantity: Int, owned: Int, missing: Int,
     slot: Boolean, selected: Boolean, canAdd: Boolean, onPreview: () -> Unit,
     onChoose: () -> Unit, onQuantity: (Int) -> Unit, moveLabel: String = "", canMove: Boolean = false, onMove: () -> Unit = {}, guidance: String? = null) {
+    var managing by remember(card.setCode, card.number) { mutableStateOf(false) }
     Surface(shape = RoundedCornerShape(12.dp), color = ListPalette.Raised,
         border = BorderStroke(1.dp, ListPalette.Gold.copy(alpha = if (selected || quantity > 0) .8f else .28f))) {
         @Composable fun artwork(modifier: Modifier) {
-            Box(modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onPreview)
+            Box(modifier.clip(RoundedCornerShape(8.dp)).combinedClickable(onClick = onPreview, onLongClickLabel = "Gérer cette carte", onLongClick = { managing = true })
                 .semantics { contentDescription = "Agrandir ${card.name}" }) {
                 CardArtwork(card, Modifier.fillMaxSize())
                 if (!slot && quantity > 0) Surface(Modifier.align(Alignment.TopEnd).padding(4.dp),
@@ -81,6 +85,13 @@ internal fun DeckCardTile(card: CatalogCard, visual: Boolean, quantity: Int, own
                     Text("Ajouter", maxLines = 1, style = MaterialTheme.typography.labelMedium)
                 }
             }
+        }
+        if (managing) {
+            if (slot) AlertDialog(onDismissRequest = { managing = false }, title = { Text(card.name) },
+                confirmButton = { TextButton(onClick = { onChoose(); managing = false }) { Text("Choisir") } },
+                dismissButton = { TextButton(onClick = { managing = false }) { Text("Annuler") } })
+            else CardQuantityDialog(card.name, quantity, { managing = false }, onQuantity,
+                maximum = if (canAdd) quantity + 1 else quantity)
         }
         Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             if (visual) {
