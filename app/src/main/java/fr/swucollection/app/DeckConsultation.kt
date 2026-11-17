@@ -203,7 +203,7 @@ internal fun DeckCardGallery(cards: List<CatalogCard>, initialId: String, onClos
     val card = cards[index.coerceIn(0, cards.lastIndex)]
     var zoom by remember(card) { mutableStateOf(1f) }
     var offset by remember(card) { mutableStateOf(Offset.Zero) }
-    var frame by remember(card) { mutableStateOf(androidx.compose.ui.unit.IntSize.Zero) }
+    var frame by remember { mutableStateOf(androidx.compose.ui.unit.IntSize.Zero) }
     var reverse by remember(card) { mutableStateOf(false) }
     val transform = rememberTransformableState { scale, pan, _ ->
         zoom = (zoom * scale).coerceIn(1f, 4f)
