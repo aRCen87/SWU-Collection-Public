@@ -5,7 +5,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 for format in cover unfolded landscape; do
   case "$format" in
-    cover) adb shell wm size 720x1560; adb shell wm density 320 ;;
+    cover) adb shell wm size 658x1536; adb shell wm density 320 ;;
     unfolded) adb shell wm size 1766x1472; adb shell wm density 336 ;;
     landscape) adb shell wm size 1560x720; adb shell wm density 320 ;;
   esac
