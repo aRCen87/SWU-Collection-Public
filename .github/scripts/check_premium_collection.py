@@ -55,17 +55,34 @@ def reveal_quantity(name):
         adb('shell','input','swipe',x,bottom-8,x,max(top+8,bottom-8-distance),450); time.sleep(1)
     raise AssertionError('Owned quantity and price are not reachable in the visual grid')
 
+def collection_grid(root):
+    return next(n for n in root.iter('node') if n.attrib.get('resource-id') in
+                ('swu_visual_grid', 'swu_miniature_grid', 'swu_unified_catalog') and bounds(n)[3] > bounds(n)[1])
+
+def scroll_collection(root, towards_start):
+    left,top,right,bottom = bounds(collection_grid(root))
+    x = left + (right-left)//4
+    start,end = (top+12,bottom-12) if towards_start else (bottom-12,top+12)
+    adb('shell','input','swipe',x,start,x,end,450); time.sleep(1)
+
+def reveal_header(label):
+    for attempt in range(12):
+        root = snapshot('header-' + label + '-' + str(attempt))
+        buttons = [n for n in root.iter('node') if n.attrib.get('text') == label and bounds(n)[3] > bounds(n)[1]]
+        if buttons: return buttons[-1]
+        scroll_collection(root, True)
+    raise AssertionError('Collection command is not reachable: ' + label)
+
+def reveal_artwork():
+    for attempt in range(12):
+        root = snapshot('catalogue-artwork-' + str(attempt))
+        images = [n for n in root.iter('node') if n.attrib.get('content-desc') == 'Visuel de la carte' and bounds(n)[3]-bounds(n)[1] >= 48]
+        if images: return images[0]
+        scroll_collection(root, False)
+    raise AssertionError('Catalogue artwork is not reachable')
+
 def choose_view(label):
-    for attempt in range(10):
-        root = snapshot('filters-button-' + str(attempt))
-        buttons = [n for n in root.iter('node') if n.attrib.get('text') == 'Filtres' and bounds(n)[3] > bounds(n)[1]]
-        if buttons:
-            tap(buttons[-1])
-            break
-        grid = next(n for n in root.iter('node') if n.attrib.get('resource-id') in ('swu_visual_grid', 'swu_miniature_grid', 'swu_unified_catalog'))
-        left,top,right,bottom = bounds(grid)
-        adb('shell','input','swipe',(left+right)//2,top+12,(left+right)//2,bottom-12,400); time.sleep(1)
-    else: raise AssertionError('Collection filters are not reachable after scrolling')
+    tap(reveal_header('Filtres'))
     tap(find(snapshot('view-options'), label))
     adb('shell', 'input', 'keyevent', 'KEYCODE_BACK'); time.sleep(2)
 
@@ -176,14 +193,13 @@ try:
     verify_motion()
     verify_secondary_shortcuts()
     tap(find(snapshot('home'),'Collection'))
-    tap(find(snapshot('collection-scopes'), 'Toutes les cartes'))
-    root = snapshot('catalogue')
-    tap(next(n for n in root.iter('node') if n.attrib.get('content-desc')=='Visuel de la carte' and bounds(n)[3]>bounds(n)[1]))
+    tap(reveal_header('Toutes les cartes'))
+    tap(reveal_artwork())
     tap(reveal('+'))
     # The first tap must only open the explicit confirmation.
     tap(find(snapshot('confirm-add'), 'Confirmer l’ajout'))
     tap(find(snapshot('added'),'Fermer la carte'))
-    tap(find(snapshot('catalogue-return'),'Possédées'))
+    tap(reveal_header('Possédées'))
     root = reveal_quantity('grid'); find(root,'× 1')
     assert any('Cote' in n.attrib.get('text','') for n in root.iter('node')), 'Visual grid lost price information'
     capture('collection-cover')
