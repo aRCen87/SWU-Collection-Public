@@ -1,5 +1,7 @@
 ## 0.9.3-test.28 — listes et actions cartes
 
+- Filtres combinables et choix multiples pour les couleurs, traits et extensions, dans le constructeur et l’ajout aux listes.
+- Construction visuelle : vue complète du deck par défaut, cartes entières triées par coût ; catalogue et deck côte à côte sur grand écran.
 - Bouton + visible dans chaque fiche : choix Collection, Deck ou Liste.
 - Appui long dans les grilles Collection, Extensions, listes et consultation de decks ; ouverture sans modification automatique.
 - Quantités et retrait confirmé depuis le menu d’une carte ; ajout de cartes accessible directement dans une liste.

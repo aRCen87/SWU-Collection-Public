@@ -94,8 +94,8 @@ internal fun DeckBuilderPanel(
             }
         }
     }
-    var tab by rememberSaveable { mutableStateOf(if (!newDeck) "Deck" else if (leaderChosen) "Base" else "Leader") }
-    var catalogueOpen by rememberSaveable { mutableStateOf(initial.deck.isEmpty()) }
+    var tab by rememberSaveable { mutableStateOf("Deck") }
+    var catalogueOpen by rememberSaveable { mutableStateOf(false) }
     var filters by rememberSaveable(stateSaver = Saver<DeckBrowserFilters, ArrayList<String>>(
         save = { arrayListOf(it.aspect, it.type, it.set, it.rarity, it.cost, it.arena, it.trait, it.stock) },
         restore = { DeckBrowserFilters(it[0], it[1], it[2], it[3], it[4], it[5], it[6], it[7]) }
@@ -170,7 +170,7 @@ internal fun DeckBuilderPanel(
             .onSuccess { onCancel() }
             .onFailure { closing = false; leaving = false; error = "Impossible de supprimer le brouillon. Le deck reste ouvert." }
     }
-    BackHandler { requestBack() }
+    BackHandler { if (!dualPane && (catalogueOpen || tab in listOf("Leader", "Base"))) { catalogueOpen = false; tab = "Deck"; query = "" } else requestBack() }
     val filtered = remember(catalog, query, tab, catalogueOpen, deck, details, filters, sort, ownedByFamily, affinityOnly, affinityPool, dualPane) {
         val candidates = if (tab == "Leader" || tab == "Base" || catalogueOpen || dualPane) catalog else entries.mapNotNull { byId[it.cardId] }
         candidates.filter { card ->
@@ -194,6 +194,18 @@ internal fun DeckBuilderPanel(
                     style = MaterialTheme.typography.titleMedium, color = gold)
             }
             TextButton(onClick = { requestBack() }) { Text("Quitter", color = gold) }
+        }
+        val browsing = dualPane || catalogueOpen || tab in listOf("Leader", "Base")
+        if (!browsing) {
+            DeckSelectionPane(name, deck, catalog, details, zone, leaderChosen, baseChosen,
+                Modifier.weight(1f).fillMaxWidth(),
+                onZone = { tab = if (it == DeckEditor.Zone.MAIN) "Deck" else "Réserve" },
+                onQuantity = { id, count, target -> runCatching { checkpoint(); deck = DeckEditor.setQuantity(deck, id, count, target) }.onFailure { error = it.message } },
+                onPreview = onPreview, onIdentity = { tab = it; query = "" },
+                onAdd = { catalogueOpen = true; query = "" }, ownedByFamily = ownedByFamily)
+        } else {
+        if (!dualPane) TextButton(onClick = { catalogueOpen = false; tab = if (zone == DeckEditor.Zone.SIDEBOARD) "Réserve" else "Deck"; query = "" }) {
+            Text("← Revenir au deck · ${deck.deck.sumOf { it.count }} cartes")
         }
         FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp), maxItemsInEachRow = if (largeText) 2 else 4) {
             listOf("Leader", "Base", "Deck", "Réserve").forEach { label ->
@@ -287,7 +299,7 @@ internal fun DeckBuilderPanel(
                             if (!baseChosen) tab = "Base"
                         } else {
                             deck = deck.copy(base = id); baseChosen = true
-                            if (leaderChosen) { tab = "Deck"; catalogueOpen = true }
+                            if (leaderChosen) { tab = "Deck"; catalogueOpen = dualPane }
                         }
                         query = ""; filters = DeckBrowserFilters()
                     },
@@ -314,7 +326,8 @@ internal fun DeckBuilderPanel(
         if (dualPane) DeckSelectionPane(name, deck, catalog, details, zone, leaderChosen, baseChosen,
             Modifier.weight(.8f).fillMaxHeight(), onZone = { tab = if (it == DeckEditor.Zone.MAIN) "Deck" else "Réserve"; query = "" },
             onQuantity = { id, count, target -> runCatching { checkpoint(); deck = DeckEditor.setQuantity(deck, id, count, target) }.onFailure { error = it.message } },
-            onPreview = onPreview)
+            onPreview = onPreview, onIdentity = { tab = it; query = "" }, ownedByFamily = ownedByFamily)
+        }
         }
         error?.let { Text(it, color = ListPalette.Danger) }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {

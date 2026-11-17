@@ -88,7 +88,7 @@ internal fun DeckConsultation(draft: DeckDraft, catalog: List<CatalogCard>, onCl
         }
     }, confirmButton = { TextButton(onClick = onEdit) { Text("Modifier") } },
         dismissButton = { TextButton(onClick = onClose) { Text("Fermer") } })
-    adding?.let { target -> InlineCardPicker(catalog, target, { adding = null }) { card ->
+    adding?.let { target -> InlineCardPicker(catalog, target, { adding = null }, details = details) { card ->
         runCatching {
             val next = DeckCompanion.add(draft.deck, card, catalog, details, if(target=="Réserve")DeckEditor.Zone.SIDEBOARD else DeckEditor.Zone.MAIN)
             change(draft.copy(deck=next, leaderChosen=draft.leaderChosen || target=="Leader", baseChosen=draft.baseChosen || target=="Base"))
@@ -116,16 +116,20 @@ private fun DeckConsultationCard(entry: DeckEntry, cards: Map<String, CatalogCar
 
 /** A bounded, lazy picker keeps the current list/deck open underneath. */
 @Composable
-internal fun InlineCardPicker(catalog:List<CatalogCard>,target:String,onClose:()->Unit,onChoose:(CatalogCard)->Unit) {
+internal fun InlineCardPicker(catalog:List<CatalogCard>,target:String,onClose:()->Unit,details: CardDetails = CardDetails.empty(), onChoose:(CatalogCard)->Unit) {
     var query by remember {mutableStateOf("")}
-    val visible=remember(catalog,query,target){catalog.filter { card ->
+    var filters by remember { mutableStateOf(DeckBrowserFilters()) }
+    var filtering by remember { mutableStateOf(false) }
+    val visible=remember(catalog,query,target,filters,details){catalog.filter { card ->
         val type=DeckConstruction.type(card)
         val eligible=when(target){"Leader"->type in listOf("leader","chef");"Base"->type=="base";"Liste"->true;else->type in listOf("unite","unit","evenement","event","amelioration","upgrade")}
-        eligible && DeckBrowser.search(card,query)
+        eligible && DeckBrowser.search(card,query) && filters.matches(card, details.get(card), 0, target in listOf("Leader", "Base"))
     }}
     AlertDialog(onDismissRequest=onClose,title={Text("Ajouter une carte · $target")},text={
         Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(query,{query=it.take(120)},label={Text("Rechercher une carte")},singleLine=true,modifier=Modifier.fillMaxWidth())
+            OutlinedButton(onClick = { filtering = true }) { Text("Filtres (${filters.activeCount})") }
+            Text("${visible.size} carte(s)", style = MaterialTheme.typography.labelSmall)
             LazyColumn(Modifier.fillMaxWidth().heightIn(max=320.dp)) {
                 if(visible.isEmpty())item{Text("Aucune carte pour cette recherche.")}
                 items(visible,key={DeckConstruction.reference(it)}){card->
@@ -138,4 +142,5 @@ internal fun InlineCardPicker(catalog:List<CatalogCard>,target:String,onClose:()
             }
         }
     },confirmButton={TextButton(onClick=onClose){Text("Terminer")}})
+    if (filtering) DeckFilterDialog(filters, catalog, details, { filters = it }, { filtering = false }, identity = target in listOf("Leader", "Base"))
 }

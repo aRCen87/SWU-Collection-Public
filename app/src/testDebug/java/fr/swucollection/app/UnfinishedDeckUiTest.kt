@@ -63,16 +63,20 @@ class UnfinishedDeckUiTest {
         } }
         ui.onNodeWithText("1 × Carte test").performScrollTo().performClick()
         ui.runOnIdle { assertEquals(card, preview) }
-        ui.onNodeWithContentDescription("Augmenter SOR-095").performScrollTo().performClick()
+        ui.onNodeWithText("Gérer · ×1").performScrollTo().performClick()
+        ui.onNodeWithText("+1 exemplaire").performClick()
         ui.runOnIdle {
             assertEquals(2, latest.deck.deck.single().count)
             assertFalse(latest.leaderChosen); assertFalse(latest.baseChosen)
             assertEquals(original.collectionEntries, latest.collectionEntries)
             assertEquals("pending-scan", latest.collectionBatchId)
         }
-        ui.onNodeWithContentDescription("Diminuer SOR-095").performScrollTo().assertIsDisplayed().performClick()
+        ui.onNodeWithText("Gérer · ×2").performScrollTo().performClick()
+        ui.onNodeWithText("−1 exemplaire").performClick()
         ui.runOnIdle { assertEquals(1, latest.deck.deck.single().count) }
-        ui.onNodeWithText("Retirer").performScrollTo().assertIsDisplayed().performClick()
+        ui.onNodeWithText("Gérer · ×1").performScrollTo().performClick()
+        ui.onNodeWithText("Retirer la carte").performClick()
+        ui.onNodeWithText("Retirer", useUnmergedTree = true).performClick()
         ui.onNodeWithText("Aucune carte pour le moment.").performScrollTo().assertExists()
         ui.runOnIdle { assertTrue(latest.deck.deck.isEmpty()) }
     }
@@ -91,7 +95,8 @@ class UnfinishedDeckUiTest {
             if (preview) Button(onClick = { preview = false }) { Text("Fermer la fiche") }
         } } }
         ui.onNodeWithText("Consulter").performClick()
-        ui.onNodeWithContentDescription("Augmenter SOR-095").performScrollTo().performClick()
+        ui.onNodeWithText("Gérer · ×1").performScrollTo().performClick()
+        ui.onNodeWithText("+1 exemplaire").performClick()
         ui.onNodeWithText("2 × Carte test").performScrollTo().performClick()
         ui.onNodeWithText("Fermer la fiche").assertExists()
         ui.onNodeWithText("Ajouter au deck").assertDoesNotExist()
