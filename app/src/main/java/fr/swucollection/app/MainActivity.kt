@@ -1193,7 +1193,7 @@ private fun CollectionScreen(
                 }
                 }
                 if (selectedSection == "Collection") {
-                val scrollingMiniatureControls = compactCollectionLayout && collectionView == "Miniatures"
+                val scrollingMiniatureControls = privateLayout && collectionView in listOf("Visuel", "Miniatures")
                 val collectionControls: @Composable () -> Unit = {
                 FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Button(onClick = { openScanner() }, modifier = Modifier.widthIn(min = 112.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)) {
