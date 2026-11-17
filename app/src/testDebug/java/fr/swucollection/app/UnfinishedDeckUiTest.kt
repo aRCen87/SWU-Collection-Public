@@ -26,8 +26,8 @@ class UnfinishedDeckUiTest {
         ui.setContent { MaterialTheme { DeckConsultation(draft, emptyList(), { closed = true }, { edited = true }) } }
         ui.onNodeWithTag("swu_deck_consultation_fullscreen").assertIsDisplayed()
         val screen = ui.onNodeWithTag("swu_deck_consultation_fullscreen").getUnclippedBoundsInRoot()
-        assertTrue(screen.width.value >= 590f)
-        assertTrue(screen.height.value >= 850f)
+        assertTrue((screen.right - screen.left).value >= 590f)
+        assertTrue((screen.bottom - screen.top).value >= 850f)
         ui.onNodeWithText("Leader à choisir").assertExists()
         ui.onNodeWithText("Base à choisir").assertExists()
         ui.onNodeWithText("Aucune carte pour le moment.").assertExists()
