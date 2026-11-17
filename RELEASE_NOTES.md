@@ -1,7 +1,7 @@
 ## 0.9.3-test.31
 
 - Accès séparés Mes decks, Mes proxies et Mes listes, avec boutons illustrés coordonnés.
-- Barre du bas : Accueil, Collection, Mes decks, Mes proxies et Mes listes.
+- Barre du bas personnalisable par appui long : choix des destinations, ordre, icônes dédiées, cinq raccourcis maximum et mémorisation sur le téléphone.
 - Redirection des imports, partages et scans de decks vers Mes decks.
 - Conservation des listes et de l’ordre personnalisé de l’accueil.
 

@@ -1430,7 +1430,7 @@ private fun CollectionScreen(
         }
         if (!deckWorkspace && selectedSection != "Messagerie") Box(Modifier.align(androidx.compose.ui.Alignment.BottomCenter)
             .then(if (privateLayout) Modifier.widthIn(max = 640.dp) else Modifier).fillMaxWidth()) {
-            CollectionBottomBar(selectedSection) { section -> navigation.navigateTo(section) }
+            CollectionBottomBar(selectedSection) { section -> if (section == "Scanner") openScanner() else navigation.navigateTo(section) }
         }
     }
     }
