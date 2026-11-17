@@ -183,10 +183,10 @@ internal fun DeckBuilderPanel(
                 else -> type in listOf("unite", "unit", "evenement", "event", "amelioration", "upgrade")
             }
             val identity = tab == "Leader" || tab == "Base"
-            (correctType || (!catalogueOpen && tab in listOf("Deck", "Réserve"))) &&
-                (identity || !catalogueOpen || !affinityOnly || affinityPool == null || DeckInsights.affinity(card, affinityPool, details) == DeckInsights.Affinity.MATCH) &&
+            (correctType || (!catalogueOpen && !dualPane && tab in listOf("Deck", "Réserve"))) &&
+                (identity || (!catalogueOpen && !dualPane) || !affinityOnly || affinityPool == null || DeckInsights.affinity(card, affinityPool, details) == DeckInsights.Affinity.MATCH) &&
                 DeckBrowser.search(card, query) && filters.matches(card, details.get(card), ownedByFamily[details.family(card)] ?: 0, identity)
-        }.distinctBy { if (catalogueOpen || tab == "Leader" || tab == "Base") details.family(it) else it.setCode + "-" + it.number }
+        }.distinctBy { if (catalogueOpen || dualPane || tab == "Leader" || tab == "Base") details.family(it) else it.setCode + "-" + it.number }
             .sortedWith(DeckBrowser.comparator(sort, details, DeckBrowser.extensionOrder(catalog)))
     }
     Column(Modifier.fillMaxWidth().fillMaxHeight().padding(horizontal = 8.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -257,7 +257,7 @@ internal fun DeckBuilderPanel(
         }
                 }
             }
-            if (!catalogueOpen && query.isBlank() && tab in listOf("Deck", "Réserve")) item(key = "deck-identities", span = { GridItemSpan(maxLineSpan) }) {
+            if (!dualPane && !catalogueOpen && query.isBlank() && tab in listOf("Deck", "Réserve")) item(key = "deck-identities", span = { GridItemSpan(maxLineSpan) }) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     DeckIdentityCard("Leader", if (leaderChosen) byId[deck.leader] else null, "À choisir", Modifier.weight(1f),
                         onPreview = { byId[deck.leader]?.let { onPreview(it, listOfNotNull(byId[deck.leader], byId[deck.base])) } },
@@ -267,7 +267,7 @@ internal fun DeckBuilderPanel(
                         onChange = { tab = "Base"; query = "" })
                 }
             }
-            if (tab in listOf("Deck", "Réserve")) item(key = "catalogue-toggle", span = { GridItemSpan(maxLineSpan) }) {
+            if (!dualPane && tab in listOf("Deck", "Réserve")) item(key = "catalogue-toggle", span = { GridItemSpan(maxLineSpan) }) {
                 FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), maxItemsInEachRow = 2) {
                     FilterChip(catalogueOpen, onClick = { catalogueOpen = true }, modifier = Modifier.weight(1f), label = { Text("Ajouter des cartes") })
                     FilterChip(!catalogueOpen, onClick = { catalogueOpen = false; affinityOnly = false }, modifier = Modifier.weight(1f), label = { Text(if (tab == "Réserve") "Cartes de réserve" else "Cartes du deck") })
