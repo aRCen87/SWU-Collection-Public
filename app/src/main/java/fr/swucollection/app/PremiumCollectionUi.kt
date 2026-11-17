@@ -62,7 +62,7 @@ internal data class PremiumShortcut(val key: String, val title: String, val subt
 private val premiumShortcuts = listOf(
     PremiumShortcut("MA COLLECTION", "Ma collection", "Parcourir et gérer mes cartes", Icons.Default.CollectionsBookmark),
     PremiumShortcut("SCANNER", "Scanner mes cartes", "Ajouter rapidement à ma collection", Icons.Default.DocumentScanner),
-    PremiumShortcut("MES DECKS", "Mes decks", "Construire et gérer mes decks", Icons.Default.FormatListBulleted),
+    PremiumShortcut("MES DECKS", "Mes decks", "Construire et gérer mes decks", Icons.Default.Style),
     PremiumShortcut("MES PROXIES", "Mes proxies", "Préparer mes cartes à imprimer", Icons.Default.Print),
     PremiumShortcut("MES LISTES", "Mes listes", "Favoris et cartes à rechercher", Icons.Default.FormatListBulleted),
     PremiumShortcut("TOURNOIS & MÉTA", "Méta & tournois", "Résultats et decks du moment", Icons.Default.EmojiEvents),

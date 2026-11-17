@@ -27,6 +27,7 @@ class BottomShortcutsUiTest {
         ui.onNodeWithText("Mes raccourcis").assertIsDisplayed()
         ui.runOnIdle { assertEquals(0, navigations) }
         ui.onNodeWithText("5/5 raccourcis").assertIsDisplayed()
+        ui.onNodeWithText("Scanner").assertIsNotEnabled()
         ui.onNodeWithContentDescription("Retirer Mes listes").performClick()
         ui.onNodeWithText("4/5 raccourcis").assertIsDisplayed()
         ui.onNodeWithText("Annuler").performClick()
