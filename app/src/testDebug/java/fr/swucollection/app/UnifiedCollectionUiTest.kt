@@ -1,6 +1,7 @@
 package fr.swucollection.app
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.*
@@ -27,4 +28,17 @@ class UnifiedCollectionUiTest {
         ui.onNodeWithContentDescription("Ajouter ou gérer Carte A").performClick()
         ui.runOnIdle { assertEquals(card, action); assertEquals(2, owned.single().quantity) }
     }
+    @Test fun missingDimmingCanBeToggledWithoutChangingTheCollection() {
+        var dimmed = true
+        val owned = listOf(CollectionCard(1, "Carte A", "SOR", "095", "Foil", 2, "FR"))
+        ui.setContent { MaterialTheme {
+            var selected by remember { mutableStateOf(true) }
+            MissingCardDimmingToggle(selected) { selected = it; dimmed = it }
+        } }
+        ui.onNodeWithText("Griser les non possédées").performClick().assertIsNotSelected()
+        ui.runOnIdle { assertFalse(dimmed); assertEquals(2, owned.single().quantity) }
+        ui.onNodeWithText("Griser les non possédées").performClick().assertIsSelected()
+        ui.runOnIdle { assertTrue(dimmed) }
+    }
+
 }

@@ -40,7 +40,7 @@ internal object UnifiedCollection {
 internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<CollectionCard>,
     scope: String, set: String, language: String, query: String, view: String, details: CardDetails,
     modifier: Modifier = Modifier, onPreview: (CatalogCard, List<CatalogCard>) -> Unit,
-    onActions: (CatalogCard) -> Unit) {
+    onActions: (CatalogCard) -> Unit, dimMissing: Boolean = true) {
     val visible = remember(catalog, owned, scope, set, language, query, details) {
         UnifiedCollection.catalogCards(catalog, owned, scope, set, language, query, details)
     }
@@ -55,7 +55,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                 Surface(color = ListPalette.Background, modifier = Modifier.fillMaxWidth().combinedClickable(
                     onClick = { onPreview(card, visible) }, onLongClickLabel = "Gérer cette carte", onLongClick = { onActions(card) })) {
                     Row(Modifier.padding(10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        CardArtwork(card, Modifier.size(52.dp, 74.dp), language = language.takeIf { it in CardLanguages.supported } ?: card.language)
+                        CardArtwork(card, Modifier.size(52.dp, 74.dp), language = language.takeIf { it in CardLanguages.supported } ?: card.language, grayscale = dimMissing && quantity == 0)
                         Column(Modifier.weight(1f)) {
                             Text(card.name)
                             Text("${card.setCode} · ${card.number}", style = MaterialTheme.typography.labelSmall)
@@ -77,7 +77,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                         onLongClickLabel = "Gérer cette carte", onLongClick = { onActions(card) })
                         .semantics { contentDescription = "${card.name}, $quantity exemplaire(s)" }) {
                         CardArtwork(card, Modifier.fillMaxWidth().aspectRatio(5f / 7f), language = language.takeIf { it in CardLanguages.supported } ?: card.language,
-                            showLanguageLabel = !miniatures)
+                            showLanguageLabel = !miniatures, grayscale = dimMissing && quantity == 0)
                         if (!miniatures) {
                             Text(card.name, maxLines = 2, style = MaterialTheme.typography.labelMedium)
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -90,4 +90,9 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
             }
         }
     }
+}
+
+@Composable
+internal fun MissingCardDimmingToggle(selected: Boolean, onChange: (Boolean) -> Unit) {
+    FilterChip(selected = selected, onClick = { onChange(!selected) }, label = { Text("Griser les non possédées") })
 }

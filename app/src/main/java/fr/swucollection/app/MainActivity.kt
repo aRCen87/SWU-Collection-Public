@@ -322,6 +322,8 @@ private fun CollectionScreen(
     var ownershipFilter by rememberCollectionFilter("ownershipFilter", "Toutes")
     var collectionSetFilter by rememberCollectionFilter("collectionSetFilter", "Toutes")
     var collectionView by rememberCollectionFilter("collectionView", "Visuel")
+    var dimMissingValue by rememberCollectionFilter("dimMissing", "true")
+    val dimMissing = dimMissingValue == "true"
     var savedCollectionSort by rememberCollectionFilter("sort", CollectionPriceSort.CATALOG.name)
     val collectionSort = CollectionPriceSort.entries.firstOrNull { it.name == savedCollectionSort } ?: CollectionPriceSort.CATALOG
     var groupVersionsValue by rememberCollectionFilter("groupVersions", privateLayout.toString())
@@ -1207,6 +1209,7 @@ private fun CollectionScreen(
                         Spacer(Modifier.width(5.dp)); Text("Ajout manuel")
                     }
                     TextButton(onClick = { collectionWorkbench = true }) { Text("Gérer ma collection") }
+                    MissingCardDimmingToggle(dimMissing) { dimMissingValue = it.toString() }
                 }
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("Possédées", "Toutes les cartes", "Manquantes").forEach { scope ->
@@ -1335,7 +1338,7 @@ private fun CollectionScreen(
                     UnifiedCollectionCatalog(allCatalog, cards, collectionScope, collectionSetFilter, collectionLanguage, search,
                         collectionView, cardDetails, Modifier.weight(1f),
                         onPreview = { card, visible -> openPreview(card, visible.map { CardPreviewEntry(it) }) },
-                        onActions = { quickCard = it })
+                        onActions = { quickCard = it }, dimMissing = dimMissing)
                 } else {
                 if (scrollingMiniatureControls && selectedOwned.isEmpty()) collectionControls()
                 if (!scrollingMiniatureControls || selectedOwned.isEmpty()) Text(if (compactCollectionLayout) "${selectedOwned.sumOf { it.quantity }} exemplaires affichés"

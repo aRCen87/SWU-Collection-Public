@@ -1,6 +1,7 @@
 ## 0.9.3-test.29 — Collection unifiée et deck en plein écran
 
 - Collection et Extensions réunies : Possédées, Toutes les cartes, Manquantes et filtre d’extension commun ; vues Liste, Visuel et Miniatures conservées. Les anciens liens d’extension ouvrent cette vue unifiée.
+- Bouton direct pour griser ou remettre en couleur les non possédées, mémorisé et commun aux trois affichages.
 - Ajout à la collection confirmé avec langue et finition : ouvrir le menu ou toucher + ne change aucune quantité.
 - Retour visible après réussite et quantité possédée affichée dans Extensions.
 - Consulter ouvre un écran complet avec toutes les cartes entières du deck et de la réserve, y compris les brouillons ; zoom et modifications explicites conservés.
