@@ -402,7 +402,7 @@ private fun CollectionScreen(
         previewSession = null
         creatingDeck = false
         editingDeck = saved
-        navigation.navigateTo("Mes listes")
+        navigation.navigateTo("Mes decks")
     }
     fun openScanner() {
         navigation.navigateTo("Scanner")
@@ -558,7 +558,7 @@ private fun CollectionScreen(
         MatchCounterPanel(database, onClose = { navigation.back() })
         return
     }
-    val deckWorkspace = selectedSection == "Mes listes" && (creatingDeck || editingDeck != null)
+    val deckWorkspace = selectedSection == "Mes decks" && (creatingDeck || editingDeck != null)
     val previewPane: @Composable () -> Unit = {
     previewSession?.let { session ->
         val card = CardLanguageArtwork.localized(deckContext,previewPrint ?: session.current.card,previewLanguage,previewVariant)
@@ -729,11 +729,11 @@ private fun CollectionScreen(
             Modifier.align(androidx.compose.ui.Alignment.TopCenter)
                 .then(if (privateLayout && !immersiveHome) Modifier.widthIn(max = when (selectedSection) {
                     "Accueil" -> 600.dp
-                    "Collection", "Extensions", "Mes listes", "Hauts faits" -> 1000.dp
+                    "Collection", "Extensions", "Mes decks", "Mes proxies", "Mes listes", "Hauts faits" -> 1000.dp
                     else -> 760.dp
                 }) else Modifier)
                 .fillMaxSize().padding(bottom = if (deckWorkspace || selectedSection == "Messagerie") 0.dp else 82.dp).then(
-                if (selectedSection in listOf("Collection", "Extensions", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta", "Prêts", "Messagerie"))
+                if (selectedSection in listOf("Collection", "Extensions", "Mes decks", "Mes proxies", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta", "Prêts", "Messagerie"))
                     Modifier else Modifier.verticalScroll(rememberScrollState())
             ).then(if(immersiveHome) Modifier else if(selectedSection=="Messagerie")Modifier.padding(messengerContentPadding()) else Modifier.padding(horizontal = 16.dp, vertical = 10.dp)),
             horizontalAlignment=if(immersiveHome) androidx.compose.ui.Alignment.CenterHorizontally else androidx.compose.ui.Alignment.Start,
@@ -798,7 +798,7 @@ private fun CollectionScreen(
                         "Recherche" -> "Rechercher"
                         "Ajouter" -> "Ajout manuel"
                         "Sauvegardes" -> "Sauvegardes"
-                        "Mes listes" -> if (deckWorkspace) "Construire un deck" else "Mes listes"
+                        "Mes decks" -> if (deckWorkspace) "Construire un deck" else "Mes decks"
                         "Hauts faits" -> "Badges"
                         "Communauté" -> "Mon compte"
                         else -> selectedSection
@@ -845,7 +845,9 @@ private fun CollectionScreen(
                         "SCANNER" -> openScanner()
                         "MA COLLECTION" -> navigation.navigateTo("Collection")
                         "EXTENSIONS" -> navigation.navigateTo("Extensions")
-                        "MES DECKS" -> { deckLibraryVisible = true; navigation.navigateTo("Mes listes") }
+                        "MES LISTES" -> navigation.navigateTo("Mes listes")
+                        "MES PROXIES" -> navigation.navigateTo("Mes proxies")
+                        "MES DECKS" -> { deckLibraryVisible = true; navigation.navigateTo("Mes decks") }
                         "TOURNOIS & MÉTA" -> navigation.navigateTo("Tournois & Méta")
                         "ÉCHANGES" -> navigation.navigateTo("Échanges")
                         "BADGES" -> navigation.navigateTo("Hauts faits")
@@ -865,11 +867,13 @@ private fun CollectionScreen(
                     navigation.navigateTo("Collection")
                 })
 
-                    "MES DECKS" -> HomeNavigationCard("★", "MES DECKS", "Decks et cartes favorites", reflection = borderTilt, onClick = {
+                    "MES DECKS" -> HomeNavigationCard("★", "MES DECKS", "Construire et gérer mes decks", reflection = borderTilt, onClick = {
                     deckLibraryVisible = true
-                    navigation.navigateTo("Mes listes")
+                    navigation.navigateTo("Mes decks")
                 })
 
+                    "MES LISTES" -> HomeNavigationCard("▤", "MES LISTES", "Favoris et cartes à rechercher", reflection = borderTilt, onClick = { navigation.navigateTo("Mes listes") })
+                    "MES PROXIES" -> HomeNavigationCard("▣", "MES PROXIES", "Préparer mes cartes à imprimer", reflection = borderTilt, onClick = { navigation.navigateTo("Mes proxies") })
                     "TOURNOIS & MÉTA" -> HomeNavigationCard("🏆", "TOURNOIS & MÉTA", "Résultats, méta et decks de tournoi", reflection = borderTilt, onClick = {
                     navigation.navigateTo("Tournois & Méta")
                 })
@@ -902,14 +906,12 @@ private fun CollectionScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                 }
             }
-            if (selectedSection == "Mes listes") {
+            if (selectedSection == "Mes decks") {
                 if (importingDeck) DeckImportDialog(catalog = allCatalog, details = cardDetails, onDismiss = { importingDeck = false }, onImport = { title, imported ->
                     editingDeck = DeckStore.SavedDeck(java.util.UUID.randomUUID().toString(), title, "Premier", imported, System.currentTimeMillis())
                     importingDeck = false
                 })
-                if (proxyBuilderOpen) {
-                    ProxyBuilderPanel(allCatalog, cards, cardDetails, onBack = { proxyBuilderOpen = false })
-                } else if (creatingDeck || editingDeck != null) {
+                if (creatingDeck || editingDeck != null) {
                     DeckBuilderPanel(
                         catalog = allCatalog, owned = cards,
                         initial = editingDeck?.deck ?: PortableDeck("SOR-001", "SOR-024", emptyList()),
@@ -930,13 +932,8 @@ private fun CollectionScreen(
                         onPreview = { card, visible -> openPreview(card, visible.map { CardPreviewEntry(it) }) }
                     )
                 } else {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(deckLibraryVisible, onClick = { deckLibraryVisible = true }, label = { Text("Mes decks") })
-                        FilterChip(!deckLibraryVisible, onClick = { deckLibraryVisible = false }, label = { Text("Listes de cartes") })
-                        OutlinedButton(onClick = { proxyBuilderOpen = true }) { Text("Proxies") }
-                    }
                     deckMessage?.let { Text(it, color = Color(0xFFFFD47D)) }
-                    if (deckLibraryVisible) DeckLibraryPanel(savedDecks, Modifier.weight(1f), catalog = allCatalog, owned = cards, details = cardDetails,
+                    DeckLibraryPanel(savedDecks, Modifier.weight(1f), catalog = allCatalog, owned = cards, details = cardDetails,
                         previewOpen = previewSession != null,
                         onPreview = { card, visible -> openPreview(card, visible.map { CardPreviewEntry(it) }) },
                         onInlineSave = { id, expected, next ->
@@ -969,7 +966,11 @@ private fun CollectionScreen(
                 savedDecks.firstOrNull { it.id == exportingDeckId }?.let { saved ->
                     DeckExportDialog(saved.deck, saved.name, allCatalog, cardDetails, owned = cards, onDismiss = { exportingDeckId = null })
                 }
-                if (!creatingDeck && editingDeck == null && !deckLibraryVisible) {
+            }
+            if (selectedSection == "Mes proxies") {
+                ProxyBuilderPanel(allCatalog, cards, cardDetails, onBack = { navigation.back() })
+            }
+            if (selectedSection == "Mes listes") {
                 CardListsPanel(personalLists, selectedSet, Modifier.weight(1f),
                     onOpen = { if (it == null) navigation.upToLists() else navigation.navigateTo("Mes listes", it) },
                     onCreate = { val id = database.createCardList(it); refresh(); navigation.navigateTo("Mes listes", id) },
@@ -979,7 +980,6 @@ private fun CollectionScreen(
                     onPreview = { card, visible -> openPreview(card, visible.map { CardPreviewEntry(it) }) },
                     owned = cards, catalog = allCatalog, details = cardDetails, rules = legalitySnapshot.rules,
                     onFormat = { id, format -> database.setListFormat(id, format); refresh() })
-                }
             }
             if (selectedSection == "Tournois & Méta") {
                 CompetitiveHub(allCatalog, cards, cardDetails, legalitySnapshot.rules, savedDecks, Modifier.weight(1f),
@@ -1011,7 +1011,7 @@ private fun CollectionScreen(
                         onImportDeck = { title, imported ->
                             editingDeck = DeckStore.SavedDeck(java.util.UUID.randomUUID().toString(), title, "Premier", imported, System.currentTimeMillis())
                             creatingDeck = false
-                            navigation.navigateTo("Mes listes")
+                            navigation.navigateTo("Mes decks")
                         })
                 } else ExchangePanel(sets, catalogBySet, cards, Modifier.weight(1f), database, cardDetails)
             }
@@ -1075,7 +1075,7 @@ private fun CollectionScreen(
                     onImportDeck = { title, imported ->
                         editingDeck = DeckStore.SavedDeck(java.util.UUID.randomUUID().toString(), title, "Premier", imported, System.currentTimeMillis())
                         creatingDeck = false
-                        navigation.navigateTo("Mes listes")
+                        navigation.navigateTo("Mes decks")
                     })
                 }
             }
@@ -1462,7 +1462,7 @@ private fun CollectionScreen(
     }
     addingToDeck?.let { card ->
         AddCardToDeckDialog(card, savedDecks, onDismiss = { addingToDeck = null },
-            onCreate = { beginNewDeck(card); addingToDeck = null; previewSession = null; navigation.navigateTo("Mes listes") },
+            onCreate = { beginNewDeck(card); addingToDeck = null; previewSession = null; navigation.navigateTo("Mes decks") },
             onAdd = { saved, zone ->
                 runCatching {
                     val latest = deckStore.all().firstOrNull { it.id == saved.id } ?: error("Ce deck a été supprimé.")
@@ -1597,20 +1597,20 @@ private fun CollectionScreen(
                 if (creatingDeck || editingDeck != null) {
                     Button(onClick = {
                         scanDeckPicker = false; closeScanner(); startDeckScan = true
-                        navigation.navigateTo("Mes listes")
+                        navigation.navigateTo("Mes decks")
                     }, modifier = Modifier.fillMaxWidth()) { Text("Reprendre le deck en cours") }
                 } else {
                     Button(onClick = {
                         scanDeckPicker = false; closeScanner()
                         beginNewDeck()
                         startDeckScan = true
-                        navigation.navigateTo("Mes listes")
+                        navigation.navigateTo("Mes decks")
                     }, modifier = Modifier.fillMaxWidth()) { Text("Créer un deck") }
                     DeckDraftStore(deckContext).newDrafts().forEach { (key, draft) ->
                         OutlinedButton(onClick = {
                             scanDeckPicker = false; closeScanner()
                             creatingSeed = null; creatingDraftKey = key; creatingDeck = true; startDeckScan = true
-                            navigation.navigateTo("Mes listes")
+                            navigation.navigateTo("Mes decks")
                         }, modifier = Modifier.fillMaxWidth()) { Text("${draft.name} · brouillon") }
                     }
                     savedDecks.forEach { saved ->

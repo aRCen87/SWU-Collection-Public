@@ -17,12 +17,13 @@ internal class HomeLayoutStore(context: Context) {
     fun read(): HomeLayout = runCatching { parse(prefs.getString("layout", "{}")!!) }.getOrDefault(HomeLayout())
     fun write(layout: HomeLayout) { val raw = json(layout); parse(raw); check(prefs.edit().putString("layout", raw).commit()) { "Personnalisation non enregistrée." } }
     companion object {
-        val defaults = listOf("SCANNER", "EXTENSIONS", "MA COLLECTION", "MES DECKS", "TOURNOIS & MÉTA", "ÉCHANGES", "BADGES", "STATISTIQUES")
+        val defaults = listOf("SCANNER", "EXTENSIONS", "MA COLLECTION", "MES DECKS", "MES PROXIES", "MES LISTES", "TOURNOIS & MÉTA", "ÉCHANGES", "BADGES", "STATISTIQUES")
         fun json(layout: HomeLayout) = JSONObject().put("order", JSONArray(layout.order)).put("set", layout.set).toString()
         fun parse(raw: String): HomeLayout {
             val root = JSONObject(raw)
             val array = root.optJSONArray("order") ?: JSONArray(defaults)
-            val order = (0 until array.length()).map { array.getString(it) }
+            val savedOrder = (0 until array.length()).map { array.getString(it) }
+            val order = if (savedOrder.size == defaults.size - 2 && savedOrder.toSet() == (defaults - setOf("MES PROXIES", "MES LISTES")).toSet()) savedOrder + listOf("MES PROXIES", "MES LISTES") else savedOrder
             require(order.size == defaults.size && order.toSet() == defaults.toSet()) { "Ordre de l’accueil invalide." }
             val set = root.optString("set", "")
             require(set.isEmpty() || Regex("[A-Z0-9]{2,12}").matches(set))

@@ -63,7 +63,7 @@ fun FavoriteListDialog(card: CatalogCard, lists: List<CardList>, onDismiss: () -
                 Text(card.name, fontWeight = FontWeight.Bold)
                 Text("Choisis une liste pour cette carte.")
                 Button(onClick = { creating = true }, modifier = Modifier.fillMaxWidth()) { Text("+ Créer une nouvelle liste") }
-                if (lists.isEmpty()) Text("Tes favoris et cartes à rechercher apparaîtront dans Mes listes, onglet Listes de cartes.")
+                if (lists.isEmpty()) Text("Tes favoris et cartes à rechercher apparaîtront dans Mes listes.")
                 lists.forEach { list ->
                     val present = list.entries.any { it.card.setCode == card.setCode && it.card.number == card.number }
                     OutlinedButton(onClick = { onAdd(list.id) }, enabled = !present, modifier = Modifier.fillMaxWidth()) {

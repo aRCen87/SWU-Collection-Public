@@ -17,7 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-internal val primaryDestinations = listOf("Accueil", "Collection", "Mes listes", "Échanges")
+internal val primaryDestinations = listOf("Accueil", "Collection", "Mes decks", "Mes proxies", "Mes listes")
 
 @Composable
 internal fun CollectionBottomBar(section: String, onNavigate: (String) -> Unit) {
@@ -27,7 +27,7 @@ internal fun CollectionBottomBar(section: String, onNavigate: (String) -> Unit) 
         else -> section
     }
     val icons = listOf(Icons.Default.Home, Icons.Default.CollectionsBookmark,
-        Icons.Default.Star, Icons.Default.SwapHoriz)
+        Icons.Default.Style, Icons.Default.Print, Icons.Default.FormatListBulleted)
     Surface(color = Color(0xFF0B1B2D), border = BorderStroke(1.dp, Color(0xFF9C7941)),
         shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)) {
         NavigationBar(containerColor = Color.Transparent, tonalElevation = 0.dp, windowInsets = WindowInsets(0,0,0,0)) {

@@ -1,3 +1,10 @@
+## 0.9.3-test.31
+
+- Accès séparés Mes decks, Mes proxies et Mes listes, avec boutons illustrés coordonnés.
+- Barre du bas : Accueil, Collection, Mes decks, Mes proxies et Mes listes.
+- Redirection des imports, partages et scans de decks vers Mes decks.
+- Conservation des listes et de l’ordre personnalisé de l’accueil.
+
 ## 0.9.3-test.30 — decks plus visuels et parcours simplifiés
 
 - Vue du deck : grille plus compacte (trois cartes par ligne sur téléphone standard, davantage selon la largeur), quantités sur les images, leader/base encadrés et progression vers 50 cartes. Noms nettoyés des balises d’affichage.
