@@ -1209,14 +1209,8 @@ private fun CollectionScreen(
                     TextButton(onClick = { collectionWorkbench = true }) { Text("Gérer ma collection") }
                     MissingCardDimmingToggle(dimMissing) { dimMissingValue = it.toString() }
                 }
-                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf("Possédées", "Toutes les cartes", "Manquantes").forEach { scope ->
-                        FilterChip(selected = if (scope == "Possédées") collectionScope in listOf("Possédées", "Doublons") else collectionScope == scope,
-                            onClick = { collectionScope = scope }, label = { Text(scope) })
-                    }
-                }
                 var extensionMenu by remember { mutableStateOf(false) }
-                Box {
+                val extensionControl: @Composable () -> Unit = { Box {
                     OutlinedButton(onClick = { extensionMenu = true }) {
                         Text(if (collectionSetFilter == "Toutes") "Toutes les extensions" else sets.firstOrNull { it.code == collectionSetFilter }?.let { "${it.code} · ${it.name}" } ?: collectionSetFilter)
                     }
@@ -1225,7 +1219,15 @@ private fun CollectionScreen(
                         sets.forEach { extension -> DropdownMenuItem(text = { Text("${extension.code} · ${extension.name}") },
                             onClick = { collectionSetFilter = extension.code; extensionMenu = false }) }
                     }
+                } }
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf("Possédées", "Toutes les cartes", "Manquantes").forEach { scope ->
+                        FilterChip(selected = if (scope == "Possédées") collectionScope in listOf("Possédées", "Doublons") else collectionScope == scope,
+                            onClick = { collectionScope = scope }, label = { Text(scope) })
+                    }
+                    if (compactCollectionLayout) extensionControl()
                 }
+                if (!compactCollectionLayout) extensionControl()
                 if (collectionSetFilter != "Toutes") TextButton(onClick = { navigation.navigateTo("Compléter mon set", collectionSetFilter) }) { Text("Progression et objectif de cette extension") }
                 OutlinedTextField(value = search, onValueChange = { search = it },
                     label = { Text("Rechercher une carte") },
@@ -1323,7 +1325,7 @@ private fun CollectionScreen(
                         header = if (scrollingMiniatureControls) collectionControls else null)
                 } else {
                 if (scrollingMiniatureControls && selectedOwned.isEmpty()) collectionControls()
-                if (!scrollingMiniatureControls || selectedOwned.isEmpty()) Text(if (compactCollectionLayout) "${selectedOwned.sumOf { it.quantity }} exemplaires affichés"
+                if ((!scrollingMiniatureControls || selectedOwned.isEmpty()) && !(compactCollectionLayout && selectedOwned.isEmpty())) Text(if (compactCollectionLayout) "${selectedOwned.sumOf { it.quantity }} exemplaires affichés"
                     else "${selectedOwned.map { MarketPricing.key(it.setCode,it.number) + ":" + it.variant }.distinct().size} références et variantes possédées · ${selectedOwned.sumOf { it.quantity }} exemplaires", fontSize = 12.sp)
                 if (collectionScope == "Doublons") Text("Filtre Doublons actif", color = MaterialTheme.colorScheme.primary)
                 if (selectedOwned.isEmpty()) {

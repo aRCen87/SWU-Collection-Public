@@ -2,6 +2,7 @@
 
 - Mes decks, Mes proxies et Mes listes disposent de pages distinctes et de boutons coordonnés sur l’accueil.
 - Barre inférieure personnalisable par appui long : choisir les rubriques, modifier leur ordre, retirer et ajouter des raccourcis, dans la limite de cinq. Les choix sont conservés sur le téléphone.
+- Collection en paysage : filtres de possession et extension sur la même ligne pour conserver les messages et cartes visibles au-dessus de la barre.
 - Chaque rubrique possède une icône et les scans/imports de decks ouvrent directement Mes decks.
 - Reprise des améliorations Test 28 à 30 : collection unifiée, lecture des cartes distincte de l’ajout et consultation des decks plus lisible.
 
