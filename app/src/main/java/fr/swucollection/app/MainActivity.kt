@@ -57,6 +57,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -272,6 +273,9 @@ private fun CollectionScreen(
     var deckMessage by remember { mutableStateOf<String?>(null) }
     var pendingCollectionAdd by remember { mutableStateOf<CollectionAddRequest?>(null) }
     var additionMessage by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(additionMessage) {
+        if (additionMessage != null) { delay(5000); additionMessage = null }
+    }
     var quickCard by remember { mutableStateOf<CatalogCard?>(null) }
     var collectionQuickCard by remember { mutableStateOf<CatalogCard?>(null) }
     var favoriteCard by remember { mutableStateOf<CatalogCard?>(null) }
@@ -287,7 +291,7 @@ private fun CollectionScreen(
     var search by rememberCollectionFilter("search", "")
     val navigation = remember { AppNavigation() }
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
-    val selectedSection = navigation.current.section
+    val selectedSection = UnifiedCollection.section(navigation.current.section)
     val compactCollectionLayout = privateLayout && selectedSection == "Collection" &&
         LocalConfiguration.current.screenHeightDp < 480
     val selectedSet = navigation.current.setCode
@@ -323,6 +327,13 @@ private fun CollectionScreen(
     var groupVersionsValue by rememberCollectionFilter("groupVersions", privateLayout.toString())
     val groupVersions = groupVersionsValue == "true"
     var collectionScope by rememberCollectionFilter("collectionScope", "Possédées")
+    LaunchedEffect(navigation.current) {
+        if (navigation.current.section == "Extensions") {
+            collectionSetFilter = navigation.current.setCode ?: "Toutes"
+            collectionScope = "Toutes les cartes"
+            search = navigation.current.catalogSearch
+        }
+    }
     var sharingPlayerCard by remember { mutableStateOf<SharedPlayerCard?>(null) }
     var previewSession by remember { mutableStateOf<CardPreviewSession?>(null) }
     var previewPrint by remember { mutableStateOf<CatalogCard?>(null) }
@@ -825,7 +836,7 @@ private fun CollectionScreen(
                         }
                     }
                 }
-                if (privateLayout) PremiumHomeShortcuts(homeLayout.order, borderTilt, headerReflection, reflectionsEnabled,
+                if (privateLayout) PremiumHomeShortcuts(UnifiedCollection.visibleHome(homeLayout.order), borderTilt, headerReflection, reflectionsEnabled,
                     afterPrimary = { FirstStepsCard(cards.isEmpty()) { firstStepsOpen = true } }) { shortcut ->
                     when (shortcut) {
                         "SCANNER" -> openScanner()
@@ -837,7 +848,7 @@ private fun CollectionScreen(
                         "BADGES" -> navigation.navigateTo("Hauts faits")
                         "STATISTIQUES" -> navigation.navigateTo("Statistiques")
                     }
-                } else HomeLayoutStore.defaults.forEach { shortcut ->
+                } else UnifiedCollection.visibleHome(HomeLayoutStore.defaults).forEach { shortcut ->
                     when (shortcut) {
                     "SCANNER" -> HomeNavigationCard("◈", "SCANNER", "Scanner vos cartes", reflection = borderTilt, onClick = {
                     openScanner()
@@ -1135,113 +1146,6 @@ private fun CollectionScreen(
                 Button(onClick = { openScanner() }, modifier = Modifier.fillMaxWidth()) { Text("Reprendre le scan") }
                 OutlinedButton(onClick = { navigation.back() }, modifier = Modifier.fillMaxWidth()) { Text("Terminer") }
             }
-            if (selectedSection == "Extensions") {
-                if (selectedSet == null) {
-                    Text("Toutes les extensions du catalogue", fontSize = 21.sp, fontWeight = FontWeight.Bold)
-                    Text("Plus récentes en premier", fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    if (sets.isEmpty()) {
-                        Card(shape = RoundedCornerShape(14.dp)) {
-                            Column(Modifier.fillMaxWidth().padding(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("Catalogue français prêt à télécharger", fontWeight = FontWeight.Bold)
-                                Text("Télécharge le catalogue depuis les mises à jour pour découvrir les extensions et leurs cartes.",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Button(onClick = { navigation.navigateTo("Mises à jour") }) { Text("Ouvrir les mises à jour") }
-                            }
-                        }
-                    } else {
-                        LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            items(sets, key = { it.code }) { catalogSet ->
-                                val owned = cards.filter { it.setCode.equals(catalogSet.code, true) }
-                                    .map { it.number }.distinct().size
-                                Card(onClick = { navigation.navigateTo("Extensions", catalogSet.code) }) {
-                                    Column(Modifier.fillMaxWidth().padding(14.dp)) {
-                                        Text(catalogSet.name, fontWeight = FontWeight.SemiBold)
-                                        Text(CatalogChronology.releaseLabel(catalogSet.releaseDate),
-                                            fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        Text(catalogSet.code + " • " + owned + " / " + catalogSet.cardCount + " références possédées, variantes confondues",
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            fontSize = 13.sp)
-                                        val progress = if (catalogSet.cardCount > 0)
-                                            owned.toFloat() / catalogSet.cardCount.toFloat() else 0f
-                                        LinearProgressIndicator(progress = { progress },
-                                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    val currentSet = sets.firstOrNull { it.code == selectedSet }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = { navigation.upToExtensions() }) { Text("← Extensions") }
-                        Text(currentSet?.name ?: selectedSet.orEmpty(),
-                            fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
-                    }
-                    OutlinedButton(onClick = { navigation.navigateTo("Compléter mon set", selectedSet) },
-                        modifier = Modifier.fillMaxWidth()) { Text("Compléter cette extension") }
-                    Text("Catalogue complet · possession toutes variantes confondues", fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    val catalogCards = catalogBySet[selectedSet!!].orEmpty()
-                    val ownedNumbers = cards.filter { it.setCode.equals(selectedSet, true) }.map { it.number }.toSet()
-                    val filteredCatalogCards = catalogCards.filter {
-                        (it.name.contains(catalogSearch, true) || it.number.contains(catalogSearch, true)) &&
-                        (ownershipFilter == "Toutes" ||
-                         (ownershipFilter == "Possédées" && it.number in ownedNumbers) ||
-                         (ownershipFilter == "Manquantes" && it.number !in ownedNumbers))
-                    }
-                    OutlinedTextField(
-                        value = catalogSearch,
-                        onValueChange = { navigation.updateCatalogSearch(it) },
-                        label = { Text("Rechercher une carte par nom ou numéro") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        listOf("Toutes", "Possédées", "Manquantes").forEach { option ->
-                            FilterChip(selected = ownershipFilter == option, onClick = { ownershipFilter = option },
-                                label = { Text(option, fontSize = 11.sp) })
-                        }
-                    }
-                    Text("${filteredCatalogCards.size} carte(s) affichée(s) sur ${catalogCards.size}",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 12.sp)
-                    if (catalogCards.isEmpty()) {
-                        Text("Aucune carte importée pour cette extension.")
-                    } else {
-                        LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            items(filteredCatalogCards, key = { it.setCode + it.number }) { catalogCard ->
-                                val owned = catalogCard.number in ownedNumbers
-                                Card(modifier = Modifier.combinedClickable(
-                                    onClick = { openPreview(catalogCard, filteredCatalogCards.map { CardPreviewEntry(it) }) },
-                                    onLongClickLabel = "Gérer cette carte", onLongClick = { quickCard = catalogCard })) {
-                                    Row(Modifier.fillMaxWidth().padding(12.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        CardArtwork(catalogCard, Modifier.width(60.dp).height(84.dp), grayscale = !owned)
-                                        Column(Modifier.weight(1f)) {
-                                            Text(catalogCard.name, fontWeight = FontWeight.Medium)
-                                            CardLegalityBadge(premierLegality.status(catalogCard))
-                                            Text(catalogCard.setCode + " • " + catalogCard.number + " • " + catalogCard.rarity,
-                                                fontSize = 12.sp,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        }
-                                        Column(horizontalAlignment = androidx.compose.ui.Alignment.End) {
-                                            Text(if (owned) "${cards.filter { it.setCode.equals(catalogCard.setCode, true) && it.number == catalogCard.number }.sumOf { it.quantity }} exemplaire(s)" else "Manquante",
-                                                color = if (owned) MaterialTheme.colorScheme.primary
-                                                    else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                fontSize = 12.sp)
-                                            IconButton(onClick = { quickCard = catalogCard }) {
-                                                Icon(Icons.Default.Add, "Ajouter ou gérer ${catalogCard.name}")
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
             if (selectedSection == "Collection" || selectedSection == "Ajouter") {
                 if (selectedSection != "Collection") {
                 if (selectedSection == "Ajouter") Text("GESTION DE COLLECTION", color = MaterialTheme.colorScheme.primary,
@@ -1287,7 +1191,7 @@ private fun CollectionScreen(
                 }
                 }
                 if (selectedSection == "Collection") {
-                val scrollingMiniatureControls = compactCollectionLayout && collectionView == "Miniatures"
+                val scrollingMiniatureControls = compactCollectionLayout && collectionView == "Miniatures" && collectionScope in listOf("Possédées", "Doublons")
                 val collectionControls: @Composable () -> Unit = {
                 FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Button(onClick = { openScanner() }, modifier = Modifier.widthIn(min = 112.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)) {
@@ -1304,8 +1208,26 @@ private fun CollectionScreen(
                     }
                     TextButton(onClick = { collectionWorkbench = true }) { Text("Gérer ma collection") }
                 }
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf("Possédées", "Toutes les cartes", "Manquantes").forEach { scope ->
+                        FilterChip(selected = if (scope == "Possédées") collectionScope in listOf("Possédées", "Doublons") else collectionScope == scope,
+                            onClick = { collectionScope = scope }, label = { Text(scope) })
+                    }
+                }
+                var extensionMenu by remember { mutableStateOf(false) }
+                Box {
+                    OutlinedButton(onClick = { extensionMenu = true }) {
+                        Text(if (collectionSetFilter == "Toutes") "Toutes les extensions" else sets.firstOrNull { it.code == collectionSetFilter }?.let { "${it.code} · ${it.name}" } ?: collectionSetFilter)
+                    }
+                    DropdownMenu(extensionMenu, onDismissRequest = { extensionMenu = false }, modifier = Modifier.heightIn(max = 360.dp)) {
+                        DropdownMenuItem(text = { Text("Toutes les extensions") }, onClick = { collectionSetFilter = "Toutes"; extensionMenu = false })
+                        sets.forEach { extension -> DropdownMenuItem(text = { Text("${extension.code} · ${extension.name}") },
+                            onClick = { collectionSetFilter = extension.code; extensionMenu = false }) }
+                    }
+                }
+                if (collectionSetFilter != "Toutes") TextButton(onClick = { navigation.navigateTo("Compléter mon set", collectionSetFilter) }) { Text("Progression et objectif de cette extension") }
                 OutlinedTextField(value = search, onValueChange = { search = it },
-                    label = { Text("Rechercher dans ma collection") },
+                    label = { Text("Rechercher une carte") },
                     placeholder = { Text("Nom français ou anglais, extension, numéro", maxLines = 1,
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
                     trailingIcon = { if (search.isNotEmpty()) IconButton(onClick = { search = "" }) {
@@ -1327,7 +1249,7 @@ private fun CollectionScreen(
                 }) { Text("Tout réinitialiser") }
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("Possédées", "Doublons").forEach { option ->
-                        FilterChip(selected = if (option == "Doublons") collectionScope == option else collectionScope != "Doublons",
+                        FilterChip(selected = collectionScope == option,
                             onClick = { collectionScope = option },
                             label = { Text(option, fontSize = 12.sp) })
                     }
@@ -1409,6 +1331,12 @@ private fun CollectionScreen(
                         collectionQuotes[collectionPriceKey(it.setCode, it.number, it.variant)]?.amount
                     }
                 }
+                if (collectionScope in listOf("Toutes les cartes", "Manquantes")) {
+                    UnifiedCollectionCatalog(allCatalog, cards, collectionScope, collectionSetFilter, collectionLanguage, search,
+                        collectionView, cardDetails, Modifier.weight(1f),
+                        onPreview = { card, visible -> openPreview(card, visible.map { CardPreviewEntry(it) }) },
+                        onActions = { quickCard = it })
+                } else {
                 if (scrollingMiniatureControls && selectedOwned.isEmpty()) collectionControls()
                 if (!scrollingMiniatureControls || selectedOwned.isEmpty()) Text(if (compactCollectionLayout) "${selectedOwned.sumOf { it.quantity }} exemplaires affichés"
                     else "${selectedOwned.map { MarketPricing.key(it.setCode,it.number) + ":" + it.variant }.distinct().size} références et variantes possédées · ${selectedOwned.sumOf { it.quantity }} exemplaires", fontSize = 12.sp)
@@ -1507,6 +1435,7 @@ private fun CollectionScreen(
                     }
                 }
                 }
+                }
             }
         }
         if (!deckWorkspace && selectedSection != "Messagerie") Box(Modifier.align(androidx.compose.ui.Alignment.BottomCenter)
@@ -1552,6 +1481,7 @@ private fun CollectionScreen(
                     val next = DeckCompanion.add(latest.deck, card, allCatalog, cardDetails, zone)
                     deckStore.save(latest.name, latest.format, next, latest.id)
                     savedDecks = deckStore.all()
+                    additionMessage = "${card.name} ajouté au deck ${latest.name}"
                     android.widget.Toast.makeText(deckContext, "Deck mis à jour", android.widget.Toast.LENGTH_SHORT).show()
                 }.fold({ null }, { it.message ?: "Ajout impossible. Ton deck reste inchangé." })
             })
@@ -1751,7 +1681,7 @@ private fun CollectionScreen(
     }
     favoriteCard?.let { card ->
         FavoriteListDialog(card, personalLists, onDismiss = { favoriteCard = null },
-            onAdd = { database.putListCard(it, card); refresh(); favoriteCard = null },
+            onAdd = { database.putListCard(it, card); refresh(); additionMessage = "${card.name} ajouté à la liste"; favoriteCard = null },
             onCreate = {
                 val id = database.createCardList(it)
                 database.putListCard(id, card)

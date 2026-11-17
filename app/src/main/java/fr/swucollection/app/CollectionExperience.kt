@@ -17,16 +17,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-internal val primaryDestinations = listOf("Accueil", "Collection", "Extensions", "Mes listes", "Échanges")
+internal val primaryDestinations = listOf("Accueil", "Collection", "Mes listes", "Échanges")
 
 @Composable
 internal fun CollectionBottomBar(section: String, onNavigate: (String) -> Unit) {
     val selected = when (section) {
-        "Compléter mon set", "Recherche" -> "Extensions"
+        "Extensions", "Compléter mon set", "Recherche" -> "Collection"
         "Ajouter", "Historique", "Scanner" -> "Collection"
         else -> section
     }
-    val icons = listOf(Icons.Default.Home, Icons.Default.CollectionsBookmark, Icons.Default.AutoStories,
+    val icons = listOf(Icons.Default.Home, Icons.Default.CollectionsBookmark,
         Icons.Default.Star, Icons.Default.SwapHoriz)
     Surface(color = Color(0xFF0B1B2D), border = BorderStroke(1.dp, Color(0xFF9C7941)),
         shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)) {

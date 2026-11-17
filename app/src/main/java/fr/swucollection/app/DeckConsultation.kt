@@ -65,6 +65,7 @@ internal fun DeckConsultation(draft: DeckDraft, catalog: List<CatalogCard>, onCl
             horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(bottom = 16.dp)) {
             item(span = { GridItemSpan(maxLineSpan) }) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("${draft.deck.deck.sumOf { it.count }} cartes · ${draft.deck.sideboard.sumOf { it.count }} en réserve")
                 if (!draft.leaderChosen || !draft.baseChosen || draft.deck.deck.sumOf { it.count } < 50) Text("Deck en cours · tu peux le compléter plus tard.")
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
@@ -72,6 +73,7 @@ internal fun DeckConsultation(draft: DeckDraft, catalog: List<CatalogCard>, onCl
                     val previous = undo.last()
                     runCatching { onChange(previous) }.onSuccess { undo = undo.dropLast(1); error = null }.onFailure { error = it.message }
                 }) { Text("Annuler la dernière modification") }
+                }
             }
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -88,8 +90,10 @@ internal fun DeckConsultation(draft: DeckDraft, catalog: List<CatalogCard>, onCl
                 }
             }
             item(span = { GridItemSpan(maxLineSpan) }) {
-                Text("Deck principal", style = MaterialTheme.typography.titleSmall)
-                if (onChange != null) TextButton(onClick = { adding = "Deck" }) { Text("Ajouter au deck") }
+                Column {
+                    Text("Deck principal", style = MaterialTheme.typography.titleSmall)
+                    if (onChange != null) TextButton(onClick = { adding = "Deck" }) { Text("Ajouter au deck") }
+                }
             }
             if (draft.deck.deck.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) { Text("Aucune carte pour le moment.") }
             gridItems(draft.deck.deck.sortedWith(compareBy({ byId[it.cardId]?.let { card -> details.get(card)?.cost } ?: Int.MAX_VALUE }, { it.cardId })), key = { "main:" + it.cardId }) { entry ->
@@ -97,8 +101,10 @@ internal fun DeckConsultation(draft: DeckDraft, catalog: List<CatalogCard>, onCl
             }
             if (draft.deck.sideboard.isNotEmpty() || onChange != null) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    Text("Réserve", style = MaterialTheme.typography.titleSmall)
-                    if (onChange != null) TextButton(onClick = { adding = "Réserve" }) { Text("Ajouter à la réserve") }
+                    Column {
+                        Text("Réserve", style = MaterialTheme.typography.titleSmall)
+                        if (onChange != null) TextButton(onClick = { adding = "Réserve" }) { Text("Ajouter à la réserve") }
+                    }
                 }
                 gridItems(draft.deck.sideboard, key = { "side:" + it.cardId }) { entry ->
                     DeckConsultationCard(entry, byId, ::preview, onChange?.let { { delta: Int -> quantity(entry, DeckEditor.Zone.SIDEBOARD, delta) } })

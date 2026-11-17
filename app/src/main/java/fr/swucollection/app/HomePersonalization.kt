@@ -37,11 +37,12 @@ internal fun HomeLayoutEditor(initial: HomeLayout, sets: List<CatalogSet>, onDis
     AlertDialog(onDismissRequest = onDismiss, title = { Text("Personnaliser mon accueil") }, text = {
         Column(Modifier.heightIn(max = 480.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Ordre des raccourcis")
-            layout.order.forEachIndexed { index, title -> Row(Modifier.fillMaxWidth()) {
+            val shown = UnifiedCollection.visibleHome(layout.order)
+            shown.forEachIndexed { index, title -> Row(Modifier.fillMaxWidth()) {
                 Text(title, Modifier.weight(1f).padding(top = 12.dp), style = MaterialTheme.typography.labelMedium)
-                fun move(target: Int) { val order = layout.order.toMutableList(); order.add(target, order.removeAt(index)); layout = layout.copy(order = order) }
+                fun move(target: Int) { val order = shown.toMutableList(); order.add(target, order.removeAt(index)); layout = layout.copy(order = order + "EXTENSIONS") }
                 TextButton(onClick = { move(index - 1) }, enabled = index > 0, contentPadding = PaddingValues(4.dp)) { Text("↑") }
-                TextButton(onClick = { move(index + 1) }, enabled = index < layout.order.lastIndex, contentPadding = PaddingValues(4.dp)) { Text("↓") }
+                TextButton(onClick = { move(index + 1) }, enabled = index < shown.lastIndex, contentPadding = PaddingValues(4.dp)) { Text("↓") }
             } }
             Text("Extension épinglée")
             FilterChip(layout.set.isEmpty(), { layout = layout.copy(set = "") }, label = { Text("Aucune") })

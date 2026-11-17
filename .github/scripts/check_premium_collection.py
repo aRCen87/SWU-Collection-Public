@@ -135,7 +135,7 @@ def verify_motion():
 
 def verify_secondary_shortcuts():
     heights={}
-    keys=['MES DECKS','TOURNOIS & MÉTA','BADGES','STATISTIQUES','EXTENSIONS','ÉCHANGES']
+    keys=['MES DECKS','TOURNOIS & MÉTA','BADGES','STATISTIQUES','ÉCHANGES']
     for attempt in range(9):
         root=snapshot('shortcuts-'+str(attempt))
         for key in keys:
@@ -154,7 +154,7 @@ def verify_secondary_shortcuts():
     for attempt in range(8):
         adb('shell','input','swipe',360,500,360,1200,250)
     time.sleep(2)
-    print('All six secondary shortcuts have matching dimensions, including Échanges.',flush=True)
+    print('All five secondary shortcuts have matching dimensions, including Échanges.',flush=True)
 
 original_scale = adb('shell','settings','get','global','animator_duration_scale').strip()
 try:
@@ -163,14 +163,15 @@ try:
     adb('shell','am','start','-W','-n',PACKAGE+'/fr.swucollection.app.MainActivity'); time.sleep(8)
     verify_motion()
     verify_secondary_shortcuts()
-    tap(find(snapshot('home'),'Extensions'))
-    root = snapshot('extensions')
-    tap(next(n for n in root.iter('node') if 'références possédées' in n.attrib.get('text','')))
+    tap(find(snapshot('home'),'Collection'))
+    tap(find(snapshot('collection-scopes'), 'Toutes les cartes'))
     root = snapshot('catalogue')
     tap(next(n for n in root.iter('node') if n.attrib.get('content-desc')=='Visuel de la carte' and bounds(n)[3]>bounds(n)[1]))
     tap(reveal('+'))
+    # The first tap must only open the explicit confirmation.
+    tap(find(snapshot('confirm-add'), 'Confirmer l’ajout'))
     tap(find(snapshot('added'),'Fermer la carte'))
-    tap(find(snapshot('catalogue-return'),'Collection'))
+    tap(find(snapshot('catalogue-return'),'Possédées'))
     root = snapshot('grid'); find(root,'× 1')
     assert any('Cote' in n.attrib.get('text','') for n in root.iter('node')), 'Visual grid lost price information'
     capture('collection-cover')
