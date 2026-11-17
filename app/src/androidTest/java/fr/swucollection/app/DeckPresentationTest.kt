@@ -39,7 +39,7 @@ class DeckPresentationTest {
         val c = ui.onNodeWithTag("deck_overview_card_SOR-102").getUnclippedBoundsInRoot()
         assertEquals(a.top.value, b.top.value, 2f)
         assertEquals(a.top.value, c.top.value, 2f)
-        assertTrue("Card thumbnails are too narrow", a.width.value >= 96f)
+        assertTrue("Card thumbnails are too narrow", (a.right - a.left).value >= 96f)
         ui.onNodeWithTag(first).performClick()
         ui.onNodeWithTag("deck_gallery_title").assertTextEquals("Alpha — Première carte")
         ui.onNodeWithTag("deck_gallery_previous").assertIsNotEnabled()
@@ -66,7 +66,7 @@ class DeckPresentationTest {
         }
         ui.onNodeWithTag("deck_picker_grid").performScrollToNode(hasTestTag("deck_picker_card_SOR-100"))
         val image = ui.onNodeWithTag("deck_picker_card_SOR-100").getUnclippedBoundsInRoot()
-        assertTrue("Picker artwork must be comfortably larger than overview thumbnails", image.width.value >= 140f)
+        assertTrue("Picker artwork must be comfortably larger than overview thumbnails", (image.right - image.left).value >= 140f)
         ui.onNodeWithTag("deck_picker_card_SOR-100").performClick()
         ui.onNodeWithTag("deck_gallery_next").performClick()
         ui.onNodeWithTag("deck_gallery_title").assertTextEquals("Beta — Deuxième carte")
