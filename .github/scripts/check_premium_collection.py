@@ -172,7 +172,7 @@ try:
     tap(find(snapshot('confirm-add'), 'Confirmer l’ajout'))
     tap(find(snapshot('added'),'Fermer la carte'))
     tap(find(snapshot('catalogue-return'),'Possédées'))
-    root = snapshot('grid'); find(root,'× 1')
+    root = reveal_quantity('grid'); find(root,'× 1')
     assert any('Cote' in n.attrib.get('text','') for n in root.iter('node')), 'Visual grid lost price information'
     capture('collection-cover')
     adb('shell','wm','size','1766x1472'); adb('shell','wm','density',336); time.sleep(4)
