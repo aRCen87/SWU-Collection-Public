@@ -27,7 +27,7 @@ class VisualDeckOverviewUiTest {
                 Modifier.fillMaxSize(), onZone = {}, onQuantity = { id, count, zone -> result = count; deck = DeckEditor.setQuantity(deck, id, count, zone) },
                 onPreview = { _, _ -> preview = true }, onAdd = {})
         } }
-        val artwork = ui.onNodeWithTag("swu_deck_full_card")
+        val artwork = ui.onNodeWithTag("swu_deck_full_card", useUnmergedTree = true)
         val bounds = artwork.fetchSemanticsNode().boundsInRoot
         assertEquals(5f / 7f, bounds.width / bounds.height, 0.02f)
         artwork.performClick()
