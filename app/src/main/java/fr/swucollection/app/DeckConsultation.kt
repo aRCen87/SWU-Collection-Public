@@ -6,6 +6,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -85,7 +86,7 @@ internal fun DeckConsultation(draft: DeckDraft, catalog: List<CatalogCard>, onCl
             TextButton(onClick = onEdit) { Text("Modifier") }
             TextButton(onClick = onClose) { Text("Fermer") }
         }
-        LazyVerticalGrid(columns = GridCells.Adaptive(104.dp), modifier = Modifier.weight(1f).fillMaxWidth().testTag("deck_overview_grid"),
+        LazyVerticalGrid(columns = GridCells.Fixed(((LocalConfiguration.current.screenWidthDp - 16) / 112).coerceAtLeast(3)), modifier = Modifier.weight(1f).fillMaxWidth().testTag("deck_overview_grid"),
             horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(bottom = 16.dp)) {
             item(span = { GridItemSpan(maxLineSpan) }) {
@@ -269,7 +270,7 @@ internal fun InlineCardPicker(catalog: List<CatalogCard>, target: String, onClos
                     Text("${visible.size} cartes", Modifier.weight(1f), textAlign = TextAlign.End, style = MaterialTheme.typography.labelMedium)
                 }
                 addError?.let { Text(it, color = ListPalette.Danger, style = MaterialTheme.typography.bodySmall) }
-                LazyVerticalGrid(columns = GridCells.Adaptive(148.dp), modifier = Modifier.weight(1f).fillMaxWidth().testTag("deck_picker_grid"), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(14.dp), contentPadding = PaddingValues(bottom = 12.dp)) {
+                LazyVerticalGrid(columns = GridCells.Adaptive(144.dp), modifier = Modifier.weight(1f).fillMaxWidth().testTag("deck_picker_grid"), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(14.dp), contentPadding = PaddingValues(bottom = 12.dp)) {
                     if (visible.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) { Text("Aucune carte pour ces filtres.") }
                     gridItems(visible, key = DeckConstruction::reference) { card ->
                         val id = DeckConstruction.reference(card)
