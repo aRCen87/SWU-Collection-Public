@@ -24,9 +24,13 @@ class UnfinishedDeckUiTest {
         var edited = false; var closed = false
         val draft = DeckDraft("À compléter", empty, false, false)
         ui.setContent { MaterialTheme { DeckConsultation(draft, emptyList(), { closed = true }, { edited = true }) } }
-        ui.onNodeWithText("Leader à choisir").assertExists()
-        ui.onNodeWithText("Base à choisir").assertExists()
-        ui.onNodeWithText("Aucune carte pour le moment.").assertExists()
+        ui.onNodeWithTag("swu_deck_consultation_fullscreen").assertIsDisplayed()
+        val screen = ui.onNodeWithTag("swu_deck_consultation_fullscreen").getUnclippedBoundsInRoot()
+        assertTrue((screen.right - screen.left).value >= 590f)
+        assertTrue((screen.bottom - screen.top).value >= 850f)
+        ui.onNodeWithText("Leader").assertExists()
+        ui.onNodeWithText("Base").assertExists()
+        ui.onNodeWithText("Aucune carte. Choisis Modifier pour compléter le deck.").assertExists()
         ui.onNodeWithText("Fermer").performClick()
         ui.runOnIdle { assertTrue(closed); assertFalse(edited) }
     }
@@ -61,19 +65,30 @@ class UnfinishedDeckUiTest {
             DeckConsultation(value, listOf(card), {}, {}, onChange = { value = it; latest = it },
                 onPreview = { selected, _ -> preview = selected })
         } }
-        ui.onNodeWithText("1 × Carte test").performScrollTo().performClick()
+        ui.onNodeWithTag("deck_overview_grid").performScrollToNode(hasTestTag("deck_overview_card_SOR-095"))
+        ui.onNodeWithTag("deck_overview_card_SOR-095").performClick()
+        ui.onNodeWithTag("deck_gallery_title").assertTextEquals("Carte test")
+        ui.runOnIdle { assertNull(preview); assertEquals(1, latest.deck.deck.single().count) }
+        ui.onNodeWithContentDescription("Ouvrir la fiche complète").performClick()
         ui.runOnIdle { assertEquals(card, preview) }
-        ui.onNodeWithContentDescription("Augmenter SOR-095").performScrollTo().performClick()
+        ui.onNodeWithTag("deck_overview_grid").performScrollToNode(hasContentDescription("Modifier la quantité de Carte test"))
+        ui.onNodeWithContentDescription("Modifier la quantité de Carte test").performClick()
+        ui.onNodeWithText("+1 exemplaire").performClick()
         ui.runOnIdle {
             assertEquals(2, latest.deck.deck.single().count)
             assertFalse(latest.leaderChosen); assertFalse(latest.baseChosen)
             assertEquals(original.collectionEntries, latest.collectionEntries)
             assertEquals("pending-scan", latest.collectionBatchId)
         }
-        ui.onNodeWithContentDescription("Diminuer SOR-095").performScrollTo().assertIsDisplayed().performClick()
+        ui.onNodeWithContentDescription("Modifier la quantité de Carte test").performClick()
+        ui.onNodeWithText("−1 exemplaire").performClick()
         ui.runOnIdle { assertEquals(1, latest.deck.deck.single().count) }
-        ui.onNodeWithText("Retirer").performScrollTo().assertIsDisplayed().performClick()
-        ui.onNodeWithText("Aucune carte pour le moment.").performScrollTo().assertExists()
+        ui.onNodeWithTag("deck_overview_grid").performScrollToNode(hasContentDescription("Modifier la quantité de Carte test"))
+        ui.onNodeWithContentDescription("Modifier la quantité de Carte test").performClick()
+        ui.onNodeWithText("Retirer la carte").performClick()
+        ui.onNodeWithText("Retirer", useUnmergedTree = true).performClick()
+        ui.onNodeWithTag("deck_overview_grid").performScrollToNode(hasText("Ajoute tes premières cartes avec le bouton +."))
+        ui.onNodeWithText("Ajoute tes premières cartes avec le bouton +.").assertExists()
         ui.runOnIdle { assertTrue(latest.deck.deck.isEmpty()) }
     }
 
@@ -90,13 +105,18 @@ class UnfinishedDeckUiTest {
                 onPreview = { _, _ -> preview = true }, previewOpen = preview)
             if (preview) Button(onClick = { preview = false }) { Text("Fermer la fiche") }
         } } }
-        ui.onNodeWithText("Consulter").performClick()
-        ui.onNodeWithContentDescription("Augmenter SOR-095").performScrollTo().performClick()
-        ui.onNodeWithText("2 × Carte test").performScrollTo().performClick()
+        ui.onNodeWithText("Mon brouillon").performClick()
+        ui.onNodeWithTag("deck_overview_grid").performScrollToNode(hasContentDescription("Modifier la quantité de Carte test"))
+        ui.onNodeWithContentDescription("Modifier la quantité de Carte test").performClick()
+        ui.onNodeWithText("+1 exemplaire").performClick()
+        ui.onNodeWithTag("deck_overview_card_SOR-095").performClick()
+        ui.onNodeWithTag("deck_gallery_title").assertTextEquals("Carte test")
+        ui.onNodeWithContentDescription("Ouvrir la fiche complète").performClick()
         ui.onNodeWithText("Fermer la fiche").assertExists()
-        ui.onNodeWithText("Ajouter au deck").assertDoesNotExist()
+        ui.onNodeWithTag("swu_deck_consultation_fullscreen").assertDoesNotExist()
         ui.onNodeWithText("Fermer la fiche").performClick()
-        ui.onNodeWithText("2 × Carte test").performScrollTo().assertExists()
+        ui.onNodeWithTag("deck_overview_grid").performScrollToNode(hasTestTag("deck_overview_card_SOR-095"))
+        ui.onNodeWithText("×2").assertExists()
         ui.runOnIdle {
             val restored = DeckDraftStore(context).read("new:preview", "baseline")!!
             assertEquals(2, restored.deck.deck.single().count)

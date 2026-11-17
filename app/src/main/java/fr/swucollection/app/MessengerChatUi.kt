@@ -86,7 +86,7 @@ internal fun ColumnScope.CommunityChat(service: CommunityService, conversation: 
         AlertDialog(onDismissRequest={received=null},title={Text(message.deckName)},text={
             Column(Modifier.heightIn(max=420.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(6.dp)) {
                 if(parsed==null)Text("Ce deck est invalide.") else {
-                    Text("Une copie s’ouvrira dans Mes listes pour vérification avant enregistrement.")
+                    Text("Une copie s’ouvrira dans Mes decks pour vérification avant enregistrement.")
                     (listOf(DeckEntry(parsed.leader,1),DeckEntry(parsed.base,1))+parsed.deck+parsed.sideboard).forEach {entry->
                         val card=catalog.firstOrNull{DeckConstruction.reference(it)==entry.cardId}
                         Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
@@ -95,7 +95,7 @@ internal fun ColumnScope.CommunityChat(service: CommunityService, conversation: 
                     }
                 }
             }
-        },confirmButton={Button(onClick={if(parsed!=null){received=null;onImportDeck(message.deckName,parsed)}},enabled=parsed!=null){Text("Copier dans Mes listes")}},dismissButton={TextButton(onClick={received=null}){Text("Fermer")}})
+        },confirmButton={Button(onClick={if(parsed!=null){received=null;onImportDeck(message.deckName,parsed)}},enabled=parsed!=null){Text("Copier dans Mes decks")}},dismissButton={TextButton(onClick={received=null}){Text("Fermer")}})
     }
 }
 

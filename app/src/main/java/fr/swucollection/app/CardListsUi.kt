@@ -1,7 +1,10 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package fr.swucollection.app
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -60,7 +63,7 @@ fun FavoriteListDialog(card: CatalogCard, lists: List<CardList>, onDismiss: () -
                 Text(card.name, fontWeight = FontWeight.Bold)
                 Text("Choisis une liste pour cette carte.")
                 Button(onClick = { creating = true }, modifier = Modifier.fillMaxWidth()) { Text("+ Créer une nouvelle liste") }
-                if (lists.isEmpty()) Text("Tes favoris et cartes à rechercher apparaîtront dans Mes listes, onglet Listes de cartes.")
+                if (lists.isEmpty()) Text("Tes favoris et cartes à rechercher apparaîtront dans Mes listes.")
                 lists.forEach { list ->
                     val present = list.entries.any { it.card.setCode == card.setCode && it.card.number == card.number }
                     OutlinedButton(onClick = { onAdd(list.id) }, enabled = !present, modifier = Modifier.fillMaxWidth()) {
@@ -119,6 +122,7 @@ internal fun CardListsPanel(lists: List<CardList>, selectedId: String?, modifier
     var editing by remember(selectedId) { mutableStateOf(false) }
     var naming by remember(selectedId) { mutableStateOf(false) }
     var deleting by remember(selectedId) { mutableStateOf(false) }
+    var quickEntry by remember(selectedId) { mutableStateOf<CatalogCard?>(null) }
     var adding by remember(selectedId) { mutableStateOf(false) }
     CompositionLocalProvider(LocalContentColor provides ListPalette.Text) {
         Column(modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -133,7 +137,7 @@ internal fun CardListsPanel(lists: List<CardList>, selectedId: String?, modifier
                 LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(bottom = 20.dp)) {
                     if (lists.isEmpty()) item {
-                        ListEmptyState("Ta première liste t’attend", "Ouvre une carte, touche « Ajouter à une liste » puis crée une sélection. Pour construire un deck, ouvre Mes decks.")
+                        ListEmptyState("Ta première liste t’attend", "Ouvre une carte, touche + puis « Une liste ». Pour construire un deck, ouvre Mes decks.")
                     }
                     items(lists, key = { it.id }) { list ->
                         OutlinedCard(onClick = { onOpen(list.id) }, modifier = Modifier.fillMaxWidth(),
@@ -167,8 +171,9 @@ internal fun CardListsPanel(lists: List<CardList>, selectedId: String?, modifier
                     Text("← Toutes mes listes")
                 }
                 ListHero(selected.name, "${selected.entries.size} références", "${selected.entries.sumOf { it.quantity }} cartes")
-                DeckSummary(selected,owned,catalog,details,rules,onFormat={onFormat(selected.id,it)}, editable = editing)
+                Text("Toucher pour voir · Appui long pour gérer une carte", color = ListPalette.Secondary, fontSize = 12.sp)
                 OutlinedButton(onClick = { editing = !editing }) { Text(if (editing) "Terminer les modifications" else "Modifier la liste") }
+                TextButton(onClick = { adding = true }) { Text("+ Ajouter des cartes") }
                 if (editing) FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TextButton(onClick = { adding = true }, colors = ButtonDefaults.textButtonColors(contentColor = ListPalette.Gold)) { Text("Ajouter des cartes") }
                     TextButton(onClick = { naming = true }, colors = ButtonDefaults.textButtonColors(contentColor = ListPalette.Gold)) { Text("Renommer") }
@@ -184,7 +189,7 @@ internal fun CardListsPanel(lists: List<CardList>, selectedId: String?, modifier
                             border = BorderStroke(1.dp, ListPalette.Secondary.copy(alpha = 0.2f)),
                             colors = CardDefaults.outlinedCardColors(containerColor = ListPalette.Background, contentColor = ListPalette.Text)) {
                             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Row(Modifier.fillMaxWidth().clickable { onPreview(entry.card, selected.entries.map { it.card }) },
+                                Row(Modifier.fillMaxWidth().combinedClickable(onClick = { onPreview(entry.card, selected.entries.map { it.card }) }, onLongClickLabel = "Modifier la quantité", onLongClick = { quickEntry = entry.card }),
                                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     ListThumbnail(entry.card)
                                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -205,7 +210,7 @@ internal fun CardListsPanel(lists: List<CardList>, selectedId: String?, modifier
                                             tint = if (entry.quantity < 99) ListPalette.Gold else ListPalette.Secondary.copy(alpha = 0.5f))
                                     }
                                     Spacer(Modifier.weight(1f))
-                                    TextButton(onClick = { onQuantity(selected.id, entry.card, 0) },
+                                    TextButton(onClick = { quickEntry = entry.card },
                                         colors = ButtonDefaults.textButtonColors(contentColor = ListPalette.Danger)) { Text("Retirer") }
                                 }
                             }
@@ -215,9 +220,14 @@ internal fun CardListsPanel(lists: List<CardList>, selectedId: String?, modifier
             }
         }
     }
-    if(adding && selected!=null)InlineCardPicker(catalog,"Liste",{adding=false}){card->
+    quickEntry?.let { card ->
+        selected?.entries?.firstOrNull { it.card.setCode == card.setCode && it.card.number == card.number }?.let { entry ->
+            CardQuantityDialog(card.name, entry.quantity, { quickEntry = null }, { onQuantity(selected.id, card, it) })
+        }
+    }
+    if(adding && selected!=null)InlineCardPicker(catalog,"Liste",{adding=false}, details = details){card->
         val quantity=selected.entries.firstOrNull{it.card.setCode==card.setCode && it.card.number==card.number}?.quantity?:0
-        if(quantity<99)onQuantity(selected.id,card,quantity+1)
+        require(quantity < 99) { "Cette liste contient déjà 99 exemplaires de cette carte." }; onQuantity(selected.id,card,quantity+1)
     }
     if (naming) CardListNameDialog(initial = selected?.name ?: "", onDismiss = { naming = false }, onSave = {
         if (selected == null) onCreate(it) else onRename(selected.id, it)

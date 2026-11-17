@@ -1,47 +1,95 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package fr.swucollection.app
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 
+/** Full card artwork is the primary view of a deck, on phones and wide screens. */
 @Composable
 internal fun DeckSelectionPane(name: String, deck: PortableDeck, catalog: List<CatalogCard>, details: CardDetails,
     zone: DeckEditor.Zone, leaderChosen: Boolean, baseChosen: Boolean, modifier: Modifier,
     onZone: (DeckEditor.Zone) -> Unit, onQuantity: (String, Int, DeckEditor.Zone) -> Unit,
-    onPreview: (CatalogCard, List<CatalogCard>) -> Unit) {
-    val byId = catalog.associateBy { DeckConstruction.reference(it) }
-    val selected = if (zone == DeckEditor.Zone.SIDEBOARD) deck.sideboard else deck.deck
-    Card(modifier.testTag("swu_deck_selection_pane")) { Column(Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(name.ifBlank { "Mon deck" }, style = MaterialTheme.typography.titleLarge)
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            FilterChip(zone == DeckEditor.Zone.MAIN, { onZone(DeckEditor.Zone.MAIN) }, label = { Text("Deck · ${deck.deck.sumOf { it.count }}") })
-            FilterChip(zone == DeckEditor.Zone.SIDEBOARD, { onZone(DeckEditor.Zone.SIDEBOARD) }, label = { Text("Réserve · ${deck.sideboard.sumOf { it.count }}") })
-        }
-        LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            item { Text("Leader : " + if (leaderChosen) byId[deck.leader]?.name ?: deck.leader else "À choisir") }
-            item { Text("Base : " + if (baseChosen) byId[deck.base]?.name ?: deck.base else "À choisir") }
-            if (selected.isEmpty()) item { Text("Ajoute les cartes depuis le catalogue à gauche.") }
-            items(selected, key = { it.cardId }) { entry ->
-                val card = byId[entry.cardId]
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    if (card != null) TextButton(onClick = { onPreview(card, selected.mapNotNull { byId[it.cardId] }) }, modifier = Modifier.weight(1f), contentPadding = PaddingValues(0.dp)) {
-                        CardArtwork(card, Modifier.width(42.dp).height(59.dp))
-                        Spacer(Modifier.width(6.dp)); Text(card.name, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
-                    } else Text(entry.cardId, Modifier.weight(1f))
-                    TextButton(onClick = { onQuantity(entry.cardId, entry.count - 1, zone) }, contentPadding = PaddingValues(2.dp)) { Text("−") }
-                    Text("${entry.count}")
-                    val count = (deck.deck + deck.sideboard).filter { other ->
-                        if (card == null) other.cardId == entry.cardId else byId[other.cardId]?.let { details.family(it) } == details.family(card)
-                    }.sumOf { it.count }
-                    TextButton(onClick = { onQuantity(entry.cardId, entry.count + 1, zone) }, enabled = card != null && count < 3 && (zone == DeckEditor.Zone.MAIN || deck.sideboard.sumOf { it.count } < 10), contentPadding = PaddingValues(2.dp)) { Text("+") }
+    onPreview: (CatalogCard, List<CatalogCard>) -> Unit, onIdentity: (String) -> Unit = {},
+    onAdd: (() -> Unit)? = null, ownedByFamily: Map<String, Int> = emptyMap()) {
+    val byId = remember(catalog) { catalog.associateBy(DeckConstruction::reference) }
+    val selected = (if (zone == DeckEditor.Zone.SIDEBOARD) deck.sideboard else deck.deck)
+        .sortedWith(compareBy({ byId[it.cardId]?.let { card -> details.get(card)?.cost } ?: Int.MAX_VALUE },
+            { byId[it.cardId]?.name ?: it.cardId }))
+    var managing by remember(zone) { mutableStateOf<String?>(null) }
+    Card(modifier.testTag("swu_deck_selection_pane"), colors = CardDefaults.cardColors(containerColor = ListPalette.Background)) {
+        Column(Modifier.fillMaxSize().padding(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(name.ifBlank { "Mon deck" }, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                onAdd?.let { TextButton(onClick = it) { Text("＋ Cartes") } }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                FilterChip(zone == DeckEditor.Zone.MAIN, { onZone(DeckEditor.Zone.MAIN) }, label = { Text("Deck · ${deck.deck.sumOf { it.count }}/50") })
+                FilterChip(zone == DeckEditor.Zone.SIDEBOARD, { onZone(DeckEditor.Zone.SIDEBOARD) }, label = { Text("Réserve · ${deck.sideboard.sumOf { it.count }}/10") })
+            }
+            LazyVerticalGrid(columns = GridCells.Adaptive(100.dp), modifier = Modifier.weight(1f).fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(bottom = 12.dp)) {
+                item(span = { GridItemSpan(maxLineSpan) }, key = "identities") {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        DeckIdentityCard("Leader", if (leaderChosen) byId[deck.leader] else null, "À choisir", Modifier.weight(1f),
+                            onPreview = { if (leaderChosen) byId[deck.leader]?.let { onPreview(it, listOf(it)) } else onIdentity("Leader") },
+                            onChange = { onIdentity("Leader") })
+                        DeckIdentityCard("Base", if (baseChosen) byId[deck.base] else null, "À choisir", Modifier.weight(1f),
+                            onPreview = { if (baseChosen) byId[deck.base]?.let { onPreview(it, listOf(it)) } else onIdentity("Base") },
+                            onChange = { onIdentity("Base") })
+                    }
+                }
+                item(span = { GridItemSpan(maxLineSpan) }, key = "help") {
+                    Text("Cartes entières · Tri par coût · Appui long pour modifier", style = MaterialTheme.typography.labelSmall,
+                        color = ListPalette.Secondary)
+                }
+                if (selected.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
+                    Text("Ton deck est encore vide. Touche ＋ Cartes pour commencer.", Modifier.padding(12.dp))
+                }
+                items(selected, key = { it.cardId }) { entry ->
+                    val card = byId[entry.cardId]
+                    Column(Modifier.fillMaxWidth()) {
+                        Surface(shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, ListPalette.Gold.copy(alpha = .5f)),
+                            modifier = Modifier.fillMaxWidth().combinedClickable(
+                                onClick = { card?.let { onPreview(it, selected.mapNotNull { row -> byId[row.cardId] }) } },
+                                onLongClickLabel = "Modifier la quantité", onLongClick = { managing = entry.cardId })) {
+                            Box(Modifier.fillMaxWidth().aspectRatio(5f / 7f).testTag("swu_deck_full_card")) {
+                                CardArtwork(card, Modifier.fillMaxSize())
+                                Surface(Modifier.align(Alignment.TopEnd).padding(4.dp), color = ListPalette.Gold,
+                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)) {
+                                    Text("×${entry.count}", Modifier.padding(horizontal = 6.dp, vertical = 3.dp), color = ListPalette.Background)
+                                }
+                            }
+                        }
+                        val family = card?.let(details::family)
+                        val required = (deck.deck + deck.sideboard).filter { row ->
+                            byId[row.cardId]?.let(details::family) == family && family != null
+                        }.sumOf { it.count }
+                        if (family != null && required > (ownedByFamily[family] ?: 0))
+                            Text("À compléter", color = ListPalette.Gold, style = MaterialTheme.typography.labelSmall)
+                        if (card == null) Text(entry.cardId, style = MaterialTheme.typography.labelSmall)
+                    }
                 }
             }
         }
+    }
+    managing?.let { id -> selected.firstOrNull { it.cardId == id }?.let { entry ->
+        val card = byId[id]
+        val count = (deck.deck + deck.sideboard).filter { row ->
+            if (card == null) row.cardId == id else byId[row.cardId]?.let(details::family) == details.family(card)
+        }.sumOf { it.count }
+        val canAdd = card != null && count < 3 && (zone == DeckEditor.Zone.MAIN || deck.sideboard.sumOf { it.count } < 10)
+        CardQuantityDialog(card?.name ?: id, entry.count, { managing = null },
+            { onQuantity(id, it, zone) }, maximum = if (canAdd) entry.count + 1 else entry.count)
     } }
 }

@@ -12,14 +12,19 @@ internal data class DeckBrowserFilters(
     val activeCount get() = listOf(aspect, type, set, rarity, cost, arena, trait, stock).count { it.isNotEmpty() }
     fun forIdentity() = copy(type = "", cost = "", arena = "")
     fun matches(card: CatalogCard, detail: CardDetail?, owned: Int, identity: Boolean): Boolean =
-        (aspect.isEmpty() || detail?.aspects?.contains(aspect) == true) &&
-        (type.isEmpty() || identity || card.type == type) && (set.isEmpty() || card.setCode == set) &&
-        (rarity.isEmpty() || card.rarity == rarity) &&
+        (aspect.isEmpty() || detail?.aspects?.any { it in aspect.split("|") } == true) &&
+        (type.isEmpty() || identity || card.type == type) && (set.isEmpty() || card.setCode in set.split("|")) &&
+        (rarity.isEmpty() || card.rarity in rarity.split("|")) &&
         (identity || cost.isEmpty() || detail?.cost?.let { if (cost == "8+") it >= 8 else it == cost.toIntOrNull() } == true) &&
-        (identity || arena.isEmpty() || detail?.arena == arena) && (trait.isEmpty() || detail?.traits?.contains(trait) == true) &&
+        (identity || arena.isEmpty() || detail?.arena?.let { current -> arena.split("|").any { DeckBrowser.arenaKey(it) == DeckBrowser.arenaKey(current) } } == true) && (trait.isEmpty() || detail?.traits?.any { it in trait.split("|") } == true) &&
         (stock.isEmpty() || if (stock == "owned") owned > 0 else owned == 0)
 }
 internal object DeckBrowser {
+    fun arenaKey(value: String): String = when (searchKey(value)) {
+        "ground", "ground arena", "terrestre" -> "ground"
+        "space", "space arena", "spatiale", "spatial" -> "space"
+        else -> searchKey(value)
+    }
     const val DEFAULT_SORT = "Extensions récentes"
     private val combiningMarks = Regex("\\p{M}+")
     private val separators = Regex("[^a-z0-9]+")

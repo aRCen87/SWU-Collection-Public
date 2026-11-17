@@ -40,20 +40,49 @@ def reveal(label):
     raise AssertionError('Unreachable card action: ' + label)
 
 def reveal_quantity(name):
-    for attempt in range(5):
+    for attempt in range(14):
         root = snapshot(name + '-' + str(attempt))
         visible = [n for n in root.iter('node') if n.attrib.get('text') == '× 1' and bounds(n)[3] > bounds(n)[1]]
-        if visible: return root
-        window = next(n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_content_window')
-        left,top,right,bottom = bounds(window)
-        # A reflowed card can be taller than the visible grid viewport on Fold.
-        # Scroll within the left pane, above its bottom navigation, to its quantity.
+        prices = [n for n in root.iter('node') if 'Cote' in n.attrib.get('text', '') and bounds(n)[3] > bounds(n)[1]]
+        if visible and prices: return root
+        grid = next(n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_visual_grid')
+        left,top,right,bottom = bounds(grid)
+        assert bottom > top, ('Collapsed visual grid', bounds(grid))
+        # Swipe inside the real gallery. A full-window gesture overshoots the
+        # quantity when the controls leave a short portrait or Fold viewport.
         x = (left + right)//2
-        adb('shell','input','swipe',x,bottom-220,x,bottom-620,450); time.sleep(1)
-    raise AssertionError('Owned quantity is not reachable in the visual grid')
+        distance = max(48, min(240, (bottom-top)*3//4))
+        adb('shell','input','swipe',x,bottom-8,x,max(top+8,bottom-8-distance),450); time.sleep(1)
+    raise AssertionError('Owned quantity and price are not reachable in the visual grid')
+
+def collection_grid(root):
+    return next(n for n in root.iter('node') if n.attrib.get('resource-id') in
+                ('swu_visual_grid', 'swu_miniature_grid', 'swu_unified_catalog') and bounds(n)[3] > bounds(n)[1])
+
+def scroll_collection(root, towards_start):
+    left,top,right,bottom = bounds(collection_grid(root))
+    x = left + (right-left)//4
+    start,end = (top+12,bottom-12) if towards_start else (bottom-12,top+12)
+    adb('shell','input','swipe',x,start,x,end,450); time.sleep(1)
+
+def reveal_header(label):
+    for attempt in range(12):
+        root = snapshot('header-' + label + '-' + str(attempt))
+        buttons = [n for n in root.iter('node') if n.attrib.get('text') == label and bounds(n)[3] > bounds(n)[1]]
+        if buttons: return buttons[-1]
+        scroll_collection(root, True)
+    raise AssertionError('Collection command is not reachable: ' + label)
+
+def reveal_artwork():
+    for attempt in range(12):
+        root = snapshot('catalogue-artwork-' + str(attempt))
+        images = [n for n in root.iter('node') if n.attrib.get('content-desc') == 'Visuel de la carte' and bounds(n)[3]-bounds(n)[1] >= 48]
+        if images: return images[0]
+        scroll_collection(root, False)
+    raise AssertionError('Catalogue artwork is not reachable')
 
 def choose_view(label):
-    tap(find(snapshot('filters-button'), 'Filtres'))
+    tap(reveal_header('Filtres'))
     tap(find(snapshot('view-options'), label))
     adb('shell', 'input', 'keyevent', 'KEYCODE_BACK'); time.sleep(2)
 
@@ -135,7 +164,7 @@ def verify_motion():
 
 def verify_secondary_shortcuts():
     heights={}
-    keys=['MES DECKS','TOURNOIS & MÉTA','BADGES','STATISTIQUES','EXTENSIONS','ÉCHANGES']
+    keys=['MES DECKS','TOURNOIS & MÉTA','BADGES','STATISTIQUES','ÉCHANGES']
     for attempt in range(9):
         root=snapshot('shortcuts-'+str(attempt))
         for key in keys:
@@ -154,7 +183,7 @@ def verify_secondary_shortcuts():
     for attempt in range(8):
         adb('shell','input','swipe',360,500,360,1200,250)
     time.sleep(2)
-    print('All six secondary shortcuts have matching dimensions, including Échanges.',flush=True)
+    print('All five secondary shortcuts have matching dimensions, including Échanges.',flush=True)
 
 original_scale = adb('shell','settings','get','global','animator_duration_scale').strip()
 try:
@@ -163,15 +192,15 @@ try:
     adb('shell','am','start','-W','-n',PACKAGE+'/fr.swucollection.app.MainActivity'); time.sleep(8)
     verify_motion()
     verify_secondary_shortcuts()
-    tap(find(snapshot('home'),'Extensions'))
-    root = snapshot('extensions')
-    tap(next(n for n in root.iter('node') if 'références possédées' in n.attrib.get('text','')))
-    root = snapshot('catalogue')
-    tap(next(n for n in root.iter('node') if n.attrib.get('content-desc')=='Visuel de la carte' and bounds(n)[3]>bounds(n)[1]))
+    tap(find(snapshot('home'),'Collection'))
+    tap(reveal_header('Toutes les cartes'))
+    tap(reveal_artwork())
     tap(reveal('+'))
+    # The first tap must only open the explicit confirmation.
+    tap(find(snapshot('confirm-add'), 'Confirmer l’ajout'))
     tap(find(snapshot('added'),'Fermer la carte'))
-    tap(find(snapshot('catalogue-return'),'Collection'))
-    root = snapshot('grid'); find(root,'× 1')
+    tap(reveal_header('Possédées'))
+    root = reveal_quantity('grid'); find(root,'× 1')
     assert any('Cote' in n.attrib.get('text','') for n in root.iter('node')), 'Visual grid lost price information'
     capture('collection-cover')
     adb('shell','wm','size','1766x1472'); adb('shell','wm','density',336); time.sleep(4)

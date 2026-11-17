@@ -1,3 +1,61 @@
+## Version 0.9.4
+
+- Mes decks, Mes proxies et Mes listes disposent de pages distinctes et de boutons coordonnés sur l’accueil.
+- Barre inférieure personnalisable par appui long : choisir les rubriques, modifier leur ordre, retirer et ajouter des raccourcis, dans la limite de cinq. Les choix sont conservés sur le téléphone.
+- Chaque rubrique possède une icône et les scans/imports de decks ouvrent directement Mes decks.
+- Reprise des améliorations Test 28 à 30 : collection unifiée, lecture des cartes distincte de l’ajout et consultation des decks plus lisible.
+
+## Version 0.9.3-test.31
+
+- Accès séparés Mes decks, Mes proxies et Mes listes, avec boutons illustrés coordonnés.
+- Barre du bas personnalisable par appui long : choix des destinations, ordre, icônes dédiées, cinq raccourcis maximum et mémorisation sur le téléphone.
+- Redirection des imports, partages et scans de decks vers Mes decks.
+- Conservation des listes et de l’ordre personnalisé de l’accueil.
+
+## Version 0.9.3-test.30 — decks plus visuels et parcours simplifiés
+
+- Vue du deck : grille plus compacte (trois cartes par ligne sur téléphone standard, davantage selon la largeur), quantités sur les images, leader/base encadrés et progression vers 50 cartes. Noms nettoyés des balises d’affichage.
+- Toucher une carte ouvre une visionneuse plein écran avec navigation dans le deck, zoom par pincement, double toucher ou boutons, recentrage et retournement du leader. Consultation sans ajout implicite.
+- Ajouter une carte : catalogue plein écran avec grandes images, recherche et filtres combinables. Toucher pour lire en grand, bouton Ajouter distinct avec retour de réussite et erreur visible en cas de refus.
+- Revue de navigation : actions secondaires des decks regroupées, accès Consulter redondants retirés, extension choisie à un seul endroit et filtre Doublons explicite.
+- Membres, vitrines favorites et modification par lot nommés plus clairement. Sauvegardes du compte accessibles depuis l’écran Sauvegardes commun ; menu regroupé et proxies nommés Choisir des cartes / À imprimer.
+- Version Test uniquement, sans migration de collection.
+
+## Version 0.9.3-test.29 — Collection unifiée et deck en plein écran
+
+- En Visuel et Miniatures, les commandes défilent avec la grille pour garder les cartes, quantités et cotes accessibles sur téléphone et pliant déplié.
+
+- Collection et Extensions réunies : Possédées, Toutes les cartes, Manquantes et filtre d’extension commun ; vues Liste, Visuel et Miniatures conservées. Les anciens liens d’extension ouvrent cette vue unifiée.
+- Bouton direct pour griser ou remettre en couleur les non possédées, mémorisé et commun aux trois affichages.
+- Ajout à la collection confirmé avec langue et finition : ouvrir le menu ou toucher + ne change aucune quantité.
+- Retour visible après réussite et quantité possédée affichée dans Extensions.
+- Consulter ouvre un écran complet avec toutes les cartes entières du deck et de la réserve, y compris les brouillons ; zoom et modifications explicites conservés.
+
+## Version 0.9.3-test.28 — listes et actions cartes
+
+- Filtres combinables et choix multiples pour les couleurs, traits, extensions, arènes et raretés, dans le constructeur et l’ajout aux listes.
+- Construction visuelle : vue complète du deck par défaut, cartes entières triées par coût ; catalogue et deck côte à côte sur grand écran.
+- Bouton + visible dans chaque fiche : choix Collection, Deck ou Liste.
+- Appui long dans les grilles Collection, Extensions, listes et consultation de decks ; ouverture sans modification automatique.
+- Quantités et retrait confirmé depuis le menu d’une carte ; ajout de cartes accessible directement dans une liste.
+- Les listes simples n’affichent plus les diagnostics de construction de deck.
+- Version Test uniquement, données et services séparés de l’officielle.
+
+## Test 0.9.3-test.27 — ajout rapide dans les decks
+
+- Bouton doré « Ajouter » directement sous le visuel de chaque carte, avant ses informations.
+- Commandes Ajouter et Retirer de 48 dp de hauteur, avec une position stable pour ajouter plusieurs exemplaires rapidement sans ouvrir la fiche.
+- Quantité visible sur la carte ; limites du deck et de la réserve conservées.
+- Les commandes restent accessibles dans le mode Liste. Aucun changement de collection ni de données enregistrées.
+
+## Test 0.9.3-test.26 — création de deck simplifiée
+
+- Nom du deck et bouton Quitter toujours visibles ; vues « Ajouter des cartes » et « Cartes du deck » / « Cartes de réserve » explicites.
+- Quitter permet de conserver un brouillon ou d'abandonner sans enregistrer ni ajouter les scans en attente à la collection.
+- Résumé des quantités plus lisible ; analyse, préparation, export et annulation regroupés dans Actions.
+- L'onglet des listes libres devient « Listes de cartes ». Nouveaux profils visibles par défaut, avec possibilité de masquer leur profil.
+- Aucune publication officielle et aucune migration de collection.
+
 ## Test 0.9.0-test.25 — membres, finitions et decks en cours
 
 - Dans Amis, les membres visibles apparaissent directement avec leur avatar, pseudo et bouton Ajouter. Les amis et invitations existantes sont signalés sans doublon.
