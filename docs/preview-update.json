@@ -1,11 +1,11 @@
 {
-  "versionCode": 87,
-  "versionName": "0.9.3-test.27",
-  "sha256": "4e0ab2d5cc836be3943ecf34db2a0663f9ebf65182e89a82b54c4305b225f940",
-  "size": 63969751,
-  "sourceSha": "8cc72e810708a712152a1fd41464bc16c064ae17",
+  "versionCode": 90,
+  "versionName": "0.9.3-test.29",
+  "sha256": "7187cdb15c625a9cf733bc9b842b0ae54aad4037df9f5839d40935d936f0e656",
+  "size": 63986135,
+  "sourceSha": "5b30423e20881e53a614b4f1242300d74bd1ed3d",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "notes": "Bouton doré « Ajouter » directement sous le visuel de chaque carte dans le créateur de deck, avant les informations. Commandes plus grandes et stables pour ajouter plusieurs exemplaires rapidement, sans ouvrir la fiche. Retrait à côté et quantité visible sur la carte. Limites du deck et de la réserve conservées. Les changements de Test 26 sont inclus. Tests Android, compilation, signature et essais sur émulateur validés.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_b6f378713f5c8191beee71d802cf1bc3&account_id=personal"
+  "notes": "Collection et Extensions réunies : Possédées, Toutes les cartes, Manquantes et filtre d’extension commun. Bouton mémorisé pour griser les non possédées. Ajout à la collection confirmé avec langue et finition, retour visible après réussite. Consultation des decks et brouillons en plein écran avec cartes entières et réserve. Commandes défilantes en Visuel et Miniatures pour garder les cartes, quantités et cotes accessibles sur téléphone, écran déplié et paysage. Inclut les filtres multiples et le constructeur visuel de Test 28. Tests Android, sauvegardes, sécurité, lint, compilation, signature et essais sur émulateur validés.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_2953544f18588191b6e057d924ef1651&account_id=personal"
 }
