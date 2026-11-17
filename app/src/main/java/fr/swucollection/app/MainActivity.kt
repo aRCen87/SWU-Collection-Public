@@ -1193,7 +1193,7 @@ private fun CollectionScreen(
                 }
                 }
                 if (selectedSection == "Collection") {
-                val scrollingMiniatureControls = compactCollectionLayout && collectionView == "Miniatures" && collectionScope in listOf("Possédées", "Doublons")
+                val scrollingMiniatureControls = compactCollectionLayout && collectionView == "Miniatures"
                 val collectionControls: @Composable () -> Unit = {
                 FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Button(onClick = { openScanner() }, modifier = Modifier.widthIn(min = 112.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)) {
@@ -1338,7 +1338,8 @@ private fun CollectionScreen(
                     UnifiedCollectionCatalog(allCatalog, cards, collectionScope, collectionSetFilter, collectionLanguage, search,
                         collectionView, cardDetails, Modifier.weight(1f),
                         onPreview = { card, visible -> openPreview(card, visible.map { CardPreviewEntry(it) }) },
-                        onActions = { quickCard = it }, dimMissing = dimMissing)
+                        onActions = { quickCard = it }, dimMissing = dimMissing,
+                        header = if (scrollingMiniatureControls) collectionControls else null)
                 } else {
                 if (scrollingMiniatureControls && selectedOwned.isEmpty()) collectionControls()
                 if (!scrollingMiniatureControls || selectedOwned.isEmpty()) Text(if (compactCollectionLayout) "${selectedOwned.sumOf { it.quantity }} exemplaires affichés"
