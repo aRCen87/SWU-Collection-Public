@@ -118,7 +118,7 @@ internal fun DeckConsultation(draft: DeckDraft, catalog: List<CatalogCard>, onCl
                 DeckSectionHeading("Deck principal", draft.deck.deck.sumOf { it.count }, onChange?.let { { adding = "Deck" } })
             }
             if (mainEntries.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
-                Text("Ajoute tes premières cartes avec le bouton +.", color = ListPalette.Secondary, style = MaterialTheme.typography.bodySmall)
+                Text(if (onChange == null) "Aucune carte. Choisis Modifier pour compléter le deck." else "Ajoute tes premières cartes avec le bouton +.", color = ListPalette.Secondary, style = MaterialTheme.typography.bodySmall)
             }
             gridItems(mainEntries, key = { "main:" + it.cardId }) { entry ->
                 DeckConsultationCard(entry, byId, ::preview, onChange?.let { { delta: Int -> quantity(entry, DeckEditor.Zone.MAIN, delta) } })
@@ -163,7 +163,7 @@ private fun DeckIdentitySlot(label: String, card: CatalogCard?, modifier: Modifi
             Text(label, style = MaterialTheme.typography.labelMedium, color = ListPalette.Gold)
             if (card != null) CardArtwork(card, Modifier.fillMaxWidth().aspectRatio(1.4f).clickable { onPreview(card) })
             else Box(Modifier.fillMaxWidth().aspectRatio(1.4f).then(if (onChoose != null) Modifier.clickable(onClick = onChoose) else Modifier), contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.Add, "Choisir $label", tint = ListPalette.Gold)
+                if (onChoose != null) Icon(Icons.Default.Add, "Choisir $label", tint = ListPalette.Gold) else Text("Non choisi", style = MaterialTheme.typography.labelSmall, color = ListPalette.Secondary)
             }
             if (card != null) Text(deckCardLabel(card.name).substringBefore(" — "), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelSmall)
             if (onChoose != null) TextButton(onClick = onChoose, contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)) {
