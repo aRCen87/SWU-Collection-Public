@@ -1,11 +1,11 @@
 {
-  "versionCode": 87,
-  "versionName": "0.9.3-test.27",
-  "sha256": "4e0ab2d5cc836be3943ecf34db2a0663f9ebf65182e89a82b54c4305b225f940",
-  "size": 63969751,
-  "sourceSha": "8cc72e810708a712152a1fd41464bc16c064ae17",
+  "versionCode": 89,
+  "versionName": "0.9.3-test.28",
+  "sha256": "089c7adc2f7db2a643452551ffd3a6617257ac1fb98cbfed20c3a72b20ca2848",
+  "size": 63986135,
+  "sourceSha": "178c365e0ecb4d8ea22b50868aa92cf3e61c757e",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "notes": "Bouton doré « Ajouter » directement sous le visuel de chaque carte dans le créateur de deck, avant les informations. Commandes plus grandes et stables pour ajouter plusieurs exemplaires rapidement, sans ouvrir la fiche. Retrait à côté et quantité visible sur la carte. Limites du deck et de la réserve conservées. Les changements de Test 26 sont inclus. Tests Android, compilation, signature et essais sur émulateur validés.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_b6f378713f5c8191beee71d802cf1bc3&account_id=personal"
+  "notes": "Construction de deck visuelle : cartes entières triées par coût, quantités visibles, leader et base, catalogue et deck côte à côte sur grand écran. Bouton + dans les fiches et menu d’ajout Collection, Deck ou Liste. Appui long pour gérer les cartes et retrait confirmé. Listes simplifiées. Filtres combinables avec plusieurs couleurs, traits, extensions, arènes terrestres/spatiales et raretés. Sauvegarde et suppression des brouillons vérifiées. Tests Android, compilation, signature et essais sur émulateur validés.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_87eb423c0aec8191875e3ab71e8f7a18&account_id=personal"
 }
