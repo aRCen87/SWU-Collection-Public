@@ -40,17 +40,20 @@ def reveal(label):
     raise AssertionError('Unreachable card action: ' + label)
 
 def reveal_quantity(name):
-    for attempt in range(5):
+    for attempt in range(14):
         root = snapshot(name + '-' + str(attempt))
         visible = [n for n in root.iter('node') if n.attrib.get('text') == '× 1' and bounds(n)[3] > bounds(n)[1]]
-        if visible: return root
-        window = next(n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_content_window')
-        left,top,right,bottom = bounds(window)
-        # A reflowed card can be taller than the visible grid viewport on Fold.
-        # Scroll within the left pane, above its bottom navigation, to its quantity.
+        prices = [n for n in root.iter('node') if 'Cote' in n.attrib.get('text', '') and bounds(n)[3] > bounds(n)[1]]
+        if visible and prices: return root
+        grid = next(n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_visual_grid')
+        left,top,right,bottom = bounds(grid)
+        assert bottom > top, ('Collapsed visual grid', bounds(grid))
+        # Swipe inside the real gallery. A full-window gesture overshoots the
+        # quantity when the controls leave a short portrait or Fold viewport.
         x = (left + right)//2
-        adb('shell','input','swipe',x,bottom-220,x,bottom-620,450); time.sleep(1)
-    raise AssertionError('Owned quantity is not reachable in the visual grid')
+        distance = max(16, min(120, (bottom-top)//3))
+        adb('shell','input','swipe',x,bottom-8,x,max(top+8,bottom-8-distance),450); time.sleep(1)
+    raise AssertionError('Owned quantity and price are not reachable in the visual grid')
 
 def choose_view(label):
     tap(find(snapshot('filters-button'), 'Filtres'))
