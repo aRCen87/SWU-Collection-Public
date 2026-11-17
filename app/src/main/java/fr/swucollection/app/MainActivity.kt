@@ -270,6 +270,8 @@ private fun CollectionScreen(
     var messengerConversation by remember { mutableStateOf<Pair<PlayerConversation, String>?>(null) }
     var deckLibraryVisible by remember { mutableStateOf(true) }
     var deckMessage by remember { mutableStateOf<String?>(null) }
+    var pendingCollectionAdd by remember { mutableStateOf<CollectionAddRequest?>(null) }
+    var additionMessage by remember { mutableStateOf<String?>(null) }
     var quickCard by remember { mutableStateOf<CatalogCard?>(null) }
     var collectionQuickCard by remember { mutableStateOf<CatalogCard?>(null) }
     var favoriteCard by remember { mutableStateOf<CatalogCard?>(null) }
@@ -653,8 +655,7 @@ private fun CollectionScreen(
                             Text("${ownedVariant?.quantity ?: 0} exemplaire(s)",
                                 modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
                             Button(onClick = {
-                                database.addOrIncrement(card.name, card.setCode, card.number, previewVariant, previewLanguage)
-                                refresh()
+                                pendingCollectionAdd = CollectionAddRequest(card, previewVariant, previewLanguage)
                             }, enabled = previewLanguage in CardLanguages.supported && previewVariant in ScanVariants.detect(card).choices) { Text("+") }
                         }
                         }
@@ -725,6 +726,14 @@ private fun CollectionScreen(
             horizontalAlignment=if(immersiveHome) androidx.compose.ui.Alignment.CenterHorizontally else androidx.compose.ui.Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(if(immersiveHome) 0.dp else if (compactCollectionLayout) 4.dp else 12.dp)
         ) {
+            additionMessage?.let { message ->
+                Surface(Modifier.fillMaxWidth(), color = ListPalette.Raised, contentColor = ListPalette.Gold) {
+                    Row(Modifier.padding(8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        Text("✓ $message", Modifier.weight(1f))
+                        TextButton(onClick = { additionMessage = null }) { Text("Fermer") }
+                    }
+                }
+            }
             if (!immersiveHome && !messengerKeyboardOpen) updateBanner()
             if (selectedSection == "Accueil") {
             val privateHome = AppChannel.supportsExperience(deckContext.packageName)
@@ -1218,7 +1227,7 @@ private fun CollectionScreen(
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         }
                                         Column(horizontalAlignment = androidx.compose.ui.Alignment.End) {
-                                            Text(if (owned) "Possédée" else "Manquante",
+                                            Text(if (owned) "${cards.filter { it.setCode.equals(catalogCard.setCode, true) && it.number == catalogCard.number }.sumOf { it.quantity }} exemplaire(s)" else "Manquante",
                                                 color = if (owned) MaterialTheme.colorScheme.primary
                                                     else MaterialTheme.colorScheme.onSurfaceVariant,
                                                 fontSize = 12.sp)
@@ -1711,6 +1720,14 @@ private fun CollectionScreen(
         })
     }
 
+    pendingCollectionAdd?.let { request ->
+        CollectionAddConfirmation(request, onDismiss = { pendingCollectionAdd = null }) { language, finish ->
+            database.addOrIncrement(request.card.name, request.card.setCode, request.card.number, finish, language)
+            refresh()
+            additionMessage = "${request.card.name} ajouté · ${CardLanguages.label(language)} · $finish"
+            android.widget.Toast.makeText(deckContext, "Carte ajoutée ✓", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
     quickCard?.let { card ->
         CardDestinationDialog(card, onDismiss = { quickCard = null },
             onCollection = { quickCard = null; collectionQuickCard = card },
@@ -1728,7 +1745,7 @@ private fun CollectionScreen(
                         database.changeQuantity(row.id, target - row.quantity); refresh()
                     })
                 }
-                Button(onClick = { collectionQuickCard = null; openPreview(card, listOf(CardPreviewEntry(card))) }) { Text("Choisir une version à ajouter") }
+                Button(onClick = { collectionQuickCard = null; val print = ScanVariants.detect(card); pendingCollectionAdd = CollectionAddRequest(card, print.variant ?: print.choices.firstOrNull().orEmpty(), card.language) }) { Text("Ajouter un exemplaire…") }
             }
         }, confirmButton = { TextButton(onClick = { collectionQuickCard = null }) { Text("Fermer") } })
     }

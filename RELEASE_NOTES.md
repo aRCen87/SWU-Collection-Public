@@ -1,3 +1,9 @@
+## 0.9.3-test.29 — ajouts confirmés et deck en plein écran
+
+- Ajout à la collection confirmé avec langue et finition : ouvrir le menu ou toucher + ne change aucune quantité.
+- Retour visible après réussite et quantité possédée affichée dans Extensions.
+- Consulter ouvre un écran complet avec toutes les cartes entières du deck et de la réserve, y compris les brouillons ; zoom et modifications explicites conservés.
+
 ## 0.9.3-test.28 — listes et actions cartes
 
 - Filtres combinables et choix multiples pour les couleurs, traits, extensions, arènes et raretés, dans le constructeur et l’ajout aux listes.

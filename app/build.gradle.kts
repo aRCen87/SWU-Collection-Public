@@ -37,7 +37,7 @@ android {
         create("preview") {
             initWith(getByName("release"))
             applicationIdSuffix = ".test"
-            versionNameSuffix = "-test.28"
+            versionNameSuffix = "-test.29"
             // Test keeps its own identity and version sequence.
             signingConfig = signingConfigs.getByName("release")
             matchingFallbacks += listOf("release")
@@ -61,8 +61,8 @@ android {
 androidComponents {
     onVariants(selector().withBuildType("preview")) { variant ->
         variant.outputs.forEach {
-            it.versionCode.set(89)
-            it.versionName.set("0.9.3-test.28")
+            it.versionCode.set(90)
+            it.versionName.set("0.9.3-test.29")
         }
     }
 }

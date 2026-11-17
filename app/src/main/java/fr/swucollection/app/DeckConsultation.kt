@@ -7,6 +7,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.platform.testTag
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
@@ -46,9 +53,18 @@ internal fun DeckConsultation(draft: DeckDraft, catalog: List<CatalogCard>, onCl
             change(draft.copy(deck = next))
         }.onFailure { error = it.message ?: "Modification impossible." }
     }
-    AlertDialog(onDismissRequest = onClose, title = { Text(draft.name.ifBlank { "Mon deck" }) }, text = {
-        LazyColumn(Modifier.fillMaxWidth().heightIn(max = 460.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            item {
+    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+      Surface(Modifier.fillMaxSize().testTag("swu_deck_consultation_fullscreen"), color = ListPalette.Background, contentColor = ListPalette.Text) {
+       Column(Modifier.fillMaxSize().safeDrawingPadding().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(draft.name.ifBlank { "Mon deck" }, Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+            TextButton(onClick = onEdit) { Text("Modifier") }
+            TextButton(onClick = onClose) { Text("Fermer") }
+        }
+        LazyVerticalGrid(columns = GridCells.Adaptive(135.dp), modifier = Modifier.weight(1f).fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(bottom = 16.dp)) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 Text("${draft.deck.deck.sumOf { it.count }} cartes · ${draft.deck.sideboard.sumOf { it.count }} en réserve")
                 if (!draft.leaderChosen || !draft.baseChosen || draft.deck.deck.sumOf { it.count } < 50) Text("Deck en cours · tu peux le compléter plus tard.")
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
@@ -57,37 +73,42 @@ internal fun DeckConsultation(draft: DeckDraft, catalog: List<CatalogCard>, onCl
                     runCatching { onChange(previous) }.onSuccess { undo = undo.dropLast(1); error = null }.onFailure { error = it.message }
                 }) { Text("Annuler la dernière modification") }
             }
-            item {
-                if (draft.leaderChosen) DeckConsultationCard(DeckEntry(draft.deck.leader, 1), byId, ::preview)
-                else Text("Leader à choisir")
-                if (onChange != null) TextButton(onClick = { adding = "Leader" }) { Text(if(draft.leaderChosen)"Changer le leader" else "Choisir le leader") }
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(Modifier.weight(1f)) {
+                        if (draft.leaderChosen) DeckConsultationCard(DeckEntry(draft.deck.leader, 1), byId, ::preview)
+                        else Text("Leader à choisir")
+                        if (onChange != null) TextButton(onClick = { adding = "Leader" }) { Text(if(draft.leaderChosen)"Changer le leader" else "Choisir le leader") }
+                    }
+                    Column(Modifier.weight(1f)) {
+                        if (draft.baseChosen) DeckConsultationCard(DeckEntry(draft.deck.base, 1), byId, ::preview)
+                        else Text("Base à choisir")
+                        if (onChange != null) TextButton(onClick = { adding = "Base" }) { Text(if(draft.baseChosen)"Changer la base" else "Choisir la base") }
+                    }
+                }
             }
-            item {
-                if (draft.baseChosen) DeckConsultationCard(DeckEntry(draft.deck.base, 1), byId, ::preview)
-                else Text("Base à choisir")
-                if (onChange != null) TextButton(onClick = { adding = "Base" }) { Text(if(draft.baseChosen)"Changer la base" else "Choisir la base") }
-            }
-            item {
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 Text("Deck principal", style = MaterialTheme.typography.titleSmall)
                 if (onChange != null) TextButton(onClick = { adding = "Deck" }) { Text("Ajouter au deck") }
             }
-            if (draft.deck.deck.isEmpty()) item { Text("Aucune carte pour le moment.") }
-            items(draft.deck.deck, key = { "main:" + it.cardId }) { entry ->
+            if (draft.deck.deck.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) { Text("Aucune carte pour le moment.") }
+            gridItems(draft.deck.deck.sortedWith(compareBy({ byId[it.cardId]?.let { card -> details.get(card)?.cost } ?: Int.MAX_VALUE }, { it.cardId })), key = { "main:" + it.cardId }) { entry ->
                 DeckConsultationCard(entry, byId, ::preview, onChange?.let { { delta: Int -> quantity(entry, DeckEditor.Zone.MAIN, delta) } })
             }
             if (draft.deck.sideboard.isNotEmpty() || onChange != null) {
-                item {
+                item(span = { GridItemSpan(maxLineSpan) }) {
                     Text("Réserve", style = MaterialTheme.typography.titleSmall)
                     if (onChange != null) TextButton(onClick = { adding = "Réserve" }) { Text("Ajouter à la réserve") }
                 }
-                items(draft.deck.sideboard, key = { "side:" + it.cardId }) { entry ->
+                gridItems(draft.deck.sideboard, key = { "side:" + it.cardId }) { entry ->
                     DeckConsultationCard(entry, byId, ::preview, onChange?.let { { delta: Int -> quantity(entry, DeckEditor.Zone.SIDEBOARD, delta) } })
                 }
             }
-            if (draft.collectionEntries.isNotEmpty()) item { Text("${draft.collectionEntries.sumOf { it.quantity }} ajout(s) à la collection en attente de validation.") }
+            if (draft.collectionEntries.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }) { Text("${draft.collectionEntries.sumOf { it.quantity }} ajout(s) à la collection en attente de validation.") }
         }
-    }, confirmButton = { TextButton(onClick = onEdit) { Text("Modifier") } },
-        dismissButton = { TextButton(onClick = onClose) { Text("Fermer") } })
+       }
+      }
+     }
     adding?.let { target -> InlineCardPicker(catalog, target, { adding = null }, details = details) { card ->
         runCatching {
             val next = DeckCompanion.add(draft.deck, card, catalog, details, if(target=="Réserve")DeckEditor.Zone.SIDEBOARD else DeckEditor.Zone.MAIN)
@@ -103,10 +124,11 @@ private fun DeckConsultationCard(entry: DeckEntry, cards: Map<String, CatalogCar
     val card = cards[entry.cardId]
     var managing by remember(entry.cardId) { mutableStateOf(false) }
     Column {
-        Row(Modifier.fillMaxWidth().combinedClickable(enabled=card!=null, onClick={card?.let(onPreview)}, onLongClickLabel="Modifier la quantité", onLongClick={if(onQuantity!=null)managing=true}),verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            CardArtwork(card, Modifier.size(48.dp, 64.dp))
-            Text("${entry.count} × ${card?.name ?: entry.cardId}",modifier=Modifier.weight(1f),maxLines=3,overflow=TextOverflow.Ellipsis)
+        Column(Modifier.fillMaxWidth().combinedClickable(enabled=card!=null,
+            onClick={card?.let(onPreview)}, onLongClickLabel="Modifier la quantité",
+            onLongClick={if(onQuantity!=null)managing=true}), horizontalAlignment = Alignment.CenterHorizontally) {
+            CardArtwork(card, Modifier.fillMaxWidth().aspectRatio(if (card?.let(DeckConstruction::type) in listOf("leader", "chef", "base")) 1.4f else 5f / 7f))
+            Text("${entry.count} × ${card?.name ?: entry.cardId}", Modifier.fillMaxWidth(), maxLines=3, overflow=TextOverflow.Ellipsis)
         }
         if (onQuantity != null) TextButton(onClick = { managing = true }) { Text("Gérer · ×${entry.count}") }
         if (managing && onQuantity != null) CardQuantityDialog(card?.name ?: entry.cardId, entry.count,
