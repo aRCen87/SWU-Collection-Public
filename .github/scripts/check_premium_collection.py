@@ -51,12 +51,21 @@ def reveal_quantity(name):
         # Swipe inside the real gallery. A full-window gesture overshoots the
         # quantity when the controls leave a short portrait or Fold viewport.
         x = (left + right)//2
-        distance = max(16, min(120, (bottom-top)//3))
+        distance = max(48, min(240, (bottom-top)*3//4))
         adb('shell','input','swipe',x,bottom-8,x,max(top+8,bottom-8-distance),450); time.sleep(1)
     raise AssertionError('Owned quantity and price are not reachable in the visual grid')
 
 def choose_view(label):
-    tap(find(snapshot('filters-button'), 'Filtres'))
+    for attempt in range(10):
+        root = snapshot('filters-button-' + str(attempt))
+        buttons = [n for n in root.iter('node') if n.attrib.get('text') == 'Filtres' and bounds(n)[3] > bounds(n)[1]]
+        if buttons:
+            tap(buttons[-1])
+            break
+        grid = next(n for n in root.iter('node') if n.attrib.get('resource-id') in ('swu_visual_grid', 'swu_miniature_grid', 'swu_unified_catalog'))
+        left,top,right,bottom = bounds(grid)
+        adb('shell','input','swipe',(left+right)//2,top+12,(left+right)//2,bottom-12,400); time.sleep(1)
+    else: raise AssertionError('Collection filters are not reachable after scrolling')
     tap(find(snapshot('view-options'), label))
     adb('shell', 'input', 'keyevent', 'KEYCODE_BACK'); time.sleep(2)
 
