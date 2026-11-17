@@ -1,11 +1,11 @@
 {
-  "versionCode": 90,
-  "versionName": "0.9.3-test.29",
-  "sha256": "7187cdb15c625a9cf733bc9b842b0ae54aad4037df9f5839d40935d936f0e656",
-  "size": 63986135,
-  "sourceSha": "5b30423e20881e53a614b4f1242300d74bd1ed3d",
+  "versionCode": 91,
+  "versionName": "0.9.3-test.30",
+  "sha256": "1cc35c9618925714c104f4a54cb61182dd35292b6bb1dd3df0a8b53865ffe837",
+  "size": 64002515,
+  "sourceSha": "83de332c366901462d71c9f494dbd16c99a749c7",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "notes": "Collection et Extensions réunies : Possédées, Toutes les cartes, Manquantes et filtre d’extension commun. Bouton mémorisé pour griser les non possédées. Ajout à la collection confirmé avec langue et finition, retour visible après réussite. Consultation des decks et brouillons en plein écran avec cartes entières et réserve. Commandes défilantes en Visuel et Miniatures pour garder les cartes, quantités et cotes accessibles sur téléphone, écran déplié et paysage. Inclut les filtres multiples et le constructeur visuel de Test 28. Tests Android, sauvegardes, sécurité, lint, compilation, signature et essais sur émulateur validés.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_2953544f18588191b6e057d924ef1651&account_id=personal"
+  "notes": "Deck plus graphique : trois cartes par ligne même sur écran étroit, quantités visibles sur les images, leader/base encadrés et progression. Toucher une carte ouvre une lecture plein écran avec zoom par pincement, double toucher ou boutons, recentrage et précédente/suivante dans le deck. Catalogue d’ajout plein écran avec grandes cartes, recherche et filtres ; lecture et bouton Ajouter séparés, réussite et refus visibles. Accès à la fiche complète conservé. Revue de simplicité : actions secondaires des decks regroupées, boutons Consulter redondants retirés, choix d’extension unique, doublons explicites, vitrines favorites et modification par lot clarifiées, sauvegardes du compte regroupées, menu organisé et proxies plus explicites. Tests de conservation, tests Android, sécurité, lint, compilation, signature et essais sur téléphone simulé étroit, déplié et paysage validés.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_be3d1bdf014481918224d3892916924c&account_id=personal"
 }
