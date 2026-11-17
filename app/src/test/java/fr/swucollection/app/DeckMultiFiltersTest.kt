@@ -21,4 +21,13 @@ class DeckMultiFiltersTest {
         assertTrue(DeckBrowserFilters(set = "HMW|LAW").matches(card, null, 1, false))
         assertTrue(DeckBrowserFilters().matches(card, null, 0, false))
     }
+    @Test fun arenaAliasesAndMultipleRaritiesCombineWithTraits() {
+        val filters = DeckBrowserFilters(arena = "ground|space", rarity = "Rare|Légendaire", trait = "Underworld")
+        assertTrue(filters.matches(card, detail, 0, false))
+        assertTrue(filters.matches(card, detail.copy(arena = "Terrestre"), 0, false))
+        assertTrue(filters.copy(arena = "space").matches(card.copy(rarity = "Légendaire"), detail.copy(arena = "Spatiale"), 0, false))
+        assertFalse(filters.copy(arena = "space").matches(card, detail, 0, false))
+        assertFalse(filters.matches(card.copy(rarity = "Commune"), detail, 0, false))
+    }
+
 }

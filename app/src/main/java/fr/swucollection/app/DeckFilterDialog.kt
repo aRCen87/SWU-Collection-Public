@@ -60,14 +60,12 @@ internal fun DeckFilterDialog(filters: DeckBrowserFilters, catalog: List<Catalog
             }
             DeckMultiChoice("Extensions", filters.set, listOf("" to "Toutes") + DeckBrowser.extensionOrder(catalog).map { it to it }) { onChange(filters.copy(set = it)) }
             if (!identity) {
-            DeckChoice("Arène", filters.arena, listOf("" to "Toutes") + facets.map { it.arena }.filter { it.isNotBlank() }.distinct().sorted().map {
-                it to when (it.lowercase()) { "ground", "ground arena", "terrestre" -> "Terrestre"; "space", "space arena", "spatiale" -> "Spatiale"; else -> it }
-            }) { onChange(filters.copy(arena = it)) }
+            DeckMultiChoice("Unités", filters.arena, listOf("ground" to "Terrestres", "space" to "Spatiales")) { onChange(filters.copy(arena = it)) }
             }
             DeckMultiChoice("Traits", filters.trait, values(facets.flatMap { it.traits })) { onChange(filters.copy(trait = it)) }
-            DeckChoice("Rareté", filters.rarity, values(catalog.map { it.rarity })) { onChange(filters.copy(rarity = it)) }
+            DeckMultiChoice("Raretés", filters.rarity, values(catalog.map { it.rarity })) { onChange(filters.copy(rarity = it)) }
             DeckChoice("Collection", filters.stock, listOf("" to "Toutes les cartes", "owned" to "Déjà possédées", "absent" to "Absentes de ma collection")) { onChange(filters.copy(stock = it)) }
-            Text("Plusieurs choix possibles : une des couleurs, un des traits et une des extensions sélectionnés. Les catégories se combinent. Une donnée inconnue ne correspond pas au filtre.", style = MaterialTheme.typography.bodySmall)
+            Text("Plusieurs choix possibles : une des valeurs de chaque catégorie sélectionnée. Les catégories se combinent. Une donnée inconnue ne correspond pas au filtre.", style = MaterialTheme.typography.bodySmall)
         }
     }, confirmButton = { TextButton(onClick = onDismiss) { Text("Voir les cartes") } },
         dismissButton = { TextButton(onClick = { onChange(DeckBrowserFilters()) }) { Text("Tout effacer") } })
