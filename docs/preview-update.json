@@ -1,11 +1,11 @@
 {
-  "versionCode": 94,
-  "versionName": "0.9.4-test.33",
-  "sha256": "cddab71b93947da2e5f67ef2af80ff638f59b1267c4912639990fad0a40911af",
-  "size": 65070218,
-  "sourceSha": "bcf76a346a70a941b32ebf081ba39970b1825849",
+  "versionCode": 95,
+  "versionName": "0.9.4-test.34",
+  "sha256": "c07654a63083b9345a87190a38cdda3f1c081fa37a0bba5964440024126f1c1b",
+  "size": 65070222,
+  "sourceSha": "7536b9b76d5be6da7a8b7a6f14d856036d2171b6",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "notes": "Test 33 : logos d’extensions hors connexion, quantité à côté de la dernière carte scannée, retournement animé des leaders et amélioration des grandes polices. Navigation et scanner vérifiés à 200 % sur téléphone, Fold déplié et paysage simulés. Rotation du scanner rendue déterministe et contrôlée à 0°, 90°, 180° et 270°. Tests unitaires, sécurité, lint, compilation et conservation des données réussis.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_f3eed7d10a6c81919be0369b01d499f8&account_id=personal"
+  "notes": "Test 34 : toutes les améliorations Test 32 et 33 conservées. Catalogue visuel du scanner chargé progressivement pour éviter les reconnaissances vides sous pression mémoire. Ouverture des cartes hors connexion corrigée. Tests unitaires, sécurité, conservation des données, lint, compilation et signature réussis. Clavier et envoi, decks, grandes polices à 200 % et présentation contrôlés sur téléphone, Fold déplié et paysage simulés.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_a90043ef5100819188b2a24176e41552&account_id=personal"
 }
