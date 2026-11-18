@@ -60,11 +60,12 @@ class Design35PresentationTest {
  @Test fun comparisonFindsSecondCardWithoutAddingAnything(){
   ui.setContent{PreviewTheme{CompareCardsDialog(cards[0],cards,CardDetails.empty()) {}}}
   ui.onNodeWithText("Choisir la seconde carte").performTextInput("Beta")
-  ui.onNodeWithText("Beta · SHD 101").performClick()
-  ui.waitUntil(8000){androidx.core.view.ViewCompat.getRootWindowInsets(ui.activity.window.decorView)?.isVisible(androidx.core.view.WindowInsetsCompat.Type.ime())!=true}
-  ui.waitUntil(8000){runCatching{ui.onNodeWithText("Alpha").assertIsDisplayed();true}.getOrDefault(false)}
-  ui.onNodeWithText("Alpha").assertExists();ui.onNode(hasText("Beta") and !hasSetTextAction()).assertExists()
-  capture("compare")
+  try {
+   ui.onNodeWithText("Beta · SHD 101").performClick()
+   ui.waitUntil(8000){runCatching{ui.onNodeWithTag("design_compare_dialog").assert(SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.StateDescription,"Clavier fermé"));true}.getOrDefault(false)}
+   ui.waitUntil(8000){runCatching{ui.onNodeWithText("Alpha").assertIsDisplayed();true}.getOrDefault(false)}
+   ui.onNodeWithText("Alpha").assertIsDisplayed();ui.onNodeWithText("Beta").assertIsDisplayed()
+  } finally { capture("compare") }
  }
  @Test fun changeSummaryKeepsReserveTransfersVisible(){
   val before=PortableDeck("","",listOf(DeckEntry("SOR-100",2)))
