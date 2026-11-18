@@ -68,7 +68,7 @@ internal fun DeckLibraryPanel(
                     }
                 }
             }
-            if (decks.isEmpty() && drafts.isEmpty()) item { Text("Crée ton premier deck ou importe un fichier JSON.", color = ListPalette.Secondary) }
+            if (decks.isEmpty() && drafts.isEmpty()) item { CollectorEmptyState("Ton premier deck", "Choisis un leader, une base et les cartes que tu veux jouer.", "Créer mon premier deck", onCreate) }
             items(decks, key = { it.id }) { saved ->
                 var more by remember(saved.id) { mutableStateOf(false) }
                 OutlinedCard(onClick = { consultation(saved) }, modifier = Modifier.fillMaxWidth(),

@@ -3,6 +3,12 @@
 package fr.swucollection.app
 
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -46,11 +52,30 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
     }
     val quantities = remember(owned, language) { owned.filter { it.quantity > 0 && (language == "Toutes" || it.language == language) }
         .groupBy { MarketPricing.key(it.setCode, it.number) }.mapValues { (_, rows) -> rows.sumOf { it.quantity } } }
+    var cardScale by rememberSaveable { mutableFloatStateOf(1f) }
+    @Composable fun sectionTitle(code: String) {
+        val total = catalog.count { it.setCode == code }
+        val collected = catalog.count { it.setCode == code && (quantities[MarketPricing.key(it.setCode, it.number)] ?: 0) > 0 }
+        Surface(color = ListPalette.Raised, shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)) {
+            Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Surface(color = ListPalette.Background, shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)) {
+                        Text(code, Modifier.padding(8.dp), color = ListPalette.Gold, style = MaterialTheme.typography.titleSmall)
+                    }
+                    Text("$collected / $total références possédées", style = MaterialTheme.typography.bodySmall)
+                }
+                LinearProgressIndicator(progress = { if (total > 0) collected.toFloat() / total else 0f }, modifier = Modifier.fillMaxWidth())
+            }
+        }
+    }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("${visible.size} référence(s) · $scope", style = MaterialTheme.typography.labelMedium)
-        if (visible.isEmpty()) Text("Aucune carte ne correspond à ces filtres.")
+        if (visible.isEmpty()) CollectorEmptyState("Aucune carte trouvée", "Essaie un autre mot ou retire un filtre pour élargir ta recherche.")
         if (view == "Liste") LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(visible, key = { MarketPricing.key(it.setCode, it.number) }) { card ->
+            if (header != null) item(key = "catalogue-controls") { header() }
+            visible.groupBy { it.setCode }.forEach { (code, group) ->
+            item(key = "set-$code") { sectionTitle(code) }
+            items(group, key = { MarketPricing.key(it.setCode, it.number) }) { card ->
                 val quantity = quantities[MarketPricing.key(card.setCode, card.number)] ?: 0
                 Surface(color = ListPalette.Background, modifier = Modifier.fillMaxWidth().combinedClickable(
                     onClick = { onPreview(card, visible) }, onLongClickLabel = "Gérer cette carte", onLongClick = { onActions(card) })) {
@@ -65,16 +90,30 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                     }
                 }
             }
+            }
         } else BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
             val miniatures = view == "Miniatures"
-            val columns = ((maxWidth.value + 6f) / 110f).toInt().coerceAtLeast(3)
-            LazyVerticalGrid(columns = if (miniatures) GridCells.Fixed(columns) else GridCells.Adaptive(135.dp),
-                modifier = Modifier.fillMaxSize().testTag("swu_unified_catalog"), horizontalArrangement = Arrangement.spacedBy(6.dp),
+            val columns = ((maxWidth.value + 6f) / (110f * cardScale)).toInt().coerceAtLeast(2)
+            LazyVerticalGrid(columns = if (miniatures) GridCells.Fixed(columns) else GridCells.Adaptive((135f * cardScale).dp),
+                modifier = Modifier.fillMaxSize().pointerInput(Unit) {
+                    awaitEachGesture {
+                        awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                        do {
+                            val event = awaitPointerEvent(PointerEventPass.Initial)
+                            if (event.changes.count { it.pressed } >= 2) {
+                                cardScale = (cardScale * event.calculateZoom()).coerceIn(.8f, 1.7f)
+                                event.changes.forEach { it.consume() }
+                            }
+                        } while (event.changes.any { it.pressed })
+                    }
+                }.testTag("swu_unified_catalog"), horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 12.dp)) {
                 if (header != null) item(key = "catalogue-controls", span = { GridItemSpan(maxLineSpan) }) {
                     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) { header() }
                 }
-                gridItems(visible, key = { MarketPricing.key(it.setCode, it.number) }) { card ->
+                visible.groupBy { it.setCode }.forEach { (code, group) ->
+                item(key = "set-$code", span = { GridItemSpan(maxLineSpan) }) { sectionTitle(code) }
+                gridItems(group, key = { MarketPricing.key(it.setCode, it.number) }) { card ->
                     val quantity = quantities[MarketPricing.key(card.setCode, card.number)] ?: 0
                     Column(Modifier.fillMaxWidth().combinedClickable(onClick = { onPreview(card, visible) },
                         onLongClickLabel = "Gérer cette carte", onLongClick = { onActions(card) })
@@ -92,6 +131,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                 }
             }
         }
+    }
     }
 }
 

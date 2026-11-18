@@ -82,6 +82,18 @@ internal fun CollectionBottomBar(section: String, onNavigate: (String) -> Unit) 
         text = {
             Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("Appui long sur la barre pour la personnaliser. Choisis jusqu’à 5 raccourcis, puis change leur ordre.")
+                Text("Aperçu de la barre", style = MaterialTheme.typography.labelMedium)
+                Surface(color = PremiumNavy, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    Row(Modifier.padding(8.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+                        draft.forEach { destination ->
+                            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(bottomShortcutIcons.getValue(destination), destination, tint = PremiumGold, modifier = Modifier.size(24.dp))
+                                Text(if (destination == "Hauts faits") "Badges" else destination,
+                                    style = MaterialTheme.typography.labelSmall, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                            }
+                        }
+                    }
+                }
                 Text("${draft.size}/5 raccourcis", color = PremiumGold)
                 draft.forEachIndexed { index, destination ->
                     Row(verticalAlignment = Alignment.CenterVertically) {

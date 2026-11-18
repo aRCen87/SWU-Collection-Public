@@ -32,7 +32,7 @@ def build(catalog, upstream, official):
         traits=(c.get('traits')or{}).get('fr','') if isinstance(c.get('traits'),dict) else ''
         result[key]={'family':family(en,sub),'en':en+(' — '+sub if sub else ''),'cost':cost,
             'aspects':c.get('aspects')or[],'traits':[x.strip() for x in traits.split(',') if x.strip()],
-            'arena':c.get('arena')or''}
+            'arena':c.get('arena')or'', 'searchText':' '.join(str((c.get(field) or {}).get(lang) or '') for field in ('rules_text','epic_action','back_rules_text') if isinstance(c.get(field),dict) for lang in ('fr','en'))}
     for row in official:
         c=row.get('attributes',row)
         code=(((c.get('expansion')or{}).get('data')or{}).get('attributes')or{}).get('code','HMW')
@@ -51,7 +51,7 @@ def build(catalog, upstream, official):
         result[key]={'family':family(en['title'],en.get('subtitle')),
             'en':en['title']+(' — '+en['subtitle'] if en.get('subtitle') else ''),'cost':c.get('cost'),
             'aspects':[x.get('englishName')or x.get('name') for x in rel('aspects')],
-            'traits':[x['name'] for x in rel('traits')], 'arena':arena}
+            'traits':[x['name'] for x in rel('traits')], 'arena':arena, 'searchText':' '.join(str(c.get(field) or '') for field in ('text','textStyled','epicAction','deployBox'))}
     return result
 def main():
     root=Path(__file__).resolve().parent

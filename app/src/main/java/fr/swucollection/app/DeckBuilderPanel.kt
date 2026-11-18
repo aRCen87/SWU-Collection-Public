@@ -99,8 +99,8 @@ internal fun DeckBuilderPanel(
     var tab by rememberSaveable { mutableStateOf("Deck") }
     var catalogueOpen by rememberSaveable { mutableStateOf(false) }
     var filters by rememberSaveable(stateSaver = Saver<DeckBrowserFilters, ArrayList<String>>(
-        save = { arrayListOf(it.aspect, it.type, it.set, it.rarity, it.cost, it.arena, it.trait, it.stock) },
-        restore = { DeckBrowserFilters(it[0], it[1], it[2], it[3], it[4], it[5], it[6], it[7]) }
+        save = { arrayListOf(it.aspect, it.type, it.set, it.rarity, it.cost, it.arena, it.trait, it.stock, it.keywords) },
+        restore = { DeckBrowserFilters(it[0], it[1], it[2], it[3], it[4], it[5], it[6], it[7], it.getOrElse(8) { "" }) }
     )) { mutableStateOf(DeckBrowserFilters()) }
     var filtersOpen by remember { mutableStateOf(false) }
     var sort by rememberSaveable { mutableStateOf(DeckBrowser.DEFAULT_SORT) }

@@ -1,3 +1,14 @@
+## 0.9.4-test.32 — présentation et recherche (en validation)
+
+- Recherche par mots-clés et capacités dans les filtres combinés du deck, avec textes français et anglais disponibles hors connexion ; les cartes sans texte indexé ne sont pas inventées.
+- Analyse du deck interactive : toucher un coût, un type, une arène, un aspect ou les manquantes ouvre les cartes correspondantes et leurs quantités.
+- Collection : pincement pour régler la grille, sections par extension et progression ; affichage en deux panneaux aussi dans le mode Miniatures sur grand écran.
+- Plein écran avec agrandissement et commandes masquables, repères de finition, chargement et reprise des images en erreur.
+- Nouvelles illustrations réalistes bleu et or pour Mes listes et Mes proxies ; contours plus fins et images plus visibles.
+- Aperçu des raccourcis avant validation ; paramètres illustrés, réduction des animations et pages vides guidées.
+- Bandeau compact après défilement de l’accueil ; ajout collection avec miniature et annulation protégée contre une modification intervenue depuis.
+- Variante Test uniquement : paquet, données et version officielle préservés. Publication privée après compilation et contrôles Android réussis.
+
 ## Version 0.9.4
 
 - Mes decks, Mes proxies et Mes listes disposent de pages distinctes et de boutons coordonnés sur l’accueil.

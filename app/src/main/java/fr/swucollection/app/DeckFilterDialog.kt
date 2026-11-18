@@ -50,6 +50,10 @@ internal fun DeckFilterDialog(filters: DeckBrowserFilters, catalog: List<Catalog
     fun values(items: List<String>) = listOf("" to "Tous") + items.filter { it.isNotBlank() }.distinct().sorted().map { it to it }
     AlertDialog(onDismissRequest = onDismiss, title = { Text("Filtres du catalogue") }, text = {
         Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(value = filters.keywords, onValueChange = { onChange(filters.copy(keywords = it)) },
+                label = { Text("Mots-clés et capacités") }, placeholder = { Text("Sentinelle, défausse, bouclier…") },
+                supportingText = { Text("Tous les mots saisis sont recherchés. Se combine avec les autres filtres ; couverture selon les textes disponibles.") },
+                modifier = Modifier.fillMaxWidth(), maxLines = 3)
             DeckMultiChoice("Couleurs", filters.aspect, listOf(
                 "Vigilance" to "Bleu · Vigilance", "Command" to "Vert · Commandement",
                 "Aggression" to "Rouge · Agressivité", "Cunning" to "Jaune · Ruse",

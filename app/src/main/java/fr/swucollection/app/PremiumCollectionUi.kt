@@ -103,10 +103,10 @@ internal fun homeShortcutArtwork(key: String): Int = when(key) {
 private fun PremiumHomeTile(item: PremiumShortcut, prominent: Boolean, modifier: Modifier,
     reflection: State<BorderTilt?>, shine: State<Float>, effectsEnabled: Boolean, index: Int, onClick: () -> Unit) {
     val interactions=remember {MutableInteractionSource()}
-    val motion=if(effectsEnabled) Modifier.homeButtonMotion(interactions) else Modifier
+    val motion=if(effectsEnabled && !LocalReducedMotion.current) Modifier.homeButtonMotion(interactions) else Modifier
     Surface(onClick = onClick, interactionSource=interactions,
         modifier = modifier.testTag("swu_home_tile_${item.key}").then(motion).goldBorderReflection(reflection).homeTileShine(shine,index), color = PremiumNavy,
-        shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, PremiumGold.copy(alpha = .85f))) {
+        shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, PremiumGold.copy(alpha = .55f))) {
         Box {
             Box(Modifier.matchParentSize().background(PremiumPanel)) {
                 Image(painterResource(homeShortcutArtwork(item.key)),null,
@@ -114,7 +114,7 @@ private fun PremiumHomeTile(item: PremiumShortcut, prominent: Boolean, modifier:
                 Box(Modifier.matchParentSize().homeIllustrationShine(item.key,shine,index))
                 Box(Modifier.matchParentSize().background(Brush.horizontalGradient(
                     0f to PremiumNavy, .3f to PremiumNavy.copy(alpha=.96f),
-                    .66f to PremiumNavy.copy(alpha=if(prominent) .77f else .72f), 1f to PremiumNavy.copy(alpha=.16f))))
+                    .66f to PremiumNavy.copy(alpha=if(prominent) .77f else .48f), 1f to PremiumNavy.copy(alpha=.16f))))
             }
             if (prominent) Row(Modifier.heightIn(min = 98.dp).padding(18.dp),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
