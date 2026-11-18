@@ -63,14 +63,14 @@ internal fun CommunityHomeControls(onOpen: (String) -> Unit, onMenu: () -> Unit,
         }
         val count = if (ready) CommunitySocial.unread(uid.orEmpty(), threads, receipts) +
             friendships.count { it.status == "pending" && it.requester != uid } else 0
-        CommunityHomeActions(profile?.avatar, count, "Messages", onOpen, onMenu, onCounter, modifier, profile?.name)
+        CommunityHomeActions(profile?.avatar, count, "Messages", onOpen, onMenu, onCounter, modifier)
     }
 
 }
 
 @Composable
 private fun CommunityHomeActions(avatar: String?, count: Int, destination: String,
-    onOpen: (String) -> Unit, onMenu: () -> Unit, onCounter: () -> Unit, modifier: Modifier, name: String? = null) {
+    onOpen: (String) -> Unit, onMenu: () -> Unit, onCounter: () -> Unit, modifier: Modifier) {
     Box(modifier.fillMaxWidth().padding(8.dp)) {
         Surface(onClick = { onOpen("Mon profil") }, modifier = Modifier.align(Alignment.TopStart).size(64.dp)
             .semantics { contentDescription = "Mon profil" }, shape = CircleShape, color = PremiumNavy,
@@ -79,8 +79,6 @@ private fun CommunityHomeActions(avatar: String?, count: Int, destination: Strin
                 CommunityAvatar(avatar ?: "preset:star", Modifier.size(58.dp).clearAndSetSemantics {})
             }
         }
-        if (!name.isNullOrBlank()) Text("Bonjour $name", modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth(.48f),
-            color = Color.White, style = MaterialTheme.typography.labelMedium, maxLines = 2)
         Column(Modifier.align(Alignment.TopEnd), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Surface(shape = RoundedCornerShape(14.dp), color = Color(0xDB08121F),
                 border = androidx.compose.foundation.BorderStroke(1.dp, PremiumGold.copy(alpha = .4f))) {
