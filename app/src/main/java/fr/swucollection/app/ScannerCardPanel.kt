@@ -39,7 +39,7 @@ internal fun ScannerCardSummary(card: CatalogCard, variant: String, status: Stri
         CardArtwork(card, Modifier.width(58.dp).height(82.dp), language = card.language, variant = variant)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(card.name, color = ListPalette.Text, fontWeight = FontWeight.SemiBold)
-            quantity?.let { Text("× $it exemplaire(s)", color = ListPalette.Gold, style = MaterialTheme.typography.labelMedium) }
+            quantity?.let { Text("Quantité : $it", modifier = Modifier.fillMaxWidth(), color = ListPalette.Gold, style = MaterialTheme.typography.labelMedium) }
             Text("${card.setCode} ${card.number} · ${CardLanguages.label(card.language)} · ${variant.ifBlank { "Finition à vérifier" }}",
                 color = ListPalette.Secondary, style = MaterialTheme.typography.labelSmall)
             val amount = quote?.amount

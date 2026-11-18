@@ -10,6 +10,9 @@ for format in cover unfolded landscape; do
     landscape) adb shell wm size 1560x720; adb shell wm density 320 ;;
   esac
   adb shell am instrument -w -e class fr.swucollection.app.Test33AccessibilityTest fr.swucollection.app.test/androidx.test.runner.AndroidJUnitRunner | tee "smoke-private/test33-accessibility-$format.txt"
+  for view in filters scanner settings; do
+    adb pull "/sdcard/Android/data/fr.swucollection.app/files/home-test-font-$view.png" "smoke-private/home-test-font-$view-$format.png"
+  done
   grep -q 'OK (5 tests)' "smoke-private/test33-accessibility-$format.txt"
 done
 adb shell wm size reset

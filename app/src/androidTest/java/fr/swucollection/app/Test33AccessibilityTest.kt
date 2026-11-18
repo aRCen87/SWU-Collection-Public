@@ -7,6 +7,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
@@ -17,15 +18,21 @@ import androidx.compose.ui.unit.dp
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
+import java.io.File
 
 /** Production menus at twice the normal font size, using disposable local data only. */
 class Test33AccessibilityTest {
     @get:Rule val ui = createAndroidComposeRule<ComponentActivity>()
+    private fun capture(name: String) {
+        File(ui.activity.getExternalFilesDir(null), "home-test-font-$name.png").outputStream().use {
+            ui.onRoot().captureToImage().asAndroidBitmap().compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)
+        }
+    }
     private fun assertUnclippedText(text: String) {
         val results = mutableListOf<TextLayoutResult>()
         ui.onNodeWithText(text).performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(results) }
         assertTrue("Missing text layout: $text", results.isNotEmpty())
-        assertFalse("Clipped text: $text", results.any { it.hasVisualOverflow })
+        assertFalse("Clipped text: $text; ${results.map { "${it.size}, lines=${it.lineCount}, width=${it.didOverflowWidth}, height=${it.didOverflowHeight}" }}", results.any { it.hasVisualOverflow })
     }
     @Composable private fun LargeText(content: @Composable () -> Unit) {
         val density = LocalDensity.current
@@ -48,6 +55,7 @@ class Test33AccessibilityTest {
         ui.onNodeWithText("Voir les cartes").assertIsDisplayed().performClick()
         assertTrue(closed)
         assertUnclippedText(label)
+        capture("filters")
     }
     @Test fun scannerShowsTheExactQuantityAndBothModesWithLargeText() {
         ui.setContent { LargeText {
@@ -57,7 +65,8 @@ class Test33AccessibilityTest {
                 ScannerModeChoices("Rafale") {}
             }
         } }
-        assertUnclippedText("× 12 exemplaire(s)")
+        capture("scanner")
+        assertUnclippedText("Quantité : 12")
         ui.onNodeWithText("Une par une").performScrollTo().assertIsDisplayed()
         ui.onNodeWithText("Rafale").performScrollTo().assertIsDisplayed()
     }
@@ -99,5 +108,6 @@ class Test33AccessibilityTest {
         ui.onNodeWithTag("bottom_shortcut_Mes proxies").assertIsDisplayed().performClick()
         assertEquals("Mes proxies", destination)
         assertUnclippedText("Mes proxies")
+        capture("settings")
     }
 }
