@@ -16,7 +16,7 @@ private data class ArtworkFrame(val card: CatalogCard, val variant: String, val 
 @Composable
 internal fun TransitioningCardArtwork(card: CatalogCard, variant: String, reverse: Boolean = false,
     index: Int, enabled: Boolean, modifier: Modifier = Modifier) {
-    if (!enabled || !ValueAnimator.areAnimatorsEnabled()) {
+    if (!enabled || LocalReducedMotion.current || !ValueAnimator.areAnimatorsEnabled()) {
         CardArtwork(card, modifier, variant = variant, reverse = reverse)
         return
     }

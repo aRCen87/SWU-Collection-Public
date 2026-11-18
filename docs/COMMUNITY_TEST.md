@@ -1,3 +1,11 @@
+## Test 0.9.4-test.34 — correction du catalogue visuel
+
+Le défaut intermittent de reconnaissance a été reproduit dans la suite Android complète : la lecture globale du JSON de l’index visuel levait une OutOfMemoryError, capturée et transformée en liste vide. L’index est désormais décodé ligne par ligne avec JsonReader ; seules les signatures décodées restent en mémoire. Les formats 1 et 2 et leurs dimensions sont contrôlés. Les exceptions ordinaires d’un index absent/invalide désactivent uniquement les suggestions visuelles ; les erreurs fatales de la VM ne sont plus masquées. Aucun seuil de correspondance, règle d’identité, langue ou finition n’est relâché.
+
+Le contrôle des quatre orientations et des deux faces de leader est répété, avec comparaison des pixels de la trame d’entrée avant/après analyse. Les tests supplémentaires vérifient les références, noms, signatures et le rejet d’index incompatibles.
+
+Les échecs locaux de consultation des decks ont aussi reproduit un bouton de reprise d’image superposé au centre de la carte. La reprise dispose désormais d’une cible de 48 dp dans le coin inférieur droit ; le toucher central et l’appui long ouvrent leur parcours normal lorsque l’image n’a pas chargé. La compilation et la publication privées restent conditionnées au succès des contrôles. Aucun essai physique sur le SM-F966B n’est revendiqué.
+
 ## Test 0.8.19-test.24 — miniatures de collection
 
 - Troisième affichage « Miniatures » dans Filtres et affichage : uniquement les images de cartes, sans nom, quantité, cote ni pastille sur la grille.

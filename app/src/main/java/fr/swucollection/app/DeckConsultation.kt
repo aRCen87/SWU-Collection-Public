@@ -44,6 +44,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -63,6 +66,9 @@ internal fun DeckConsultation(draft: DeckDraft, catalog: List<CatalogCard>, onCl
         return runCatching { onChange(next) }.onSuccess { undo = (undo + draft).takeLast(20); error = null }
             .onFailure { error = it.message ?: "Modification non enregistrée. Réessaie." }.isSuccess
     }
+    var grouping by rememberSaveable { mutableStateOf("Cartes") }
+    var compareChanges by remember { mutableStateOf(false) }
+    val originalDeck = remember { draft.deck }
     val mainEntries = remember(draft.deck.deck, byId, details) { draft.deck.deck.sortedWith(compareBy({ byId[it.cardId]?.let { card -> details.get(card)?.cost } ?: Int.MAX_VALUE }, { it.cardId })) }
     val gallery = remember(draft, byId, mainEntries) { (listOfNotNull(if (draft.leaderChosen) byId[draft.deck.leader] else null,
         if (draft.baseChosen) byId[draft.deck.base] else null) + (mainEntries + draft.deck.sideboard).mapNotNull { byId[it.cardId] }).distinctBy(DeckConstruction::reference) }
@@ -85,6 +91,10 @@ internal fun DeckConsultation(draft: DeckDraft, catalog: List<CatalogCard>, onCl
             Text(draft.name.ifBlank { "Mon deck" }, Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleLarge)
             TextButton(onClick = onEdit) { Text("Modifier") }
             TextButton(onClick = onClose) { Text("Fermer") }
+        }
+        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf("Cartes", "Coût", "Type").forEach { mode -> FilterChip(grouping == mode, { grouping = mode }, label = { Text(if(mode == "Cartes") "Grille" else "Table · $mode") }) }
+            if(onChange != null) TextButton(onClick = { compareChanges = true }) { Text("Avant / après") }
         }
         LazyVerticalGrid(columns = GridCells.Fixed(((LocalConfiguration.current.screenWidthDp - 16) / 112).coerceAtLeast(3)), modifier = Modifier.weight(1f).fillMaxWidth().testTag("deck_overview_grid"),
             horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -120,8 +130,12 @@ internal fun DeckConsultation(draft: DeckDraft, catalog: List<CatalogCard>, onCl
             if (mainEntries.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
                 Text(if (onChange == null) "Aucune carte. Choisis Modifier pour compléter le deck." else "Ajoute tes premières cartes avec le bouton +.", color = ListPalette.Secondary, style = MaterialTheme.typography.bodySmall)
             }
-            gridItems(mainEntries, key = { "main:" + it.cardId }) { entry ->
+            val tableGroups = if(grouping == "Cartes") mapOf("" to mainEntries) else mainEntries.groupBy { DesignDeckPlan.group(it, byId, details, grouping) }
+            tableGroups.forEach { (heading, entries) ->
+            if(heading.isNotBlank()) item(span = { GridItemSpan(maxLineSpan) }, key = "table:$heading") { Text("$heading · ${entries.sumOf { it.count }}", style = MaterialTheme.typography.titleSmall, color = ListPalette.Secondary) }
+            gridItems(entries, key = { "main:" + it.cardId }) { entry ->
                 DeckConsultationCard(entry, byId, ::preview, onChange?.let { { delta: Int -> quantity(entry, DeckEditor.Zone.MAIN, delta) } })
+            }
             }
             item(span = { GridItemSpan(maxLineSpan) }) {
                 DeckSectionHeading("Réserve", draft.deck.sideboard.sumOf { it.count }, onChange?.let { { adding = "Réserve" } })
@@ -137,6 +151,7 @@ internal fun DeckConsultation(draft: DeckDraft, catalog: List<CatalogCard>, onCl
        }
       }
      }
+    if(compareChanges) DeckChangesDialog(originalDeck, draft.deck, catalog) { compareChanges = false }
     previewId?.let { id -> DeckCardGallery(gallery, id, { previewId = null }, onPreview?.let { callback -> { selected -> previewId = null; callback(selected, gallery) } }) }
     adding?.let { target -> InlineCardPicker(catalog, target, { adding = null }, details = details) { card ->
         val next = DeckCompanion.add(draft.deck, card, catalog, details, if (target == "Réserve") DeckEditor.Zone.SIDEBOARD else DeckEditor.Zone.MAIN)
@@ -219,7 +234,8 @@ internal fun DeckCardGallery(cards: List<CatalogCard>, initialId: String, onClos
                     if (onDetails != null) IconButton(onClick = { onDetails(card) }) { Icon(Icons.Default.Info, "Ouvrir la fiche complète") }
                     IconButton(onClick = onClose) { Icon(Icons.Default.Close, "Fermer la carte") }
                 }
-                Box(Modifier.weight(1f).fillMaxWidth().clipToBounds().testTag("deck_gallery_artwork").onSizeChanged { frame = it }.transformable(transform)
+                Box(Modifier.weight(1f).fillMaxWidth().clipToBounds().testTag("deck_gallery_artwork").onSizeChanged { frame = it }
+                    .cardSwipeNavigation(card, zoom == 1f, { if (index > 0) index-- }, { if (index < cards.lastIndex) index++ }).transformable(transform)
                     .pointerInput(card) { detectTapGestures(onDoubleTap = { zoom = if (zoom > 1f) 1f else 2f; offset = Offset.Zero }) }, contentAlignment = Alignment.Center) {
                     CardArtwork(card, Modifier.fillMaxSize().graphicsLayer(scaleX = zoom, scaleY = zoom, translationX = offset.x, translationY = offset.y), reverse = reverse)
                 }

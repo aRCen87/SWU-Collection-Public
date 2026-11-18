@@ -7,7 +7,7 @@ import java.io.InputStream
 import java.io.FileNotFoundException
 
 internal data class CardDetail(val family: String, val englishName: String, val cost: Int?,
-    val aspects: List<String>, val traits: List<String>, val arena: String)
+    val aspects: List<String>, val traits: List<String>, val arena: String, val searchText: String = "")
 internal class CardDetails(private val rows: Map<String,CardDetail>) {
     fun get(card: CatalogCard): CardDetail?=rows[MarketPricing.key(card.setCode,card.number)]
     fun family(card: CatalogCard)=get(card)?.family ?: "unknown:${MarketPricing.key(card.setCode,card.number)}"
@@ -41,7 +41,7 @@ internal class CardDetails(private val rows: Map<String,CardDetail>) {
             return CardDetails(cards.keys().asSequence().associateWith { key ->
                 val c=cards.getJSONObject(key)
                 fun strings(field: String)=c.getJSONArray(field).let { a ->(0 until a.length()).map { a.getString(it) } }
-                CardDetail(c.getString("family"),c.getString("en"),if(c.isNull("cost"))null else c.getInt("cost"),strings("aspects"),strings("traits"),c.optString("arena"))
+                CardDetail(c.getString("family"),c.getString("en"),if(c.isNull("cost"))null else c.getInt("cost"),strings("aspects"),strings("traits"),c.optString("arena"),c.optString("searchText"))
             })
         }
     }

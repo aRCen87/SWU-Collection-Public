@@ -56,7 +56,7 @@ internal fun ProxyBuilderPanel(catalog: List<CatalogCard>, owned: List<Collectio
     val stock = remember(owned, details, byId) { owned.mapNotNull { row -> DeckConstruction.stockReference(row.setCode, row.number)?.let { byId[it] }?.let { details.family(it) to row.quantity } }
         .groupBy { it.first }.mapValues { (_, rows) -> rows.sumOf { it.second } } }
     var preview by remember { mutableStateOf<CatalogCard?>(null) }
-    var reverse by remember { mutableStateOf(false) }
+
     var query by state.query
     var selectionOnly by state.selectionOnly
     var filters by state.filters
@@ -91,7 +91,7 @@ internal fun ProxyBuilderPanel(catalog: List<CatalogCard>, owned: List<Collectio
                 val id = DeckConstruction.reference(card)
                 DeckCardTile(card, true, selected[id] ?: 0, stock[details.family(card)] ?: 0, 0, false, false,
                     canAdd = (selected[id] ?: 0) < 99 && selected.values.sum() < CardPdfPlan.MAX_CARDS,
-                    onPreview = { preview = card; reverse = false }, onChoose = {}, onQuantity = { update(id, it) })
+                    onPreview = { preview = card }, onChoose = {}, onQuantity = { update(id, it) })
             }
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -99,11 +99,7 @@ internal fun ProxyBuilderPanel(catalog: List<CatalogCard>, owned: List<Collectio
             Text("${selected.values.sum()} exemplaire(s)", Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall)
         }
     }
-    preview?.let { card -> AlertDialog(onDismissRequest = { preview = null }, title = { Text(card.name) },
-        text = { Column {
-            CardArtwork(if (reverse) card.backImageUrl else card.imageUrl, Modifier.fillMaxWidth().heightIn(max = 380.dp).aspectRatio(if (DeckConstruction.type(card) in setOf("leader", "chef", "base") && !reverse) 1.4f else 5f / 7f))
-            if (card.backImageUrl.isNotBlank()) TextButton(onClick = { reverse = !reverse }) { Text("Retourner") }
-        } }, confirmButton = { TextButton(onClick = { preview = null }) { Text("Fermer la carte") } }) }
+    preview?.let { card -> DeckCardGallery(filtered, DeckConstruction.reference(card), { preview = null }) }
     if (filtering) DeckFilterDialog(filters, catalog, details, onChange = { filters = it }, onDismiss = { filtering = false })
     if (printing) CardPrintDialog("Ma sélection", selected.map { PrintCard(byId.getValue(it.key), it.value) }, true, onDismiss = { printing = false })
     if (clearing) AlertDialog(onDismissRequest = { clearing = false }, title = { Text("Vider la sélection de proxies ?") },

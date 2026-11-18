@@ -6,6 +6,16 @@ import org.junit.Test
 class DeckBrowserTest {
     private val card = CatalogCard("SOR", "092", "Barrage dévastateur", "Évènement", "Peu commune")
     private val detail = CardDetail("barrage", "Overwhelming Barrage", 5, listOf("Command", "Villainy"), listOf("Tactique"), "Ground")
+    @Test fun keywordSearchCombinesWordsFacetsAndAvailableRules() {
+        val rules = detail.copy(searchText = "Sentinelle. Quand cette unité attaque, piochez une carte.")
+        assertTrue(DeckBrowserFilters(keywords = "SENTINELLE attaque").matches(card, rules, 0, false))
+        assertTrue(DeckBrowserFilters(keywords = "tactique").matches(card, rules, 0, false))
+        assertFalse(DeckBrowserFilters(keywords = "sentinelle sabotage").matches(card, rules, 0, false))
+        assertFalse(DeckBrowserFilters(keywords = "sentinelle", stock = "owned").matches(card, rules, 0, false))
+        assertFalse(DeckBrowserFilters(keywords = "sentinelle").matches(card, null, 0, false))
+        assertTrue(DeckBrowserFilters(keywords = "  ").matches(card, null, 0, false))
+        assertEquals(1, DeckBrowserFilters(keywords = "sentinelle").activeCount)
+    }
     @Test fun searchAcceptsAccentsCaseAndReferences() {
         assertTrue(DeckBrowser.search(card, "DEVASTATEUR"))
         assertTrue(DeckBrowser.search(card, "sor-092"))

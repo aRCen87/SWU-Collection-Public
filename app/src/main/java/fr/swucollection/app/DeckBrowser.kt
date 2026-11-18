@@ -7,9 +7,9 @@ import java.util.Locale
 internal data class DeckBrowserFilters(
     val aspect: String = "", val type: String = "", val set: String = "",
     val rarity: String = "", val cost: String = "", val arena: String = "",
-    val trait: String = "", val stock: String = ""
+    val trait: String = "", val stock: String = "", val keywords: String = ""
 ) {
-    val activeCount get() = listOf(aspect, type, set, rarity, cost, arena, trait, stock).count { it.isNotEmpty() }
+    val activeCount get() = listOf(aspect, type, set, rarity, cost, arena, trait, stock, keywords).count { it.isNotEmpty() }
     fun forIdentity() = copy(type = "", cost = "", arena = "")
     fun matches(card: CatalogCard, detail: CardDetail?, owned: Int, identity: Boolean): Boolean =
         (aspect.isEmpty() || detail?.aspects?.any { it in aspect.split("|") } == true) &&
@@ -17,13 +17,21 @@ internal data class DeckBrowserFilters(
         (rarity.isEmpty() || card.rarity in rarity.split("|")) &&
         (identity || cost.isEmpty() || detail?.cost?.let { if (cost == "8+") it >= 8 else it == cost.toIntOrNull() } == true) &&
         (identity || arena.isEmpty() || detail?.arena?.let { current -> arena.split("|").any { DeckBrowser.arenaKey(it) == DeckBrowser.arenaKey(current) } } == true) && (trait.isEmpty() || detail?.traits?.any { it in trait.split("|") } == true) &&
-        (stock.isEmpty() || if (stock == "owned") owned > 0 else owned == 0)
+        (stock.isEmpty() || if (stock == "owned") owned > 0 else owned == 0) &&
+        DeckBrowser.matchesKeywords(card, detail, keywords)
 }
 internal object DeckBrowser {
     fun arenaKey(value: String): String = when (searchKey(value)) {
         "ground", "ground arena", "terrestre" -> "ground"
         "space", "space arena", "spatiale", "spatial" -> "space"
         else -> searchKey(value)
+    }
+    fun matchesKeywords(card: CatalogCard, detail: CardDetail?, query: String): Boolean {
+        val terms = searchKey(query).split(" ").filter { it.isNotEmpty() }
+        if (terms.isEmpty()) return true
+        val text = searchKey(listOf(card.name, card.type, detail?.englishName.orEmpty(),
+            detail?.traits?.joinToString(" ").orEmpty(), detail?.searchText.orEmpty()).joinToString(" "))
+        return terms.all { text.contains(it) }
     }
     const val DEFAULT_SORT = "Extensions récentes"
     private val combiningMarks = Regex("\\p{M}+")

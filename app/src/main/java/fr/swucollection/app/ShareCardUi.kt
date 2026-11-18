@@ -19,7 +19,9 @@ import java.util.UUID
     var selected by remember{mutableStateOf<Set<String>>(emptySet())};var search by remember{mutableStateOf("")};var note by remember{mutableStateOf("")}
     var busy by remember{mutableStateOf(false)};var result by remember{mutableStateOf<String?>(null)};var loadError by remember{mutableStateOf<String?>(null)}
     val scope=rememberCoroutineScope();val ids=remember{mutableMapOf<String,String>()}
-    LaunchedEffect(uid){
+    var reload by remember { mutableIntStateOf(0) }
+    LaunchedEffect(uid, reload){
+        loaded = false; loadError = null
         if(service==null || uid==null || service.auth.currentUser?.isEmailVerified!=true){loaded=true;return@LaunchedEffect}
         try{val db=service.accountStore();val rows=db.collection("friendships").whereArrayContains("members",uid).limit(100).get().communityAwait()
             friends=rows.documents.filter{it.getString("status")=="accepted"}.mapNotNull{row->
@@ -38,7 +40,7 @@ import java.util.UUID
             if(uid==null)Text("Connecte-toi dans Mon profil pour partager une carte.")
             else if(!loaded)LinearProgressIndicator(Modifier.fillMaxWidth())
             else if(loadError==null && friends.isEmpty())Text("Ajoute un ami ou accepte une demande dans Messagerie → Amis.")
-            loadError?.let{Text(it,color=MaterialTheme.colorScheme.error)}
+            loadError?.let{Text(it,color=MaterialTheme.colorScheme.error); TextButton(onClick={reload++}) { Text("Réessayer") }}
             if(friends.isNotEmpty()){
                 OutlinedTextField(search,{search=it.take(80)},label={Text("Rechercher un pseudo")},singleLine=true,modifier=Modifier.fillMaxWidth())
                 friends.filter{it.name.contains(search.trim(),true)}.forEach {friend->

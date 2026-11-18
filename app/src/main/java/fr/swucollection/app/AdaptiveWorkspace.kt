@@ -25,7 +25,7 @@ internal fun AdaptiveWorkspace(enabled: Boolean, hasDetail: Boolean, onClose: ()
     BoxWithConstraints(Modifier.fillMaxSize().background(Color(0xFF030A17)).semantics { testTagsAsResourceId = true }) {
         val wide = enabled && maxWidth >= 720.dp && maxHeight >= 480.dp
         BackHandler(enabled = hasDetail && (wide || !dismissOnOutside), onBack = onClose)
-        if (wide) Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (wide && hasDetail) Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(Modifier.weight(.56f).fillMaxHeight(), content = content)
             Box(Modifier.weight(.44f).fillMaxHeight().testTag("swu_detail_pane"), contentAlignment = Alignment.Center) {
                 if (hasDetail) detail() else Card(Modifier.padding(16.dp).fillMaxWidth()) {

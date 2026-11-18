@@ -32,7 +32,7 @@ def build(catalog, upstream, official):
         traits=(c.get('traits')or{}).get('fr','') if isinstance(c.get('traits'),dict) else ''
         result[key]={'family':family(en,sub),'en':en+(' — '+sub if sub else ''),'cost':cost,
             'aspects':c.get('aspects')or[],'traits':[x.strip() for x in traits.split(',') if x.strip()],
-            'arena':c.get('arena')or''}
+            'arena':c.get('arena')or'', 'searchText':' '.join(str((c.get(field) or {}).get(lang) or '') for field in ('rules_text','epic_action','back_rules_text') if isinstance(c.get(field),dict) for lang in ('fr','en'))}
     for row in official:
         c=row.get('attributes',row)
         code=(((c.get('expansion')or{}).get('data')or{}).get('attributes')or{}).get('code','HMW')
@@ -51,7 +51,7 @@ def build(catalog, upstream, official):
         result[key]={'family':family(en['title'],en.get('subtitle')),
             'en':en['title']+(' — '+en['subtitle'] if en.get('subtitle') else ''),'cost':c.get('cost'),
             'aspects':[x.get('englishName')or x.get('name') for x in rel('aspects')],
-            'traits':[x['name'] for x in rel('traits')], 'arena':arena}
+            'traits':[x['name'] for x in rel('traits')], 'arena':arena, 'searchText':' '.join(str(c.get(field) or '') for field in ('text','textStyled','epicAction','deployBox'))}
     return result
 def main():
     root=Path(__file__).resolve().parent
@@ -77,10 +77,13 @@ def main():
     details=build(catalog,upstream,official)
     if dest.exists():
         old=json.loads(gzip.decompress(dest.read_bytes()))['cards']
-        # Preserve previously publisher-verified HMW localizations only. Unknown
+        # Preserve publisher-verified HMW/IC27 and organised-play identities. Unknown
         # other identities must stay explicit instead of retaining promo collisions.
         for k,v in old.items():
-            if k.startswith(('HMW:','IC27:')):details.setdefault(k,v)
+            if k.startswith(('HMW:','IC27:','HMWP:')) or k in {'P26:'+str(n).zfill(3) for n in range(26,32)}:details.setdefault(k,v)
+    texts={row['family']:row['searchText'] for row in details.values() if row.get('searchText','').strip()}
+    for row in details.values():
+        if not row.get('searchText','').strip() and row['family'] in texts:row['searchText']=texts[row['family']]
     payload={'format':'SWU_CARD_DETAILS','version':1,'source':'Team-Zura CC0 / official card-list','cards':details}
     dest.write_bytes(gzip.compress(json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode(),mtime=0))
     print(json.dumps({'mapped':len(details),'catalog':len(catalog['cards']),'gzipBytes':dest.stat().st_size},ensure_ascii=False),flush=True)

@@ -1,3 +1,52 @@
+## Version 0.9.5
+
+- Collection plus visuelle : commandes compactes, logos et accès rapide aux extensions, progression par rareté et silhouettes optionnelles des cartes manquantes.
+- Fiches avec grande image, onglets Collection / Variantes / Cotes, variantes en éventail, comparaison côte à côte et reflet foil optionnel.
+- Mes decks : couvertures personnalisables, mode table par coût ou type, mode concentration, barre fixe leader/base/totaux et comparaison des modifications par zone.
+- Présentation bleu nuit et or harmonisée, illustrations des listes et proxies coordonnées, animations respectant le réglage de réduction des mouvements.
+- Scanner : catalogue visuel lu progressivement pour limiter la mémoire, reconnaissance des rotations stabilisée et quantité du dernier scan affichée.
+- Lecture hors connexion et comparaison de cartes en paysage corrigées ; grandes polices, téléphone et Fold contrôlés.
+- Mise à jour de l’installation officielle existante avec conservation des collections, variantes, quantités, listes et decks. Comptes et données Test séparés.
+
+## 0.9.4-test.35 — classeur et atelier de decks
+
+- Collection plus aérée, commandes compactes, repères de défilement par extension, illustration et progression par rareté ; silhouettes optionnelles des cartes manquantes.
+- Fiche carte séparée en Collection, Variantes et Cotes ; éventail des versions, comparaison de deux cartes, entrée animée et reflet foil optionnel.
+- Decks avec couvertures personnalisables et cadrage mémorisé. Mode table par coût ou type dans la construction et la consultation.
+- Mode concentration, barre fixe leader/base/totaux et comparaison avant/après par zone.
+- Accueil et contours allégés, icônes harmonisées, confirmation d’ajout animée ; réduction des animations respectée.
+- Application Test uniquement. Aucun changement du schéma, des quantités, des services officiels ou de la version officielle.
+
+## 0.9.4-test.34 — fiabilité du scanner
+
+- Chargement progressif du catalogue visuel : évite de conserver les 20 Mo de JSON et leur arbre complet en plus des signatures, cause des reconnaissances vides sous pression mémoire.
+- Les erreurs graves de mémoire ne sont plus masquées comme une absence de carte ; un index optionnel absent ou invalide conserve le parcours OCR.
+- Contrôles répétés des deux faces de leader, des bases et des cartes classiques dans les quatre rotations, avec vérification de l’intégrité de l’image caméra et de la compatibilité des formats d’index.
+- Le bouton de reprise d’un visuel en erreur est placé dans un coin : le centre reste accessible pour ouvrir la carte, même sans réseau.
+- Toutes les améliorations Test 32 et Test 33 sont reprises. Collections, variantes, quantités, signatures et version officielle préservées.
+
+## 0.9.4-test.33 — finitions et accessibilité
+
+- Logos des extensions fournis par l’éditeur, embarqués pour rester disponibles hors connexion ; code exact et progression conservés pour les promotions et séries annexes.
+- Quantité de la dernière carte scannée affichée avec sa miniature ; total exact de la variante et de la langue dans le lot ou le deck courant.
+- Retournement animé des leaders dans la visionneuse plein écran, désactivé avec la réduction des mouvements.
+- Libellés longs des filtres et raccourcis sans limite de lignes ; modes du scanner capables de revenir à la ligne. Contrôles dédiés à une police à 200 % sur téléphone, Fold et paysage.
+- Avec les très grandes polices, les raccourcis s’élargissent dans une barre défilante horizontalement, ainsi que dans son aperçu ; l’onglet actif reste accessible et la limite de cinq raccourcis est conservée.
+- Échantillonnage de caméra déterministe : rotation entière et moyenne des pixels dans le même repère avant reconnaissance ; seuils et confirmations inchangés. Comparaison des pixels aux quatre rotations et répétition du test visuel à 180°.
+- Version Test uniquement ; schéma, données et version officielle inchangés.
+
+## 0.9.4-test.32 — présentation et recherche
+
+
+- Recherche par mots-clés et capacités dans les filtres combinés du deck, avec textes français et anglais disponibles hors connexion ; les cartes sans texte indexé ne sont pas inventées.
+- Analyse du deck interactive : toucher un coût, un type, une arène, un aspect ou les manquantes ouvre les cartes correspondantes et leurs quantités.
+- Collection : pincement pour régler la grille, sections par extension et progression ; affichage en deux panneaux aussi dans le mode Miniatures sur grand écran.
+- Plein écran avec agrandissement et commandes masquables, repères de finition, chargement et reprise des images en erreur.
+- Nouvelles illustrations réalistes bleu et or pour Mes listes et Mes proxies ; contours plus fins et images plus visibles.
+- Aperçu des raccourcis avant validation ; paramètres illustrés, réduction des animations et pages vides guidées.
+- Bandeau compact après défilement de l’accueil ; ajout collection avec miniature et annulation protégée contre une modification intervenue depuis.
+- Variante Test uniquement : paquet, données et version officielle préservés. Publication privée après compilation et contrôles Android réussis.
+
 ## Version 0.9.4
 
 - Mes decks, Mes proxies et Mes listes disposent de pages distinctes et de boutons coordonnés sur l’accueil.

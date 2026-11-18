@@ -99,8 +99,8 @@ internal fun DeckBuilderPanel(
     var tab by rememberSaveable { mutableStateOf("Deck") }
     var catalogueOpen by rememberSaveable { mutableStateOf(false) }
     var filters by rememberSaveable(stateSaver = Saver<DeckBrowserFilters, ArrayList<String>>(
-        save = { arrayListOf(it.aspect, it.type, it.set, it.rarity, it.cost, it.arena, it.trait, it.stock) },
-        restore = { DeckBrowserFilters(it[0], it[1], it[2], it[3], it[4], it[5], it[6], it[7]) }
+        save = { arrayListOf(it.aspect, it.type, it.set, it.rarity, it.cost, it.arena, it.trait, it.stock, it.keywords) },
+        restore = { DeckBrowserFilters(it[0], it[1], it[2], it[3], it[4], it[5], it[6], it[7], it.getOrElse(8) { "" }) }
     )) { mutableStateOf(DeckBrowserFilters()) }
     var filtersOpen by remember { mutableStateOf(false) }
     var sort by rememberSaveable { mutableStateOf(DeckBrowser.DEFAULT_SORT) }
@@ -124,6 +124,8 @@ internal fun DeckBuilderPanel(
     val largeText = LocalDensity.current.fontScale > 1.3f
     var exportMenu by remember { mutableStateOf(false) }
     var actionsOpen by remember { mutableStateOf(false) }
+    var concentration by rememberSaveable { mutableStateOf(false) }
+    var comparingChanges by remember { mutableStateOf(false) }
     var scanning by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(startScanning) {
         if (startScanning) { scanning = true; onScanStarted() }
@@ -197,7 +199,7 @@ internal fun DeckBuilderPanel(
             }
             TextButton(onClick = { requestBack() }) { Text("Quitter", color = gold) }
         }
-        val browsing = dualPane || catalogueOpen || tab in listOf("Leader", "Base")
+        val browsing = (!concentration && dualPane) || catalogueOpen || tab in listOf("Leader", "Base")
         if (!browsing) {
             DeckSelectionPane(name, deck, catalog, details, zone, leaderChosen, baseChosen,
                 Modifier.weight(1f).fillMaxWidth(),
@@ -332,10 +334,13 @@ internal fun DeckBuilderPanel(
         }
         }
         error?.let { Text(it, color = ListPalette.Danger) }
+        DeckBuildDock(deck, catalog, leaderChosen, baseChosen) { tab = it; query = "" }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Box {
                 OutlinedButton(onClick = { actionsOpen = true }) { Text("Actions") }
                 DropdownMenu(actionsOpen, onDismissRequest = { actionsOpen = false }) {
+                    DropdownMenuItem(text = { Text(if(concentration) "Quitter le mode concentration" else "Mode concentration") }, onClick = { actionsOpen = false; concentration = !concentration; catalogueOpen = false; tab = "Deck" })
+                    DropdownMenuItem(text = { Text("Comparer avant / après") }, onClick = { actionsOpen = false; comparingChanges = true })
                     DropdownMenuItem(text = { Text("Vérifier le deck") }, enabled = leaderChosen && baseChosen,
                         onClick = { actionsOpen = false; showingReport = true })
                     DropdownMenuItem(text = { Text("Analyse et budget") }, enabled = leaderChosen && baseChosen,
@@ -367,6 +372,7 @@ internal fun DeckBuilderPanel(
             }
         }
     }
+    if(comparingChanges) DeckChangesDialog(initial, deck, catalog) { comparingChanges = false }
     correctingScan?.let { entry -> QuickScanCorrection(entry, { correctingScan = null }) { language, finish ->
         if (lastScanCollected) {
             val source = collectionEntries.firstOrNull { it.card.setCode == entry.card.setCode && it.card.number == entry.card.number && it.card.language == entry.card.language && it.variant == entry.variant }
@@ -473,7 +479,8 @@ internal fun DeckBuilderPanel(
                             else if (applyScan(card, finish)) { scanPending = null; scanReadToken++ }
                         })
                 } else scanLastCard?.let { last ->
-                    ScannerCardSummary(last.card, last.variant, "Ajoutée à « $name » · brouillon")
+                    ScannerCardSummary(last.card, last.variant, "Ajoutée à « $name » · brouillon",
+                        quantity = (if (scanReserve) deck.sideboard else deck.deck).firstOrNull { it.cardId == DeckConstruction.reference(last.card) }?.count ?: last.quantity)
                     TextButton(onClick = { correctingScan = last }) { Text("Corriger ce scan") }
                 }
                 Row(Modifier.fillMaxWidth().toggleable(value = collectScans, role = Role.Checkbox, onValueChange = { collectScans = it }), verticalAlignment = Alignment.CenterVertically) {

@@ -34,8 +34,15 @@ class ScanVisualMatcherTest {
             Matrix().apply { postRotate(-rotation.toFloat()) },true)
         return try {
             val matcher = ScanVisualMatcher(RuntimeEnvironment.getApplication())
-            if (automatic) matcher.matchAutomatic(sensor,rotation,ScanViewport(720,1000,false))
-            else matcher.match(sensor,rotation,ScanViewport(720,1000,landscape))
+            val before = IntArray(sensor.width * sensor.height)
+            sensor.getPixels(before,0,sensor.width,0,0,sensor.width,sensor.height)
+            val result = if (automatic) matcher.matchAutomatic(sensor,rotation,ScanViewport(720,1000,false))
+                else matcher.match(sensor,rotation,ScanViewport(720,1000,landscape))
+            assertFalse("Matcher recycled the input frame",sensor.isRecycled)
+            val after = IntArray(sensor.width * sensor.height)
+            sensor.getPixels(after,0,sensor.width,0,0,sensor.width,sensor.height)
+            assertArrayEquals("Matcher modified the input frame",before,after)
+            result
         }
         finally { card.recycle();if(sensor !== frame) sensor.recycle();frame.recycle() }
     }
@@ -56,10 +63,11 @@ class ScanVisualMatcherTest {
         assertTrue(matches("leader-1",false).any { it.reference == ScanReference("SOR","001") })
     }
     @Test fun cameraRotationAndFillCenterCroppingPreserveTheCard() {
-        for (rotation in listOf(0,90,180,270)) {
-            assertTrue("Rotation $rotation", matches("portrait",false,rotation,1200,1600)
+        repeat(3) { attempt -> for (rotation in listOf(0,90,180,270)) {
+            val result = matches("portrait",false,rotation,1200,1600)
+            assertTrue("Attempt $attempt rotation $rotation candidates=${result.map { it.reference to it.score }}", result
                 .any { it.reference == ScanReference("SOR","236") })
-        }
+        } }
     }
     @Test fun emptyCameraBackgroundDoesNotOfferAnArbitraryCard() {
         val frame = Bitmap.createBitmap(720,1000,Bitmap.Config.ARGB_8888)
@@ -82,7 +90,23 @@ class ScanVisualMatcherTest {
     @Test fun automaticLayoutFindsNormalCardsBasesAndBothLeaderFacesWithoutATypeButton() {
         for ((name, landscape, number) in listOf(Triple("portrait",false,"236"),Triple("base",true,"029"),
             Triple("leader-0",true,"001"),Triple("leader-1",false,"001"))) {
-            assertTrue(name,matches(name,landscape,automatic=true).any { it.reference == ScanReference("SOR",number) })
+            val result = matches(name,landscape,automatic=true)
+            if (result.none { it.reference == ScanReference("SOR",number) }) {
+                val guided = matches(name,landscape)
+                fail("$name automatic=${result.map { Triple(it.reference,it.score,it.landscape) }} guided=${guided.map { Triple(it.reference,it.score,it.landscape) }}")
+            }
+        }
+    }
+    @Test fun repeatedAutomaticRecognitionPreservesReferencesAcrossSensorRotations() {
+        repeat(3) { pass ->
+            for ((name, landscape, number) in listOf(Triple("portrait",false,"236"),Triple("base",true,"029"),
+                Triple("leader-0",true,"001"),Triple("leader-1",false,"001"))) {
+                for (rotation in listOf(0,90,180,270)) {
+                    val result = matches(name,landscape,rotation,1200,1600,automatic=true)
+                    assertTrue("Pass $pass $name rotation=$rotation candidates=$result",
+                        result.any { it.reference == ScanReference("SOR",number) })
+                }
+            }
         }
     }
 }
