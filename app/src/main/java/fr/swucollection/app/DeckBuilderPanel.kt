@@ -6,6 +6,9 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.window.Dialog
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -552,14 +555,29 @@ internal fun DeckBuilderPanel(
                 item { Text("Les langues, les variantes identifiées et les réimpressions sont cumulées. Les contraintes de construction imprimées sur certaines cartes restent à vérifier. La collection reste inchangée.") }
             }
         }, confirmButton = { TextButton(onClick = { showingReport = false }) { Text("Fermer") } })
-    if (leaving) AlertDialog(onDismissRequest = { leaving = false },
-        title = { Text("Quitter le deck ?") },
-        text = { Text("Tu peux reprendre plus tard avec un brouillon, ou abandonner les modifications. Les cartes scannées en attente ne seront pas ajoutées à ta collection.") },
-        confirmButton = { TextButton(onClick = { keepForLater() }) { Text("Garder un brouillon") } },
-        dismissButton = { Column(horizontalAlignment = Alignment.End) {
-            TextButton(onClick = { discardAndLeave() }) { Text("Quitter sans enregistrer") }
-            TextButton(onClick = { leaving = false }) { Text("Continuer le deck") }
-        } })
+    if (leaving) Dialog(onDismissRequest = { leaving = false }) {
+        Surface(shape = MaterialTheme.shapes.extraLarge, tonalElevation = 6.dp) {
+            // Keep text and actions in one bounded scroll area, including on a
+            // landscape phone or with large system fonts.
+            Column(Modifier.fillMaxWidth()
+                .heightIn(max = (LocalConfiguration.current.screenHeightDp * 0.85f).dp)
+                .verticalScroll(rememberScrollState()).padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Quitter le deck ?", style = MaterialTheme.typography.headlineSmall)
+                Text("Tu peux reprendre plus tard avec un brouillon, ou abandonner les modifications. Les cartes scannées en attente ne seront pas ajoutées à ta collection.")
+                Button(onClick = { keepForLater() }, modifier = Modifier.fillMaxWidth()) {
+                    Text("Garder un brouillon")
+                }
+                OutlinedButton(onClick = { discardAndLeave() }, modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ListPalette.Danger)) {
+                    Text("Quitter sans enregistrer")
+                }
+                TextButton(onClick = { leaving = false }, modifier = Modifier.fillMaxWidth()) {
+                    Text("Continuer le deck")
+                }
+            }
+        }
+    }
     }
     }
 }
