@@ -1,11 +1,11 @@
 {
-  "versionCode": 95,
-  "versionName": "0.9.4-test.34",
-  "sha256": "c07654a63083b9345a87190a38cdda3f1c081fa37a0bba5964440024126f1c1b",
-  "size": 65070222,
-  "sourceSha": "7536b9b76d5be6da7a8b7a6f14d856036d2171b6",
+  "versionCode": 96,
+  "versionName": "0.9.4-test.35",
+  "sha256": "0a551b37ee7a816ec16f105c55b5f1ebb6390c4eb7a836435e00e3891446036c",
+  "size": 65102990,
+  "sourceSha": "f23dff3e109027b92e58cf008f16e71fc49aca94",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "notes": "Test 34 : toutes les améliorations Test 32 et 33 conservées. Catalogue visuel du scanner chargé progressivement pour éviter les reconnaissances vides sous pression mémoire. Ouverture des cartes hors connexion corrigée. Tests unitaires, sécurité, conservation des données, lint, compilation et signature réussis. Clavier et envoi, decks, grandes polices à 200 % et présentation contrôlés sur téléphone, Fold déplié et paysage simulés.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_a90043ef5100819188b2a24176e41552&account_id=personal"
+  "notes": "Test 35 : nouvelle passe graphique Collection et Mes decks. Commandes compactes, silhouettes des cartes manquantes, navigation et progression par extension et rareté. Fiches à onglets, variantes en éventail, comparaison de deux cartes adaptée au paysage. Couvertures de decks personnalisables, mode table par coût ou type, concentration, barre fixe leader/base et comparaison avant-après. Animations respectant la réduction des mouvements. Sécurité, tests, conservation des données, lint, compilation et signature validés ; essais sur téléphone, Fold déplié et paysage simulés réussis. Version officielle inchangée.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_fde3_f-9584dc75c4a08191b647c7d915fa433e_751b3117796081919833ed570b104c30&account_id=personal"
 }
