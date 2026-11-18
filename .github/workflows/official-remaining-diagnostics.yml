@@ -1,0 +1,69 @@
+name: Remaining official interaction diagnostics
+on:
+  push:
+    branches: [ "diagnostics/official-095-remaining" ]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  remaining:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools
+      - run: sdkmanager 'build-tools;36.0.0'
+      - uses: actions/download-artifact@v4
+        with:
+          name: swu-collection-release
+          run-id: 44331124254
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: app/build/outputs/apk/release
+      - name: Check identical application source and APK metadata
+        run: |
+          python3 - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,'.github/scripts')
+          from release_common import source_fingerprint,validate
+          p=Path('app/build/outputs/apk/release')
+          m=validate(json.loads((p/'release-metadata.json').read_text()))
+          assert m['source_fingerprint']==source_fingerprint(Path.cwd())
+          assert m['version']=='0.9.5' and m['version_code']==97
+          PY
+      - run: python3 -m pip install "Pillow>=11,<13"
+      - name: Enable emulator hardware acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          disk-size: 2048M
+          ram-size: 4096M
+          emulator-boot-timeout: 300
+          disable-animations: true
+          emulator-build: 15917651
+          emulator-options: -no-window -gpu swangle_indirect -noaudio -no-boot-anim -no-snapshot-save -feature GLESDynamicVersion
+          script: |
+            mkdir -p smoke-private
+            adb install -r app/build/outputs/apk/release/app-release.apk
+            adb shell pm grant fr.swucollection.app android.permission.POST_NOTIFICATIONS
+            SWU_SMOKE_PACKAGE=fr.swucollection.app python3 .github/scripts/check_private_fold_interactions.py
+            SWU_SMOKE_PACKAGE=fr.swucollection.app python3 .github/scripts/check_match_counter.py
+            python3 .github/scripts/check_official_account_entry.py
+            python3 .github/scripts/check_official_upgrade.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: remaining-official-diagnostics
+          path: smoke-private/
