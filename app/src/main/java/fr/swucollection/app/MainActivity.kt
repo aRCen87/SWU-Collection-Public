@@ -57,6 +57,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
@@ -1891,7 +1892,11 @@ internal fun CardArtwork(url: String, modifier: Modifier = Modifier, grayscale: 
                     onSuccess = { loading = false; failed = false }, onError = { loading = false; failed = true },
                     colorFilter = if (grayscale) ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) }) else null)
             }
-            if (failed) TextButton(onClick = { failed = false; loading = true; retry++ }) { Text("Réessayer", color = PremiumGold) }
+            if (failed) IconButton(onClick = { failed = false; loading = true; retry++ },
+                modifier = Modifier.align(androidx.compose.ui.Alignment.BottomEnd).padding(4.dp).size(48.dp)
+                    .background(Color(0xEE071322), RoundedCornerShape(8.dp))) {
+                Icon(Icons.Default.Refresh, contentDescription = "Réessayer le visuel de la carte", tint = PremiumGold)
+            }
         } else {
             Surface(shape = RoundedCornerShape(9.dp), color = Color(0xFF152C45),
                 border = BorderStroke(1.dp, Color(0xFF9C7941)),

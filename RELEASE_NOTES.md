@@ -1,3 +1,11 @@
+## 0.9.4-test.33 — fiabilité du scanner (en validation)
+
+- Chargement progressif du catalogue visuel : évite de conserver les 20 Mo de JSON et leur arbre complet en plus des signatures, cause des reconnaissances vides sous pression mémoire.
+- Les erreurs graves de mémoire ne sont plus masquées comme une absence de carte ; un index optionnel absent ou invalide conserve le parcours OCR.
+- Contrôles répétés des deux faces de leader, des bases et des cartes classiques dans les quatre rotations, avec vérification de l’intégrité de l’image caméra et de la compatibilité des formats d’index.
+- Le bouton de reprise d’un visuel en erreur est placé dans un coin : le centre reste accessible pour ouvrir la carte, même sans réseau.
+- Toutes les améliorations Test 32 sont reprises. Collections, variantes, quantités, signatures et version officielle préservées.
+
 ## 0.9.4-test.32 — présentation et recherche (en validation)
 
 - Recherche par mots-clés et capacités dans les filtres combinés du deck, avec textes français et anglais disponibles hors connexion ; les cartes sans texte indexé ne sont pas inventées.

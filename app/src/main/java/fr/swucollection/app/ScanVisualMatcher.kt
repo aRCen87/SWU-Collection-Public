@@ -4,7 +4,10 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.util.Base64
-import org.json.JSONObject
+import android.util.JsonReader
+import android.util.JsonToken
+import android.util.Log
+import java.io.Reader
 import java.util.zip.GZIPInputStream
 import java.io.FileNotFoundException
 import kotlin.math.min
@@ -15,30 +18,20 @@ internal data class ScanViewport(val width: Int, val height: Int, val landscape:
 /** Runs on the analysis executor; photographs and signatures never leave the phone. */
 internal class ScanVisualMatcher(private val context: Context) {
     private val entries by lazy {
-        runCatching {
+        try {
             val input = try { context.assets.open("scan-visual-index.json") }
                 catch (_: FileNotFoundException) { context.assets.open("scan-visual-index.json.gz") }
             input.buffered().use { buffered ->
                 buffered.mark(2); val compressed = buffered.read() == 0x1f && buffered.read() == 0x8b; buffered.reset()
                 val decoded = if (compressed) GZIPInputStream(buffered) else buffered
-                val json = decoded.bufferedReader().use { JSONObject(it.readText()) }
-                val version = json.getInt("version")
-                require(json.getString("format") == "SWU_VISUAL_INDEX" && version in 1..2 && json.getString("sampling") == "area-v1")
-                if (version == 2) require(json.getInt("detailWidth") == ScanVisualRecognition.DETAIL_WIDTH &&
-                    json.getInt("detailHeight") == ScanVisualRecognition.DETAIL_HEIGHT)
-                val rows = json.getJSONArray("entries")
-                (0 until rows.length()).map { i ->
-                    val row = rows.getJSONArray(i)
-                    val signature = Base64.decode(row.getString(6), Base64.DEFAULT)
-                    require(signature.size == ScanVisualRecognition.LENGTH)
-                    val detail = if (version == 2) Base64.decode(row.getString(7), Base64.DEFAULT).also {
-                        require(it.size == ScanVisualRecognition.DETAIL_LENGTH)
-                    } else null
-                    VisualIndexEntry(ScanReference(row.getString(0), row.getString(1)), row.getString(2), row.getString(3), row.getBoolean(5), signature,
-                        detail, if (version == 2) row.getString(8) else "")
-                }
+                ScanVisualIndex.read(decoded.reader(Charsets.UTF_8))
             }
-        }.getOrDefault(emptyList())
+        } catch (error: Exception) {
+            // A malformed/missing optional index disables suggestions, not OCR.
+            // Fatal VM errors must never masquerade as an empty recognition result.
+            Log.w("ScanVisualMatcher", "Visual index unavailable", error)
+            emptyList()
+        }
     }
 
     fun matchAutomatic(frame: Bitmap, rotation: Int, viewport: ScanViewport, numberHint: Int? = null): List<VisualCardMatch> {
@@ -89,5 +82,60 @@ internal class ScanVisualMatcher(private val context: Context) {
             if (upright !== working) upright.recycle()
             if (working !== frame) working.recycle()
         }
+    }
+}
+
+/** Decode one row at a time: never retain the 20 MB JSON text/tree beside its decoded signatures. */
+internal object ScanVisualIndex {
+    fun read(input: Reader): List<VisualIndexEntry> = JsonReader(input).use { json ->
+        var format: String? = null
+        var version = 0
+        var sampling: String? = null
+        var detailWidth = 0
+        var detailHeight = 0
+        var entries: List<VisualIndexEntry>? = null
+        json.beginObject()
+        while (json.hasNext()) {
+            when (json.nextName()) {
+                "format" -> format = json.nextString()
+                "version" -> version = json.nextInt()
+                "sampling" -> sampling = json.nextString()
+                "detailWidth" -> detailWidth = json.nextInt()
+                "detailHeight" -> detailHeight = json.nextInt()
+                "entries" -> {
+                    require(entries == null) { "Duplicate visual index entries" }
+                    val rows = ArrayList<VisualIndexEntry>()
+                    json.beginArray()
+                    while (json.hasNext()) {
+                        json.beginArray()
+                        val reference = ScanReference(json.nextString(), json.nextString())
+                        val name = json.nextString()
+                        val imageUrl = json.nextString()
+                        json.skipValue() // artwork face index; both faces retain their reference
+                        val landscape = json.nextBoolean()
+                        val signature = Base64.decode(json.nextString(), Base64.DEFAULT)
+                        require(signature.size == ScanVisualRecognition.LENGTH)
+                        val detail = if (json.hasNext()) Base64.decode(json.nextString(), Base64.DEFAULT).also {
+                            require(it.size == ScanVisualRecognition.DETAIL_LENGTH)
+                        } else null
+                        val englishName = if (detail != null) json.nextString() else ""
+                        while (json.hasNext()) json.skipValue()
+                        json.endArray()
+                        rows.add(VisualIndexEntry(reference,name,imageUrl,landscape,signature,detail,englishName))
+                    }
+                    json.endArray()
+                    entries = rows
+                }
+                else -> json.skipValue()
+            }
+        }
+        json.endObject()
+        require(json.peek() == JsonToken.END_DOCUMENT)
+        require(format == "SWU_VISUAL_INDEX" && version in 1..2 && sampling == "area-v1")
+        if (version == 2) require(detailWidth == ScanVisualRecognition.DETAIL_WIDTH &&
+            detailHeight == ScanVisualRecognition.DETAIL_HEIGHT)
+        val result = requireNotNull(entries)
+        require(result.all { (it.detail != null) == (version == 2) })
+        result
     }
 }
