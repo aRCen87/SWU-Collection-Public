@@ -53,9 +53,14 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
     val quantities = remember(owned, language) { owned.filter { it.quantity > 0 && (language == "Toutes" || it.language == language) }
         .groupBy { MarketPricing.key(it.setCode, it.number) }.mapValues { (_, rows) -> rows.sumOf { it.quantity } } }
     var cardScale by rememberSaveable { mutableFloatStateOf(1f) }
+    val totalsBySet = remember(catalog) { catalog.groupingBy { it.setCode }.eachCount() }
+    val collectedBySet = remember(catalog, quantities) {
+        catalog.filter { (quantities[MarketPricing.key(it.setCode, it.number)] ?: 0) > 0 }.groupingBy { it.setCode }.eachCount()
+    }
+    val groups = remember(visible) { visible.groupBy { it.setCode } }
     @Composable fun sectionTitle(code: String) {
-        val total = catalog.count { it.setCode == code }
-        val collected = catalog.count { it.setCode == code && (quantities[MarketPricing.key(it.setCode, it.number)] ?: 0) > 0 }
+        val total = totalsBySet[code] ?: 0
+        val collected = collectedBySet[code] ?: 0
         Surface(color = ListPalette.Raised, shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)) {
             Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -73,7 +78,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
         if (visible.isEmpty()) CollectorEmptyState("Aucune carte trouvée", "Essaie un autre mot ou retire un filtre pour élargir ta recherche.")
         if (view == "Liste") LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (header != null) item(key = "catalogue-controls") { header() }
-            visible.groupBy { it.setCode }.forEach { (code, group) ->
+            groups.forEach { (code, group) ->
             item(key = "set-$code") { sectionTitle(code) }
             items(group, key = { MarketPricing.key(it.setCode, it.number) }) { card ->
                 val quantity = quantities[MarketPricing.key(card.setCode, card.number)] ?: 0
@@ -111,7 +116,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                 if (header != null) item(key = "catalogue-controls", span = { GridItemSpan(maxLineSpan) }) {
                     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) { header() }
                 }
-                visible.groupBy { it.setCode }.forEach { (code, group) ->
+                groups.forEach { (code, group) ->
                 item(key = "set-$code", span = { GridItemSpan(maxLineSpan) }) { sectionTitle(code) }
                 gridItems(group, key = { MarketPricing.key(it.setCode, it.number) }) { card ->
                     val quantity = quantities[MarketPricing.key(card.setCode, card.number)] ?: 0
