@@ -39,6 +39,9 @@ internal fun DeckLibraryPanel(
         val recovered=draftStore.read(saved.id,DeckInterchange.exportJson(saved.deck,saved.name))
         viewing=DeckView(saved.id,recovered?:DeckDraft(saved.name,saved.deck,true,true),saved.id,recovered!=null)
     }
+    var coverTarget by remember { mutableStateOf<DeckStore.SavedDeck?>(null) }
+    var coverRevision by remember { mutableIntStateOf(0) }
+    val covers = remember(context) { DeckCoverStore(context) }
     val byId = remember(catalog) { catalog.associateBy(DeckConstruction::reference) }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -73,7 +76,9 @@ internal fun DeckLibraryPanel(
                 var more by remember(saved.id) { mutableStateOf(false) }
                 OutlinedCard(onClick = { consultation(saved) }, modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.outlinedCardColors(containerColor = ListPalette.Background, contentColor = ListPalette.Text)) {
-                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    val cover = remember(saved.id, coverRevision) { covers.read(saved.id) }
+                    DeckCoverArtwork(byId[cover.reference] ?: byId[saved.deck.leader], cover.focus, Modifier.fillMaxWidth().height(110.dp))
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Column(Modifier.width(72.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 CardArtwork(byId[saved.deck.leader], Modifier.fillMaxWidth().height(48.dp))
@@ -110,6 +115,7 @@ internal fun DeckLibraryPanel(
                                     Icon(Icons.Default.MoreVert, "Autres actions pour ${saved.name}")
                                 }
                                 DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
+                                    DropdownMenuItem(text = { Text("Personnaliser la couverture") }, onClick = { more = false; coverTarget = saved })
                                     DropdownMenuItem(text = { Text(if (saved.id in pinned) "Retirer de l’accueil" else "Épingler à l’accueil") }, onClick = { more = false; onPin(saved) })
                                     DropdownMenuItem(text = { Text("Exporter le deck") }, onClick = { more = false; onExport(saved) })
                                     DropdownMenuItem(text = { Text("Dupliquer") }, onClick = { more = false; onDuplicate(saved) })
@@ -123,6 +129,7 @@ internal fun DeckLibraryPanel(
             }
         }
     }
+    coverTarget?.let { saved -> DeckCoverDialog(saved.id, saved.deck, catalog, { coverTarget = null }, { coverRevision++ }) }
     viewing?.takeUnless { previewOpen }?.let { target ->
         DeckConsultation(target.draft, catalog, { viewing = null }, {
             viewing=null

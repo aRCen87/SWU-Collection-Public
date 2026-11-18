@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -24,6 +27,8 @@ internal fun DeckSelectionPane(name: String, deck: PortableDeck, catalog: List<C
     val selected = (if (zone == DeckEditor.Zone.SIDEBOARD) deck.sideboard else deck.deck)
         .sortedWith(compareBy({ byId[it.cardId]?.let { card -> details.get(card)?.cost } ?: Int.MAX_VALUE },
             { byId[it.cardId]?.name ?: it.cardId }))
+    var grouping by rememberSaveable { mutableStateOf("Cartes") }
+    val groups = remember(selected, grouping, details, byId) { if(grouping == "Cartes") mapOf("" to selected) else selected.groupBy { DesignDeckPlan.group(it, byId, details, grouping) } }
     var managing by remember(zone) { mutableStateOf<String?>(null) }
     Card(modifier.testTag("swu_deck_selection_pane"), colors = CardDefaults.cardColors(containerColor = ListPalette.Background)) {
         Column(Modifier.fillMaxSize().padding(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -34,6 +39,9 @@ internal fun DeckSelectionPane(name: String, deck: PortableDeck, catalog: List<C
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 FilterChip(zone == DeckEditor.Zone.MAIN, { onZone(DeckEditor.Zone.MAIN) }, label = { Text("Deck · ${deck.deck.sumOf { it.count }}/50") })
                 FilterChip(zone == DeckEditor.Zone.SIDEBOARD, { onZone(DeckEditor.Zone.SIDEBOARD) }, label = { Text("Réserve · ${deck.sideboard.sumOf { it.count }}/10") })
+            }
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                listOf("Cartes", "Coût", "Type").forEach { mode -> FilterChip(grouping == mode, { grouping = mode }, label = { Text(if(mode == "Cartes") "Grille" else "Table · $mode") }) }
             }
             LazyVerticalGrid(columns = GridCells.Adaptive(100.dp), modifier = Modifier.weight(1f).fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -55,7 +63,9 @@ internal fun DeckSelectionPane(name: String, deck: PortableDeck, catalog: List<C
                 if (selected.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
                     Text("Ton deck est encore vide. Touche ＋ Cartes pour commencer.", Modifier.padding(12.dp))
                 }
-                items(selected, key = { it.cardId }) { entry ->
+                groups.forEach { (heading, entries) ->
+                if(heading.isNotBlank()) item(span = { GridItemSpan(maxLineSpan) }, key = "heading:$heading") { Text("$heading · ${entries.sumOf { it.count }}", color = ListPalette.Secondary, style = MaterialTheme.typography.titleSmall) }
+                items(entries, key = { it.cardId }) { entry ->
                     val card = byId[entry.cardId]
                     Column(Modifier.fillMaxWidth()) {
                         Surface(shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
@@ -79,6 +89,7 @@ internal fun DeckSelectionPane(name: String, deck: PortableDeck, catalog: List<C
                             Text("À compléter", color = ListPalette.Gold, style = MaterialTheme.typography.labelSmall)
                         if (card == null) Text(entry.cardId, style = MaterialTheme.typography.labelSmall)
                     }
+                }
                 }
             }
         }

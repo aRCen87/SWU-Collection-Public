@@ -79,7 +79,7 @@ internal fun PremiumHomeShortcuts(order: List<String>, reflection: State<BorderT
     arranged.take(2).forEach { shortcut -> PremiumHomeTile(shortcut, true, Modifier.fillMaxWidth(), reflection, shine, effectsEnabled, arranged.indexOf(shortcut)) { onOpen(shortcut.key) } }
     afterPrimary()
     arranged.drop(2).chunked(2).forEach { pair ->
-        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             pair.forEach { shortcut -> PremiumHomeTile(shortcut, false, Modifier.weight(1f).fillMaxHeight(), reflection, shine, effectsEnabled, arranged.indexOf(shortcut)) { onOpen(shortcut.key) } }
             if (pair.size == 1) Spacer(Modifier.weight(1f))
         }
@@ -105,8 +105,8 @@ private fun PremiumHomeTile(item: PremiumShortcut, prominent: Boolean, modifier:
     val interactions=remember {MutableInteractionSource()}
     val motion=if(effectsEnabled && !LocalReducedMotion.current) Modifier.homeButtonMotion(interactions) else Modifier
     Surface(onClick = onClick, interactionSource=interactions,
-        modifier = modifier.testTag("swu_home_tile_${item.key}").then(motion).goldBorderReflection(reflection).homeTileShine(shine,index), color = PremiumNavy,
-        shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, PremiumGold.copy(alpha = .55f))) {
+        modifier = modifier.testTag("swu_home_tile_${item.key}").then(motion).then(if(prominent) Modifier.goldBorderReflection(reflection).homeTileShine(shine,index) else Modifier), color = PremiumNavy,
+        shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, if(prominent) PremiumGold.copy(alpha = .6f) else Color(0xFF344B61))) {
         Box {
             Box(Modifier.matchParentSize().background(PremiumPanel)) {
                 Image(painterResource(homeShortcutArtwork(item.key)),null,
@@ -126,7 +126,7 @@ private fun PremiumHomeTile(item: PremiumShortcut, prominent: Boolean, modifier:
                 Icon(Icons.Default.ChevronRight, null, tint = PremiumGold, modifier = Modifier.size(20.dp))
             } else Column(Modifier.heightIn(min = 120.dp).padding(14.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(item.icon, null, tint = PremiumGold, modifier = Modifier.size(27.dp))
+                Icon(item.icon, null, tint = Color(0xFFD2E1F2), modifier = Modifier.size(28.dp))
                 Text(item.title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, minLines = 2, color = Color(0xFFF5F3ED))
                 Text(item.subtitle, fontSize = 11.sp, minLines = 2, color = Color(0xFFE0E5EB))
             }
@@ -153,9 +153,9 @@ internal fun PremiumOwnedTile(rows: List<CollectionCard>, catalogByKey: Map<Stri
         onClick = { if (card != null) onOpen(first, card) },
         onLongClickLabel = "Gérer cette carte", onLongClick = { card?.let(onLongPress) }),
         shape = RoundedCornerShape(15.dp), color = PremiumNavy,
-        border = BorderStroke(1.dp, PremiumGold.copy(alpha = .45f))) {
+        border = BorderStroke(1.dp, Color(0xFF263D51))) {
         Column {
-            Box(Modifier.fillMaxWidth().aspectRatio(0.716f).padding(4.dp)) {
+            Box(Modifier.fillMaxWidth().aspectRatio(0.716f).padding(2.dp)) {
                 CardArtwork(card, Modifier.fillMaxSize().clip(RoundedCornerShape(11.dp)), language = first.language, variant = first.variant)
                 Surface(Modifier.align(Alignment.TopEnd).padding(5.dp), color = Color(0xEE08121F), shape = RoundedCornerShape(6.dp)) {
                     Text(if (rows.map { it.language }.distinct().size > 1) "Multi" else first.language.uppercase(),

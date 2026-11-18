@@ -29,11 +29,13 @@ internal fun FullscreenCardViewer(card: CatalogCard, language: String, variant: 
     var scale by remember(card) { mutableFloatStateOf(1f) }
     var reverse by remember(card) { mutableStateOf(false) }
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
-        Box(Modifier.fillMaxSize().background(Color(0xFF02090F)).safeDrawingPadding()) {
+        Column(Modifier.fillMaxSize().background(Color(0xFF02090F))) {
+        val finishOverlay = FoilFinishToggle(variant)
+        Box(Modifier.weight(1f).fillMaxWidth().background(Color(0xFF02090F)).safeDrawingPadding()) {
             key(card) {
             val angle by animateFloatAsState(if (reverse) 180f else 0f,
                 animationSpec = tween(if (LocalReducedMotion.current || !ValueAnimator.areAnimatorsEnabled()) 0 else 220), label = "Retournement du leader")
-            CardArtwork(card, Modifier.fillMaxSize().padding(8.dp)
+            CardArtwork(card, Modifier.fillMaxSize().padding(8.dp).then(finishOverlay)
                 .testTag(if (reverse) "fullscreen_card_back" else "fullscreen_card_front")
                 .cardSwipeNavigation(card, scale == 1f, { if (hasPrevious) onMove(-1) }, { if (hasNext) onMove(1) })
                 .pointerInput(card) { detectTapGestures(onTap = { controls = !controls }, onDoubleTap = { scale = if (scale > 1f) 1f else 2f }) }
@@ -60,6 +62,7 @@ internal fun FullscreenCardViewer(card: CatalogCard, language: String, variant: 
                     }
                 }
             }
+        }
         }
     }
 }

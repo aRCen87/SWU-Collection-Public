@@ -1,3 +1,12 @@
+## 0.9.4-test.35 — classeur et atelier de decks
+
+- Collection plus aérée, commandes compactes, repères de défilement par extension, illustration et progression par rareté ; silhouettes optionnelles des cartes manquantes.
+- Fiche carte séparée en Collection, Variantes et Cotes ; éventail des versions, comparaison de deux cartes, entrée animée et reflet foil optionnel.
+- Decks avec couvertures personnalisables et cadrage mémorisé. Mode table par coût ou type dans la construction et la consultation.
+- Mode concentration, barre fixe leader/base/totaux et comparaison avant/après par zone.
+- Accueil et contours allégés, icônes harmonisées, confirmation d’ajout animée ; réduction des animations respectée.
+- Application Test uniquement. Aucun changement du schéma, des quantités, des services officiels ou de la version officielle.
+
 ## 0.9.4-test.34 — fiabilité du scanner
 
 - Chargement progressif du catalogue visuel : évite de conserver les 20 Mo de JSON et leur arbre complet en plus des signatures, cause des reconnaissances vides sous pression mémoire.
