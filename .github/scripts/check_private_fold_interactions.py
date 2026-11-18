@@ -101,15 +101,19 @@ try:
     else: raise AssertionError("No reachable card in the unified catalogue")
     tap(artwork)
     root = snapshot("card-phone"); first = page(root)
-    assert first.startswith("1 / "), first
+    # Extension headers may require scrolling past the first catalogue row.
+    # The reader must retain the selected visible card and move exactly one slot.
+    initial_index, total = map(int, first.split(" / "))
+    assert 1 <= initial_index < total, first
+    following = f"{initial_index + 1} / {total}"
     resize(1766,1472,336)
     root = snapshot("card-unfolded"); assert page(root) == first
     assert any(n.attrib.get("resource-id") == "swu_detail_pane" for n in root.iter("node"))
     tap(find(root,"Carte suivante")); root = snapshot("card-next")
-    assert page(root).startswith("2 / ")
+    assert page(root) == following
     capture("card")
     resize(1680,756,294)
-    root = snapshot("card-landscape"); capture("card-landscape"); assert page(root).startswith("2 / ")
+    root = snapshot("card-landscape"); capture("card-landscape"); assert page(root) == following
     tap(find(root,"Carte précédente")); root = snapshot("card-previous")
     assert page(root) == first
     tap(find(root,"Fermer la carte")); root = snapshot("closed")
