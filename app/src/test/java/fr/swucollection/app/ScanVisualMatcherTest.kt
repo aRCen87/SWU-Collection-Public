@@ -57,7 +57,8 @@ class ScanVisualMatcherTest {
     }
     @Test fun cameraRotationAndFillCenterCroppingPreserveTheCard() {
         for (rotation in listOf(0,90,180,270)) {
-            assertTrue("Rotation $rotation", matches("portrait",false,rotation,1200,1600)
+            val result = matches("portrait",false,rotation,1200,1600)
+            assertTrue("Rotation $rotation candidates=${result.map { it.reference to it.score }}", result
                 .any { it.reference == ScanReference("SOR","236") })
         }
     }
