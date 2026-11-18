@@ -18,7 +18,7 @@ import java.io.File
 class Design35PresentationTest {
  @get:Rule val ui=createAndroidComposeRule<ComponentActivity>()
  private val cards=listOf(CatalogCard("SOR","100","Alpha","Unité","Rare"),CatalogCard("SHD","101","Beta","Événement","Commune"))
- private fun capture(name:String){File(ui.activity.getExternalFilesDir(null),"home-test-design35-$name.png").outputStream().use{ui.onRoot().captureToImage().asAndroidBitmap().compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}}
+ private fun capture(name:String){File(ui.activity.getExternalFilesDir(null),"home-test-design35-$name.png").outputStream().use{ui.onAllNodes(isRoot()).onLast().captureToImage().asAndroidBitmap().compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}}
  @Test fun tableGroupingAndFixedDockDoNotChangeDeckQuantities(){
   val deck=PortableDeck("","",listOf(DeckEntry("SOR-100",2),DeckEntry("SHD-101",1)))
   var edits=0
@@ -49,7 +49,7 @@ class Design35PresentationTest {
   ui.setContent{MaterialTheme(colorScheme=darkColorScheme()){CompareCardsDialog(cards[0],cards,CardDetails.empty()) {}}}
   ui.onNodeWithText("Choisir la seconde carte").performTextInput("Beta")
   ui.onNodeWithText("Beta · SHD 101").performClick()
-  ui.onNodeWithText("Alpha").assertExists();ui.onNodeWithText("Beta").assertExists()
+  ui.onNodeWithText("Alpha").assertExists();ui.onNode(hasText("Beta") and !hasSetTextAction()).assertExists()
   capture("compare")
  }
  @Test fun changeSummaryKeepsReserveTransfersVisible(){
