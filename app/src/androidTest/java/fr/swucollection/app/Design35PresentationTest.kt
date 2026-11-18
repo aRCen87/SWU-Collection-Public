@@ -25,7 +25,11 @@ class Design35PresentationTest {
    CompositionLocalProvider(LocalContentColor provides ListPalette.Text){content()}
   }
  }
- private fun capture(name:String){File(ui.activity.getExternalFilesDir(null),"home-test-design35-$name.png").outputStream().use{ui.onAllNodes(isRoot()).onLast().captureToImage().asAndroidBitmap().compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}}
+ private fun capture(name:String){
+  val node=when(name){"compare"->ui.onNodeWithTag("design_compare_dialog");"changes"->ui.onNodeWithTag("design_changes_dialog");else->ui.onRoot()}
+  File(ui.activity.getExternalFilesDir(null),"home-test-design35-$name.png").outputStream().use{node.captureToImage().asAndroidBitmap().compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}
+ }
+
  @Test fun tableGroupingAndFixedDockDoNotChangeDeckQuantities(){
   val deck=PortableDeck("","",listOf(DeckEntry("SOR-100",2),DeckEntry("SHD-101",1)))
   var edits=0
@@ -46,7 +50,8 @@ class Design35PresentationTest {
    UnifiedCollectionCatalog(cards,emptyList(),"Toutes les cartes","Toutes","Toutes","","Visuel",CardDetails.empty(),Modifier.fillMaxSize(),{_,_->preview++},{actions++})
   }}}
   ui.onNodeWithText("Silhouettes").performClick()
-  ui.onAllNodesWithText("À trouver").onFirst().assertExists()
+  ui.onNodeWithTag("swu_unified_catalog").performScrollToNode(hasText("À trouver"))
+  ui.onAllNodesWithText("À trouver").onFirst().assertIsDisplayed()
   ui.onAllNodesWithText("SHD").onFirst().performClick()
   ui.waitForIdle()
   assertEquals(0,preview);assertEquals(0,actions)
@@ -56,6 +61,8 @@ class Design35PresentationTest {
   ui.setContent{PreviewTheme{CompareCardsDialog(cards[0],cards,CardDetails.empty()) {}}}
   ui.onNodeWithText("Choisir la seconde carte").performTextInput("Beta")
   ui.onNodeWithText("Beta · SHD 101").performClick()
+  ui.waitUntil(8000){androidx.core.view.ViewCompat.getRootWindowInsets(ui.activity.window.decorView)?.isVisible(androidx.core.view.WindowInsetsCompat.Type.ime())!=true}
+  ui.waitUntil(8000){runCatching{ui.onNodeWithText("Alpha").assertIsDisplayed();true}.getOrDefault(false)}
   ui.onNodeWithText("Alpha").assertExists();ui.onNode(hasText("Beta") and !hasSetTextAction()).assertExists()
   capture("compare")
  }

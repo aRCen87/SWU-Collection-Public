@@ -50,7 +50,7 @@ internal object DesignDeckPlan {
     val byId=remember(catalog){catalog.associateBy(DeckConstruction::reference)}
     val changes=remember(before,after){DesignDeckPlan.changes(before,after)}
     AlertDialog(onDismissRequest=close,title={Text("Avant / après")},text={
-        LazyColumn(Modifier.heightIn(max=420.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+        LazyColumn(Modifier.heightIn(max=420.dp).testTag("design_changes_dialog"),verticalArrangement=Arrangement.spacedBy(10.dp)) {
             item {Text("Comparaison avec la version de départ du deck. Aucune quantité de collection n’est modifiée.",style=MaterialTheme.typography.bodySmall)}
             if(changes.isEmpty())item{Text("Aucune modification du deck.")}
             items(changes){c->Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {

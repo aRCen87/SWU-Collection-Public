@@ -28,6 +28,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -69,16 +70,17 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
     val gridState = rememberLazyGridState()
     val coroutine = rememberCoroutineScope()
     val groups = remember(visible) { visible.groupBy { it.setCode } }
+    val compactSetHeader = LocalConfiguration.current.screenHeightDp < 480
     @Composable fun sectionTitle(code: String) {
         val total = totalsBySet[code] ?: 0
         val collected = collectedBySet[code] ?: 0
         Surface(color = ListPalette.Raised, shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)) {
             Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Box(Modifier.fillMaxWidth().height(72.dp).clipToBounds()) {
+                if(!compactSetHeader) Box(Modifier.fillMaxWidth().height(72.dp).clipToBounds()) {
                     DeckCoverArtwork(catalog.firstOrNull { it.setCode == code && DeckConstruction.type(it) in listOf("leader", "chef") } ?: catalog.firstOrNull { it.setCode == code }, .35f, Modifier.fillMaxSize())
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    SetLogo(code)
+                    SetLogo(code, if(compactSetHeader) Modifier.size(72.dp,40.dp) else Modifier)
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Surface(color = ListPalette.Background, shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)) {
                         Text(code, Modifier.padding(8.dp), color = ListPalette.Gold, style = MaterialTheme.typography.titleSmall)
