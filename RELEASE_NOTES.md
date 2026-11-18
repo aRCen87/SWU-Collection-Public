@@ -1,3 +1,7 @@
+## 0.9.5-test.38 — Accueil
+
+- Suppression de la salutation personnalisée en haut de l’accueil.
+
 ## 0.9.5-test.37 — Ajustements visuels
 
 - Accueil restauré à sa présentation avant la refonte Test 35/36.
