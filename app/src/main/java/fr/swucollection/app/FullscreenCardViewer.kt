@@ -27,6 +27,7 @@ internal fun FullscreenCardViewer(card: CatalogCard, language: String, variant: 
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Box(Modifier.fillMaxSize().background(Color(0xFF02090F)).safeDrawingPadding()) {
             CardArtwork(card, Modifier.fillMaxSize().padding(8.dp)
+                .cardSwipeNavigation(card, scale == 1f, { if (hasPrevious) onMove(-1) }, { if (hasNext) onMove(1) })
                 .pointerInput(card) { detectTapGestures(onTap = { controls = !controls }, onDoubleTap = { scale = if (scale > 1f) 1f else 2f }) }
                 .pointerInput(card) { detectTransformGestures { _, _, zoom, _ -> scale = (scale * zoom).coerceIn(1f, 3f) } }
                 .graphicsLayer { scaleX = scale; scaleY = scale }, language = language, variant = variant, reverse = reverse)

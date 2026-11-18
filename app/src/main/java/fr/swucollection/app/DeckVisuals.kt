@@ -51,7 +51,7 @@ internal fun DeckCardTile(card: CatalogCard, visual: Boolean, quantity: Int, own
                 CardArtwork(card, Modifier.fillMaxSize())
                 if (!slot && quantity > 0) Surface(Modifier.align(Alignment.TopEnd).padding(4.dp),
                     shape = RoundedCornerShape(7.dp), color = ListPalette.Gold) {
-                    Text("×$quantity", Modifier.padding(horizontal = 6.dp, vertical = 2.dp), color = ListPalette.Background)
+                    Text("✓ ×$quantity", Modifier.padding(horizontal = 6.dp, vertical = 2.dp), color = ListPalette.Background)
                 }
             }
         }
@@ -103,7 +103,7 @@ internal fun DeckCardTile(card: CatalogCard, visual: Boolean, quantity: Int, own
                 information(Modifier.weight(1f))
             }
             if (!visual) controls()
-            if (!slot && quantity > 0) TextButton(onClick = onMove, enabled = canMove,
+            if (!slot && quantity > 0 && moveLabel.isNotBlank()) TextButton(onClick = onMove, enabled = canMove,
                 modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(0.dp)) {
                 Text(moveLabel, style = MaterialTheme.typography.labelSmall)
             }

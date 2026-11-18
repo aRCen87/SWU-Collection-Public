@@ -68,9 +68,7 @@ internal fun DeckInsightsDialog(deck: PortableDeck, owned: List<CollectionCard>,
         }, confirmButton = { TextButton(onClick = { selection = null }) { Text("Retour à l’analyse") } })
     }
     selectedCard?.let { card ->
-        AlertDialog(onDismissRequest = { selectedCard = null }, title = { Text(card.name) }, text = {
-            CardArtwork(card, Modifier.fillMaxWidth().heightIn(min = 280.dp, max = 440.dp))
-        }, confirmButton = { TextButton(onClick = { selectedCard = null }) { Text("Fermer") } })
+        DeckCardGallery(selection?.second?.map { it.card }.orEmpty(), DeckConstruction.reference(card), { selectedCard = null })
     }
     AlertDialog(onDismissRequest = onDismiss, title = { Text("Analyse du deck") }, text = {
         Column(Modifier.heightIn(max = 470.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {

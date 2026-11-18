@@ -89,6 +89,15 @@ internal fun DeckLibraryPanel(
                             }
                         }
                         if (details != null) {
+                            val aspects = listOfNotNull(byId[saved.deck.leader], byId[saved.deck.base])
+                                .flatMap { details.get(it)?.aspects.orEmpty() }.distinct()
+                            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                aspects.forEach { aspect ->
+                                    Surface(color = ListPalette.Raised, shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)) {
+                                        Text(aspectNames[aspect] ?: aspect, Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall)
+                                    }
+                                }
+                            }
                             val stock = remember(saved.deck, owned, catalog, details) { CompetitiveDecks.readiness(saved.deck, owned, catalog, details) }
                             Text(when { stock.unknown > 0 -> "Comparaison incomplète : ${stock.unknown} référence(s) inconnue(s)"
                                 stock.ready -> "Toutes les cartes possédées · réserve comprise"

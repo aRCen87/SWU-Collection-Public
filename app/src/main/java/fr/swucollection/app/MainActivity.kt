@@ -52,6 +52,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import androidx.compose.ui.window.Dialog
+import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu

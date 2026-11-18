@@ -3,6 +3,8 @@ set -euo pipefail
 mkdir -p smoke-private
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+adb shell am instrument -w -e class fr.swucollection.app.VisualRefreshTest fr.swucollection.app.test/androidx.test.runner.AndroidJUnitRunner | tee smoke-private/visual-refresh-controls.txt
+grep -q 'OK (2 tests)' smoke-private/visual-refresh-controls.txt
 for format in cover unfolded landscape; do
   case "$format" in
     cover) adb shell wm size 658x1536; adb shell wm density 320 ;;

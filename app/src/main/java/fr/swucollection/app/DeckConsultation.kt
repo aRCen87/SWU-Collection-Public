@@ -219,7 +219,8 @@ internal fun DeckCardGallery(cards: List<CatalogCard>, initialId: String, onClos
                     if (onDetails != null) IconButton(onClick = { onDetails(card) }) { Icon(Icons.Default.Info, "Ouvrir la fiche complète") }
                     IconButton(onClick = onClose) { Icon(Icons.Default.Close, "Fermer la carte") }
                 }
-                Box(Modifier.weight(1f).fillMaxWidth().clipToBounds().testTag("deck_gallery_artwork").onSizeChanged { frame = it }.transformable(transform)
+                Box(Modifier.weight(1f).fillMaxWidth().clipToBounds().testTag("deck_gallery_artwork").onSizeChanged { frame = it }
+                    .cardSwipeNavigation(card, zoom == 1f, { if (index > 0) index-- }, { if (index < cards.lastIndex) index++ }).transformable(transform)
                     .pointerInput(card) { detectTapGestures(onDoubleTap = { zoom = if (zoom > 1f) 1f else 2f; offset = Offset.Zero }) }, contentAlignment = Alignment.Center) {
                     CardArtwork(card, Modifier.fillMaxSize().graphicsLayer(scaleX = zoom, scaleY = zoom, translationX = offset.x, translationY = offset.y), reverse = reverse)
                 }
