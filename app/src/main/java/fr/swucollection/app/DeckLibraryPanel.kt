@@ -93,9 +93,7 @@ internal fun DeckLibraryPanel(
                                 .flatMap { details.get(it)?.aspects.orEmpty() }.distinct()
                             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 aspects.forEach { aspect ->
-                                    Surface(color = ListPalette.Raised, shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)) {
-                                        Text(aspectNames[aspect] ?: aspect, Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall)
-                                    }
+                                    AspectBadge(aspect)
                                 }
                             }
                             val stock = remember(saved.deck, owned, catalog, details) { CompetitiveDecks.readiness(saved.deck, owned, catalog, details) }

@@ -35,7 +35,7 @@ internal fun DeckMultiChoice(label: String, value: String, choices: List<Pair<St
         DropdownMenu(expanded, onDismissRequest = { expanded = false }, modifier = Modifier.heightIn(max = 320.dp)) {
             DropdownMenuItem(text = { Text("Tout désélectionner") }, onClick = { onChange("") })
             choices.filter { it.first.isNotEmpty() }.forEach { (key, title) ->
-                DropdownMenuItem(text = { Text(title) }, leadingIcon = { Checkbox(checked = key in selected, onCheckedChange = null) },
+                DropdownMenuItem(text = { if (label == "Couleurs") AspectBadge(key, showColorName = true) else Text(title) }, leadingIcon = { Checkbox(checked = key in selected, onCheckedChange = null) },
                     onClick = { onChange((if (key in selected) selected - key else selected + key).joinToString("|")) })
             }
             DropdownMenuItem(text = { Text("Terminer") }, onClick = { expanded = false })
