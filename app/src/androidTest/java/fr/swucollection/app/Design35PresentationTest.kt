@@ -18,11 +18,18 @@ import java.io.File
 class Design35PresentationTest {
  @get:Rule val ui=createAndroidComposeRule<ComponentActivity>()
  private val cards=listOf(CatalogCard("SOR","100","Alpha","Unité","Rare"),CatalogCard("SHD","101","Beta","Événement","Commune"))
+ @Composable private fun PreviewTheme(content:@Composable ()->Unit) {
+  MaterialTheme(colorScheme=darkColorScheme(primary=PremiumGold,onPrimary=ListPalette.Background,
+   secondaryContainer=ListPalette.Raised,onSecondaryContainer=ListPalette.Gold,
+   surface=PremiumNavy,onSurface=ListPalette.Text,onBackground=ListPalette.Text)) {
+   CompositionLocalProvider(LocalContentColor provides ListPalette.Text){content()}
+  }
+ }
  private fun capture(name:String){File(ui.activity.getExternalFilesDir(null),"home-test-design35-$name.png").outputStream().use{ui.onAllNodes(isRoot()).onLast().captureToImage().asAndroidBitmap().compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}}
  @Test fun tableGroupingAndFixedDockDoNotChangeDeckQuantities(){
   val deck=PortableDeck("","",listOf(DeckEntry("SOR-100",2),DeckEntry("SHD-101",1)))
   var edits=0
-  ui.setContent{MaterialTheme(colorScheme=darkColorScheme(primary=ListPalette.Gold)){Column(Modifier.fillMaxSize()){
+  ui.setContent{PreviewTheme{Column(Modifier.fillMaxSize()){
    DeckSelectionPane("Maquette Mes decks",deck,cards,CardDetails.empty(),DeckEditor.Zone.MAIN,false,false,Modifier.weight(1f),{}, {_,_,_->edits++},{_,_->})
    DeckBuildDock(deck,cards,false,false){}
   }}}
@@ -35,7 +42,7 @@ class Design35PresentationTest {
  }
  @Test fun silhouetteAndExtensionJumpPreserveReadingActions(){
   var preview=0;var actions=0
-  ui.setContent{MaterialTheme(colorScheme=darkColorScheme(primary=ListPalette.Gold)){Surface(Modifier.fillMaxSize(),color=ListPalette.Background){
+  ui.setContent{PreviewTheme{Surface(Modifier.fillMaxSize(),color=ListPalette.Background){
    UnifiedCollectionCatalog(cards,emptyList(),"Toutes les cartes","Toutes","Toutes","","Visuel",CardDetails.empty(),Modifier.fillMaxSize(),{_,_->preview++},{actions++})
   }}}
   ui.onNodeWithText("Silhouettes").performClick()
@@ -46,7 +53,7 @@ class Design35PresentationTest {
   capture("collection")
  }
  @Test fun comparisonFindsSecondCardWithoutAddingAnything(){
-  ui.setContent{MaterialTheme(colorScheme=darkColorScheme()){CompareCardsDialog(cards[0],cards,CardDetails.empty()) {}}}
+  ui.setContent{PreviewTheme{CompareCardsDialog(cards[0],cards,CardDetails.empty()) {}}}
   ui.onNodeWithText("Choisir la seconde carte").performTextInput("Beta")
   ui.onNodeWithText("Beta · SHD 101").performClick()
   ui.onNodeWithText("Alpha").assertExists();ui.onNode(hasText("Beta") and !hasSetTextAction()).assertExists()
@@ -55,7 +62,7 @@ class Design35PresentationTest {
  @Test fun changeSummaryKeepsReserveTransfersVisible(){
   val before=PortableDeck("","",listOf(DeckEntry("SOR-100",2)))
   val after=before.copy(deck=listOf(DeckEntry("SOR-100",1)),sideboard=listOf(DeckEntry("SOR-100",1)))
-  ui.setContent{MaterialTheme(colorScheme=darkColorScheme()){DeckChangesDialog(before,after,cards){}}}
+  ui.setContent{PreviewTheme{DeckChangesDialog(before,after,cards){}}}
   ui.onNodeWithText("2 → 1").assertExists();ui.onNodeWithText("0 → 1").assertExists();ui.onNodeWithText("Réserve").assertExists()
   capture("changes")
  }
