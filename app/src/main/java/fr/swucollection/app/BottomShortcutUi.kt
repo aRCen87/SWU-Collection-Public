@@ -73,6 +73,7 @@ internal fun CollectionBottomBar(section: String, onNavigate: (String) -> Unit) 
                     horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Icon(bottomShortcutIcons.getValue(destination), destination, tint = tint)
                     Text(if (destination == "Hauts faits") "Badges" else destination,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp),
                         color = tint, fontSize = 10.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 }
             }

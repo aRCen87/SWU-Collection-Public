@@ -54,8 +54,8 @@ class Test33AccessibilityTest {
         // The production multi-choice control must preserve arbitrarily long labels.
         ui.onNodeWithText("Voir les cartes").assertIsDisplayed().performClick()
         assertTrue(closed)
-        assertUnclippedText(label)
         capture("filters")
+        assertUnclippedText(label)
     }
     @Test fun scannerShowsTheExactQuantityAndBothModesWithLargeText() {
         ui.setContent { LargeText {
@@ -107,7 +107,7 @@ class Test33AccessibilityTest {
         assertUnclippedText("Sauvegarder et restaurer")
         ui.onNodeWithTag("bottom_shortcut_Mes proxies").assertIsDisplayed().performClick()
         assertEquals("Mes proxies", destination)
-        assertUnclippedText("Mes proxies")
         capture("settings")
+        assertUnclippedText("Mes proxies")
     }
 }
