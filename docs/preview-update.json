@@ -1,11 +1,11 @@
 {
-  "versionCode": 99,
-  "versionName": "0.9.5-test.37",
-  "sha256": "c2264257bed964dc0877714ecd7455509ad8d4a0c7a4605363e299171bfffcac",
-  "size": 65119374,
-  "sourceSha": "91043295fc423ecef42bd67daa7829fe8d278a5c",
+  "versionCode": 100,
+  "versionName": "0.9.5-test.38",
+  "sha256": "87e0efdfa5319b79b8dc92ced927848c0ffbecc3b93afb52e20437ecf2bec3ed",
+  "size": 65102990,
+  "sourceSha": "a535d570fbc87e026901d06925d42db9c730596b",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "notes": "Test 37 : retour à la présentation de l’accueil avant la refonte Test 35/36. Couvertures des decks affichées en entier, sans découpe ni dégradé masquant le texte. Extensions : suppression de la carte décorative et logo agrandi, avec nom et progression. Tests Android, sécurité, lint, compilation, signature et essais sur téléphone, Fold déplié et paysage simulés validés.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_fde3_f-517deca9bea88191a0bdf80fa8dcca6f_751b3117796081919833ed570b104c30&account_id=personal"
+  "notes": "Test 38 : suppression de la salutation personnalisée « Bonjour » en haut de l’accueil. Avatar, commandes et présentation de Test 37 conservés. Tests Android, sécurité, lint, compilation, signature et essais sur téléphone, Fold déplié et paysage simulés réussis.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_fde3_f-f75da1acc89c8191821d9273e99ba58b_751b3117796081919833ed570b104c30&account_id=personal"
 }
