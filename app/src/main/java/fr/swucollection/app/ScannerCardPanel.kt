@@ -18,7 +18,7 @@ internal fun scannerDestination(deckName: String? = null): String =
 
 @Composable
 internal fun ScannerModeChoices(mode: String, enabled: Boolean = true, onChange: (String) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         listOf("Une par une", "Rafale").forEach { option ->
             FilterChip(mode == option, enabled = enabled, onClick = { onChange(option) }, label = { Text(option) })
         }
@@ -27,7 +27,7 @@ internal fun ScannerModeChoices(mode: String, enabled: Boolean = true, onChange:
 
 /** Uses the already refreshed price cache: recognition never waits on a network call. */
 @Composable
-internal fun ScannerCardSummary(card: CatalogCard, variant: String, status: String? = null) {
+internal fun ScannerCardSummary(card: CatalogCard, variant: String, status: String? = null, quantity: Int? = null) {
     val context = LocalContext.current.applicationContext
     val quote by produceState<MarketQuote?>(null, card.setCode, card.number, variant) {
         value = if (variant !in ScanVariants.options) MarketQuote(null) else withContext(Dispatchers.IO) {
@@ -39,6 +39,7 @@ internal fun ScannerCardSummary(card: CatalogCard, variant: String, status: Stri
         CardArtwork(card, Modifier.width(58.dp).height(82.dp), language = card.language, variant = variant)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(card.name, color = ListPalette.Text, fontWeight = FontWeight.SemiBold)
+            quantity?.let { Text("× $it exemplaire(s)", color = ListPalette.Gold, style = MaterialTheme.typography.labelMedium) }
             Text("${card.setCode} ${card.number} · ${CardLanguages.label(card.language)} · ${variant.ifBlank { "Finition à vérifier" }}",
                 color = ListPalette.Secondary, style = MaterialTheme.typography.labelSmall)
             val amount = quote?.amount

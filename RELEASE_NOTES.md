@@ -1,4 +1,13 @@
-## 0.9.4-test.32 — présentation et recherche (en validation)
+## 0.9.4-test.33 — finitions et accessibilité (en validation)
+
+- Logos des extensions fournis par l’éditeur, embarqués pour rester disponibles hors connexion ; code exact et progression conservés pour les promotions et séries annexes.
+- Quantité de la dernière carte scannée affichée avec sa miniature ; total exact de la variante et de la langue dans le lot ou le deck courant.
+- Retournement animé des leaders dans la visionneuse plein écran, désactivé avec la réduction des mouvements.
+- Libellés longs des filtres et raccourcis sans limite de lignes ; modes du scanner capables de revenir à la ligne. Contrôles dédiés à une police à 200 % sur téléphone, Fold et paysage.
+- Échantillonnage de caméra déterministe : rotation entière et moyenne des pixels dans le même repère avant reconnaissance ; seuils et confirmations inchangés. Comparaison des pixels aux quatre rotations et répétition du test visuel à 180°.
+- Version Test uniquement ; schéma, données et version officielle inchangés.
+
+## 0.9.4-test.32 — présentation et recherche
 
 - Recherche par mots-clés et capacités dans les filtres combinés du deck, avec textes français et anglais disponibles hors connexion ; les cartes sans texte indexé ne sont pas inventées.
 - Analyse du deck interactive : toucher un coût, un type, une arène, un aspect ou les manquantes ouvre les cartes correspondantes et leurs quantités.

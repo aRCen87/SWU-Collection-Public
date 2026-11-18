@@ -13,7 +13,7 @@ internal fun DeckChoice(label: String, value: String, choices: List<Pair<String,
     var expanded by remember { mutableStateOf(false) }
     Box {
         OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
-            Text("$label : ${choices.firstOrNull { it.first == value }?.second ?: value}", maxLines = 2)
+            Text("$label : ${choices.firstOrNull { it.first == value }?.second ?: value}")
         }
         DropdownMenu(expanded, onDismissRequest = { expanded = false }, modifier = Modifier.heightIn(max = 280.dp)) {
             choices.forEach { (key, title) ->
@@ -30,7 +30,7 @@ internal fun DeckMultiChoice(label: String, value: String, choices: List<Pair<St
     Box {
         OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
             val titles = choices.filter { it.first in selected }.map { it.second }
-            Text("$label : ${if (titles.isEmpty()) "Tous" else titles.joinToString(", ")}", maxLines = 3)
+            Text("$label : ${if (titles.isEmpty()) "Tous" else titles.joinToString(", ")}")
         }
         DropdownMenu(expanded, onDismissRequest = { expanded = false }, modifier = Modifier.heightIn(max = 320.dp)) {
             DropdownMenuItem(text = { Text("Tout désélectionner") }, onClick = { onChange("") })

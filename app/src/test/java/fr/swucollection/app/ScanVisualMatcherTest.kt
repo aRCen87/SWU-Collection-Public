@@ -56,11 +56,11 @@ class ScanVisualMatcherTest {
         assertTrue(matches("leader-1",false).any { it.reference == ScanReference("SOR","001") })
     }
     @Test fun cameraRotationAndFillCenterCroppingPreserveTheCard() {
-        for (rotation in listOf(0,90,180,270)) {
+        repeat(3) { attempt -> for (rotation in listOf(0,90,180,270)) {
             val result = matches("portrait",false,rotation,1200,1600)
-            assertTrue("Rotation $rotation candidates=${result.map { it.reference to it.score }}", result
+            assertTrue("Attempt $attempt rotation $rotation candidates=${result.map { it.reference to it.score }}", result
                 .any { it.reference == ScanReference("SOR","236") })
-        }
+        } }
     }
     @Test fun emptyCameraBackgroundDoesNotOfferAnArbitraryCard() {
         val frame = Bitmap.createBitmap(720,1000,Bitmap.Config.ARGB_8888)
