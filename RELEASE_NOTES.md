@@ -1,3 +1,7 @@
+# Préparation Test 36 — en cours de validation
+
+Fenêtre de sortie compacte et défilable, commandes de collection fixes, réglages de densité, accueil en colonne et résumé avant enregistrement du deck. Les autres demandes de la liste restent à réaliser ou à vérifier.
+
 ## Version 0.9.5
 
 - Collection plus visuelle : commandes compactes, logos et accès rapide aux extensions, progression par rareté et silhouettes optionnelles des cartes manquantes.

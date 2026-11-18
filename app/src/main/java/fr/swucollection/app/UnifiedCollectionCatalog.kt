@@ -95,6 +95,12 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
         }
     }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        header?.invoke()
+        if (view != "Liste") Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf("Grandes cartes" to 1.5f, "Équilibré" to 1f, "Compact" to .8f).forEach { (label, scale) ->
+                FilterChip(selected = kotlin.math.abs(cardScale - scale) < .05f, onClick = { cardScale = scale }, label = { Text(label) })
+            }
+        }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text("${visible.size} référence(s) · $scope", Modifier.weight(1f), style = MaterialTheme.typography.labelMedium)
             if(scope != "Possédées") TextButton(onClick = { silhouettes = !silhouettes }) { Text(if(silhouettes) "Visuels" else "Silhouettes") }
@@ -102,12 +108,11 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
         if(groups.size > 1) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             groups.keys.forEach { code -> TextButton(onClick = {
                 val prior = groups.entries.takeWhile { it.key != code }
-                val index = (if(header != null) 1 else 0) + prior.sumOf { 1 + it.value.size }
+                val index = prior.sumOf { 1 + it.value.size }
                 coroutine.launch { if(view == "Liste") listState.animateScrollToItem(index) else gridState.animateScrollToItem(index) }
             }) { Text(code) } }
         }
         if (view == "Liste") LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (header != null) item(key = "catalogue-controls") { header() }
             if (visible.isEmpty()) item(key = "empty-catalogue") {
                 CollectorEmptyState("Aucune carte trouvée", "Essaie un autre mot ou retire un filtre pour élargir ta recherche.")
             }
@@ -146,9 +151,6 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                     }
                 }.testTag("swu_unified_catalog"), horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 12.dp)) {
-                if (header != null) item(key = "catalogue-controls", span = { GridItemSpan(maxLineSpan) }) {
-                    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) { header() }
-                }
                 if (visible.isEmpty()) item(key = "empty-catalogue", span = { GridItemSpan(maxLineSpan) }) {
                     CollectorEmptyState("Aucune carte trouvée", "Essaie un autre mot ou retire un filtre pour élargir ta recherche.")
                 }

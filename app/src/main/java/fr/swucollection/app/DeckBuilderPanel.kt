@@ -369,7 +369,7 @@ internal fun DeckBuilderPanel(
             }
             Button(onClick = {
                 if (!leaderChosen || !baseChosen) keepForLater()
-                else if (collectionEntries.isEmpty()) saveDeck() else confirmingSave = true
+                else confirmingSave = true
             }, modifier = Modifier.weight(1f), enabled = name.isNotBlank()) {
                 Text(if (!leaderChosen || !baseChosen) "Garder le brouillon" else "Enregistrer")
             }
@@ -510,10 +510,17 @@ internal fun DeckBuilderPanel(
         }
     }
     if (confirmingSave) AlertDialog(onDismissRequest = { confirmingSave = false },
-        title = { Text("Enregistrer le deck et la collection ?") },
+        title = { Text(if (collectionEntries.isEmpty()) "Enregistrer le deck ?" else "Enregistrer le deck et la collection ?") },
         text = {
             LazyColumn(Modifier.heightIn(max = 360.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                item { Text("${collectionEntries.sumOf { it.quantity }} exemplaire(s) seront ajoutés à ta collection.") }
+                item {
+                    Text(name, style = MaterialTheme.typography.titleMedium)
+                    Text("Leader : ${byId[deck.leader]?.name ?: "À choisir"}")
+                    Text("Base : ${byId[deck.base]?.name ?: "À choisir"}")
+                    Text("Deck principal : ${deck.deck.sumOf { it.count }} · Réserve : ${deck.sideboard.sumOf { it.count }}")
+                }
+                items(report.issues) { Text(it, color = ListPalette.Danger) }
+                if (collectionEntries.isNotEmpty()) item { Text("${collectionEntries.sumOf { it.quantity }} exemplaire(s) seront ajoutés à ta collection.") }
                 items(collectionEntries, key = { it.reviewKey }) { entry ->
                     Text("${entry.quantity} × ${entry.card.name} · ${entry.card.setCode} ${entry.card.number} · ${entry.variant.ifBlank { "Finition à vérifier" }} · ${CardLanguages.label(entry.card.language)}")
                     if (!entry.resolved) ScanEntryReview(entry) { language, variant, quantity ->
