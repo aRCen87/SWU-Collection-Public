@@ -167,4 +167,29 @@ class UnfinishedDeckUiTest {
         }
     }
 
+    @Test
+    @Config(sdk = [35], qualifiers = "w640dp-h360dp-land")
+    fun exitChoicesRemainReachableWithLargeTextInLandscape() {
+        val context = RuntimeEnvironment.getApplication()
+        context.filesDir.resolve("deck-drafts").deleteRecursively()
+        var closed = false
+        ui.setContent {
+            val density = androidx.compose.ui.platform.LocalDensity.current
+            CompositionLocalProvider(androidx.compose.ui.platform.LocalDensity provides
+                androidx.compose.ui.unit.Density(density.density, 2f)) {
+                MaterialTheme {
+                    DeckBuilderPanel(emptyList(), emptyList(), empty, initialName = "Test paysage",
+                        draftKey = "exit-layout", details = CardDetails.empty(), rules = LegalityRules.DEFAULT,
+                        onCancel = { closed = true }, onSave = { _, _, _, _ -> }, onPreview = { _, _ -> })
+                }
+            }
+        }
+        ui.onNodeWithText("Quitter").performClick()
+        ui.onNodeWithText("Garder un brouillon").performScrollTo().assertIsDisplayed()
+        ui.onNodeWithText("Quitter sans enregistrer").performScrollTo().assertIsDisplayed()
+        ui.onNodeWithText("Continuer le deck").performScrollTo().assertIsDisplayed().performClick()
+        ui.runOnIdle { assertFalse(closed) }
+        ui.onNodeWithText("Quitter le deck ?").assertDoesNotExist()
+    }
+
 }

@@ -162,6 +162,8 @@ internal fun PremiumOwnedTile(rows: List<CollectionCard>, catalogByKey: Map<Stri
             Column(Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 CardLegalityBadge(status)
                 Text(priceLabel, color = PremiumGold, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                val quoteDates = rows.mapNotNull { row -> quotes[collectionPriceKey(row.setCode, row.number, row.variant)]?.date?.takeIf { it.isNotBlank() } }.distinct()
+                if (quoteDates.isNotEmpty()) Text("Actualisation : ${quoteDates.minOrNull()?.take(10)}", color = ListPalette.Secondary, style = MaterialTheme.typography.labelSmall)
             }
             Text(first.name, Modifier.padding(horizontal = 10.dp, vertical = 6.dp), maxLines = 2,
                 overflow = TextOverflow.Ellipsis, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)

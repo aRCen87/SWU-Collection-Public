@@ -309,6 +309,10 @@ private fun CollectionScreen(
     var scanMode by rememberCollectionFilter("scanModeV3", "Une par une")
     var scanReadToken by remember { mutableIntStateOf(0) }
     var scanLastCard by remember { mutableStateOf<ScanBatchEntry?>(null) }
+    var recentScanCards by remember { mutableStateOf<List<ScanBatchEntry>>(emptyList()) }
+    LaunchedEffect(scanLastCard) {
+        scanLastCard?.let { recentScanCards = (listOf(it) + recentScanCards).take(6) }
+    }
     var scanCorrection by remember { mutableStateOf<ScanBatchEntry?>(null) }
     var batchVariant by rememberCollectionFilter("scanVariantMode", "Automatique")
     var batchMessage by remember { mutableStateOf<String?>(null) }
@@ -411,7 +415,7 @@ private fun CollectionScreen(
     fun openScanner() {
         navigation.navigateTo("Scanner")
         batchMessage = null
-        scanLastCard = null; scanCorrection = null
+        scanLastCard = null; recentScanCards = emptyList(); scanCorrection = null
         scannerOpen = true
     }
     fun closeScanner() {
@@ -869,6 +873,19 @@ private fun CollectionScreen(
                     sets.firstOrNull { it.code == homeLayout.set }?.let { pinned ->
                         OutlinedButton(onClick = { navigation.navigateTo("Compléter mon set", pinned.code) }, modifier = Modifier.fillMaxWidth()) {
                             Text("★ ${pinned.name} · Compléter mon extension")
+                        }
+                    }
+                }
+                if (privateLayout) {
+                    val resumeDeck = remember(selectedSection, cards) { deckStore.all().firstOrNull() }
+                    if (resumeDeck != null) OutlinedCard(onClick = { openSavedDeck(resumeDeck) }, modifier = Modifier.fillMaxWidth()) {
+                        Row(Modifier.padding(12.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            CardArtwork(allCatalog.firstOrNull { DeckConstruction.reference(it) == resumeDeck.deck.leader }, Modifier.size(56.dp, 40.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text("Reprendre", style = MaterialTheme.typography.labelSmall, color = ListPalette.Gold)
+                                Text(resumeDeck.name, style = MaterialTheme.typography.titleSmall)
+                            }
+                            Icon(Icons.Default.ChevronRight, null, tint = ListPalette.Gold)
                         }
                     }
                 }
@@ -1577,6 +1594,16 @@ private fun CollectionScreen(
                             }.onFailure { scanVariantError = it.message ?: "Impossible d’enregistrer cet ajout." }
                         })
                 } else {
+                    if (recentScanCards.size > 1) {
+                        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            recentScanCards.forEach { scanned ->
+                                Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
+                                    CardArtwork(scanned.card, Modifier.size(40.dp, 56.dp), language = scanned.card.language, variant = scanned.variant)
+                                    Text("×${scanned.quantity}", style = MaterialTheme.typography.labelSmall)
+                                }
+                            }
+                        }
+                    }
                     scanLastCard?.let { last ->
                         ScannerCardSummary(last.card, last.variant, if (scanMode == "Rafale") "En attente de validation" else "Ajoutée à ma collection",
                             quantity = if (scanMode == "Rafale") scanBatch.entries.filter { it.card.setCode == last.card.setCode && it.card.number == last.card.number && it.card.language == last.card.language && it.variant == last.variant }.sumOf { it.quantity } else last.quantity)
