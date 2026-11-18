@@ -771,23 +771,6 @@ private fun CollectionScreen(
             horizontalAlignment=if(immersiveHome) androidx.compose.ui.Alignment.CenterHorizontally else androidx.compose.ui.Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(if(immersiveHome) 0.dp else if (compactCollectionLayout) 4.dp else 12.dp)
         ) {
-            additionMessage?.let { message ->
-                Surface(Modifier.fillMaxWidth(), color = ListPalette.Raised, contentColor = ListPalette.Gold) {
-                    Row(Modifier.padding(8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                        additionThumbnail?.let { AddedCardReceipt(it) }
-                        Text("✓ $message", Modifier.weight(1f).padding(horizontal = 8.dp))
-                        if (additionUndoId != null) TextButton(onClick = {
-                            val expected = additionUndoId
-                            if (database.history().firstOrNull { !it.undone }?.id == expected) {
-                                runCatching { database.undoLastChange() }.onSuccess { refresh(); additionMessage = "Ajout annulé" }
-                                    .onFailure { additionMessage = "Annulation impossible. Consulte l’historique." }
-                            } else additionMessage = "Une autre modification a eu lieu. Consulte l’historique pour annuler."
-                            additionUndoId = null; additionThumbnail = null
-                        }) { Text("Annuler") }
-                        TextButton(onClick = { additionMessage = null }) { Text("Fermer") }
-                    }
-                }
-            }
             if (!immersiveHome && !messengerKeyboardOpen) updateBanner()
             if (selectedSection == "Accueil") {
             val privateHome = AppChannel.supportsExperience(deckContext.packageName)
@@ -1513,6 +1496,30 @@ private fun CollectionScreen(
                 }
             }
         }
+            additionMessage?.let { message ->
+                Surface(Modifier.align(androidx.compose.ui.Alignment.BottomCenter)
+                    .padding(start = 16.dp, end = 16.dp, bottom = 92.dp).widthIn(max = 640.dp).fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp), tonalElevation = 6.dp,
+                    color = ListPalette.Raised, contentColor = ListPalette.Gold) {
+                    Row(Modifier.padding(8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        additionThumbnail?.let { AddedCardReceipt(it) }
+                        Text("✓ $message", Modifier.weight(1f).padding(horizontal = 8.dp),
+                            maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.bodySmall)
+                        if (additionUndoId != null) TextButton(onClick = {
+                            val expected = additionUndoId
+                            if (database.history().firstOrNull { !it.undone }?.id == expected) {
+                                runCatching { database.undoLastChange() }.onSuccess { refresh(); additionMessage = "Ajout annulé" }
+                                    .onFailure { additionMessage = "Annulation impossible. Consulte l’historique." }
+                            } else additionMessage = "Une autre modification a eu lieu. Consulte l’historique pour annuler."
+                            additionUndoId = null; additionThumbnail = null
+                        }) { Text("Annuler") }
+                        IconButton(onClick = { additionMessage = null; additionUndoId = null; additionThumbnail = null }) {
+                            Icon(Icons.Default.Close, "Fermer le message d’ajout")
+                        }
+                    }
+                }
+            }
         if (immersiveHome && pageScroll.value > with(LocalDensity.current) { 160.dp.toPx() }) {
             Surface(Modifier.align(androidx.compose.ui.Alignment.TopCenter).fillMaxWidth(), color = PremiumNavy.copy(alpha = .97f)) {
                 Row(Modifier.statusBarsPadding().padding(horizontal = 16.dp, vertical = 6.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
