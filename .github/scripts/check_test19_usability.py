@@ -82,7 +82,7 @@ try:
         root = snapshot(name)
         window = next(n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_content_window')
         left, top, right, bottom = rect(window)
-        for label in ('Scanner', 'Filtres', 'Ajout manuel', 'Gérer ma collection'):
+        for label in ('Scanner', 'Filtres', 'Autres actions de collection'):
             x1, y1, x2, y2 = rect(find(root, label))
             assert left <= x1 < x2 <= right and top <= y1 < y2 <= bottom, (name, label, (x1,y1,x2,y2))
         empty = find(root, 'Ta collection est vide. Scanne ta première carte pour commencer.')
@@ -93,6 +93,24 @@ try:
         x1, y1, x2, y2 = rect(empty)
         assert x2 > x1 and y2 > y1 and y2 <= rect(navigation)[1], (name, 'Collection body obscured by navigation', rect(empty), rect(navigation))
         capture(name)
+        # Secondary actions are deliberately grouped in the collection menu.
+        tap(root, 'Autres actions de collection')
+        menu = snapshot(name+'-actions')
+        width, height = map(int, size.split('x'))
+        for label in ('Ajout manuel', 'Gérer ma collection'):
+            x1, y1, x2, y2 = rect(find(menu, label))
+            assert 0 <= x1 < x2 <= width and 0 <= y1 < y2 <= height, (name, label, (x1,y1,x2,y2))
+        capture(name+'-actions')
+        tap(menu, 'Ajout manuel')
+        find(snapshot(name+'-manual'), 'Ajouter une carte')
+        adb('shell', 'input', 'keyevent', 4); time.sleep(2)
+        root = snapshot(name+'-returned')
+        tap(root, 'Autres actions de collection')
+        tap(snapshot(name+'-manage-menu'), 'Gérer ma collection')
+        manage = snapshot(name+'-manage')
+        find(manage, 'Modifier par lot')
+        tap(manage, 'Fermer')
+        find(snapshot(name+'-manage-closed'), 'Autres actions de collection')
     assert 'FATAL EXCEPTION' not in adb('logcat', '-d', '-s', 'AndroidRuntime:E')
     print('Test 19 usability passed: clear search, active/reset filters, visible actions on cover/unfolded/landscape.')
 except Exception:
