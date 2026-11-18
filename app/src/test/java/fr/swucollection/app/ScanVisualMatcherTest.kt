@@ -82,7 +82,11 @@ class ScanVisualMatcherTest {
     @Test fun automaticLayoutFindsNormalCardsBasesAndBothLeaderFacesWithoutATypeButton() {
         for ((name, landscape, number) in listOf(Triple("portrait",false,"236"),Triple("base",true,"029"),
             Triple("leader-0",true,"001"),Triple("leader-1",false,"001"))) {
-            assertTrue(name,matches(name,landscape,automatic=true).any { it.reference == ScanReference("SOR",number) })
+            val result = matches(name,landscape,automatic=true)
+            if (result.none { it.reference == ScanReference("SOR",number) }) {
+                val guided = matches(name,landscape)
+                fail("$name automatic=${result.map { Triple(it.reference,it.score,it.landscape) }} guided=${guided.map { Triple(it.reference,it.score,it.landscape) }}")
+            }
         }
     }
 }
