@@ -58,12 +58,16 @@ internal object UnifiedCollection {
 internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<CollectionCard>,
     scope: String, set: String, language: String, query: String, view: String, details: CardDetails,
     modifier: Modifier = Modifier, onPreview: (CatalogCard, List<CatalogCard>) -> Unit,
-    onActions: (CatalogCard) -> Unit, dimMissing: Boolean = true, header: (@Composable () -> Unit)? = null, sets: List<CatalogSet> = emptyList()) {
+    onActions: (CatalogCard) -> Unit, dimMissing: Boolean = true, header: (@Composable () -> Unit)? = null, sets: List<CatalogSet> = emptyList(),
+    favoritesOnlyOverride: Boolean? = null, onFavoritesOnlyChange: ((Boolean) -> Unit)? = null,
+    cardScaleOverride: Float? = null, onCardScaleChange: ((Float) -> Unit)? = null) {
     val favoriteContext = LocalContext.current.applicationContext
     val favoriteDatabase = remember(favoriteContext) { CollectionDatabase(favoriteContext) }
     DisposableEffect(favoriteDatabase) { onDispose { favoriteDatabase.close() } }
     var favorites by remember { mutableStateOf(favoriteDatabase.favoriteCardKeys()) }
-    var favoritesOnly by rememberSaveable { mutableStateOf(false) }
+    var localFavoritesOnly by rememberSaveable { mutableStateOf(false) }
+    val favoritesOnly = favoritesOnlyOverride ?: localFavoritesOnly
+    fun changeFavoritesOnly(value: Boolean) { onFavoritesOnlyChange?.invoke(value) ?: run { localFavoritesOnly = value } }
     var favoriteError by remember { mutableStateOf<String?>(null) }
     @Composable fun favoriteButton(card: CatalogCard) {
         val key = MarketPricing.key(card.setCode, card.number)
@@ -79,7 +83,10 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
     }
     val quantities = remember(owned, language) { owned.filter { it.quantity > 0 && (language == "Toutes" || it.language == language) }
         .groupBy { MarketPricing.key(it.setCode, it.number) }.mapValues { (_, rows) -> rows.sumOf { it.quantity } } }
-    var cardScale by rememberSaveable { mutableFloatStateOf(1f) }
+    var localCardScale by rememberSaveable { mutableFloatStateOf(1f) }
+    val cardScale = cardScaleOverride ?: localCardScale
+    val currentScale by rememberUpdatedState(cardScale)
+    fun changeCardScale(value: Float) { onCardScaleChange?.invoke(value) ?: run { localCardScale = value } }
     val totalsBySet = remember(catalog) { catalog.groupingBy { it.setCode }.eachCount() }
     val collectedBySet = remember(catalog, quantities) {
         catalog.filter { (quantities[MarketPricing.key(it.setCode, it.number)] ?: 0) > 0 }.groupingBy { it.setCode }.eachCount()
@@ -114,11 +121,11 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
         }
     }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (header != null) Box(Modifier.fillMaxWidth().heightIn(max = if (compactSetHeader) 64.dp else 160.dp)
+        if (header != null) Column(Modifier.fillMaxWidth().heightIn(max = if (compactSetHeader) 64.dp else 160.dp)
             .verticalScroll(rememberScrollState())) { header() }
         favoriteError?.let { Text(it, color = ListPalette.Danger) }
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically) {
-            FilterChip(favoritesOnly, onClick = { favoritesOnly = !favoritesOnly }, label = { Text("★ Favoris") })
+            FilterChip(favoritesOnly, onClick = { changeFavoritesOnly(!favoritesOnly) }, label = { Text("★ Favoris") })
             Text("${visible.size} cartes", Modifier.padding(horizontal = 8.dp), style = MaterialTheme.typography.labelMedium)
             if (view != "Liste") {
                 var densityMenu by remember { mutableStateOf(false) }
@@ -127,7 +134,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                     DropdownMenu(densityMenu, onDismissRequest = { densityMenu = false }) {
                         listOf("Grandes cartes" to 1.5f, "Équilibré" to 1f, "Compact" to .8f).forEach { (label, scale) ->
                             DropdownMenuItem(text = { Text((if (kotlin.math.abs(cardScale - scale) < .05f) "✓ " else "") + label) },
-                                onClick = { cardScale = scale; densityMenu = false })
+                                onClick = { changeCardScale(scale); densityMenu = false })
                         }
                     }
                 }
@@ -174,7 +181,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                         do {
                             val event = awaitPointerEvent(PointerEventPass.Initial)
                             if (event.changes.count { it.pressed } >= 2) {
-                                cardScale = (cardScale * event.calculateZoom()).coerceIn(.8f, 1.7f)
+                                changeCardScale((currentScale * event.calculateZoom()).coerceIn(.8f, 1.5f))
                                 event.changes.forEach { it.consume() }
                             }
                         } while (event.changes.any { it.pressed })

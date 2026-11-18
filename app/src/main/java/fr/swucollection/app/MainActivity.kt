@@ -330,6 +330,10 @@ private fun CollectionScreen(
     var ownershipFilter by rememberCollectionFilter("ownershipFilter", "Toutes")
     var collectionSetFilter by rememberCollectionFilter("collectionSetFilter", "Toutes")
     var collectionView by rememberCollectionFilter("collectionView", "Visuel")
+    var collectionScaleValue by rememberCollectionFilter("collectionCardScale", "1.0")
+    val collectionCardScale = collectionScaleValue.toFloatOrNull()?.coerceIn(.8f, 1.5f) ?: 1f
+    var favoriteFilterValue by rememberCollectionFilter("collectionFavoritesOnly", "false")
+    val collectionFavoritesOnly = favoriteFilterValue == "true"
     var dimMissingValue by rememberCollectionFilter("dimMissing", "true")
     val dimMissing = dimMissingValue == "true"
     var savedCollectionSort by rememberCollectionFilter("sort", CollectionPriceSort.CATALOG.name)
@@ -1246,8 +1250,23 @@ private fun CollectionScreen(
                 }
                 }
                 if (selectedSection == "Collection") {
-                val scrollingMiniatureControls = privateLayout && collectionView in listOf("Visuel", "Miniatures")
+                val scrollingMiniatureControls = false
+                var favoriteRevision by remember { mutableIntStateOf(0) }
+                val favoriteKeys = remember(favoriteRevision, cards, collectionScope) { database.favoriteCardKeys() }
+                fun toggleFavorite(card: CatalogCard) {
+                    runCatching { database.setFavoriteCard(card, MarketPricing.key(card.setCode, card.number) !in favoriteKeys) }
+                        .onSuccess { favoriteRevision++ }
+                        .onFailure { android.widget.Toast.makeText(deckContext, "Impossible de modifier les favoris", android.widget.Toast.LENGTH_SHORT).show() }
+                }
                 val collectionControls: @Composable () -> Unit = {
+                OutlinedTextField(value = search, onValueChange = { search = it },
+                    label = { Text("Rechercher une carte") },
+                    placeholder = { Text("Nom français ou anglais, extension, numéro", maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
+                    trailingIcon = { if (search.isNotEmpty()) IconButton(onClick = { search = "" }) {
+                        Icon(Icons.Default.Close, "Effacer la recherche")
+                    } },
+                    modifier = Modifier.fillMaxWidth(), singleLine = true)
                 FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Button(onClick = { openScanner() }, modifier = Modifier.widthIn(min = 112.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)) {
                         Icon(Icons.Default.PhotoCamera, null, modifier = Modifier.size(20.dp)); Spacer(Modifier.width(5.dp)); Text("Scanner", maxLines = 1)
@@ -1291,16 +1310,13 @@ private fun CollectionScreen(
                     val rarityStock = remember(cards, collectionLanguage) { cards.filter { collectionLanguage == "Toutes" || it.language == collectionLanguage }.groupBy { MarketPricing.key(it.setCode,it.number) }.mapValues { it.value.sumOf { row -> row.quantity } } }
                     ExtensionProgressPanel(collectionSetFilter, allCatalog, rarityStock)
                 }
-                OutlinedTextField(value = search, onValueChange = { search = it },
-                    label = { Text("Rechercher une carte") },
-                    placeholder = { Text("Nom français ou anglais, extension, numéro", maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
-                    trailingIcon = { if (search.isNotEmpty()) IconButton(onClick = { search = "" }) {
-                        Icon(Icons.Default.Close, "Effacer la recherche")
-                    } },
-                    modifier = Modifier.fillMaxWidth(), singleLine = true)
+
                 }
-                if (!scrollingMiniatureControls) collectionControls()
+                if (compactCollectionLayout) Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    OutlinedTextField(search, { search = it }, label = { Text("Rechercher une carte") }, singleLine = true, modifier = Modifier.weight(1f))
+                    OutlinedButton(onClick = { collectionFiltersOpen = true }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text("Filtres") }
+                } else if (!scrollingMiniatureControls) Column(Modifier.fillMaxWidth()
+                    .heightIn(max = 160.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) { collectionControls() }
                 if (collectionFiltersOpen) {
                     AlertDialog(onDismissRequest = { collectionFiltersOpen = false },
                         title = { Text("Filtres et affichage") },
@@ -1326,6 +1342,15 @@ private fun CollectionScreen(
                         FilterChip(selected = collectionView == option,
                             onClick = { collectionView = option },
                             label = { Text(option, fontSize = 12.sp) })
+                    }
+                }
+                if (privateLayout) {
+                    FilterChip(collectionFavoritesOnly, onClick = { favoriteFilterValue = (!collectionFavoritesOnly).toString() }, label = { Text("★ Mes favoris") })
+                    Text("Taille des cartes", style = MaterialTheme.typography.labelLarge)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf("Grandes cartes" to 1.5f, "Équilibré" to 1f, "Compact" to .8f).forEach { (label, scale) ->
+                            FilterChip(kotlin.math.abs(collectionCardScale - scale) < .05f, onClick = { collectionScaleValue = scale.toString() }, label = { Text(label) })
+                        }
                     }
                 }
                 var priceSortMenuOpen by remember { mutableStateOf(false) }
@@ -1370,10 +1395,11 @@ private fun CollectionScreen(
                 if (collectionLanguage != "Toutes") InputChip(true, { collectionLanguage = "Toutes" }, label = { Text(CardLanguages.label(collectionLanguage) + " ×") })
                 }
                 val selectedOwned = remember(visibleCards, collectionSetFilter, collectionLanguage,
-                    collectionScope, copiesPerPrint, collectionSort, collectionQuotes) {
+                    collectionScope, copiesPerPrint, collectionSort, collectionQuotes, favoriteKeys, collectionFavoritesOnly) {
                     sortCollectionByPrice(visibleCards.filter {
                     (collectionSetFilter == "Toutes" || it.setCode == collectionSetFilter) &&
                         (collectionLanguage == "Toutes" || it.language == collectionLanguage) &&
+                        (!collectionFavoritesOnly || MarketPricing.key(it.setCode, it.number) in favoriteKeys) &&
                         (collectionScope != "Doublons" || (copiesPerPrint[MarketPricing.key(it.setCode,it.number) + ":" + it.variant] ?: 0) > 1)
                 }, collectionSort) {
                         collectionQuotes[collectionPriceKey(it.setCode, it.number, it.variant)]?.amount
@@ -1384,7 +1410,9 @@ private fun CollectionScreen(
                         collectionView, cardDetails, Modifier.weight(1f),
                         onPreview = { card, visible -> openPreview(card, visible.map { CardPreviewEntry(it) }) },
                         onActions = { quickCard = it }, dimMissing = dimMissing,
-                        header = if (scrollingMiniatureControls) collectionControls else null, sets = sets)
+                        header = if (scrollingMiniatureControls) collectionControls else null, sets = sets,
+                        favoritesOnlyOverride = collectionFavoritesOnly, onFavoritesOnlyChange = { favoriteFilterValue = it.toString() },
+                        cardScaleOverride = collectionCardScale, onCardScaleChange = { collectionScaleValue = it.toString() })
                 } else {
                 if (!scrollingMiniatureControls && selectedOwned.isNotEmpty()) Text(if (compactCollectionLayout) "${selectedOwned.sumOf { it.quantity }} exemplaires affichés"
                     else "${selectedOwned.map { MarketPricing.key(it.setCode,it.number) + ":" + it.variant }.distinct().size} références et variantes possédées · ${selectedOwned.sumOf { it.quantity }} exemplaires", fontSize = 12.sp)
@@ -1405,8 +1433,8 @@ private fun CollectionScreen(
                     BoxWithConstraints(Modifier.fillMaxWidth().weight(1f)) {
                         val miniatures = collectionView == "Miniatures"
                         // Three on a phone; more columns as the actual window widens (Fold or landscape).
-                        val miniatureColumns = ((maxWidth.value + 6f) / 110f).toInt().coerceAtLeast(3)
-                        LazyVerticalGrid(columns = if (miniatures) GridCells.Fixed(miniatureColumns) else GridCells.Adaptive(145.dp),
+                        val miniatureColumns = ((maxWidth.value + 6f) / (110f * collectionCardScale)).toInt().coerceAtLeast(2)
+                        LazyVerticalGrid(columns = if (miniatures) GridCells.Fixed(miniatureColumns) else GridCells.Adaptive((145f * collectionCardScale).dp),
                             modifier = Modifier.fillMaxSize().testTag(if (miniatures) "swu_miniature_grid" else "swu_visual_grid"),
                             horizontalArrangement = Arrangement.spacedBy(if (miniatures) 6.dp else 10.dp),
                             verticalArrangement = Arrangement.spacedBy(if (miniatures) 6.dp else 10.dp),
@@ -1421,8 +1449,8 @@ private fun CollectionScreen(
                                 val onOpen: (CollectionCard, CatalogCard) -> Unit = { owned, card ->
                                     openPreview(card, familyPreviewEntries(groups, owned, catalogByKey), owned.variant, owned.language)
                                 }
-                                if (miniatures) OwnedMiniatureTile(rows, catalogByKey, onOpen, onLongPress = { quickCard = it })
-                                else PremiumOwnedTile(rows, catalogByKey, collectionQuotes, premierLegality.status(rows.first()), onOpen, onLongPress = { quickCard = it })
+                                if (miniatures) OwnedMiniatureTile(rows, catalogByKey, onOpen, onLongPress = { quickCard = it }, favorite = MarketPricing.key(rows.first().setCode, rows.first().number) in favoriteKeys, onFavorite = { catalogByKey[MarketPricing.key(rows.first().setCode, rows.first().number)]?.let(::toggleFavorite) })
+                                else PremiumOwnedTile(rows, catalogByKey, collectionQuotes, premierLegality.status(rows.first()), onOpen, onLongPress = { quickCard = it }, favorite = MarketPricing.key(rows.first().setCode, rows.first().number) in favoriteKeys, onFavorite = { catalogByKey[MarketPricing.key(rows.first().setCode, rows.first().number)]?.let(::toggleFavorite) })
                             }
                         }
                     }

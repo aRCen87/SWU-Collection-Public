@@ -129,7 +129,7 @@ private fun PremiumHomeTile(item: PremiumShortcut, prominent: Boolean, modifier:
 /** One tile per card family, always retaining the real language and print of its thumbnail. */
 @Composable
 internal fun PremiumOwnedTile(rows: List<CollectionCard>, catalogByKey: Map<String, CatalogCard>,
-    quotes: Map<String, MarketQuote>, status: PremierStatus?, onOpen: (CollectionCard, CatalogCard) -> Unit, onLongPress: (CatalogCard) -> Unit = {}) {
+    quotes: Map<String, MarketQuote>, status: PremierStatus?, onOpen: (CollectionCard, CatalogCard) -> Unit, onLongPress: (CatalogCard) -> Unit = {}, favorite: Boolean = false, onFavorite: (() -> Unit)? = null) {
     val first = rows.first()
     val card = catalogByKey[MarketPricing.key(first.setCode, first.number)]
     val priceLabel = remember(rows, quotes) {
@@ -160,7 +160,10 @@ internal fun PremiumOwnedTile(rows: List<CollectionCard>, catalogByKey: Map<Stri
                 }
             }
             Column(Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                CardLegalityBadge(status)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.weight(1f)) { CardLegalityBadge(status) }
+                    if (onFavorite != null) CardFavoriteToggle(favorite, first.name, onFavorite)
+                }
                 Text(priceLabel, color = PremiumGold, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                 val quoteDates = rows.mapNotNull { row -> quotes[collectionPriceKey(row.setCode, row.number, row.variant)]?.date?.takeIf { it.isNotBlank() } }.distinct()
                 if (quoteDates.isNotEmpty()) Text("Actualisation : ${quoteDates.minOrNull()?.take(10)}", color = ListPalette.Secondary, style = MaterialTheme.typography.labelSmall)
@@ -177,7 +180,7 @@ internal fun PremiumOwnedTile(rows: List<CollectionCard>, catalogByKey: Map<Stri
 /** Image-only browsing; identity and stock remain available to accessibility and in the usual detail. */
 @Composable
 internal fun OwnedMiniatureTile(rows: List<CollectionCard>, catalogByKey: Map<String, CatalogCard>,
-    onOpen: (CollectionCard, CatalogCard) -> Unit, onLongPress: (CatalogCard) -> Unit = {}) {
+    onOpen: (CollectionCard, CatalogCard) -> Unit, onLongPress: (CatalogCard) -> Unit = {}, favorite: Boolean = false, onFavorite: (() -> Unit)? = null) {
     val first = rows.first()
     val card = catalogByKey[MarketPricing.key(first.setCode, first.number)]
     Box(Modifier.fillMaxWidth().aspectRatio(0.716f).testTag("swu_miniature_tile")
@@ -187,5 +190,16 @@ internal fun OwnedMiniatureTile(rows: List<CollectionCard>, catalogByKey: Map<St
             contentDescription = "${first.name}, ${CardLanguages.label(first.language)}, ${first.variant}, ${rows.sumOf { it.quantity }} exemplaires"
         }) {
         CardArtwork(card, Modifier.fillMaxSize(), language = first.language, variant = first.variant, showLanguageLabel = false)
+        if (onFavorite != null) Surface(Modifier.align(Alignment.TopEnd), color = Color(0xDB08121F), shape = RoundedCornerShape(8.dp)) {
+            CardFavoriteToggle(favorite, first.name, onFavorite)
+        }
+    }
+}
+
+@Composable
+internal fun CardFavoriteToggle(favorite: Boolean, name: String, onToggle: () -> Unit) {
+    IconToggleButton(checked = favorite, onCheckedChange = { onToggle() }) {
+        Icon(if (favorite) Icons.Default.Star else Icons.Default.StarBorder,
+            if (favorite) "Retirer $name des favoris" else "Ajouter $name aux favoris", tint = PremiumGold)
     }
 }
