@@ -75,9 +75,15 @@ try:
     assert any("FoldProbe" in n.attrib.get("text", "") for n in root.iter("node")), "Search lost while unfolding with keyboard"
     capture("keyboard")
     # The known probe is the only text entered; leave collection filters clean.
-    edit = next(n for n in root.iter("node") if n.attrib.get("class") == "android.widget.EditText")
-    tap(edit); adb("shell", "input", "keyevent", *(["67"] * len("FoldProbe")))
-    adb("shell", "input", "keyevent", "4"); time.sleep(2)
+    # On the unfolded screen the active query remains visible as a removable chip,
+    # even when the keyboard makes the scrollable search field leave the viewport.
+    tap(find(root, "FoldProbe ×"))
+    keyboard = adb("shell", "dumpsys", "input_method")
+    if any(marker in keyboard for marker in ("mInputShown=true", "mIsInputViewShown=true", "isInputViewShown=true")):
+        adb("shell", "input", "keyevent", "4")
+    time.sleep(2)
+    cleared = snapshot("query-cleared")
+    assert not any("FoldProbe" in n.attrib.get("text", "") for n in cleared.iter("node")), "Search clear action did not clear the retained query"
     resize(756,1680,294)
     root = snapshot("collection-restored"); tap(find(root,"Toutes les cartes"))
     # The extension catalogue now lives in the unified Collection page. Keep
