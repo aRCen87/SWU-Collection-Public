@@ -1272,9 +1272,8 @@ private fun CollectionScreen(
                         FilterChip(selected = if (scope == "Possédées") collectionScope in listOf("Possédées", "Doublons") else collectionScope == scope,
                             onClick = { collectionScope = scope }, label = { Text(scope) })
                     }
-                    if (compactCollectionLayout) extensionControl()
                 }
-                if (!compactCollectionLayout) extensionControl()
+                extensionControl()
                 if (collectionSetFilter != "Toutes") {
                     TextButton(onClick = { navigation.navigateTo("Compléter mon set", collectionSetFilter) }) { Text("Progression et objectif de cette extension") }
                     val rarityStock = remember(cards, collectionLanguage) { cards.filter { collectionLanguage == "Toutes" || it.language == collectionLanguage }.groupBy { MarketPricing.key(it.setCode,it.number) }.mapValues { it.value.sumOf { row -> row.quantity } } }
