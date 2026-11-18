@@ -114,20 +114,27 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
         }
     }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (header != null) Box(Modifier.fillMaxWidth().heightIn(max = if (compactSetHeader) 120.dp else 240.dp)
+        if (header != null) Box(Modifier.fillMaxWidth().heightIn(max = if (compactSetHeader) 64.dp else 160.dp)
             .verticalScroll(rememberScrollState())) { header() }
-        if (view != "Liste") Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            listOf("Grandes cartes" to 1.5f, "Équilibré" to 1f, "Compact" to .8f).forEach { (label, scale) ->
-                FilterChip(selected = kotlin.math.abs(cardScale - scale) < .05f, onClick = { cardScale = scale }, label = { Text(label) })
-            }
-        }
         favoriteError?.let { Text(it, color = ListPalette.Danger) }
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically) {
             FilterChip(favoritesOnly, onClick = { favoritesOnly = !favoritesOnly }, label = { Text("★ Favoris") })
-            Text("${visible.size} référence(s) · $scope", Modifier.weight(1f), style = MaterialTheme.typography.labelMedium)
+            Text("${visible.size} cartes", Modifier.padding(horizontal = 8.dp), style = MaterialTheme.typography.labelMedium)
+            if (view != "Liste") {
+                var densityMenu by remember { mutableStateOf(false) }
+                Box {
+                    TextButton(onClick = { densityMenu = true }, modifier = Modifier.semantics { contentDescription = "Taille des cartes" }) { Text("Taille") }
+                    DropdownMenu(densityMenu, onDismissRequest = { densityMenu = false }) {
+                        listOf("Grandes cartes" to 1.5f, "Équilibré" to 1f, "Compact" to .8f).forEach { (label, scale) ->
+                            DropdownMenuItem(text = { Text((if (kotlin.math.abs(cardScale - scale) < .05f) "✓ " else "") + label) },
+                                onClick = { cardScale = scale; densityMenu = false })
+                        }
+                    }
+                }
+            }
             if(scope != "Possédées") TextButton(onClick = { silhouettes = !silhouettes }) { Text(if(silhouettes) "Visuels" else "Silhouettes") }
         }
-        if(groups.size > 1) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        if(groups.size > 1 && !compactSetHeader) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             groups.keys.forEach { code -> TextButton(onClick = {
                 val prior = groups.entries.takeWhile { it.key != code }
                 val index = prior.sumOf { 1 + it.value.size }

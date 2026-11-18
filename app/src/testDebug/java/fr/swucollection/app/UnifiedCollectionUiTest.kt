@@ -41,4 +41,29 @@ class UnifiedCollectionUiTest {
         ui.runOnIdle { assertTrue(dimmed) }
     }
 
+    @Test
+    @Config(sdk = [35], qualifiers = "w640dp-h360dp-land")
+    fun fixedControlsLeaveCardsReachableInLandscapeWithLargeText() {
+        val card = CatalogCard("SOR", "095", "Carte paysage", "Unité", "Rare")
+        var opened = false
+        ui.setContent {
+            val density = androidx.compose.ui.platform.LocalDensity.current
+            CompositionLocalProvider(androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(density.density, 2f)) {
+                MaterialTheme {
+                    UnifiedCollectionCatalog(listOf(card), emptyList(), "Toutes les cartes", "Toutes", "Toutes", "", "Miniatures", CardDetails.empty(),
+                        Modifier.fillMaxSize(), onPreview = { _, _ -> opened = true }, onActions = {},
+                        header = { androidx.compose.material3.Text("Recherche fixe") })
+                }
+            }
+        }
+        val target = hasContentDescription("Carte paysage, 0 exemplaire(s)")
+        ui.onNodeWithTag("swu_unified_catalog").performScrollToNode(target)
+        ui.onNode(target).assertIsDisplayed().performClick()
+        ui.runOnIdle { assertTrue(opened) }
+        ui.onNodeWithText("Recherche fixe").assertIsDisplayed()
+        ui.onNodeWithContentDescription("Taille des cartes").performScrollTo().performClick()
+        ui.onNodeWithText("Compact").performClick()
+        ui.onNodeWithText("Recherche fixe").assertIsDisplayed()
+    }
+
 }
