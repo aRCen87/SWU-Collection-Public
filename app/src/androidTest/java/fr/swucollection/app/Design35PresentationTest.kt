@@ -27,7 +27,8 @@ class Design35PresentationTest {
    DeckBuildDock(deck,cards,false,false){}
   }}}
   ui.onNodeWithText("Table · Type").performClick()
-  ui.onNodeWithText("Événements · 1").assertExists()
+  ui.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Événements · 1"))
+  ui.onNodeWithText("Événements · 1").assertIsDisplayed()
   ui.onNodeWithTag("design_deck_dock").assertIsDisplayed()
   assertEquals(0,edits);assertEquals(3,deck.deck.sumOf{it.count})
   capture("deck")

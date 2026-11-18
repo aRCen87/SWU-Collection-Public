@@ -51,7 +51,7 @@ internal object DesignDeckPlan {
     val changes=remember(before,after){DesignDeckPlan.changes(before,after)}
     AlertDialog(onDismissRequest=close,title={Text("Avant / après")},text={
         LazyColumn(Modifier.heightIn(max=420.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
-            item {Text("Comparaison avec le deck à l’ouverture de cet écran. Aucune quantité de collection n’est modifiée.",style=MaterialTheme.typography.bodySmall)}
+            item {Text("Comparaison avec la version de départ du deck. Aucune quantité de collection n’est modifiée.",style=MaterialTheme.typography.bodySmall)}
             if(changes.isEmpty())item{Text("Aucune modification du deck.")}
             items(changes){c->Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                 CardArtwork(byId[c.reference],Modifier.size(42.dp,60.dp))
