@@ -1,11 +1,11 @@
 {
-  "versionCode": 91,
-  "versionName": "0.9.3-test.30",
-  "sha256": "1cc35c9618925714c104f4a54cb61182dd35292b6bb1dd3df0a8b53865ffe837",
-  "size": 64002515,
-  "sourceSha": "83de332c366901462d71c9f494dbd16c99a749c7",
+  "versionCode": 93,
+  "versionName": "0.9.4-test.32",
+  "sha256": "6bca121342eaba8572857a622c3a515f3c3df20f31b1d942d78eb70cefdf940a",
+  "size": 64820018,
+  "sourceSha": "8d5912dd80308c78dd1ba450ab43aec0032c1c32",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "notes": "Deck plus graphique : trois cartes par ligne même sur écran étroit, quantités visibles sur les images, leader/base encadrés et progression. Toucher une carte ouvre une lecture plein écran avec zoom par pincement, double toucher ou boutons, recentrage et précédente/suivante dans le deck. Catalogue d’ajout plein écran avec grandes cartes, recherche et filtres ; lecture et bouton Ajouter séparés, réussite et refus visibles. Accès à la fiche complète conservé. Revue de simplicité : actions secondaires des decks regroupées, boutons Consulter redondants retirés, choix d’extension unique, doublons explicites, vitrines favorites et modification par lot clarifiées, sauvegardes du compte regroupées, menu organisé et proxies plus explicites. Tests de conservation, tests Android, sécurité, lint, compilation, signature et essais sur téléphone simulé étroit, déplié et paysage validés.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_be3d1bdf014481918224d3892916924c&account_id=personal"
+  "notes": "Présentation bleu et or harmonisée, nouvelles illustrations Mes listes et Mes proxies, recherche par capacités combinable avec les filtres, analyse du deck interactive et repères d’aspects avec symboles. Collection : grille réglable par pincement, sections par extension et deux panneaux sur grand écran. Visionneuse plein écran avec navigation, finitions et commandes masquables ; aperçu des raccourcis, paramètres regroupés et réduction des animations. Tests unitaires Debug et Test, sécurité, lint, compilation, conservation des données et essais téléphone simulé, déplié et paysage validés.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_7101652ae28c8191b5c54031d947e153&account_id=personal"
 }
