@@ -858,8 +858,6 @@ private fun CollectionScreen(
             }
             if (selectedSection == "Accueil") {
                 Column(Modifier.then(if(privateLayout) Modifier.offset(y = -PremiumHomeOverlap).windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)).widthIn(max=600.dp).fillMaxWidth().padding(horizontal=16.dp,vertical=12.dp) else Modifier.fillMaxWidth()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-                if (privateLayout) HomeBackupStatus(database) { navigation.navigateTo("Sauvegardes") }
-                if (privateLayout) TestReleaseHighlights(allCatalog)
                 if (!privateLayout) HomeFilmQuoteCard(homeFilmQuote)
                 if(immersiveHome) updateBanner()
                 Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -872,6 +870,8 @@ private fun CollectionScreen(
                     }
                 }
                 }
+                if (privateLayout) HomeBackupStatus(database) { navigation.navigateTo("Sauvegardes") }
+                if (privateLayout) TestReleaseHighlights(allCatalog)
                 if (!internetAvailable) OutlinedButton(onClick = { navigation.navigateTo("Hors connexion") }, modifier = Modifier.fillMaxWidth()) {
                     Text("Hors connexion · données disponibles sur ce téléphone ›")
                 }
