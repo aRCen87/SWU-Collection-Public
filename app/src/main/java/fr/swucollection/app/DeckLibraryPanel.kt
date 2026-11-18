@@ -1,6 +1,9 @@
 package fr.swucollection.app
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
@@ -77,20 +80,25 @@ internal fun DeckLibraryPanel(
                 OutlinedCard(onClick = { consultation(saved) }, modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.outlinedCardColors(containerColor = ListPalette.Background, contentColor = ListPalette.Text)) {
                     val cover = remember(saved.id, coverRevision) { covers.read(saved.id) }
-                    DeckCoverArtwork(byId[cover.reference] ?: byId[saved.deck.leader], cover.focus, Modifier.fillMaxWidth().height(110.dp))
-                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(Modifier.fillMaxWidth().background(Brush.verticalGradient(listOf(ListPalette.Raised, ListPalette.Background))).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Column(Modifier.width(72.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                CardArtwork(byId[saved.deck.leader], Modifier.fillMaxWidth().height(48.dp))
-                                CardArtwork(byId[saved.deck.base], Modifier.fillMaxWidth().height(48.dp))
+                            Column(Modifier.weight(.9f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                DeckCoverArtwork(byId[cover.reference] ?: byId[saved.deck.leader], cover.focus,
+                                    Modifier.fillMaxWidth().aspectRatio(collectionArtworkRatio(byId[cover.reference] ?: byId[saved.deck.leader])))
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    CardArtwork(byId[saved.deck.base], Modifier.width(56.dp).aspectRatio(1.4f))
+                                    Text("Base", style = MaterialTheme.typography.labelSmall, color = ListPalette.Secondary)
+                                }
                             }
-                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Column(Modifier.weight(1.1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text(saved.name, maxLines = 2, overflow = TextOverflow.Ellipsis,
                                     style = MaterialTheme.typography.titleMedium, color = ListPalette.Gold)
                                 Text(byId[saved.deck.leader]?.name ?: saved.deck.leader, maxLines = 2,
                                     overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
-                                Text("${saved.deck.deck.sumOf { it.count }} cartes · ${saved.deck.sideboard.sumOf { it.count }} en réserve",
-                                    style = MaterialTheme.typography.bodySmall, color = ListPalette.Secondary)
+                                Surface(color = ListPalette.Background, shape = RoundedCornerShape(8.dp)) {
+                                    Text("${saved.deck.deck.sumOf { it.count }} cartes · ${saved.deck.sideboard.sumOf { it.count }} en réserve",
+                                        Modifier.padding(8.dp), style = MaterialTheme.typography.labelMedium, color = ListPalette.Gold)
+                                }
                             }
                         }
                         if (details != null) {
@@ -108,7 +116,7 @@ internal fun DeckLibraryPanel(
                                 style = MaterialTheme.typography.bodySmall, color = ListPalette.Gold)
                         }
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(onClick = { onOpen(saved) }) { Text("Modifier") }
+                            Button(onClick = { onOpen(saved) }) { Text("Modifier") }
                             TextButton(onClick = { onPrepare(saved) }) { Text("Préparer") }
                             Box {
                                 IconButton(onClick = { more = true }) {

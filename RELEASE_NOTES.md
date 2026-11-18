@@ -1,3 +1,9 @@
+## 0.9.5-test.39 — Collection et decks
+
+- Leaders et bases affichés au format paysage dans les grilles : suppression des grands vides entre les rangées, quantité et favoris rapprochés de l’image.
+- Bandeaux d’extension compacts, logo mis en valeur sur un dégradé bleu nuit, progression et pourcentage regroupés.
+- Fiches decks avec grande couverture entière, petite base, compteurs regroupés et bouton Modifier doré.
+
 ## 0.9.5-test.38 — Accueil
 
 - Suppression de la salutation personnalisée en haut de l’accueil.

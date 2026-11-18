@@ -66,4 +66,17 @@ class UnifiedCollectionUiTest {
         ui.onNodeWithText("Recherche fixe").assertIsDisplayed()
     }
 
+    @Test fun landscapeLeadersDoNotReservePortraitHeight() {
+        val cards = (0..5).map { CatalogCard("HMW", "%03d".format(it + 1), "Leader $it", "Leader", "Rare") }
+        ui.setContent { MaterialTheme {
+            UnifiedCollectionCatalog(cards, emptyList(), "Toutes les cartes", "Toutes", "Toutes", "", "Miniatures",
+                CardDetails.empty(), Modifier.fillMaxSize(), onPreview = { _, _ -> }, onActions = {})
+        } }
+        val first = ui.onNodeWithContentDescription("Leader 0, 0 exemplaire(s)").fetchSemanticsNode().boundsInRoot
+        val density = org.robolectric.RuntimeEnvironment.getApplication().resources.displayMetrics.density
+        assertTrue("A landscape leader must not keep a portrait-sized empty area",
+            first.height <= first.width / 1.4f + 52f * density)
+        ui.onNodeWithContentDescription("Leader 3, 0 exemplaire(s)").assertIsDisplayed()
+    }
+
 }

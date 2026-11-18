@@ -2,6 +2,7 @@
 
 package fr.swucollection.app
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -100,22 +101,23 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
     @Composable fun sectionTitle(code: String) {
         val total = totalsBySet[code] ?: 0
         val collected = collectedBySet[code] ?: 0
-        Surface(color = ListPalette.Raised, shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)) {
-            Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (!compactSetHeader) Box(Modifier.fillMaxWidth().padding(vertical = 12.dp), contentAlignment = Alignment.Center) {
-                    SetLogo(code, Modifier.fillMaxWidth().height(88.dp))
+        Surface(color = ListPalette.Background,
+            border = androidx.compose.foundation.BorderStroke(1.dp, ListPalette.Gold.copy(alpha = .32f)),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp)) {
+            Column(Modifier.fillMaxWidth().background(androidx.compose.ui.graphics.Brush.verticalGradient(
+                listOf(ListPalette.Raised, ListPalette.Background))).padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                SetLogo(code, Modifier.fillMaxWidth().height(if (compactSetHeader) 48.dp else 68.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(code, color = ListPalette.Gold, style = MaterialTheme.typography.labelLarge)
+                    Text("$collected / $total possédées", Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodySmall, color = ListPalette.Secondary)
+                    Text("${if (total > 0) collected * 100 / total else 0} %",
+                        color = ListPalette.Gold, style = MaterialTheme.typography.titleMedium)
                 }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    if (compactSetHeader) SetLogo(code, Modifier.size(96.dp, 48.dp))
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Surface(color = ListPalette.Background, shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)) {
-                        Text(code, Modifier.padding(8.dp), color = ListPalette.Gold, style = MaterialTheme.typography.titleSmall)
-                    }
-                    Text(sets.firstOrNull { it.code == code }?.name ?: code, style = MaterialTheme.typography.titleSmall)
-                    Text("$collected / $total références possédées", style = MaterialTheme.typography.bodySmall)
-                    }
-                }
-                LinearProgressIndicator(progress = { if (total > 0) collected.toFloat() / total else 0f }, modifier = Modifier.fillMaxWidth())
+                LinearProgressIndicator(progress = { if (total > 0) collected.toFloat() / total else 0f },
+                    color = ListPalette.Gold, trackColor = ListPalette.Raised,
+                    modifier = Modifier.fillMaxWidth().height(4.dp))
                 ExtensionProgressPanel(code, catalog, quantities)
             }
         }
@@ -204,7 +206,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                     Column(Modifier.fillMaxWidth().combinedClickable(onClick = { onPreview(card, visible) },
                         onLongClickLabel = "Gérer cette carte", onLongClick = { onActions(card) })
                         .semantics { contentDescription = "${card.name}, $quantity exemplaire(s)" }) {
-                        if(silhouettes && quantity == 0) MissingSilhouette(card, Modifier.fillMaxWidth().aspectRatio(5f / 7f)) else CardArtwork(card, Modifier.fillMaxWidth().aspectRatio(5f / 7f), language = language.takeIf { it in CardLanguages.supported } ?: card.language,
+                        if(silhouettes && quantity == 0) MissingSilhouette(card, Modifier.fillMaxWidth().aspectRatio(collectionArtworkRatio(card))) else CardArtwork(card, Modifier.fillMaxWidth().aspectRatio(collectionArtworkRatio(card)), language = language.takeIf { it in CardLanguages.supported } ?: card.language,
                             showLanguageLabel = !miniatures, grayscale = dimMissing && quantity == 0)
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Text("×$quantity", Modifier.weight(1f), color = ListPalette.Gold, style = MaterialTheme.typography.labelSmall)
