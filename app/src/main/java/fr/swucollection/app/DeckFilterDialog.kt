@@ -4,6 +4,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Circle
+import androidx.compose.material.icons.filled.Diamond
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -36,7 +43,7 @@ internal fun DeckMultiChoice(label: String, value: String, choices: List<Pair<St
         DropdownMenu(expanded, onDismissRequest = { expanded = false }, modifier = Modifier.heightIn(max = 320.dp)) {
             DropdownMenuItem(text = { Text("Tout désélectionner") }, onClick = { onChange("") })
             choices.filter { it.first.isNotEmpty() }.forEach { (key, title) ->
-                DropdownMenuItem(text = { if (label == "Couleurs") AspectBadge(key, showColorName = true) else Text(title) }, leadingIcon = { Checkbox(checked = key in selected, onCheckedChange = null) },
+                DropdownMenuItem(text = { if (label == "Couleurs") AspectBadge(key, showColorName = true) else if (label == "Raretés") RarityFilterLabel(title) else Text(title) }, leadingIcon = { Checkbox(checked = key in selected, onCheckedChange = null) },
                     onClick = { onChange((if (key in selected) selected - key else selected + key).joinToString("|")) })
             }
             DropdownMenuItem(text = { Text("Terminer") }, onClick = { expanded = false })
@@ -74,4 +81,40 @@ internal fun DeckFilterDialog(filters: DeckBrowserFilters, catalog: List<Catalog
         }
     }, confirmButton = { TextButton(onClick = onDismiss) { Text("Voir les cartes") } },
         dismissButton = { TextButton(onClick = { onChange(DeckBrowserFilters()) }) { Text("Tout effacer") } })
+}
+
+@Composable
+private fun RarityFilterLabel(title: String) {
+    val key = title.lowercase(java.util.Locale.ROOT)
+    val symbol = when {
+        key.contains("legend") || key.contains("légend") -> Icons.Default.AutoAwesome
+        key.contains("uncommon") || key.contains("peu commune") -> Icons.Default.Diamond
+        key.contains("rare") -> Icons.Default.Star
+        else -> Icons.Default.Circle
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+        Icon(symbol, null, tint = if (symbol == Icons.Default.AutoAwesome) ListPalette.Gold else ListPalette.Secondary, modifier = Modifier.size(16.dp))
+        Text(title)
+    }
+}
+
+@Composable
+internal fun DeckActiveFilterChips(filters: DeckBrowserFilters, onChange: (DeckBrowserFilters) -> Unit) {
+    if (filters.activeCount == 0) return
+    val choices = listOf(
+        Triple("Couleurs", filters.aspect, { onChange(filters.copy(aspect = "")) }),
+        Triple("Type", filters.type, { onChange(filters.copy(type = "")) }),
+        Triple("Extensions", filters.set, { onChange(filters.copy(set = "")) }),
+        Triple("Raretés", filters.rarity, { onChange(filters.copy(rarity = "")) }),
+        Triple("Coût", filters.cost, { onChange(filters.copy(cost = "")) }),
+        Triple("Unités", filters.arena, { onChange(filters.copy(arena = "")) }),
+        Triple("Traits", filters.trait, { onChange(filters.copy(trait = "")) }),
+        Triple("Collection", filters.stock, { onChange(filters.copy(stock = "")) }),
+        Triple("Mots-clés", filters.keywords, { onChange(filters.copy(keywords = "")) })
+    )
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        choices.filter { it.second.isNotEmpty() }.forEach { (label, value, clear) ->
+            InputChip(true, onClick = clear, label = { Text("$label · ${value.split('|').size} ×") })
+        }
+    }
 }

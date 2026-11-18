@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -191,7 +192,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
     if (profile == null || editing) {
         ProfileEditor(profile ?: PlayerProfile(user.uid, ""), catalog, earned.map { it.badge.id }, busy, { saved -> action {
             service.saveProfile(saved, earned.map { it.badge.id }); editing = false
-        } }, if (profile == null) null else { { editing = false } }, scroll = messaging)
+        } }, if (profile == null) null else { { editing = false } }, scroll = messaging, definitions = definitions)
         TextButton(onClick = { service.signOut() }) { Text("Me déconnecter") }
         return
     }
@@ -345,7 +346,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
 
 @Composable
 internal fun ColumnScope.ProfileEditor(initial: PlayerProfile, catalog: List<CatalogCard>, earnedIds: List<String>, busy: Boolean,
-    onSave: (PlayerProfile) -> Unit, onCancel: (() -> Unit)?, scroll: Boolean = false) {
+    onSave: (PlayerProfile) -> Unit, onCancel: (() -> Unit)?, scroll: Boolean = false, definitions: List<BadgeDefinition> = emptyList()) {
     var name by remember(initial.id) { mutableStateOf(initial.name) }
     var firstName by remember(initial.id) { mutableStateOf(initial.firstName) }
     var shareFirstName by remember(initial.id) { mutableStateOf(initial.shareFirstName) }
@@ -353,6 +354,7 @@ internal fun ColumnScope.ProfileEditor(initial: PlayerProfile, catalog: List<Cat
     var avatar by remember(initial.id) { mutableStateOf(initial.avatar) }
     var visible by remember(initial.id) { mutableStateOf(initial.discoverable) }
     var badges by remember(initial.id) { mutableStateOf(initial.shareBadges) }
+    var favoriteBadges by remember(initial.id) { mutableStateOf(initial.badgeIds.filter { it in earnedIds }.take(3)) }
     var policy by remember(initial.id) { mutableStateOf(if(initial.messagePolicy=="nobody")"nobody" else "friends") }
     var interests by remember(initial.id) { mutableStateOf(initial) }
     var shareDecks by remember(initial.id) { mutableStateOf(initial.shareDecks) }
@@ -384,13 +386,24 @@ internal fun ColumnScope.ProfileEditor(initial: PlayerProfile, catalog: List<Cat
     ProfileInterestEditor(interests, catalog) { interests = it }
     Row(verticalAlignment = Alignment.CenterVertically) { Switch(visible, { visible = it }); Text("Afficher mon profil parmi les joueurs", Modifier.padding(start = 8.dp)) }
     Row(verticalAlignment = Alignment.CenterVertically) { Switch(badges, { badges = it }); Text("Afficher mes badges débloqués", Modifier.padding(start = 8.dp)) }
+    if (badges && earnedIds.isNotEmpty()) {
+        Text("Trois badges à mettre en avant", fontWeight = FontWeight.SemiBold)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            earnedIds.forEach { id ->
+                FilterChip(id in favoriteBadges, onClick = {
+                    favoriteBadges = if (id in favoriteBadges) favoriteBadges - id else if (favoriteBadges.size < 3) favoriteBadges + id else favoriteBadges
+                }, enabled = !busy && (id in favoriteBadges || favoriteBadges.size < 3),
+                    label = { Text(definitions.firstOrNull { it.id == id }?.title ?: id) })
+            }
+        }
+    }
     Text("Qui peut m’écrire ?", fontWeight = FontWeight.SemiBold)
     listOf("friends" to "Mes amis uniquement", "nobody" to "Personne").forEach { (id, label) ->
         Row(verticalAlignment = Alignment.CenterVertically) { RadioButton(policy == id, { policy = id }); Text(label) }
     }
     Row(verticalAlignment = Alignment.CenterVertically) { Switch(shareDecks, { shareDecks = it }); Text("Afficher mes decks partagés sur mon profil", Modifier.padding(start = 8.dp)) }
     Text("Ton e-mail et ta collection complète ne sont pas affichés sur ton profil.", fontSize = 12.sp)
-    Button(onClick = { onSave(initial.copy(name = name, firstName = firstName, shareFirstName = shareFirstName, bio = bio, avatar = avatar, discoverable = visible, shareBadges = badges, badgeIds = if (badges) earnedIds else emptyList(), messagePolicy = policy, shareDecks = shareDecks, city = interests.city, formats = interests.formats, leaders = interests.leaders, shareShowcase = interests.shareShowcase)) }, enabled = !busy && !avatarLoading && name.trim().length >= 2) { Text("Enregistrer mon profil") }
+    Button(onClick = { onSave(initial.copy(name = name, firstName = firstName, shareFirstName = shareFirstName, bio = bio, avatar = avatar, discoverable = visible, shareBadges = badges, badgeIds = if (badges) (favoriteBadges + earnedIds).distinct() else emptyList(), messagePolicy = policy, shareDecks = shareDecks, city = interests.city, formats = interests.formats, leaders = interests.leaders, shareShowcase = interests.shareShowcase)) }, enabled = !busy && !avatarLoading && name.trim().length >= 2) { Text("Enregistrer mon profil") }
     onCancel?.let { TextButton(onClick = it) { Text("Annuler") } }
     }
 }
@@ -412,17 +425,20 @@ internal fun CommunityAvatar(raw: String, modifier: Modifier = Modifier) {
     }
 }
 @Composable internal fun PlayerHeading(profile: PlayerProfile) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        CommunityAvatar(profile.avatar, Modifier.size(52.dp))
+    Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), color = ListPalette.Raised,
+        border = androidx.compose.foundation.BorderStroke(1.dp, ListPalette.Gold.copy(alpha = .4f))) {
+    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        CommunityAvatar(profile.avatar, Modifier.size(64.dp))
         Column {
-            Text(profile.name, fontWeight = FontWeight.Bold)
+            Text(profile.name, fontWeight = FontWeight.Bold, color = ListPalette.Gold, style = MaterialTheme.typography.titleLarge)
             if (profile.firstName.isNotBlank()) Text(profile.firstName, style = MaterialTheme.typography.bodyMedium)
         }
+    }
     }
 }
 @Composable private fun ProfileBadges(profile: PlayerProfile, definitions: List<BadgeDefinition>, catalog: List<CatalogCard>) {
     if (!profile.shareBadges) { Text("Les badges de ce profil sont privés."); return }
-    val badges = definitions.filter { it.id in profile.badgeIds }
+    val badges = profile.badgeIds.mapNotNull { id -> definitions.firstOrNull { it.id == id } }
     Text("${badges.size} badges affichés", fontWeight = FontWeight.SemiBold)
     badges.chunked(3).forEach { row -> Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         row.forEach { badge -> Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {

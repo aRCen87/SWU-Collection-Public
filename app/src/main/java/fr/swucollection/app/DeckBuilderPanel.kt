@@ -120,6 +120,7 @@ internal fun DeckBuilderPanel(
     var showingInsights by remember { mutableStateOf(false) }
     var affinityOnly by rememberSaveable { mutableStateOf(false) }
     var showingReport by remember { mutableStateOf(false) }
+    val tileLegality = remember(catalog, rules) { PremierLegality(catalog, rules) }
     val report = remember(deck, owned, catalog, details, rules) {
         DeckConstruction.report(deck, owned, catalog, details, rules)
     }
@@ -244,6 +245,7 @@ internal fun DeckBuilderPanel(
             FilterChip(visual, onClick = { visual = true }, label = { Text("Cartes") })
             FilterChip(!visual, onClick = { visual = false }, label = { Text("Liste") })
         }
+        DeckActiveFilterChips(filters) { filters = it }
         Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         LazyVerticalGrid(state = gridState, columns = if (visual) GridCells.Adaptive(if (largeText) 168.dp else 128.dp) else GridCells.Fixed(1),
             modifier = Modifier.weight(1f).fillMaxHeight(), horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -314,6 +316,7 @@ internal fun DeckBuilderPanel(
                     moveLabel = if (zone == DeckEditor.Zone.MAIN) "Vers la réserve" else "Vers le deck",
                     canMove = quantity > 0 && (zone == DeckEditor.Zone.SIDEBOARD || deck.sideboard.sumOf { it.count } < 10),
                     onMove = { checkpoint(); deck = DeckEditor.move(deck, id, if (zone == DeckEditor.Zone.MAIN) DeckEditor.Zone.SIDEBOARD else DeckEditor.Zone.MAIN, 1) },
+                    status = tileLegality.status(card), overLimit = !slot && (required[family(id)] ?: 0) > 3,
                     guidance = if (slot || affinityPool == null) null else when (DeckInsights.affinity(card, affinityPool, details)) {
                         DeckInsights.Affinity.MATCH -> "✓ Affinités du deck"
                         DeckInsights.Affinity.UNKNOWN -> "Affinités inconnues"
@@ -337,7 +340,7 @@ internal fun DeckBuilderPanel(
         }
         }
         error?.let { Text(it, color = ListPalette.Danger) }
-        DeckBuildDock(deck, catalog, leaderChosen, baseChosen) { tab = it; query = "" }
+        DeckBuildDock(deck, catalog, leaderChosen, baseChosen, valid = leaderChosen && baseChosen && report.issues.isEmpty()) { tab = it; query = "" }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Box {
                 OutlinedButton(onClick = { actionsOpen = true }) { Text("Actions") }
@@ -562,7 +565,14 @@ internal fun DeckBuilderPanel(
                 item { Text("Les langues, les variantes identifiées et les réimpressions sont cumulées. Les contraintes de construction imprimées sur certaines cartes restent à vérifier. La collection reste inchangée.") }
             }
         }, confirmButton = { TextButton(onClick = { showingReport = false }) { Text("Fermer") } })
-    if (leaving) Dialog(onDismissRequest = { leaving = false }) {
+    if (leaving) DeckExitDialog(onKeep = { keepForLater() }, onDiscard = { discardAndLeave() }, onContinue = { leaving = false })
+    }
+    }
+}
+
+@Composable
+internal fun DeckExitDialog(onKeep: () -> Unit, onDiscard: () -> Unit, onContinue: () -> Unit) {
+    Dialog(onDismissRequest = onContinue) {
         Surface(shape = MaterialTheme.shapes.extraLarge, tonalElevation = 6.dp) {
             // Keep text and actions in one bounded scroll area, including on a
             // landscape phone or with large system fonts.
@@ -572,19 +582,17 @@ internal fun DeckBuilderPanel(
                 verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("Quitter le deck ?", style = MaterialTheme.typography.headlineSmall)
                 Text("Tu peux reprendre plus tard avec un brouillon, ou abandonner les modifications. Les cartes scannées en attente ne seront pas ajoutées à ta collection.")
-                Button(onClick = { keepForLater() }, modifier = Modifier.fillMaxWidth()) {
+                Button(onClick = onKeep, modifier = Modifier.fillMaxWidth()) {
                     Text("Garder un brouillon")
                 }
-                OutlinedButton(onClick = { discardAndLeave() }, modifier = Modifier.fillMaxWidth(),
+                OutlinedButton(onClick = onDiscard, modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = ListPalette.Danger)) {
                     Text("Quitter sans enregistrer")
                 }
-                TextButton(onClick = { leaving = false }, modifier = Modifier.fillMaxWidth()) {
+                TextButton(onClick = onContinue, modifier = Modifier.fillMaxWidth()) {
                     Text("Continuer le deck")
                 }
             }
         }
-    }
-    }
     }
 }

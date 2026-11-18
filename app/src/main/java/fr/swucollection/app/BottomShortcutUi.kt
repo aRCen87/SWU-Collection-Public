@@ -85,7 +85,10 @@ internal fun CollectionBottomBar(section: String, onNavigate: (String) -> Unit) 
                     onClick = { onNavigate(destination) }, onLongClickLabel = "Personnaliser la barre",
                     onLongClick = { draft = shortcuts; error = null; editing = true }).padding(vertical = 12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Icon(bottomShortcutIcons.getValue(destination), destination, tint = tint)
+                    Surface(color = if (selected) PremiumGold.copy(alpha = .14f) else Color.Transparent,
+                        shape = RoundedCornerShape(12.dp)) {
+                        Icon(bottomShortcutIcons.getValue(destination), destination, tint = tint, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+                    }
                     Text(if (destination == "Hauts faits") "Badges" else destination,
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp),
                         color = tint, fontSize = 10.sp, lineHeight = 12.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)

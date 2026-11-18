@@ -24,6 +24,9 @@ import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -56,8 +59,23 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
     scope: String, set: String, language: String, query: String, view: String, details: CardDetails,
     modifier: Modifier = Modifier, onPreview: (CatalogCard, List<CatalogCard>) -> Unit,
     onActions: (CatalogCard) -> Unit, dimMissing: Boolean = true, header: (@Composable () -> Unit)? = null, sets: List<CatalogSet> = emptyList()) {
-    val visible = remember(catalog, owned, scope, set, language, query, details) {
-        UnifiedCollection.catalogCards(catalog, owned, scope, set, language, query, details)
+    val favoriteContext = LocalContext.current.applicationContext
+    val favoriteDatabase = remember(favoriteContext) { CollectionDatabase(favoriteContext) }
+    DisposableEffect(favoriteDatabase) { onDispose { favoriteDatabase.close() } }
+    var favorites by remember { mutableStateOf(favoriteDatabase.favoriteCardKeys()) }
+    var favoritesOnly by rememberSaveable { mutableStateOf(false) }
+    var favoriteError by remember { mutableStateOf<String?>(null) }
+    @Composable fun favoriteButton(card: CatalogCard) {
+        val key = MarketPricing.key(card.setCode, card.number)
+        IconToggleButton(checked = key in favorites, onCheckedChange = { selected ->
+            runCatching { favoriteDatabase.setFavoriteCard(card, selected) }
+                .onSuccess { favorites = favoriteDatabase.favoriteCardKeys(); favoriteError = null }
+                .onFailure { favoriteError = "Impossible de modifier les favoris. Réessaie." }
+        }) { Icon(if (key in favorites) Icons.Default.Star else Icons.Default.StarBorder,
+            if (key in favorites) "Retirer ${card.name} des favoris" else "Ajouter ${card.name} aux favoris", tint = ListPalette.Gold) }
+    }
+    val visible = remember(catalog, owned, scope, set, language, query, details, favoritesOnly, favorites) {
+        UnifiedCollection.catalogCards(catalog, owned, scope, set, language, query, details).filter { !favoritesOnly || MarketPricing.key(it.setCode, it.number) in favorites }
     }
     val quantities = remember(owned, language) { owned.filter { it.quantity > 0 && (language == "Toutes" || it.language == language) }
         .groupBy { MarketPricing.key(it.setCode, it.number) }.mapValues { (_, rows) -> rows.sumOf { it.quantity } } }
@@ -103,7 +121,9 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                 FilterChip(selected = kotlin.math.abs(cardScale - scale) < .05f, onClick = { cardScale = scale }, label = { Text(label) })
             }
         }
+        favoriteError?.let { Text(it, color = ListPalette.Danger) }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            FilterChip(favoritesOnly, onClick = { favoritesOnly = !favoritesOnly }, label = { Text("★ Favoris") })
             Text("${visible.size} référence(s) · $scope", Modifier.weight(1f), style = MaterialTheme.typography.labelMedium)
             if(scope != "Possédées") TextButton(onClick = { silhouettes = !silhouettes }) { Text(if(silhouettes) "Visuels" else "Silhouettes") }
         }
@@ -131,6 +151,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                             Text("${card.setCode} · ${card.number}", style = MaterialTheme.typography.labelSmall)
                             Text(if (quantity > 0) "$quantity exemplaire(s)" else "Manquante", color = ListPalette.Gold)
                         }
+                        favoriteButton(card)
                         IconButton(onClick = { onActions(card) }) { Icon(Icons.Default.Add, "Ajouter ou gérer ${card.name}") }
                     }
                 }
@@ -165,6 +186,10 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                         .semantics { contentDescription = "${card.name}, $quantity exemplaire(s)" }) {
                         if(silhouettes && quantity == 0) MissingSilhouette(card, Modifier.fillMaxWidth().aspectRatio(5f / 7f)) else CardArtwork(card, Modifier.fillMaxWidth().aspectRatio(5f / 7f), language = language.takeIf { it in CardLanguages.supported } ?: card.language,
                             showLanguageLabel = !miniatures, grayscale = dimMissing && quantity == 0)
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Text("×$quantity", Modifier.weight(1f), color = ListPalette.Gold, style = MaterialTheme.typography.labelSmall)
+                            favoriteButton(card)
+                        }
                         if (!miniatures) {
                             Text(card.name, maxLines = 2, style = MaterialTheme.typography.labelMedium)
                             Row(verticalAlignment = Alignment.CenterVertically) {

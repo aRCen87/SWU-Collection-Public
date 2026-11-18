@@ -103,8 +103,15 @@ internal fun ExchangePanel(sets: List<CatalogSet>, catalog: Map<String, List<Cat
         items(visible, key = { it.id }) { card ->
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("${card.quantity} × ${card.name}", fontWeight = FontWeight.SemiBold)
-                    Text("${card.setCode} · ${card.number} · ${card.variant} · ${CardLanguages.label(card.language)}", fontSize = 12.sp)
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        CardArtwork(allCatalog.firstOrNull { it.setCode == card.setCode && it.number == card.number },
+                            Modifier.size(58.dp, 82.dp), language = card.language, variant = card.variant)
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(card.name, fontWeight = FontWeight.SemiBold)
+                            Text("${card.quantity} disponible(s) à échanger", color = ListPalette.Gold)
+                            Text("${card.setCode} · ${card.number} · ${card.variant} · ${CardLanguages.label(card.language)}", fontSize = 12.sp)
+                        }
+                    }
                 }
             }
         }

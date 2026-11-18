@@ -1,6 +1,12 @@
-# Préparation Test 36 — en cours de validation
+## Version 0.9.5-test.36
 
-Fenêtre de sortie compacte et défilable, commandes de collection fixes, réglages de densité, accueil en colonne et résumé avant enregistrement du deck. Les autres demandes de la liste restent à réaliser ou à vérifier.
+- Accueil illustré en colonne, actions principales mises en valeur, reprise du dernier deck, salutation et état réel de sauvegarde.
+- Collection : commandes fixes, trois densités, étoiles et filtre des favoris conservés dans les sauvegardes.
+- Decks : sortie compacte et défilable, résumé avant enregistrement, avertissements sur les cartes et compteur vert si les contrôles de construction réussissent.
+- Échanges : panneaux Je donne / Je reçois et miniatures des disponibles ; profil encadré et trois badges mis en avant au choix.
+- Scanner : six dernières miniatures de la session. Cotes datées lorsqu’une date est disponible. Fiche illustrée des nouveautés et repère doré du raccourci actif.
+- Conservation du thème bleu nuit et or, des animations réduites, des données et de l’identité séparée de l’application Test.
+
 
 ## Version 0.9.5
 

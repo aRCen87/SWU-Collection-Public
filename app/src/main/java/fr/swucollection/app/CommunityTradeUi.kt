@@ -32,8 +32,7 @@ internal fun TradeComposer(peer: PlayerProfile, catalog: List<CatalogCard>, data
         Column(Modifier.heightIn(max = 500.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(if (review) "Vérifie les cartes avant d’envoyer." else "1 · Je donne   2 · Je reçois   3 · Vérifier", fontSize = 12.sp)
             if (review) {
-                TradeCardList("Je donne", offer, catalog)
-                TradeCardList("Je reçois", wanted, catalog)
+                TradeSides(offer, wanted, catalog)
                 TradeValuation(offer, wanted, catalog)
                 Text("Après l’accord, chacun confirmera la remise des cartes pour actualiser sa collection.", fontSize = 12.sp)
             } else {
@@ -119,8 +118,7 @@ internal fun ColumnScope.TradeRequestsPanel(service: CommunityService, trades: L
             Text(profiles.firstOrNull { it.id == peer }?.name ?: "Ami", fontWeight = FontWeight.Bold)
             Text(when (trade.status) { "pending" -> if (incoming) "Proposition reçue" else "En attente de réponse"; "accepted" -> "Proposition acceptée"; "declined" -> "Proposition refusée"; else -> "Proposition annulée" })
             if (offer == null || wanted == null) Text("Proposition illisible. Tu peux la refuser ou l’annuler.") else {
-                TradeCardList("Je donne", if (incoming) wanted else offer, catalog)
-                TradeCardList("Je reçois", if (incoming) offer else wanted, catalog)
+                TradeSides(if (incoming) wanted else offer, if (incoming) offer else wanted, catalog)
                 TradeValuation(if (incoming) wanted else offer, if (incoming) offer else wanted, catalog)
             }
             if (trade.status == "pending") Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -139,8 +137,29 @@ internal fun ColumnScope.TradeRequestsPanel(service: CommunityService, trades: L
     items.forEach { item ->
         val card = catalog.firstOrNull { DeckConstruction.reference(it) == item.cardId }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            card?.let { AsyncImage(it.imageUrl, it.name, Modifier.size(30.dp, 42.dp)) }
+            CardArtwork(card, Modifier.size(42.dp, 60.dp), language = item.language, variant = item.finish)
             Text("${item.quantity} × ${card?.name ?: item.cardId}\n${item.language} · ${item.finish}", fontSize = 12.sp)
+        }
+    }
+}
+
+@Composable
+internal fun TradeSides(give: List<TradeSelection>, receive: List<TradeSelection>, catalog: List<CatalogCard>) {
+    @Composable fun side(title: String, items: List<TradeSelection>, modifier: Modifier) {
+        Surface(modifier, color = ListPalette.Raised, shape = MaterialTheme.shapes.medium) {
+            Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                TradeCardList(title, items, catalog)
+                if (items.isEmpty()) Text("Aucune carte", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        if (maxWidth >= 480.dp) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            side("Je donne", give, Modifier.weight(1f))
+            side("Je reçois", receive, Modifier.weight(1f))
+        } else Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            side("Je donne", give, Modifier.fillMaxWidth())
+            side("Je reçois", receive, Modifier.fillMaxWidth())
         }
     }
 }

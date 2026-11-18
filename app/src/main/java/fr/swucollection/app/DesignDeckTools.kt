@@ -61,7 +61,7 @@ internal object DesignDeckPlan {
         }
     },confirmButton={TextButton(onClick=close){Text("Fermer")}})
 }
-@Composable internal fun DeckBuildDock(deck:PortableDeck,catalog:List<CatalogCard>,leaderChosen:Boolean,baseChosen:Boolean,onIdentity:(String)->Unit) {
+@Composable internal fun DeckBuildDock(deck:PortableDeck,catalog:List<CatalogCard>,leaderChosen:Boolean,baseChosen:Boolean,valid:Boolean=false,onIdentity:(String)->Unit) {
     val byId=remember(catalog){catalog.associateBy(DeckConstruction::reference)}
     Surface(color=ListPalette.Raised,shape=RoundedCornerShape(14.dp),modifier=Modifier.fillMaxWidth().testTag("design_deck_dock")) {
         Row(Modifier.padding(6.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
@@ -73,7 +73,7 @@ internal object DesignDeckPlan {
                     Text(card?.name?.let(::deckCardLabel)?.substringBefore(" — ")?:"À choisir",maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis,style=MaterialTheme.typography.labelSmall)
                 }
             }
-            Column(Modifier.padding(4.dp)){Text("${deck.deck.sumOf{it.count}} / 50",color=ListPalette.Gold);Text("${deck.sideboard.sumOf{it.count}} / 10 réserve",style=MaterialTheme.typography.labelSmall)}
+            Column(Modifier.padding(4.dp)){Text("${deck.deck.sumOf{it.count}} / 50",color=if(valid) Color(0xFF9DE3B3) else ListPalette.Gold);Text("${deck.sideboard.sumOf{it.count}} / 10 réserve",style=MaterialTheme.typography.labelSmall)}
         }
     }
 }
