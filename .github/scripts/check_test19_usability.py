@@ -93,6 +93,15 @@ try:
         x1, y1, x2, y2 = rect(empty)
         assert x2 > x1 and y2 > y1 and y2 <= rect(navigation)[1], (name, 'Collection body obscured by navigation', rect(empty), rect(navigation))
         capture(name)
+        if name == 'landscape':
+            tap(root, 'Filtres')
+            scope_dialog = snapshot('landscape-scopes')
+            for label in ('Possédées', 'Toutes les cartes', 'Manquantes', 'Toutes les extensions'):
+                node = find(scope_dialog, label)
+                x1, y1, x2, y2 = rect(node)
+                assert x2 > x1 and y2 > y1, ('Landscape scope is not reachable', label)
+            tap(scope_dialog, 'Voir les cartes')
+            root = snapshot('landscape-scopes-closed')
         # Secondary actions are deliberately grouped in the collection menu.
         tap(root, 'Autres actions de collection')
         menu = snapshot(name+'-actions')

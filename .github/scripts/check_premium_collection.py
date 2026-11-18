@@ -45,7 +45,13 @@ def reveal_quantity(name):
         visible = [n for n in root.iter('node') if n.attrib.get('text') == '× 1' and bounds(n)[3] > bounds(n)[1]]
         prices = [n for n in root.iter('node') if 'Cote' in n.attrib.get('text', '') and bounds(n)[3] > bounds(n)[1]]
         if visible and prices: return root
-        grid = next(n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_visual_grid')
+        grids = [n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_visual_grid']
+        if not grids:
+            # Wait for the scope switch to expose its gallery before scrolling it.
+            # A missing gallery must still fail with the actual screen labels below.
+            time.sleep(1)
+            continue
+        grid = grids[0]
         left,top,right,bottom = bounds(grid)
         assert bottom > top, ('Collapsed visual grid', bounds(grid))
         # Swipe inside the real gallery. A full-window gesture overshoots the
@@ -53,7 +59,7 @@ def reveal_quantity(name):
         x = (left + right)//2
         distance = max(48, min(240, (bottom-top)*3//4))
         adb('shell','input','swipe',x,bottom-8,x,max(top+8,bottom-8-distance),450); time.sleep(1)
-    raise AssertionError('Owned quantity and price are not reachable in the visual grid')
+    raise AssertionError(('Owned quantity and price are not reachable in the visual grid', [n.attrib.get('text') for n in root.iter('node') if n.attrib.get('text')]))
 
 def collection_grid(root):
     return next(n for n in root.iter('node') if n.attrib.get('resource-id') in

@@ -1244,24 +1244,7 @@ private fun CollectionScreen(
                         .onSuccess { favoriteRevision++ }
                         .onFailure { android.widget.Toast.makeText(deckContext, "Impossible de modifier les favoris", android.widget.Toast.LENGTH_SHORT).show() }
                 }
-                val collectionControls: @Composable () -> Unit = {
-                OutlinedTextField(value = search, onValueChange = { search = it },
-                    label = { Text("Rechercher une carte") },
-                    placeholder = { Text("Nom français ou anglais, extension, numéro", maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
-                    trailingIcon = { if (search.isNotEmpty()) IconButton(onClick = { search = "" }) {
-                        Icon(Icons.Default.Close, "Effacer la recherche")
-                    } },
-                    modifier = Modifier.fillMaxWidth(), singleLine = true)
-                FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Button(onClick = { openScanner() }, modifier = Modifier.widthIn(min = 112.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)) {
-                        Icon(Icons.Default.PhotoCamera, null, modifier = Modifier.size(20.dp)); Spacer(Modifier.width(5.dp)); Text("Scanner", maxLines = 1)
-                    }
-                    OutlinedButton(onClick = { collectionFiltersOpen = true }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)) {
-                        Icon(Icons.Default.Tune, null, modifier = Modifier.size(18.dp)); Spacer(Modifier.width(5.dp))
-                        val count = collectionFilterCount(collectionSetFilter, collectionLanguage, collectionScope, collectionSort)
-                        Text(if (count == 0) "Filtres" else "Filtres ($count)")
-                    }
+                val collectionActionsMenu: @Composable () -> Unit = {
                     var moreCollection by remember { mutableStateOf(false) }
                     Box {
                         IconButton(onClick = { moreCollection = true }) { Icon(Icons.Default.MoreVert, "Autres actions de collection") }
@@ -1272,6 +1255,7 @@ private fun CollectionScreen(
                         }
                     }
                 }
+                val collectionScopeControls: @Composable () -> Unit = {
                 var extensionMenu by remember { mutableStateOf(false) }
                 val extensionControl: @Composable () -> Unit = { Box {
                     OutlinedButton(onClick = { extensionMenu = true }) {
@@ -1298,9 +1282,33 @@ private fun CollectionScreen(
                 }
 
                 }
+                val collectionControls: @Composable () -> Unit = {
+                OutlinedTextField(value = search, onValueChange = { search = it },
+                    label = { Text("Rechercher une carte") },
+                    placeholder = { Text("Nom français ou anglais, extension, numéro", maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
+                    trailingIcon = { if (search.isNotEmpty()) IconButton(onClick = { search = "" }) {
+                        Icon(Icons.Default.Close, "Effacer la recherche")
+                    } },
+                    modifier = Modifier.fillMaxWidth(), singleLine = true)
+                FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Button(onClick = { openScanner() }, modifier = Modifier.widthIn(min = 112.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)) {
+                        Icon(Icons.Default.PhotoCamera, null, modifier = Modifier.size(20.dp)); Spacer(Modifier.width(5.dp)); Text("Scanner", maxLines = 1)
+                    }
+                    OutlinedButton(onClick = { collectionFiltersOpen = true }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)) {
+                        Icon(Icons.Default.Tune, null, modifier = Modifier.size(18.dp)); Spacer(Modifier.width(5.dp))
+                        val count = collectionFilterCount(collectionSetFilter, collectionLanguage, collectionScope, collectionSort)
+                        Text(if (count == 0) "Filtres" else "Filtres ($count)")
+                    }
+                    collectionActionsMenu()
+                }
+                collectionScopeControls()
+                }
                 if (compactCollectionLayout) Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     OutlinedTextField(search, { search = it }, label = { Text("Rechercher une carte") }, singleLine = true, modifier = Modifier.weight(1f))
+                    IconButton(onClick = { openScanner() }) { Icon(Icons.Default.PhotoCamera, "Scanner") }
                     OutlinedButton(onClick = { collectionFiltersOpen = true }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text("Filtres") }
+                    collectionActionsMenu()
                 } else if (!scrollingMiniatureControls) Column(Modifier.fillMaxWidth()
                     .heightIn(max = 160.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) { collectionControls() }
                 if (collectionFiltersOpen) {
@@ -1309,6 +1317,7 @@ private fun CollectionScreen(
                         text = {
                             Column(Modifier.fillMaxWidth().heightIn(max = 440.dp).verticalScroll(rememberScrollState()),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (compactCollectionLayout) collectionScopeControls()
                 TextButton(onClick = {
                     search = ""; collectionSetFilter = "Toutes"; collectionLanguage = "Toutes"; collectionView = "Visuel"
                     savedCollectionSort = CollectionPriceSort.CATALOG.name; collectionScope = "Possédées"

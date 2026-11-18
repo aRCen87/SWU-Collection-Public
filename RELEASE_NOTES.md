@@ -5,6 +5,7 @@
 - Mes decks : leader et base regroupés avec le nom du deck, suppression du leader en double et action Modifier mieux visible.
 - Accueil conservé dans sa présentation précédente, sans salutation personnalisée ; cartes des couvertures affichées entières.
 - Reprise des finitions Test 36 à 38 : favoris persistants, densités, confirmation de sortie compacte, résumé de deck, derniers scans et cotes datées.
+- Paysage : Scanner et menu de collection accessibles dans la barre compacte ; choix de collection et extensions disponibles dans les filtres.
 - Identité officielle et données existantes conservées ; aucun transfert de compte Test.
 
 ## Version 0.9.5-test.38
