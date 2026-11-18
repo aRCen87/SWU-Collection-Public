@@ -37,7 +37,10 @@ class Test33AccessibilityTest {
     @Composable private fun LargeText(content: @Composable () -> Unit) {
         val density = LocalDensity.current
         CompositionLocalProvider(LocalDensity provides Density(density.density, 2f)) {
-            MaterialTheme(colorScheme = darkColorScheme()) { content() }
+            MaterialTheme(colorScheme = darkColorScheme(primary = ListPalette.Gold, background = ListPalette.Background,
+                surface = ListPalette.Raised, onPrimary = ListPalette.Background, onBackground = ListPalette.Text, onSurface = ListPalette.Text)) {
+                Surface(Modifier.fillMaxSize(), color = ListPalette.Background) { content() }
+            }
         }
     }
     @Test fun selectedFilterLabelsWrapAndTheConfirmationRemainsReachable() {
@@ -105,7 +108,7 @@ class Test33AccessibilityTest {
         ui.onNodeWithText("Sauvegarder et restaurer").performScrollTo().assertIsDisplayed().performClick()
         assertEquals("Sauvegardes", destination)
         assertUnclippedText("Sauvegarder et restaurer")
-        ui.onNodeWithTag("bottom_shortcut_Mes proxies").assertIsDisplayed().performClick()
+        ui.onNodeWithTag("bottom_shortcut_Mes proxies").performScrollTo().assertIsDisplayed().performClick()
         assertEquals("Mes proxies", destination)
         capture("settings")
         assertUnclippedText("Mes proxies")

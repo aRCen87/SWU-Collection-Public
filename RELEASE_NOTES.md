@@ -4,6 +4,7 @@
 - Quantité de la dernière carte scannée affichée avec sa miniature ; total exact de la variante et de la langue dans le lot ou le deck courant.
 - Retournement animé des leaders dans la visionneuse plein écran, désactivé avec la réduction des mouvements.
 - Libellés longs des filtres et raccourcis sans limite de lignes ; modes du scanner capables de revenir à la ligne. Contrôles dédiés à une police à 200 % sur téléphone, Fold et paysage.
+- Avec les très grandes polices, les raccourcis s’élargissent dans une barre défilante horizontalement, ainsi que dans son aperçu ; l’onglet actif reste accessible et la limite de cinq raccourcis est conservée.
 - Échantillonnage de caméra déterministe : rotation entière et moyenne des pixels dans le même repère avant reconnaissance ; seuils et confirmations inchangés. Comparaison des pixels aux quatre rotations et répétition du test visuel à 180°.
 - Version Test uniquement ; schéma, données et version officielle inchangés.
 

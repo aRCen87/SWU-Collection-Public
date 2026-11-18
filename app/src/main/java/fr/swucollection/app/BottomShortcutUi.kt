@@ -2,6 +2,9 @@ package fr.swucollection.app
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -15,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
@@ -61,20 +66,29 @@ internal fun CollectionBottomBar(section: String, onNavigate: (String) -> Unit) 
     var editing by remember { mutableStateOf(false) }
     var draft by remember { mutableStateOf(shortcuts) }
     var error by remember { mutableStateOf<String?>(null) }
+    val roomyTabs = LocalDensity.current.fontScale >= 1.5f
+    val barScroll = rememberScrollState()
     Surface(color = Color(0xFF0B1B2D), border = BorderStroke(1.dp, Color(0xFF9C7941)),
         shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)) {
-        Row(Modifier.fillMaxWidth().heightIn(min = 72.dp)) {
+        Row(Modifier.fillMaxWidth().heightIn(min = 72.dp).then(if (roomyTabs) Modifier.horizontalScroll(barScroll) else Modifier)) {
             shortcuts.forEach { destination ->
                 val selected = section == destination || (destination == "Collection" && (section == "Compléter mon set" || section in listOf("Extensions", "Ajouter") && section !in shortcuts))
                 val tint = if (selected) PremiumGold else Color(0xFFB4C0D4)
-                Column(Modifier.weight(1f).testTag("bottom_shortcut_$destination").semantics { this.selected = selected }.combinedClickable(role = Role.Tab,
+                val bringIntoView = remember(destination) { BringIntoViewRequester() }
+                var placed by remember(destination) { mutableStateOf(false) }
+                LaunchedEffect(selected, roomyTabs, placed) {
+                    if (selected && roomyTabs && placed) bringIntoView.bringIntoView()
+                }
+                val tabWidth = if (roomyTabs) Modifier.width(128.dp) else Modifier.weight(1f)
+                Column(tabWidth.bringIntoViewRequester(bringIntoView).onGloballyPositioned { placed = true }
+                    .testTag("bottom_shortcut_$destination").semantics { this.selected = selected }.combinedClickable(role = Role.Tab,
                     onClick = { onNavigate(destination) }, onLongClickLabel = "Personnaliser la barre",
                     onLongClick = { draft = shortcuts; error = null; editing = true }).padding(vertical = 12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Icon(bottomShortcutIcons.getValue(destination), destination, tint = tint)
                     Text(if (destination == "Hauts faits") "Badges" else destination,
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp),
-                        color = tint, fontSize = 10.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        color = tint, fontSize = 10.sp, lineHeight = 12.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 }
             }
         }
@@ -85,11 +99,12 @@ internal fun CollectionBottomBar(section: String, onNavigate: (String) -> Unit) 
                 Text("Appui long sur la barre pour la personnaliser. Choisis jusqu’à 5 raccourcis, puis change leur ordre.")
                 Text("Aperçu de la barre", style = MaterialTheme.typography.labelMedium)
                 Surface(color = PremiumNavy, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    Row(Modifier.padding(8.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+                    Row(Modifier.padding(8.dp).then(if (roomyTabs) Modifier.horizontalScroll(rememberScrollState()) else Modifier), horizontalArrangement = Arrangement.SpaceEvenly) {
                         draft.forEach { destination ->
-                            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Column(if (roomyTabs) Modifier.width(128.dp) else Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(bottomShortcutIcons.getValue(destination), destination, tint = PremiumGold, modifier = Modifier.size(24.dp))
                                 Text(if (destination == "Hauts faits") "Badges" else destination,
+                                    modifier = Modifier.fillMaxWidth(),
                                     style = MaterialTheme.typography.labelSmall, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                             }
                         }
