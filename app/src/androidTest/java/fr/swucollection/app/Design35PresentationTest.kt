@@ -61,7 +61,8 @@ class Design35PresentationTest {
   ui.setContent{PreviewTheme{CompareCardsDialog(cards[0],cards,CardDetails.empty()) {}}}
   ui.onNodeWithText("Choisir la seconde carte").performTextInput("Beta")
   try {
-   ui.onNodeWithText("Beta · SHD 101").performClick()
+   ui.onNodeWithTag("design_compare_results").performScrollToNode(hasText("Beta · SHD 101"))
+   ui.onNodeWithText("Beta · SHD 101").assertIsDisplayed().performClick()
    ui.waitUntil(8000){runCatching{ui.onNodeWithTag("design_compare_dialog").assert(SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.StateDescription,"Clavier fermé"));true}.getOrDefault(false)}
    ui.waitUntil(8000){runCatching{ui.onNodeWithText("Alpha").assertIsDisplayed();true}.getOrDefault(false)}
    ui.onNodeWithText("Alpha").assertIsDisplayed();ui.onNodeWithText("Beta").assertIsDisplayed()

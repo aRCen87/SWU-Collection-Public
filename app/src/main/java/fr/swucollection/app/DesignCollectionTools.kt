@@ -100,11 +100,15 @@ internal fun rarityProgress(catalog:List<CatalogCard>,quantities:Map<String,Int>
     Dialog(onDismissRequest=close,properties=DialogProperties(usePlatformDefaultWidth=false)){
         val keyboard = LocalSoftwareKeyboardController.current
         val focus = LocalFocusManager.current
+        val compact = LocalConfiguration.current.screenHeightDp < 480
         val comparisonKeyboardOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
-        Surface(Modifier.fillMaxSize().safeDrawingPadding().testTag("design_compare_dialog").semantics { stateDescription = if(comparisonKeyboardOpen) "Clavier ouvert" else "Clavier fermé" },color=ListPalette.Background,contentColor=ListPalette.Text){Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
-            Row(verticalAlignment=Alignment.CenterVertically){Text("Comparer deux cartes",Modifier.weight(1f),style=MaterialTheme.typography.titleMedium);TextButton(onClick=close){Text("Fermer")}}
-            if(second==null) OutlinedTextField(query,{query=it.take(100)},label={Text("Choisir la seconde carte")},singleLine=true,modifier=Modifier.fillMaxWidth())
-            if(second==null) LazyColumn(Modifier.weight(1f)){items(results){c->TextButton(onClick={second=c;focus.clearFocus(force=true);keyboard?.hide()}){Text("${c.name} · ${c.setCode} ${c.number}")}};if(query.isBlank())item{Text("Recherche un nom ou une référence.")}}
+        Surface(Modifier.fillMaxSize().safeDrawingPadding().testTag("design_compare_dialog").semantics { stateDescription = if(comparisonKeyboardOpen) "Clavier ouvert" else "Clavier fermé" },color=ListPalette.Background,contentColor=ListPalette.Text){Column(Modifier.padding(if(compact) 8.dp else 12.dp),verticalArrangement=Arrangement.spacedBy(if(compact) 4.dp else 8.dp)){
+            if(second != null || !compact) Row(verticalAlignment=Alignment.CenterVertically){Text("Comparer deux cartes",Modifier.weight(1f),style=MaterialTheme.typography.titleMedium);TextButton(onClick=close){Text("Fermer")}}
+            if(second==null) Row(verticalAlignment=Alignment.CenterVertically) {
+                OutlinedTextField(query,{query=it.take(100)},label={Text("Choisir la seconde carte")},singleLine=true,modifier=Modifier.weight(1f))
+                if(compact) TextButton(onClick=close){Text("Fermer")}
+            }
+            if(second==null) LazyColumn(Modifier.weight(1f).testTag("design_compare_results")){items(results){c->TextButton(onClick={second=c;focus.clearFocus(force=true);keyboard?.hide()}){Text("${c.name} · ${c.setCode} ${c.number}")}};if(query.isBlank())item{Text("Recherche un nom ou une référence.")}}
             else {
                 TextButton(onClick={second=null}){Text("Changer la seconde carte")}
                 Row(Modifier.weight(1f).fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp)){
