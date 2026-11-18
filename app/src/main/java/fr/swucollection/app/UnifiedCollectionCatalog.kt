@@ -75,9 +75,11 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
     }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("${visible.size} référence(s) · $scope", style = MaterialTheme.typography.labelMedium)
-        if (visible.isEmpty()) CollectorEmptyState("Aucune carte trouvée", "Essaie un autre mot ou retire un filtre pour élargir ta recherche.")
         if (view == "Liste") LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (header != null) item(key = "catalogue-controls") { header() }
+            if (visible.isEmpty()) item(key = "empty-catalogue") {
+                CollectorEmptyState("Aucune carte trouvée", "Essaie un autre mot ou retire un filtre pour élargir ta recherche.")
+            }
             groups.forEach { (code, group) ->
             item(key = "set-$code") { sectionTitle(code) }
             items(group, key = { MarketPricing.key(it.setCode, it.number) }) { card ->
@@ -115,6 +117,9 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                 verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 12.dp)) {
                 if (header != null) item(key = "catalogue-controls", span = { GridItemSpan(maxLineSpan) }) {
                     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) { header() }
+                }
+                if (visible.isEmpty()) item(key = "empty-catalogue", span = { GridItemSpan(maxLineSpan) }) {
+                    CollectorEmptyState("Aucune carte trouvée", "Essaie un autre mot ou retire un filtre pour élargir ta recherche.")
                 }
                 groups.forEach { (code, group) ->
                 item(key = "set-$code", span = { GridItemSpan(maxLineSpan) }) { sectionTitle(code) }
