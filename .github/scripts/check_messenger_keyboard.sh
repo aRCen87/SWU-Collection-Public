@@ -2,6 +2,16 @@
 set -euo pipefail
 mkdir -p smoke-private
 adb shell settings put secure show_ime_with_hard_keyboard 1
+adb shell ime list -s | tr -d '\r' > smoke-private/messenger-input-methods.txt
+input_method=$(adb shell settings get secure default_input_method | tr -d '\r')
+if ! grep -Fxq -- "$input_method" smoke-private/messenger-input-methods.txt; then
+  input_method=$(head -n 1 smoke-private/messenger-input-methods.txt)
+fi
+test -n "$input_method"
+adb shell ime enable "$input_method"
+adb shell ime set "$input_method"
+adb shell input keyevent KEYCODE_WAKEUP
+adb shell wm dismiss-keyguard
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 for format in cover unfolded landscape; do

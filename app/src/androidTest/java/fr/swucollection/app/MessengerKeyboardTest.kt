@@ -35,20 +35,26 @@ class MessengerKeyboardTest {
     }
    }
   }
-  ui.onNodeWithTag("messenger_draft").performClick().performTextInput("Essai clavier")
-  ui.waitUntil(8000){ViewCompat.getRootWindowInsets(ui.activity.window.decorView)?.isVisible(WindowInsetsCompat.Type.ime())==true}
   val density=ui.activity.resources.displayMetrics.density
-  val keyboard=ViewCompat.getRootWindowInsets(ui.activity.window.decorView)!!.getInsets(WindowInsetsCompat.Type.ime()).bottom
+  var keyboard=0
+  try {
+  ui.waitUntil(8000){ui.activity.hasWindowFocus()}
+  // Exercise a real touch after the resized window gains focus, in addition
+  // to injecting text through semantics. The real keyboard must still be visible.
+  ui.onNodeWithTag("messenger_draft").performTouchInput{click()}
+  ui.onNodeWithTag("messenger_draft").performTextInput("Essai clavier")
+  ui.waitUntil(8000){ViewCompat.getRootWindowInsets(ui.activity.window.decorView)?.isVisible(WindowInsetsCompat.Type.ime())==true}
+  keyboard=ViewCompat.getRootWindowInsets(ui.activity.window.decorView)!!.getInsets(WindowInsetsCompat.Type.ime()).bottom
   assertTrue("Real keyboard is not open",keyboard>0)
   val bottom=(ui.activity.window.decorView.height-keyboard)/density
   val send=ui.onNodeWithTag("messenger_send").getUnclippedBoundsInRoot()
   assertTrue("Send is hidden below keyboard",send.bottom.value<=bottom+2)
   ui.onNodeWithTag("messenger_send").assertIsEnabled().performTouchInput{click()}
-  try {
    ui.waitUntil(8000){runCatching{ui.onNode(hasText("Essai clavier") and !hasSetTextAction()).assertIsDisplayed();true}.getOrDefault(false)}
    ui.onNodeWithTag("messenger_draft").assertIsFocused()
    assertTrue(ViewCompat.getRootWindowInsets(ui.activity.window.decorView)!!.isVisible(WindowInsetsCompat.Type.ime()))
   } finally {
+   keyboard=ViewCompat.getRootWindowInsets(ui.activity.window.decorView)?.getInsets(WindowInsetsCompat.Type.ime())?.bottom ?: keyboard
    val metrics="CHAT_METRICS window=${ui.activity.window.decorView.width}x${ui.activity.window.decorView.height} keyboard=$keyboard density=$density configHeight=${ui.activity.resources.configuration.screenHeightDp}\n"+
        "CHAT_COMPOSER "+ui.onNodeWithTag("messenger_composer").getUnclippedBoundsInRoot()+"\nCHAT_VIEWPORT "+ui.onNodeWithTag("messenger_messages").getUnclippedBoundsInRoot()+"\n"+ui.onRoot().printToString()
    File(ui.activity.getExternalFilesDir(null),"home-test-messenger-metrics.txt").writeText(metrics)
