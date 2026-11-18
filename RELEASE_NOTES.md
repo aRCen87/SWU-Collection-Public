@@ -1,4 +1,4 @@
-## Version 0.9.5 — améliorations des Tests 32 à 35
+## Version 0.9.5
 
 - Collection plus visuelle : commandes compactes, logos et accès rapide aux extensions, progression par rareté et silhouettes optionnelles des cartes manquantes.
 - Fiches avec grande image, onglets Collection / Variantes / Cotes, variantes en éventail, comparaison côte à côte et reflet foil optionnel.
