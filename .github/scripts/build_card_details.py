@@ -77,10 +77,13 @@ def main():
     details=build(catalog,upstream,official)
     if dest.exists():
         old=json.loads(gzip.decompress(dest.read_bytes()))['cards']
-        # Preserve previously publisher-verified HMW localizations only. Unknown
+        # Preserve publisher-verified HMW/IC27 and organised-play identities. Unknown
         # other identities must stay explicit instead of retaining promo collisions.
         for k,v in old.items():
-            if k.startswith(('HMW:','IC27:')):details.setdefault(k,v)
+            if k.startswith(('HMW:','IC27:','HMWP:')) or k in {'P26:'+str(n).zfill(3) for n in range(26,32)}:details.setdefault(k,v)
+    texts={row['family']:row['searchText'] for row in details.values() if row.get('searchText','').strip()}
+    for row in details.values():
+        if not row.get('searchText','').strip() and row['family'] in texts:row['searchText']=texts[row['family']]
     payload={'format':'SWU_CARD_DETAILS','version':1,'source':'Team-Zura CC0 / official card-list','cards':details}
     dest.write_bytes(gzip.compress(json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode(),mtime=0))
     print(json.dumps({'mapped':len(details),'catalog':len(catalog['cards']),'gzipBytes':dest.stat().st_size},ensure_ascii=False),flush=True)
