@@ -1423,7 +1423,7 @@ private fun CollectionScreen(
                     if (!compactCollectionLayout) Text("0 références et variantes possédées · 0 exemplaires", fontSize = 12.sp)
                     if (collectionScope == "Doublons") Text("Filtre Doublons actif", color = MaterialTheme.colorScheme.primary)
                     Text(if (cards.isEmpty()) "Ta collection est vide. Scanne ta première carte pour commencer." else "Aucune carte possédée ne correspond aux filtres.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    if (cards.isNotEmpty()) TextButton(onClick = { search = ""; collectionSetFilter = "Toutes"; collectionScope = "Possédées"; collectionLanguage = "Toutes"; savedCollectionSort = CollectionPriceSort.CATALOG.name }) { Text("Afficher toute ma collection") }
+                    if (cards.isNotEmpty()) TextButton(onClick = { search = ""; collectionSetFilter = "Toutes"; collectionScope = "Possédées"; collectionLanguage = "Toutes"; favoriteFilterValue = "false"; savedCollectionSort = CollectionPriceSort.CATALOG.name }) { Text("Afficher toute ma collection") }
                     }
                 } else if (privateLayout && collectionView in listOf("Visuel", "Miniatures")) {
                     val groups = remember(selectedOwned, allCatalog, cardDetails, groupVersions) {
