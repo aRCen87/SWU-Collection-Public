@@ -165,6 +165,12 @@ def verify_motion():
 def verify_secondary_shortcuts():
     heights={}
     keys=['MES DECKS','TOURNOIS & MÉTA','BADGES','STATISTIQUES','ÉCHANGES']
+    # Accessibility bounds are clipped to the scrolling viewport. Start at
+    # the top and retain each tile's largest observed bounds across the scan;
+    # a trailing sliver must not replace a fully visible measurement.
+    for _ in range(8):
+        adb('shell','input','swipe',360,500,360,1200,250)
+    time.sleep(2)
     for attempt in range(9):
         root=snapshot('shortcuts-'+str(attempt))
         for key in keys:
@@ -172,8 +178,9 @@ def verify_secondary_shortcuts():
                 if node.attrib.get('resource-id')=='swu_home_tile_'+key:
                     x1,y1,x2,y2=bounds(node)
                     if 65<y1<y2<1320:
-                        heights[key]=(x2-x1,y2-y1)
-        if len(heights)==len(keys):break
+                        candidate=(x2-x1,y2-y1)
+                        if candidate[1]>heights.get(key,(0,0))[1]:
+                            heights[key]=candidate
         adb('shell','input','swipe',360,1100,360,780,400);time.sleep(1)
     assert len(heights)==len(keys), ('Missing full shortcut bounds',heights)
     assert max(h for w,h in heights.values())-min(h for w,h in heights.values())<=2, heights
