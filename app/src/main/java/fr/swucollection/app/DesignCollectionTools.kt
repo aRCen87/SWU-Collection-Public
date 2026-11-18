@@ -99,7 +99,7 @@ internal fun rarityProgress(catalog:List<CatalogCard>,quantities:Map<String,Int>
         val focus = LocalFocusManager.current
         Surface(Modifier.fillMaxSize().safeDrawingPadding().testTag("design_compare_dialog"),color=ListPalette.Background,contentColor=ListPalette.Text){Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
             Row(verticalAlignment=Alignment.CenterVertically){Text("Comparer deux cartes",Modifier.weight(1f),style=MaterialTheme.typography.titleMedium);TextButton(onClick=close){Text("Fermer")}}
-            OutlinedTextField(query,{query=it.take(100)},label={Text("Choisir la seconde carte")},singleLine=true,modifier=Modifier.fillMaxWidth())
+            if(second==null) OutlinedTextField(query,{query=it.take(100)},label={Text("Choisir la seconde carte")},singleLine=true,modifier=Modifier.fillMaxWidth())
             if(second==null) LazyColumn(Modifier.weight(1f)){items(results){c->TextButton(onClick={second=c;focus.clearFocus(force=true);keyboard?.hide()}){Text("${c.name} · ${c.setCode} ${c.number}")}};if(query.isBlank())item{Text("Recherche un nom ou une référence.")}}
             else {
                 TextButton(onClick={second=null}){Text("Changer la seconde carte")}
