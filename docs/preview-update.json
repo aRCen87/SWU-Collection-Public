@@ -1,11 +1,11 @@
 {
-  "versionCode": 93,
-  "versionName": "0.9.4-test.32",
-  "sha256": "6bca121342eaba8572857a622c3a515f3c3df20f31b1d942d78eb70cefdf940a",
-  "size": 64820018,
-  "sourceSha": "8d5912dd80308c78dd1ba450ab43aec0032c1c32",
+  "versionCode": 94,
+  "versionName": "0.9.4-test.33",
+  "sha256": "cddab71b93947da2e5f67ef2af80ff638f59b1267c4912639990fad0a40911af",
+  "size": 65070218,
+  "sourceSha": "bcf76a346a70a941b32ebf081ba39970b1825849",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "notes": "Présentation bleu et or harmonisée, nouvelles illustrations Mes listes et Mes proxies, recherche par capacités combinable avec les filtres, analyse du deck interactive et repères d’aspects avec symboles. Collection : grille réglable par pincement, sections par extension et deux panneaux sur grand écran. Visionneuse plein écran avec navigation, finitions et commandes masquables ; aperçu des raccourcis, paramètres regroupés et réduction des animations. Tests unitaires Debug et Test, sécurité, lint, compilation, conservation des données et essais téléphone simulé, déplié et paysage validés.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_7101652ae28c8191b5c54031d947e153&account_id=personal"
+  "notes": "Test 33 : logos d’extensions hors connexion, quantité à côté de la dernière carte scannée, retournement animé des leaders et amélioration des grandes polices. Navigation et scanner vérifiés à 200 % sur téléphone, Fold déplié et paysage simulés. Rotation du scanner rendue déterministe et contrôlée à 0°, 90°, 180° et 270°. Tests unitaires, sécurité, lint, compilation et conservation des données réussis.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_f3eed7d10a6c81919be0369b01d499f8&account_id=personal"
 }
