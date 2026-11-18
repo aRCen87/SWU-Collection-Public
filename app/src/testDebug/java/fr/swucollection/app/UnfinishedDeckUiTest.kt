@@ -178,12 +178,13 @@ class UnfinishedDeckUiTest {
             CompositionLocalProvider(androidx.compose.ui.platform.LocalDensity provides
                 androidx.compose.ui.unit.Density(density.density, 2f)) {
                 MaterialTheme {
-                    DeckBuilderPanel(emptyList(), emptyList(), empty, initialName = "Test paysage",
+                    DeckBuilderPanel(emptyList(), emptyList(), empty, initialName = "Test paysage", newDeck = true,
                         draftKey = "exit-layout", details = CardDetails.empty(), rules = LegalityRules.DEFAULT,
                         onCancel = { closed = true }, onSave = { _, _, _, _ -> }, onPreview = { _, _ -> })
                 }
             }
         }
+        ui.onNodeWithText("Commencer").performScrollTo().performClick()
         ui.onNodeWithText("Quitter").performClick()
         ui.onNodeWithText("Garder un brouillon").performScrollTo().assertIsDisplayed()
         ui.onNodeWithText("Quitter sans enregistrer").performScrollTo().assertIsDisplayed()
