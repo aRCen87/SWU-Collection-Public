@@ -1,3 +1,13 @@
+## Version 0.9.5 — améliorations des Tests 32 à 35
+
+- Collection plus visuelle : commandes compactes, logos et accès rapide aux extensions, progression par rareté et silhouettes optionnelles des cartes manquantes.
+- Fiches avec grande image, onglets Collection / Variantes / Cotes, variantes en éventail, comparaison côte à côte et reflet foil optionnel.
+- Mes decks : couvertures personnalisables, mode table par coût ou type, mode concentration, barre fixe leader/base/totaux et comparaison des modifications par zone.
+- Présentation bleu nuit et or harmonisée, illustrations des listes et proxies coordonnées, animations respectant le réglage de réduction des mouvements.
+- Scanner : catalogue visuel lu progressivement pour limiter la mémoire, reconnaissance des rotations stabilisée et quantité du dernier scan affichée.
+- Lecture hors connexion et comparaison de cartes en paysage corrigées ; grandes polices, téléphone et Fold contrôlés.
+- Mise à jour de l’installation officielle existante avec conservation des collections, variantes, quantités, listes et decks. Comptes et données Test séparés.
+
 ## 0.9.4-test.35 — classeur et atelier de decks
 
 - Collection plus aérée, commandes compactes, repères de défilement par extension, illustration et progression par rareté ; silhouettes optionnelles des cartes manquantes.
