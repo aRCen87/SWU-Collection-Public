@@ -140,6 +140,12 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                 }
             }
             if(scope != "Possédées") TextButton(onClick = { silhouettes = !silhouettes }) { Text(if(silhouettes) "Visuels" else "Silhouettes") }
+            if (compactSetHeader && groups.size > 1) groups.keys.forEach { code ->
+                TextButton(onClick = {
+                    val index = groups.entries.takeWhile { it.key != code }.sumOf { 1 + it.value.size }
+                    coroutine.launch { if (view == "Liste") listState.animateScrollToItem(index) else gridState.animateScrollToItem(index) }
+                }) { Text(code) }
+            }
         }
         if(groups.size > 1 && !compactSetHeader) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             groups.keys.forEach { code -> TextButton(onClick = {
