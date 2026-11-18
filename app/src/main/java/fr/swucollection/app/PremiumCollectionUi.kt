@@ -155,7 +155,7 @@ internal fun PremiumOwnedTile(rows: List<CollectionCard>, catalogByKey: Map<Stri
         shape = RoundedCornerShape(15.dp), color = PremiumNavy,
         border = BorderStroke(1.dp, Color(0xFF263D51))) {
         Column {
-            Box(Modifier.fillMaxWidth().aspectRatio(0.716f).padding(2.dp)) {
+            Box(Modifier.fillMaxWidth().aspectRatio(if (card != null && DeckConstruction.type(card) in listOf("leader", "chef", "base")) 1.4f else 0.716f).padding(2.dp)) {
                 CardArtwork(card, Modifier.fillMaxSize().clip(RoundedCornerShape(11.dp)), language = first.language, variant = first.variant)
                 Surface(Modifier.align(Alignment.TopEnd).padding(5.dp), color = Color(0xEE08121F), shape = RoundedCornerShape(6.dp)) {
                     Text(if (rows.map { it.language }.distinct().size > 1) "Multi" else first.language.uppercase(),
@@ -191,7 +191,7 @@ internal fun OwnedMiniatureTile(rows: List<CollectionCard>, catalogByKey: Map<St
     onOpen: (CollectionCard, CatalogCard) -> Unit, onLongPress: (CatalogCard) -> Unit = {}, favorite: Boolean = false, onFavorite: (() -> Unit)? = null) {
     val first = rows.first()
     val card = catalogByKey[MarketPricing.key(first.setCode, first.number)]
-    Box(Modifier.fillMaxWidth().aspectRatio(0.716f).testTag("swu_miniature_tile")
+    Box(Modifier.fillMaxWidth().aspectRatio(if (card != null && DeckConstruction.type(card) in listOf("leader", "chef", "base")) 1.4f else 0.716f).testTag("swu_miniature_tile")
         .clip(RoundedCornerShape(5.dp))
         .combinedClickable(enabled = card != null, role = Role.Button, onClick = { card?.let { onOpen(first, it) } }, onLongClickLabel = "Gérer cette carte", onLongClick = { card?.let(onLongPress) })
         .semantics(mergeDescendants = true) {

@@ -1,8 +1,17 @@
-## 0.9.5-test.38 — Accueil
+## Version 0.9.6
+
+- Leaders et bases : miniatures horizontales à leur format, suppression des grands espaces verticaux entre les rangées.
+- Extensions : logo mis en valeur dans un panneau compact, pourcentage et compteur de progression regroupés, contour doré discret.
+- Mes decks : leader et base regroupés avec le nom du deck, suppression du leader en double et action Modifier mieux visible.
+- Accueil conservé dans sa présentation précédente, sans salutation personnalisée ; cartes des couvertures affichées entières.
+- Reprise des finitions Test 36 à 38 : favoris persistants, densités, confirmation de sortie compacte, résumé de deck, derniers scans et cotes datées.
+- Identité officielle et données existantes conservées ; aucun transfert de compte Test.
+
+## Version 0.9.5-test.38
 
 - Suppression de la salutation personnalisée en haut de l’accueil.
 
-## 0.9.5-test.37 — Ajustements visuels
+## Version 0.9.5-test.37
 
 - Accueil restauré à sa présentation avant la refonte Test 35/36.
 - Couverture des decks : carte entière, sans recadrage ni dégradé sur son texte.
