@@ -1938,7 +1938,7 @@ internal fun CardArtwork(card: CatalogCard?, modifier: Modifier = Modifier, lang
     if (card == null) { CardArtwork("",modifier,grayscale); return }
     val context = LocalContext.current
     val face = remember(card,language,variant,reverse) { CardLanguageArtwork.displayFace(context,card,language,variant,reverse) }
-    Box(modifier) {
+    Box(modifier.then(rememberVariantArtworkSheen(variant))) {
         CardArtwork(face.first, Modifier.fillMaxSize(), grayscale)
         if (showLanguageLabel && !variant.isNullOrBlank() && variant != "Standard") {
             Surface(color = Color(0xE6071322), shape = RoundedCornerShape(6.dp),
