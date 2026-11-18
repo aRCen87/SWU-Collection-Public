@@ -102,11 +102,11 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
         val collected = collectedBySet[code] ?: 0
         Surface(color = ListPalette.Raised, shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)) {
             Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                if(!compactSetHeader) Box(Modifier.fillMaxWidth().height(72.dp).clipToBounds()) {
-                    DeckCoverArtwork(catalog.firstOrNull { it.setCode == code && DeckConstruction.type(it) in listOf("leader", "chef") } ?: catalog.firstOrNull { it.setCode == code }, .35f, Modifier.fillMaxSize())
+                if (!compactSetHeader) Box(Modifier.fillMaxWidth().padding(vertical = 12.dp), contentAlignment = Alignment.Center) {
+                    SetLogo(code, Modifier.fillMaxWidth().height(88.dp))
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    SetLogo(code, if(compactSetHeader) Modifier.size(72.dp,40.dp) else Modifier)
+                    if (compactSetHeader) SetLogo(code, Modifier.size(96.dp, 48.dp))
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Surface(color = ListPalette.Background, shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)) {
                         Text(code, Modifier.padding(8.dp), color = ListPalette.Gold, style = MaterialTheme.typography.titleSmall)

@@ -870,8 +870,6 @@ private fun CollectionScreen(
                     }
                 }
                 }
-                if (privateLayout) HomeBackupStatus(database) { navigation.navigateTo("Sauvegardes") }
-                if (privateLayout) TestReleaseHighlights(allCatalog)
                 if (!internetAvailable) OutlinedButton(onClick = { navigation.navigateTo("Hors connexion") }, modifier = Modifier.fillMaxWidth()) {
                     Text("Hors connexion · données disponibles sur ce téléphone ›")
                 }
@@ -879,19 +877,6 @@ private fun CollectionScreen(
                     sets.firstOrNull { it.code == homeLayout.set }?.let { pinned ->
                         OutlinedButton(onClick = { navigation.navigateTo("Compléter mon set", pinned.code) }, modifier = Modifier.fillMaxWidth()) {
                             Text("★ ${pinned.name} · Compléter mon extension")
-                        }
-                    }
-                }
-                if (privateLayout) {
-                    val resumeDeck = remember(selectedSection, cards) { deckStore.all().firstOrNull() }
-                    if (resumeDeck != null) OutlinedCard(onClick = { openSavedDeck(resumeDeck) }, modifier = Modifier.fillMaxWidth()) {
-                        Row(Modifier.padding(12.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            CardArtwork(allCatalog.firstOrNull { DeckConstruction.reference(it) == resumeDeck.deck.leader }, Modifier.size(56.dp, 40.dp))
-                            Column(Modifier.weight(1f)) {
-                                Text("Reprendre", style = MaterialTheme.typography.labelSmall, color = ListPalette.Gold)
-                                Text(resumeDeck.name, style = MaterialTheme.typography.titleSmall)
-                            }
-                            Icon(Icons.Default.ChevronRight, null, tint = ListPalette.Gold)
                         }
                     }
                 }
@@ -949,6 +934,7 @@ private fun CollectionScreen(
                 }
                 if (privateLayout) {
                     TextButton(onClick = { homeEditing = true }) { Text("Personnaliser mon accueil") }
+                    HomeBackupStatus(database) { navigation.navigateTo("Sauvegardes") }
                 }
                 ResumeCollectionPanel(database, cards, catalogBySet, sets, cardDetails, collectionQuotes, scanBatch,
                     onScan = { navigation.navigateTo("Scanner"); scannerOpen = false },

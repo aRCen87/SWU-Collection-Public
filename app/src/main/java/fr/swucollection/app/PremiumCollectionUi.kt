@@ -78,8 +78,11 @@ internal fun PremiumHomeShortcuts(order: List<String>, reflection: State<BorderT
     val arranged = if (order == HomeLayoutStore.defaults) premiumShortcuts else order.mapNotNull { key -> premiumShortcuts.find { it.key == key } }
     arranged.take(2).forEach { shortcut -> PremiumHomeTile(shortcut, true, Modifier.fillMaxWidth(), reflection, shine, effectsEnabled, arranged.indexOf(shortcut)) { onOpen(shortcut.key) } }
     afterPrimary()
-    arranged.drop(2).forEach { shortcut ->
-        PremiumHomeTile(shortcut, false, Modifier.fillMaxWidth(), reflection, shine, effectsEnabled, arranged.indexOf(shortcut)) { onOpen(shortcut.key) }
+    arranged.drop(2).chunked(2).forEach { pair ->
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            pair.forEach { shortcut -> PremiumHomeTile(shortcut, false, Modifier.weight(1f).fillMaxHeight(), reflection, shine, effectsEnabled, arranged.indexOf(shortcut)) { onOpen(shortcut.key) } }
+            if (pair.size == 1) Spacer(Modifier.weight(1f))
+        }
     }
 }
 
@@ -102,8 +105,8 @@ private fun PremiumHomeTile(item: PremiumShortcut, prominent: Boolean, modifier:
     val interactions=remember {MutableInteractionSource()}
     val motion=if(effectsEnabled && !LocalReducedMotion.current) Modifier.homeButtonMotion(interactions) else Modifier
     Surface(onClick = onClick, interactionSource=interactions,
-        modifier = modifier.testTag("swu_home_tile_${item.key}").then(motion).then(if(prominent) Modifier.goldBorderReflection(reflection).homeTileShine(shine,index) else Modifier), color = PremiumNavy,
-        shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, if(prominent) PremiumGold.copy(alpha = .6f) else Color(0xFF344B61))) {
+        modifier = modifier.testTag("swu_home_tile_${item.key}").then(motion).goldBorderReflection(reflection).homeTileShine(shine,index), color = PremiumNavy,
+        shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, PremiumGold.copy(alpha = .55f))) {
         Box {
             Box(Modifier.matchParentSize().background(PremiumPanel)) {
                 Image(painterResource(homeShortcutArtwork(item.key)),null,
@@ -113,7 +116,7 @@ private fun PremiumHomeTile(item: PremiumShortcut, prominent: Boolean, modifier:
                     0f to PremiumNavy, .3f to PremiumNavy.copy(alpha=.96f),
                     .66f to PremiumNavy.copy(alpha=if(prominent) .77f else .48f), 1f to PremiumNavy.copy(alpha=.16f))))
             }
-            Row(Modifier.heightIn(min = if (prominent) 98.dp else 82.dp).padding(18.dp),
+            if (prominent) Row(Modifier.heightIn(min = 98.dp).padding(18.dp),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Icon(item.icon, null, tint = PremiumGold, modifier = Modifier.size(38.dp))
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -121,6 +124,11 @@ private fun PremiumHomeTile(item: PremiumShortcut, prominent: Boolean, modifier:
                     Text(item.subtitle, fontSize = 12.sp, color = Color(0xFFE0E5EB))
                 }
                 Icon(Icons.Default.ChevronRight, null, tint = PremiumGold, modifier = Modifier.size(20.dp))
+            } else Column(Modifier.heightIn(min = 120.dp).padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(item.icon, null, tint = PremiumGold, modifier = Modifier.size(27.dp))
+                Text(item.title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, minLines = 2, color = Color(0xFFF5F3ED))
+                Text(item.subtitle, fontSize = 11.sp, minLines = 2, color = Color(0xFFE0E5EB))
             }
         }
     }

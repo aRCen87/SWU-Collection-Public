@@ -87,8 +87,7 @@ internal class DeckCoverStore(context:android.content.Context) {
     val context=LocalContext.current
     val url=card?.let { CardLanguageArtwork.displayFace(context,it,it.language,null,false).first }.orEmpty()
     Box(modifier.clipToBounds().background(ListPalette.Raised),contentAlignment=Alignment.Center){
-        if(url.isNotBlank()) AsyncImage(OfflineImages.source(context,url),null,Modifier.fillMaxSize(),contentScale=ContentScale.Crop,alignment=BiasAlignment(0f,focus*2f-1f))
-        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent,ListPalette.Background.copy(alpha=.5f)))))
+        if(url.isNotBlank()) AsyncImage(OfflineImages.source(context,url),null,Modifier.fillMaxSize(),contentScale=ContentScale.Fit,alignment=Alignment.Center)
     }
 }
 @Composable internal fun DeckCoverDialog(id:String,deck:PortableDeck,catalog:List<CatalogCard>,close:()->Unit,saved:()->Unit) {
@@ -98,8 +97,7 @@ internal class DeckCoverStore(context:android.content.Context) {
     var cover by remember(id){mutableStateOf(store.read(id))};var error by remember{mutableStateOf<String?>(null)}
     AlertDialog(onDismissRequest=close,title={Text("Couverture du deck")},text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
         DeckCoverArtwork(byId[cover.reference]?:byId[deck.leader],cover.focus,Modifier.fillMaxWidth().height(112.dp))
-        Text("Cadrage vertical",style=MaterialTheme.typography.labelMedium)
-        Slider(cover.focus,{cover=cover.copy(focus=it)})
+        Text("Carte entière · proportions conservées",style=MaterialTheme.typography.labelMedium)
         LazyColumn(Modifier.heightIn(max=220.dp)){
             item{TextButton(onClick={cover=DeckCover("",.5f)}){Text("Couverture automatique")}}
             items(choices){card->TextButton(onClick={cover=cover.copy(reference=DeckConstruction.reference(card))}){Text(deckCardLabel(card.name))}}

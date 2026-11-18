@@ -1,3 +1,9 @@
+## 0.9.5-test.37 — Ajustements visuels
+
+- Accueil restauré à sa présentation avant la refonte Test 35/36.
+- Couverture des decks : carte entière, sans recadrage ni dégradé sur son texte.
+- Extensions : logo agrandi, suppression de la carte décorative tronquée.
+
 ## Version 0.9.5-test.36
 
 - Accueil illustré en colonne, actions principales mises en valeur, reprise du dernier deck, salutation et état réel de sauvegarde.
