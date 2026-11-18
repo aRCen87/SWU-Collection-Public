@@ -1,12 +1,23 @@
-## 0.9.4-test.33 — fiabilité du scanner (en validation)
+## 0.9.4-test.34 — fiabilité du scanner
 
 - Chargement progressif du catalogue visuel : évite de conserver les 20 Mo de JSON et leur arbre complet en plus des signatures, cause des reconnaissances vides sous pression mémoire.
 - Les erreurs graves de mémoire ne sont plus masquées comme une absence de carte ; un index optionnel absent ou invalide conserve le parcours OCR.
 - Contrôles répétés des deux faces de leader, des bases et des cartes classiques dans les quatre rotations, avec vérification de l’intégrité de l’image caméra et de la compatibilité des formats d’index.
 - Le bouton de reprise d’un visuel en erreur est placé dans un coin : le centre reste accessible pour ouvrir la carte, même sans réseau.
-- Toutes les améliorations Test 32 sont reprises. Collections, variantes, quantités, signatures et version officielle préservées.
+- Toutes les améliorations Test 32 et Test 33 sont reprises. Collections, variantes, quantités, signatures et version officielle préservées.
 
-## 0.9.4-test.32 — présentation et recherche (en validation)
+## 0.9.4-test.33 — finitions et accessibilité
+
+- Logos des extensions fournis par l’éditeur, embarqués pour rester disponibles hors connexion ; code exact et progression conservés pour les promotions et séries annexes.
+- Quantité de la dernière carte scannée affichée avec sa miniature ; total exact de la variante et de la langue dans le lot ou le deck courant.
+- Retournement animé des leaders dans la visionneuse plein écran, désactivé avec la réduction des mouvements.
+- Libellés longs des filtres et raccourcis sans limite de lignes ; modes du scanner capables de revenir à la ligne. Contrôles dédiés à une police à 200 % sur téléphone, Fold et paysage.
+- Avec les très grandes polices, les raccourcis s’élargissent dans une barre défilante horizontalement, ainsi que dans son aperçu ; l’onglet actif reste accessible et la limite de cinq raccourcis est conservée.
+- Échantillonnage de caméra déterministe : rotation entière et moyenne des pixels dans le même repère avant reconnaissance ; seuils et confirmations inchangés. Comparaison des pixels aux quatre rotations et répétition du test visuel à 180°.
+- Version Test uniquement ; schéma, données et version officielle inchangés.
+
+## 0.9.4-test.32 — présentation et recherche
+
 
 - Recherche par mots-clés et capacités dans les filtres combinés du deck, avec textes français et anglais disponibles hors connexion ; les cartes sans texte indexé ne sont pas inventées.
 - Analyse du deck interactive : toucher un coût, un type, une arène, un aspect ou les manquantes ouvre les cartes correspondantes et leurs quantités.

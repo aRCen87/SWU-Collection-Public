@@ -1,4 +1,4 @@
-## Test 0.9.4-test.33 — correction du catalogue visuel
+## Test 0.9.4-test.34 — correction du catalogue visuel
 
 Le défaut intermittent de reconnaissance a été reproduit dans la suite Android complète : la lecture globale du JSON de l’index visuel levait une OutOfMemoryError, capturée et transformée en liste vide. L’index est désormais décodé ligne par ligne avec JsonReader ; seules les signatures décodées restent en mémoire. Les formats 1 et 2 et leurs dimensions sont contrôlés. Les exceptions ordinaires d’un index absent/invalide désactivent uniquement les suggestions visuelles ; les erreurs fatales de la VM ne sont plus masquées. Aucun seuil de correspondance, règle d’identité, langue ou finition n’est relâché.
 

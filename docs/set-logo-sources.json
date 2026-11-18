@@ -1,0 +1,112 @@
+{
+  "source": "https://starwarsunlimited.com/media-kit",
+  "logos": {
+    "LAW": {
+      "url": "https://cdn.starwarsunlimited.com//SWH_07fr_Logo_b459d80222.png",
+      "file": "set_logo_law.webp",
+      "size": [
+        320,
+        52
+      ],
+      "locale": "fr"
+    },
+    "ASH": {
+      "url": "https://cdn.starwarsunlimited.com//Ashes_of_the_Empire_Logo_FR_09dca0ae47.png",
+      "file": "set_logo_ash.webp",
+      "size": [
+        320,
+        78
+      ],
+      "locale": "fr"
+    },
+    "SHD": {
+      "url": "https://cdn.starwarsunlimited.com//shadows_of_the_galaxy_Logo_91948b8327.png",
+      "file": "set_logo_shd.webp",
+      "size": [
+        320,
+        104
+      ],
+      "locale": "fr"
+    },
+    "TWI": {
+      "url": "https://cdn.starwarsunlimited.com//Twilight_of_the_Republic_Logo_FR_4843a3a8fd.png",
+      "file": "set_logo_twi.webp",
+      "size": [
+        320,
+        108
+      ],
+      "locale": "fr"
+    },
+    "SOR": {
+      "url": "https://cdn.starwarsunlimited.com//Spark_of_Rebellion_Logo_FR_4a9f50984c.png",
+      "file": "set_logo_sor.webp",
+      "size": [
+        320,
+        46
+      ],
+      "locale": "fr"
+    },
+    "IBH": {
+      "url": "https://cdn.starwarsunlimited.com//Intro_Battle_Hoth_Logo_FR_c83cec94ef.png",
+      "file": "set_logo_ibh.webp",
+      "size": [
+        320,
+        109
+      ],
+      "locale": "fr"
+    },
+    "SEC": {
+      "url": "https://cdn.starwarsunlimited.com//Secrets_of_Power_logo_FR_11eebec08f.png",
+      "file": "set_logo_sec.webp",
+      "size": [
+        320,
+        73
+      ],
+      "locale": "fr"
+    },
+    "IC27": {
+      "url": "https://cdn.starwarsunlimited.com//Icons_2027_Logo_FR_96397d5464.png",
+      "file": "set_logo_ic27.webp",
+      "size": [
+        320,
+        144
+      ],
+      "locale": "fr"
+    },
+    "LOF": {
+      "url": "https://cdn.starwarsunlimited.com//Legends_of_the_Force_Logo_FR_41693db6a1.png",
+      "file": "set_logo_lof.webp",
+      "size": [
+        320,
+        84
+      ],
+      "locale": "fr"
+    },
+    "JTL": {
+      "url": "https://cdn.starwarsunlimited.com//SWH_04fr_Logo_fbdc080793.png",
+      "file": "set_logo_jtl.webp",
+      "size": [
+        320,
+        91
+      ],
+      "locale": "fr"
+    },
+    "SWU": {
+      "url": "https://cdn.starwarsunlimited.com//star_wars_unlimited_brand_logo_white_c33e64a77d.png",
+      "file": "set_logo_swu.webp",
+      "size": [
+        252,
+        180
+      ]
+    },
+    "HMW": {
+      "url": "https://cdn.starwarsunlimited.com//Homeworlds_Logo_FR_ad5853f414.png",
+      "file": "set_logo_hmw.webp",
+      "size": [
+        320,
+        129
+      ],
+      "locale": "fr"
+    }
+  }
+}

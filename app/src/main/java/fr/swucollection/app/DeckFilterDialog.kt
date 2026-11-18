@@ -1,6 +1,7 @@
 package fr.swucollection.app
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -12,8 +13,8 @@ import androidx.compose.ui.unit.dp
 internal fun DeckChoice(label: String, value: String, choices: List<Pair<String, String>>, onChange: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box {
-        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
-            Text("$label : ${choices.firstOrNull { it.first == value }?.second ?: value}", maxLines = 2)
+        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
+            Text("$label : ${choices.firstOrNull { it.first == value }?.second ?: value}", modifier = Modifier.weight(1f))
         }
         DropdownMenu(expanded, onDismissRequest = { expanded = false }, modifier = Modifier.heightIn(max = 280.dp)) {
             choices.forEach { (key, title) ->
@@ -28,9 +29,9 @@ internal fun DeckMultiChoice(label: String, value: String, choices: List<Pair<St
     var expanded by remember { mutableStateOf(false) }
     val selected = value.split("|").filter { it.isNotEmpty() }.toSet()
     Box {
-        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
             val titles = choices.filter { it.first in selected }.map { it.second }
-            Text("$label : ${if (titles.isEmpty()) "Tous" else titles.joinToString(", ")}", maxLines = 3)
+            Text("$label : ${if (titles.isEmpty()) "Tous" else titles.joinToString(", ")}", modifier = Modifier.weight(1f))
         }
         DropdownMenu(expanded, onDismissRequest = { expanded = false }, modifier = Modifier.heightIn(max = 320.dp)) {
             DropdownMenuItem(text = { Text("Tout désélectionner") }, onClick = { onChange("") })

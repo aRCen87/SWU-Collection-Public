@@ -1,7 +1,7 @@
 name: Encrypted SWU Collection Test
 on:
   push:
-    branches: ["preview/private-sandbox", "preview/profile-avatars-test17", "preview/reliability-test18", "preview/performance-test19", "preview/premium-design-test20", "preview/immersive-home-test21", "preview/home-fade-test22", "preview/messenger-test23", "preview/card-grid-test24", "preview/members-finishes-test25", "preview/deck-clarity-test26", "preview/deck-add-test27", "preview/lists-actions-test28", "preview/separate-decks-lists-proxies", "preview/visual-refresh-test32", "preview/visual-refresh-test32-layout-fix"]
+    branches: ["preview/private-sandbox", "preview/profile-avatars-test17", "preview/reliability-test18", "preview/performance-test19", "preview/premium-design-test20", "preview/immersive-home-test21", "preview/home-fade-test22", "preview/messenger-test23", "preview/card-grid-test24", "preview/members-finishes-test25", "preview/deck-clarity-test26", "preview/deck-add-test27", "preview/lists-actions-test28", "preview/separate-decks-lists-proxies", "preview/visual-refresh-test32", "preview/visual-refresh-test32-layout-fix", "preview/finishes-test33"]
     paths-ignore: ["docs/preview-update.json"]
   workflow_dispatch:
 permissions:
@@ -69,7 +69,7 @@ jobs:
           python3 -m unittest discover -s .github/scripts -p 'test_*.py'
           for attempt in 1 2 3; do
             set +e
-            gradle --no-daemon --max-workers=2 "-Dorg.gradle.jvmargs=-Xmx4g -Dfile.encoding=UTF-8" compileDebugAndroidTestKotlin testDebugUnitTest lintDebug assembleDebug testPreviewUnitTest lintPreview assemblePreview assembleDebugAndroidTest 2>&1 | tee "$RUNNER_TEMP/preview-gradle.log"
+            gradle --no-daemon --no-parallel --max-workers=1 -Dorg.gradle.jvmargs="-Xmx4g -Dfile.encoding=UTF-8" compileDebugAndroidTestKotlin testDebugUnitTest lintDebug assembleDebug testPreviewUnitTest lintPreview assemblePreview assembleDebugAndroidTest 2>&1 | tee "$RUNNER_TEMP/preview-gradle.log"
             result=${PIPESTATUS[0]}
             set -e
             if test "$result" -eq 0; then break; fi
@@ -156,6 +156,7 @@ jobs:
           script: |
             bash .github/scripts/check_messenger_keyboard.sh
             bash .github/scripts/check_deck_presentation.sh
+            bash .github/scripts/check_test33_accessibility.sh
             bash .github/scripts/smoke_premium_preview.sh
       - name: Encrypt the empty-account layout check for private review
         if: always()

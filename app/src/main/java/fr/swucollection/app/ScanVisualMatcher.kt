@@ -2,7 +2,6 @@ package fr.swucollection.app
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Matrix
 import android.util.Base64
 import android.util.JsonReader
 import android.util.JsonToken
@@ -35,22 +34,33 @@ internal class ScanVisualMatcher(private val context: Context) {
     }
 
     fun matchAutomatic(frame: Bitmap, rotation: Int, viewport: ScanViewport, numberHint: Int? = null): List<VisualCardMatch> {
-        val matches = listOf(false, true).flatMap { landscape -> match(frame, rotation, viewport.copy(landscape = landscape),numberHint) }
-            .groupBy { it.reference }.values.map { it.minBy { match -> match.score } }.sortedBy { it.score }
+        if (viewport.width <= 0 || viewport.height <= 0 || entries.isEmpty()) return emptyList()
+        val upright = prepare(frame, rotation)
+        val rawMatches = try { listOf(false, true).flatMap { landscape -> matchUpright(upright, viewport.copy(landscape = landscape),numberHint) } }
+            finally { if (upright !== frame) upright.recycle() }
+        val matches = rawMatches.groupBy { it.reference }.values.map { it.minBy { match -> match.score } }.sortedBy { it.score }
         val best = matches.firstOrNull() ?: return emptyList()
         return matches.takeWhile { it.score <= best.score + .018 }.take(6)
     }
 
     fun match(frame: Bitmap, rotation: Int, viewport: ScanViewport, numberHint: Int? = null): List<VisualCardMatch> {
         if (viewport.width <= 0 || viewport.height <= 0 || entries.isEmpty()) return emptyList()
-        // OCR keeps the full camera resolution. Image signatures need only a
-        // small working copy, avoiding repeated multi-megapixel crops/arrays.
-        val reduction = min(1.0,960.0 / maxOf(frame.width,frame.height))
-        val working = if (reduction == 1.0) frame else Bitmap.createScaledBitmap(frame,
-            (frame.width*reduction).roundToInt(),(frame.height*reduction).roundToInt(),true)
-        val upright = if (rotation == 0) working else Bitmap.createBitmap(working,0,0,working.width,working.height,
-            Matrix().apply { postRotate(rotation.toFloat()) },true)
-        try {
+        val upright = prepare(frame, rotation)
+        return try { matchUpright(upright, viewport, numberHint) }
+            finally { if (upright !== frame) upright.recycle() }
+    }
+
+    private fun prepare(frame: Bitmap, rotation: Int): Bitmap {
+        if (rotation % 360 == 0 && maxOf(frame.width, frame.height) <= 960) return frame
+        val pixels = IntArray(frame.width * frame.height)
+        frame.getPixels(pixels, 0, frame.width, 0, 0, frame.width, frame.height)
+        val sampled = ScanFrameSampling.upright(pixels, frame.width, frame.height, rotation)
+        return Bitmap.createBitmap(sampled.pixels, sampled.width, sampled.height, Bitmap.Config.ARGB_8888)
+    }
+
+    private fun matchUpright(upright: Bitmap, viewport: ScanViewport, numberHint: Int?): List<VisualCardMatch> {
+        if (viewport.width <= 0 || viewport.height <= 0 || entries.isEmpty()) return emptyList()
+        run {
             // Same FILL_CENTER transform and guide dimensions as PreviewView/ScannerGuide.
             val scale = maxOf(viewport.width.toDouble() / upright.width, viewport.height.toDouble() / upright.height)
             val ratio = if (viewport.landscape) 88.0 / 63 else 63.0 / 88
@@ -78,9 +88,6 @@ internal class ScanVisualMatcher(private val context: Context) {
                 } finally { if(crop !== upright) crop.recycle() }
             }
             return ScanVisualRecognition.candidates(signatures,entries,viewport.landscape,details,numberHint)
-        } finally {
-            if (upright !== working) upright.recycle()
-            if (working !== frame) working.recycle()
         }
     }
 }

@@ -1555,7 +1555,8 @@ private fun CollectionScreen(
                         })
                 } else {
                     scanLastCard?.let { last ->
-                        ScannerCardSummary(last.card, last.variant, if (scanMode == "Rafale") "En attente de validation" else "Ajoutée à ma collection")
+                        ScannerCardSummary(last.card, last.variant, if (scanMode == "Rafale") "En attente de validation" else "Ajoutée à ma collection",
+                            quantity = if (scanMode == "Rafale") scanBatch.entries.filter { it.card.setCode == last.card.setCode && it.card.number == last.card.number && it.card.language == last.card.language && it.variant == last.variant }.sumOf { it.quantity } else last.quantity)
                         TextButton(onClick = { scanCorrection = last }) { Text("Corriger ce scan") }
                     }
                     if (scanMode == "Rafale") TextButton(onClick = { closeScanner() }) {

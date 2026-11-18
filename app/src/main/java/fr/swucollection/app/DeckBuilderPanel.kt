@@ -473,7 +473,8 @@ internal fun DeckBuilderPanel(
                             else if (applyScan(card, finish)) { scanPending = null; scanReadToken++ }
                         })
                 } else scanLastCard?.let { last ->
-                    ScannerCardSummary(last.card, last.variant, "Ajoutée à « $name » · brouillon")
+                    ScannerCardSummary(last.card, last.variant, "Ajoutée à « $name » · brouillon",
+                        quantity = (if (scanReserve) deck.sideboard else deck.deck).firstOrNull { it.cardId == DeckConstruction.reference(last.card) }?.count ?: last.quantity)
                     TextButton(onClick = { correctingScan = last }) { Text("Corriger ce scan") }
                 }
                 Row(Modifier.fillMaxWidth().toggleable(value = collectScans, role = Role.Checkbox, onValueChange = { collectScans = it }), verticalAlignment = Alignment.CenterVertically) {
