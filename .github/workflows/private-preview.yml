@@ -69,7 +69,7 @@ jobs:
           python3 -m unittest discover -s .github/scripts -p 'test_*.py'
           for attempt in 1 2 3; do
             set +e
-            gradle --no-daemon compileDebugAndroidTestKotlin testDebugUnitTest lintDebug assembleDebug testPreviewUnitTest lintPreview assemblePreview assembleDebugAndroidTest 2>&1 | tee "$RUNNER_TEMP/preview-gradle.log"
+            gradle --no-daemon --no-parallel --max-workers=1 -Dorg.gradle.jvmargs="-Xmx4g -Dfile.encoding=UTF-8" compileDebugAndroidTestKotlin testDebugUnitTest lintDebug assembleDebug testPreviewUnitTest lintPreview assemblePreview assembleDebugAndroidTest 2>&1 | tee "$RUNNER_TEMP/preview-gradle.log"
             result=${PIPESTATUS[0]}
             set -e
             if test "$result" -eq 0; then break; fi
