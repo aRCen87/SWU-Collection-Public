@@ -641,10 +641,12 @@ adb shell settings put system font_scale 1.0
 adb shell wm size reset
 sleep 3
 tap_label "Enregistrer"
+tap_label "Tout enregistrer"
 tap_label "☆ Épingler"
 tap_label "Accueil"
 tap_label "Mon deck"
 tap_label "Enregistrer"
+tap_label "Tout enregistrer"
 tap_label "Accueil"
 tap_label "Carte, deck, extension…"
 tap_label "Carte, deck ou extension"
@@ -686,6 +688,7 @@ adb exec-out screencap -p > smoke/card-deck-usage.png
 tap_description "Fermer la carte"
 tap_label "Mon deck"
 tap_label "Enregistrer"
+tap_label "Tout enregistrer"
 tap_label "Accueil"
 tap_description "Ouvrir le menu"
 tap_label "Paramètres"
@@ -779,6 +782,7 @@ PYSCANDESTINATION
 tap_label "Ajouter à ma collection plutôt"
 tap_label "Terminer"
 tap_label "Enregistrer"
+tap_label "Tout enregistrer"
 tap_label "Accueil"
 tap_description "Ouvrir le menu"
 tap_label "Scanner"
