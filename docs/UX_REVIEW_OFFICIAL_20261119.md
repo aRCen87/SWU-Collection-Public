@@ -1,3 +1,7 @@
+## Autorisation de publication — 19 novembre 2026
+
+Après validation des écrans, Romain demande : « Tout est ok. Fait la maj pour l’offi ». Cette autorisation remplace la suspension de publication mentionnée dans l'historique ci-dessous. Préparer la version officielle 0.9.7 (code 102), valider les contrôles complets et publier uniquement les sources approuvées après réussite. Préserver l'installation et les données existantes ; ne pas fournir d'APK dans la conversation sans demande. La publication n'est pas encore déclarée réussie.
+
 # SWU Collection — revue visuelle et simplicité
 
 Travail demandé le 19 novembre 2026, à partir de l'officielle 0.9.6 (sources `3d592af9094e13aa02442484d48fd1fed23a9844`). Branche de préparation : `simplify/official-visual-review-20261119`. Ce document distingue l'inspection du code, les rendus de composants et l'utilisation de l'application publiée.
