@@ -35,9 +35,12 @@ internal fun PinnedDecksPanel(decks: List<DeckStore.SavedDeck>, owned: List<Coll
 internal fun CardDeckUsagePanel(card: CatalogCard, decks: List<DeckStore.SavedDeck>, catalog: List<CatalogCard>, details: CardDetails, enabled: Boolean, onAdd: () -> Unit, onOpen: (DeckStore.SavedDeck) -> Unit) {
     val usages = remember(card, decks, catalog, details) { DeckCompanion.usages(card, decks, catalog, details) }
     val supported = DeckConstruction.isDraw(card) || DeckConstruction.type(card) in listOf("leader", "chef", "base")
+    var expanded by remember(card) { mutableStateOf(false) }
     OutlinedCard(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Utilisée dans mes decks", color = ListPalette.Gold)
+        TextButton(onClick = { expanded = !expanded }, modifier = Modifier.fillMaxWidth()) {
+            Text("Utilisée dans mes decks · ${usages.size} ${if (expanded) "▴" else "▾"}", color = ListPalette.Gold)
+        }
+        if (expanded) Column(Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             if (usages.isEmpty()) Text("Aucun deck pour le moment.", style = MaterialTheme.typography.bodySmall)
             usages.forEach { (saved, count) -> TextButton(onClick = { onOpen(saved) }, modifier = Modifier.fillMaxWidth()) { Text("${saved.name} · ×$count ›") } }
 

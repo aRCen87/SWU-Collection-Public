@@ -1,3 +1,14 @@
+## Version 0.9.7
+
+- Accueil conservé tel que validé ; boutons de droite légèrement réduits, avec zones tactiles et pastille de messages conservées.
+- Collection allégée : menu Afficher, favoris accessibles, affichage regroupé dans les filtres et grand logo d'extension débordant d'un panneau compact.
+- Fiche carte : image adaptée à son format, langue et finition regroupées, compteur de la version choisie, usages dans les decks repliables et actions secondaires dans le menu.
+- Mes decks : vignette du leader, badge Brouillon, bouton Reprendre et menu d'actions. La duplication d'un brouillon conserve sa composition sans recopier les ajouts de collection en attente.
+- Constructeur : blocs Leader/Base compacts, trois cartes par ligne sur téléphone, menu Affichage et accès Ajouter des cartes explicite ; récapitulatif limité au catalogue.
+- Mes proxies : grandes images sur deux colonnes, ajout compact, quantités visibles, distinction entre cartes sélectionnées et exemplaires/pages, retrait global confirmé dans le menu.
+- Listes et paramètres simplifiés, recherche et commandes regroupées ; priorité au téléphone portrait avec adaptation aux écrans larges.
+- Collections, variantes, langues, quantités, listes, decks et identité officielle conservés. Aucun transfert de compte Test.
+
 ## Version 0.9.6
 
 - Leaders et bases : miniatures horizontales à leur format, suppression des grands espaces verticaux entre les rangées.

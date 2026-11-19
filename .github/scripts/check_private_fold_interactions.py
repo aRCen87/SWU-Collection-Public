@@ -87,7 +87,9 @@ try:
     cleared = snapshot("query-cleared")
     assert not any("FoldProbe" in n.attrib.get("text", "") for n in cleared.iter("node")), "Search clear action did not clear the retained query"
     resize(756,1680,294)
-    root = snapshot("collection-restored"); tap(find(root,"Toutes les cartes"))
+    root = snapshot("collection-restored")
+    tap(next(n for n in root.iter("node") if n.attrib.get("text", "").startswith("Afficher : ")))
+    tap(find(snapshot("collection-scope-menu"), "Toutes les cartes"))
     # The extension catalogue now lives in the unified Collection page. Keep
     # testing the real ordered card reader, using the visible gallery bounds.
     for attempt in range(12):

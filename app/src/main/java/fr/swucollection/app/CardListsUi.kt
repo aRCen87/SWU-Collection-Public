@@ -170,12 +170,16 @@ internal fun CardListsPanel(lists: List<CardList>, selectedId: String?, modifier
                 TextButton(onClick = { onOpen(null) }, colors = ButtonDefaults.textButtonColors(contentColor = ListPalette.Gold)) {
                     Text("← Toutes mes listes")
                 }
-                ListHero(selected.name, "${selected.entries.size} références", "${selected.entries.sumOf { it.quantity }} cartes")
-                Text("Toucher pour voir · Appui long pour gérer une carte", color = ListPalette.Secondary, fontSize = 12.sp)
-                OutlinedButton(onClick = { editing = !editing }) { Text(if (editing) "Terminer les modifications" else "Modifier la liste") }
-                TextButton(onClick = { adding = true }) { Text("+ Ajouter des cartes") }
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(selected.name, color = ListPalette.Text, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text("${selected.entries.size} référence(s) · ${selected.entries.sumOf { it.quantity }} cartes",
+                        color = ListPalette.Secondary, style = MaterialTheme.typography.bodySmall)
+                }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = { adding = true }) { Text("Ajouter des cartes") }
+                    OutlinedButton(onClick = { editing = !editing }) { Text(if (editing) "Terminer les modifications" else "Modifier la liste") }
+                }
                 if (editing) FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(onClick = { adding = true }, colors = ButtonDefaults.textButtonColors(contentColor = ListPalette.Gold)) { Text("Ajouter des cartes") }
                     TextButton(onClick = { naming = true }, colors = ButtonDefaults.textButtonColors(contentColor = ListPalette.Gold)) { Text("Renommer") }
                     TextButton(onClick = { deleting = true }, colors = ButtonDefaults.textButtonColors(contentColor = ListPalette.Danger)) { Text("Supprimer la liste") }
                 }

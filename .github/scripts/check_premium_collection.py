@@ -87,6 +87,12 @@ def reveal_artwork():
         scroll_collection(root, False)
     raise AssertionError('Catalogue artwork is not reachable')
 
+def choose_collection_scope(label):
+    root = snapshot('scope-control')
+    control = next(n for n in root.iter('node') if n.attrib.get('text', '').startswith('Afficher : '))
+    tap(control)
+    tap(find(snapshot('scope-options'), label))
+
 def choose_view(label):
     tap(reveal_header('Filtres'))
     tap(find(snapshot('view-options'), label))
@@ -218,13 +224,13 @@ try:
     verify_motion()
     verify_secondary_shortcuts()
     tap(find(snapshot('home'),'Collection'))
-    tap(reveal_header('Toutes les cartes'))
+    choose_collection_scope('Toutes les cartes')
     tap(reveal_artwork())
     tap(reveal('+'))
     # The first tap must only open the explicit confirmation.
     tap(find(snapshot('confirm-add'), 'Confirmer l’ajout'))
     tap(find(snapshot('added'),'Fermer la carte'))
-    tap(reveal_header('Possédées'))
+    choose_collection_scope('Possédées')
     root = reveal_quantity('grid'); find(root,'× 1')
     assert any('Cote' in n.attrib.get('text','') for n in root.iter('node')), 'Visual grid lost price information'
     capture('collection-cover')

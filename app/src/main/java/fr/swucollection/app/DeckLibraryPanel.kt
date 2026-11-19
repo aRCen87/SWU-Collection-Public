@@ -51,49 +51,67 @@ internal fun DeckLibraryPanel(
         draftError?.let { Text(it, color = ListPalette.Danger) }
         LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
             items(drafts, key = { "draft:${it.first}" }) { (key, draft) ->
+                var more by remember(key) { mutableStateOf(false) }
                 OutlinedCard(onClick = { viewing = DeckView(key,draft) }, modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.outlinedCardColors(containerColor = ListPalette.Background, contentColor = ListPalette.Text)) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(draft.name.ifBlank { "Mon deck" }, maxLines = 2, overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.titleMedium, color = ListPalette.Gold)
-                        Text("Brouillon · ${draft.deck.deck.sumOf { it.count }} cartes · ${draft.deck.sideboard.sumOf { it.count }} en réserve",
-                            style = MaterialTheme.typography.bodySmall, color = ListPalette.Secondary)
-                        Text(listOfNotNull(if (!draft.leaderChosen) "Leader à choisir" else null,
-                            if (!draft.baseChosen) "Base à choisir" else null).joinToString(" · ").ifBlank { "Deck en cours" },
-                            style = MaterialTheme.typography.bodySmall)
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            CardArtwork(if (draft.leaderChosen) byId[draft.deck.leader] else null,
+                                Modifier.width(88.dp).height(64.dp))
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(draft.name.ifBlank { "Mon deck" }, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.titleMedium, color = ListPalette.Gold)
+                                Surface(color = ListPalette.Raised, shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)) {
+                                    Text("Brouillon", Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        style = MaterialTheme.typography.labelSmall, color = ListPalette.Gold)
+                                }
+                                Text("${draft.deck.deck.sumOf { it.count }}/50 cartes · ${draft.deck.sideboard.sumOf { it.count }}/10 réserve",
+                                    style = MaterialTheme.typography.bodySmall, color = ListPalette.Secondary)
+                            }
+                        }
+                        val missingIdentity = listOfNotNull(if (!draft.leaderChosen) "Leader à choisir" else null,
+                            if (!draft.baseChosen) "Base à choisir" else null).joinToString(" · ")
+                        if (missingIdentity.isNotBlank()) Text(missingIdentity, style = MaterialTheme.typography.bodySmall)
                         if (draft.collectionEntries.isNotEmpty()) Text(
                             "${draft.collectionEntries.sumOf { it.quantity }} ajout(s) à la collection en attente",
                             style = MaterialTheme.typography.bodySmall, color = ListPalette.Secondary)
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(onClick = { onResumeDraft(key) }) { Text("Modifier") }
-                            TextButton(onClick = { deletingDraft = key to draft }) { Text("Supprimer", color = ListPalette.Danger) }
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            FilledTonalButton(onClick = { onResumeDraft(key) }) { Text("Reprendre") }
+                            Spacer(Modifier.weight(1f))
+                            Box {
+                                IconButton(onClick = { more = true }) { Icon(Icons.Default.MoreVert, "Autres actions pour ${draft.name}") }
+                                DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
+                                    DropdownMenuItem(text = { Text("Dupliquer") }, onClick = {
+                                        more = false
+                                        runCatching { draftStore.duplicate(key, draft) }
+                                            .onSuccess { draftRevision++; draftError = null }
+                                            .onFailure { draftError = "Impossible de dupliquer le brouillon. Réessaie." }
+                                    })
+                                    DropdownMenuItem(text = { Text("Supprimer", color = ListPalette.Danger) },
+                                        onClick = { more = false; deletingDraft = key to draft })
+                                }
+                            }
                         }
                     }
                 }
             }
-            if (decks.isEmpty() && drafts.isEmpty()) item { CollectorEmptyState("Ton premier deck", "Choisis un leader, une base et les cartes que tu veux jouer.", "Créer mon premier deck", onCreate) }
+            if (decks.isEmpty() && drafts.isEmpty()) item { CollectorEmptyState("Ton premier deck", "Choisis un leader, une base et les cartes que tu veux jouer.") }
             items(decks, key = { it.id }) { saved ->
                 var more by remember(saved.id) { mutableStateOf(false) }
                 OutlinedCard(onClick = { consultation(saved) }, modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.outlinedCardColors(containerColor = ListPalette.Background, contentColor = ListPalette.Text)) {
                     val cover = remember(saved.id, coverRevision) { covers.read(saved.id) }
                     Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        DeckCoverArtwork(byId[cover.reference] ?: byId[saved.deck.leader], cover.focus, Modifier.weight(1f).aspectRatio(1.4f))
-                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(saved.name, color = ListPalette.Gold, style = MaterialTheme.typography.titleLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            CardArtwork(byId[saved.deck.base], Modifier.width(96.dp).aspectRatio(1.4f))
+                        DeckCoverArtwork(byId[cover.reference] ?: byId[saved.deck.leader], cover.focus, Modifier.width(88.dp).height(64.dp))
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(saved.name, color = ListPalette.Gold, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(byId[saved.deck.leader]?.name ?: saved.deck.leader, maxLines = 1,
+                                overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
+                            Text("${saved.deck.deck.sumOf { it.count }}/50 cartes · ${saved.deck.sideboard.sumOf { it.count }}/10 réserve",
+                                style = MaterialTheme.typography.bodySmall, color = ListPalette.Secondary)
                         }
                     }
-                    HorizontalDivider(color = ListPalette.Gold.copy(alpha = .3f))
-                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text(byId[saved.deck.leader]?.name ?: saved.deck.leader, maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
-                                Text("${saved.deck.deck.sumOf { it.count }} cartes · ${saved.deck.sideboard.sumOf { it.count }} en réserve",
-                                    style = MaterialTheme.typography.bodySmall, color = ListPalette.Secondary)
-                            }
-                        }
+                    Column(Modifier.padding(horizontal = 12.dp).padding(bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         if (details != null) {
                             val aspects = listOfNotNull(byId[saved.deck.leader], byId[saved.deck.base])
                                 .flatMap { details.get(it)?.aspects.orEmpty() }.distinct()
@@ -110,12 +128,12 @@ internal fun DeckLibraryPanel(
                         }
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             FilledTonalButton(onClick = { onOpen(saved) }) { Text("Modifier") }
-                            TextButton(onClick = { onPrepare(saved) }) { Text("Préparer") }
                             Box {
                                 IconButton(onClick = { more = true }) {
                                     Icon(Icons.Default.MoreVert, "Autres actions pour ${saved.name}")
                                 }
                                 DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
+                                    DropdownMenuItem(text = { Text("Préparer les cartes") }, onClick = { more = false; onPrepare(saved) })
                                     DropdownMenuItem(text = { Text("Personnaliser la couverture") }, onClick = { more = false; coverTarget = saved })
                                     DropdownMenuItem(text = { Text(if (saved.id in pinned) "Retirer de l’accueil" else "Épingler à l’accueil") }, onClick = { more = false; onPin(saved) })
                                     DropdownMenuItem(text = { Text("Exporter le deck") }, onClick = { more = false; onExport(saved) })

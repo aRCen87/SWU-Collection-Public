@@ -17,6 +17,50 @@ import org.robolectric.annotation.Config
 @Config(sdk = [35], qualifiers = "w360dp-h800dp")
 class UnifiedCollectionUiTest {
     @get:Rule val ui = createComposeRule()
+    @Test fun scopeMenuFiltersMissingCardsAndRestoresTheCatalogueWithoutChangingStock() {
+        val ownedCard = CatalogCard("SOR", "095", "Carte possédée", "Unité", "Rare")
+        val missingCard = ownedCard.copy(number = "096", name = "Carte à trouver")
+        val owned = listOf(CollectionCard(1, ownedCard.name, "SOR", "095", "Normale", 2, "FR"))
+        var scope by mutableStateOf("Toutes les cartes")
+        ui.setContent { MaterialTheme {
+            androidx.compose.foundation.layout.Column(Modifier.fillMaxSize()) {
+                CollectionScopeMenu(scope) { scope = it }
+                UnifiedCollectionCatalog(listOf(ownedCard, missingCard), owned, scope, "Toutes", "Toutes", "", "Liste", CardDetails.empty(),
+                    Modifier.weight(1f), onPreview = { _, _ -> }, onActions = {}, showDisplayOptions = false, showFavoritesControl = false)
+            }
+        } }
+        ui.onNodeWithText("Afficher : Toutes ▾").performClick()
+        ui.onNodeWithText("Possédées").assertIsDisplayed()
+        ui.onNodeWithText("Manquantes").performClick()
+        ui.onNodeWithText(ownedCard.name).assertDoesNotExist()
+        ui.onNodeWithText(missingCard.name).assertIsDisplayed()
+        ui.onNodeWithText("Afficher : Manquantes ▾").performClick()
+        ui.onNodeWithText("Toutes les cartes").performClick()
+        ui.onNodeWithText(ownedCard.name).assertIsDisplayed()
+        assertEquals(2, owned.single().quantity)
+    }
+
+    @Test fun standardPhoneKeepsTwoCardsAcrossAndCompactProgressCanExpand() {
+        val first = CatalogCard("SOR", "095", "Première carte", "Unité", "Rare")
+        val second = first.copy(number = "096", name = "Deuxième carte")
+        ui.setContent { MaterialTheme {
+            UnifiedCollectionCatalog(listOf(first, second), emptyList(), "Manquantes", "Toutes", "Toutes", "", "Visuel", CardDetails.empty(),
+                Modifier.fillMaxSize(), onPreview = { _, _ -> }, onActions = {}, showDisplayOptions = false, showFavoritesControl = false)
+        } }
+        val left = ui.onNodeWithTag("catalog_artwork_${MarketPricing.key(first.setCode, first.number)}", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        val right = ui.onNodeWithTag("catalog_artwork_${MarketPricing.key(second.setCode, second.number)}", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        assertEquals(left.top, right.top, 1f)
+        assertTrue(right.left >= left.right)
+        ui.onNodeWithText("×0").assertDoesNotExist()
+        val logo = ui.onNodeWithContentDescription("Logo de l’extension SOR").fetchSemanticsNode().boundsInRoot
+        val frame = ui.onNodeWithTag("extension_frame_SOR").fetchSemanticsNode().boundsInRoot
+        assertTrue("The larger logo extends above the frame", logo.top < frame.top)
+        ui.onNodeWithContentDescription("Afficher la progression par rareté").performClick()
+        ui.onNodeWithText("Rare").assertIsDisplayed()
+        ui.onNodeWithContentDescription("Masquer la progression par rareté").performClick()
+        ui.onNodeWithText("Rare").assertDoesNotExist()
+    }
+
     @Test fun catalogueOpensActionsWithoutChangingAnyStock() {
         val card = CatalogCard("SOR", "095", "Carte A", "Unité", "Rare")
         var action: CatalogCard? = null
@@ -35,9 +79,9 @@ class UnifiedCollectionUiTest {
             var selected by remember { mutableStateOf(true) }
             MissingCardDimmingToggle(selected) { selected = it; dimmed = it }
         } }
-        ui.onNodeWithText("Griser les non possédées").performClick().assertIsNotSelected()
+        ui.onNodeWithText("Griser les manquantes").performClick().assertIsOff()
         ui.runOnIdle { assertFalse(dimmed); assertEquals(2, owned.single().quantity) }
-        ui.onNodeWithText("Griser les non possédées").performClick().assertIsSelected()
+        ui.onNodeWithText("Griser les manquantes").performClick().assertIsOn()
         ui.runOnIdle { assertTrue(dimmed) }
     }
 
@@ -61,8 +105,9 @@ class UnifiedCollectionUiTest {
         ui.onNode(target).assertIsDisplayed().performClick()
         ui.runOnIdle { assertTrue(opened) }
         ui.onNodeWithText("Recherche fixe").assertIsDisplayed()
-        ui.onNodeWithContentDescription("Taille des cartes").performScrollTo().performClick()
+        ui.onNodeWithText("Affichage").performScrollTo().performClick()
         ui.onNodeWithText("Compact").performClick()
+        ui.onNodeWithText("Voir les cartes").performClick()
         ui.onNodeWithText("Recherche fixe").assertIsDisplayed()
     }
 

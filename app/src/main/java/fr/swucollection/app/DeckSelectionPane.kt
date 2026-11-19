@@ -9,8 +9,6 @@ import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -28,22 +26,35 @@ internal fun DeckSelectionPane(name: String, deck: PortableDeck, catalog: List<C
         .sortedWith(compareBy({ byId[it.cardId]?.let { card -> details.get(card)?.cost } ?: Int.MAX_VALUE },
             { byId[it.cardId]?.name ?: it.cardId }))
     var grouping by rememberSaveable { mutableStateOf("Cartes") }
+    var displayMenu by remember { mutableStateOf(false) }
     val groups = remember(selected, grouping, details, byId) { if(grouping == "Cartes") mapOf("" to selected) else selected.groupBy { DesignDeckPlan.group(it, byId, details, grouping) } }
     var managing by remember(zone) { mutableStateOf<String?>(null) }
     Card(modifier.testTag("swu_deck_selection_pane"), colors = CardDefaults.cardColors(containerColor = ListPalette.Background)) {
         Column(Modifier.fillMaxSize().padding(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(name.ifBlank { "Mon deck" }, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
-                onAdd?.let { TextButton(onClick = it) { Text("＋ Cartes") } }
+            if (name.isNotBlank()) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(name, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                onAdd?.let { TextButton(onClick = it) { Text("Ajouter des cartes") } }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 FilterChip(zone == DeckEditor.Zone.MAIN, { onZone(DeckEditor.Zone.MAIN) }, label = { Text("Deck · ${deck.deck.sumOf { it.count }}/50") })
                 FilterChip(zone == DeckEditor.Zone.SIDEBOARD, { onZone(DeckEditor.Zone.SIDEBOARD) }, label = { Text("Réserve · ${deck.sideboard.sumOf { it.count }}/10") })
             }
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                listOf("Cartes", "Coût", "Type").forEach { mode -> FilterChip(grouping == mode, { grouping = mode }, label = { Text(if(mode == "Cartes") "Grille" else "Table · $mode") }) }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (name.isBlank()) onAdd?.let { TextButton(onClick = it) { Text("Ajouter des cartes") } }
+            Box {
+                TextButton(onClick = { displayMenu = true }) {
+                    Text("Affichage : ${if (grouping == "Cartes") "Grille" else "Table · $grouping"} ▾")
+                }
+                DropdownMenu(expanded = displayMenu, onDismissRequest = { displayMenu = false }) {
+                    listOf("Cartes", "Coût", "Type").forEach { mode ->
+                        DropdownMenuItem(text = { Text(if (mode == "Cartes") "Grille" else "Table · $mode") },
+                            onClick = { grouping = mode; displayMenu = false })
+                    }
+                }
             }
-            LazyVerticalGrid(columns = GridCells.Adaptive(100.dp), modifier = Modifier.weight(1f).fillMaxWidth(),
+            }
+            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+            LazyVerticalGrid(columns = if (maxWidth < 480.dp) GridCells.Fixed(3) else GridCells.Adaptive(100.dp), modifier = Modifier.fillMaxSize(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(bottom = 12.dp)) {
                 item(span = { GridItemSpan(maxLineSpan) }, key = "identities") {
@@ -61,7 +72,7 @@ internal fun DeckSelectionPane(name: String, deck: PortableDeck, catalog: List<C
                         color = ListPalette.Secondary)
                 }
                 if (selected.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
-                    Text("Ton deck est encore vide. Touche ＋ Cartes pour commencer.", Modifier.padding(12.dp))
+                    Text("Ton deck est encore vide. Touche Ajouter des cartes pour commencer.", Modifier.padding(12.dp))
                 }
                 groups.forEach { (heading, entries) ->
                 if(heading.isNotBlank()) item(span = { GridItemSpan(maxLineSpan) }, key = "heading:$heading") { Text("$heading · ${entries.sumOf { it.count }}", color = ListPalette.Secondary, style = MaterialTheme.typography.titleSmall) }
@@ -91,6 +102,7 @@ internal fun DeckSelectionPane(name: String, deck: PortableDeck, catalog: List<C
                     }
                 }
                 }
+            }
             }
         }
     }

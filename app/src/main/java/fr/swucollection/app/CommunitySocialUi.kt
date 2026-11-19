@@ -80,29 +80,30 @@ private fun CommunityHomeActions(avatar: String?, count: Int, destination: Strin
             }
         }
         Column(Modifier.align(Alignment.TopEnd), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Surface(shape = RoundedCornerShape(14.dp), color = Color(0xDB08121F),
-                border = androidx.compose.foundation.BorderStroke(1.dp, PremiumGold.copy(alpha = .4f))) {
-                IconButton(onClick = onMenu, modifier = Modifier.size(48.dp)) {
-                    Icon(Icons.Default.Settings, "Paramètres", tint = PremiumGold)
-                }
+            HomeShortcutButton(onClick = onMenu) {
+                Icon(Icons.Default.Settings, "Paramètres", modifier = Modifier.size(22.dp), tint = PremiumGold)
             }
-            Surface(shape = RoundedCornerShape(14.dp), color = Color(0xDB08121F),
-                border = androidx.compose.foundation.BorderStroke(1.dp, PremiumGold.copy(alpha = .4f))) {
-                IconButton(onClick = { onOpen(destination) }, modifier = Modifier.size(48.dp)) {
-                    Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.MailOutline, "Courrier, $count en attente", tint = PremiumGold)
-                        if (count > 0) Badge(Modifier.align(Alignment.TopEnd).offset(x = 6.dp, y = (-6).dp)) {
-                            Text(if (count > 99) "99+" else "$count")
-                        }
+            HomeShortcutButton(onClick = { onOpen(destination) }) {
+                Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.MailOutline, "Courrier, $count en attente", modifier = Modifier.size(22.dp), tint = PremiumGold)
+                    if (count > 0) Badge(Modifier.align(Alignment.TopEnd).offset(x = 3.dp, y = (-3).dp)) {
+                        Text(if (count > 99) "99+" else "$count")
                     }
                 }
             }
-            Surface(shape = RoundedCornerShape(14.dp), color = Color(0xDB08121F),
-                border = androidx.compose.foundation.BorderStroke(1.dp, PremiumGold.copy(alpha = .4f))) {
-                IconButton(onClick = onCounter, modifier = Modifier.size(48.dp)) {
-                    Icon(Icons.Default.MonitorHeart, "Compteur de points de vie", tint = PremiumGold)
-                }
+            HomeShortcutButton(onClick = onCounter) {
+                Icon(Icons.Default.MonitorHeart, "Compteur de points de vie", modifier = Modifier.size(22.dp), tint = PremiumGold)
             }
+        }
+    }
+}
+
+@Composable
+private fun HomeShortcutButton(onClick: () -> Unit, content: @Composable () -> Unit) {
+    IconButton(onClick = onClick, modifier = Modifier.size(48.dp)) {
+        Surface(modifier = Modifier.size(42.dp), shape = RoundedCornerShape(12.dp), color = Color(0xDB08121F),
+            border = androidx.compose.foundation.BorderStroke(1.dp, PremiumGold.copy(alpha = .4f))) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { content() }
         }
     }
 }

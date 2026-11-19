@@ -6,6 +6,7 @@ import androidx.activity.SystemBarStyle
 import android.os.Bundle
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import android.content.Intent
 import android.graphics.Bitmap
@@ -49,6 +50,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.animation.Crossfade
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import androidx.compose.ui.window.Dialog
@@ -241,7 +243,6 @@ private fun CollectionScreen(
     foregroundRequest: Int = 0,
     communityNavigationRequest: Pair<Int, String>? = null
 ) {
-    val compactHeader = LocalConfiguration.current.screenWidthDp < 400
     var cards by remember { mutableStateOf(database.allCards()) }
     var collectionRevision by remember { mutableIntStateOf(0) }
     var personalLists by remember { mutableStateOf(database.cardLists()) }
@@ -336,6 +337,8 @@ private fun CollectionScreen(
     val collectionFavoritesOnly = favoriteFilterValue == "true"
     var dimMissingValue by rememberCollectionFilter("dimMissing", "true")
     val dimMissing = dimMissingValue == "true"
+    var collectionSilhouettesValue by rememberCollectionFilter("collectionSilhouettes", "false")
+    val collectionSilhouettes = collectionSilhouettesValue == "true"
     var savedCollectionSort by rememberCollectionFilter("sort", CollectionPriceSort.CATALOG.name)
     val collectionSort = CollectionPriceSort.entries.firstOrNull { it.name == savedCollectionSort } ?: CollectionPriceSort.CATALOG
     var groupVersionsValue by rememberCollectionFilter("groupVersions", privateLayout.toString())
@@ -596,9 +599,10 @@ private fun CollectionScreen(
         }
         var detailTab by rememberSaveable { mutableStateOf("Collection") }
         var compareCards by remember { mutableStateOf(false) }
+        var cardToolsOpen by remember(session.current.card) { mutableStateOf(false) }
         val entryScale = rememberCardEntryScale(session.current.card)
         if(compareCards) CompareCardsDialog(card, allCatalog, cardDetails) { compareCards = false }
-        val artworkHeight = (LocalConfiguration.current.screenHeightDp.dp * (if (privateLayout) .48f else .42f)).coerceIn(180.dp, if (privateLayout) 440.dp else 350.dp)
+        val maxArtworkHeight = (LocalConfiguration.current.screenHeightDp.dp * .58f).coerceIn(160.dp, 560.dp)
             Card(modifier = Modifier.safeDrawingPadding().padding(12.dp).widthIn(max = 720.dp).fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
                 Column(Modifier.fillMaxWidth().testTag("swu_card_sheet").fillMaxHeight(0.92f).padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -615,8 +619,13 @@ private fun CollectionScreen(
                         IconButton(onClick = { previewFullscreen = true }) {
                             Icon(Icons.Default.Fullscreen, "Afficher la carte en plein écran")
                         }
-                        FilledIconButton(onClick = { quickCard = card }, modifier = Modifier.size(48.dp)) {
-                            Icon(Icons.Default.Add, "Ajouter ou gérer cette carte")
+                        IconButton(onClick = { quickCard = card }, modifier = Modifier.size(48.dp)) {
+                            Surface(Modifier.size(36.dp), shape = RoundedCornerShape(18.dp), color = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary) {
+                                Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
+                                    Icon(Icons.Default.Add, "Ajouter ou gérer cette carte", modifier = Modifier.size(20.dp))
+                                }
+                            }
                         }
                         IconButton(onClick = { previewSession = null }) {
                             Icon(Icons.Default.Close, "Fermer la carte")
@@ -625,69 +634,88 @@ private fun CollectionScreen(
                     Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 6.dp),
                         horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        val hasReverse = card.type.equals("Leader", ignoreCase = true) &&
+                        val hasReverse = DeckConstruction.type(card) in listOf("leader", "chef") &&
                             CardLanguageArtwork.displayFace(deckContext,card,previewLanguage,previewVariant,true).first.isNotBlank()
                         if (hasReverse) {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                FilterChip(selected = leaderMode == "flip", onClick = {
-                                    leaderMode = "flip"
-                                    displayPrefs.edit().putString("mode", "flip").apply()
-                                }, label = { Text("Retourner") })
                                 FilterChip(selected = leaderMode == "stack", onClick = {
-                                    leaderMode = "stack"
-                                    displayPrefs.edit().putString("mode", "stack").apply()
+                                    leaderMode = if (leaderMode == "stack") "flip" else "stack"
+                                    displayPrefs.edit().putString("mode", leaderMode).apply()
                                 }, label = { Text("Deux faces") })
                             }
                         }
+                        BoxWithConstraints(Modifier.fillMaxWidth()) {
+                        val imageWidth = maxWidth
+                        val landscapeFace = DeckConstruction.type(card) == "base" ||
+                            (DeckConstruction.type(card) in listOf("leader", "chef") && !showReverse)
+                        val artworkHeight = (imageWidth / if (landscapeFace) 1.4f else (5f / 7f)).coerceAtMost(maxArtworkHeight)
                         if (hasReverse && leaderMode == "stack") {
-                            Column(Modifier.heightIn(max = 430.dp).verticalScroll(rememberScrollState()),
+                            Column(
                                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text("Recto")
                                 TransitioningCardArtwork(card, previewVariant, index = session.index,
                                     enabled = AppChannel.supportsExperience(deckContext.packageName),
-                                    modifier = Modifier.fillMaxWidth().height(280.dp).then(swipeCardModifier))
+                                    modifier = Modifier.fillMaxWidth().height((imageWidth / 1.4f).coerceAtMost(maxArtworkHeight)).then(swipeCardModifier))
                                 Text("Verso")
                                 TransitioningCardArtwork(card, previewVariant, reverse = true, index = session.index,
                                     enabled = AppChannel.supportsExperience(deckContext.packageName),
-                                    modifier = Modifier.fillMaxWidth().height(280.dp).then(swipeCardModifier))
+                                    modifier = Modifier.fillMaxWidth().height((imageWidth * 1.4f).coerceAtMost(maxArtworkHeight)).then(swipeCardModifier))
                             }
                         } else if (hasReverse) {
                             if (AppChannel.supportsExperience(deckContext.packageName)) {
                                 TransitioningCardArtwork(card, previewVariant, reverse = showReverse, index = session.index,
                                     enabled = true, modifier = Modifier.fillMaxWidth().height(artworkHeight).graphicsLayer { scaleX = entryScale; scaleY = entryScale }
-                                        .then(swipeCardModifier).clickable { showReverse = !showReverse })
+                                        .then(swipeCardModifier).clickable(onClickLabel = "Retourner la carte") { showReverse = !showReverse })
                             } else Crossfade(targetState = showReverse, label = "Retourner le leader") { reverse ->
-                                CardArtwork(card, Modifier.fillMaxWidth().height(artworkHeight).graphicsLayer { scaleX = entryScale; scaleY = entryScale }.then(swipeCardModifier).clickable { showReverse = !showReverse }, variant = previewVariant, reverse = reverse)
+                                CardArtwork(card, Modifier.fillMaxWidth().height(artworkHeight).graphicsLayer { scaleX = entryScale; scaleY = entryScale }.then(swipeCardModifier).clickable(onClickLabel = "Retourner la carte") { showReverse = !showReverse }, variant = previewVariant, reverse = reverse)
                             }
-                            Text("Toucher la carte pour la retourner", fontSize = 12.sp)
                         } else {
                             TransitioningCardArtwork(card, previewVariant, index = session.index,
                                 enabled = AppChannel.supportsExperience(deckContext.packageName),
                                 modifier = Modifier.fillMaxWidth().height(artworkHeight).graphicsLayer { scaleX = entryScale; scaleY = entryScale }.then(swipeCardModifier))
                         }
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                            Text(card.name, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         }
-                        val collectionActions: @Composable () -> Unit = {
-                        Text("Ma collection — choisir une variante", fontWeight = FontWeight.SemiBold)
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            ScanVariants.detect(card).choices.forEach { option ->
-                                FilterChip(selected = previewVariant == option,
-                                    onClick = { previewVariant = option },
-                                    label = { Text(option, fontSize = 11.sp) })
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            Text(card.name, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold, fontSize = 18.sp,
+                                maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        }
+                        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            itemVerticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            CardLanguageChoices(previewLanguage, { previewLanguage = it; showReverse = false }, showLabel = false)
+                            var finishMenu by remember(card) { mutableStateOf(false) }
+                            Box {
+                                OutlinedButton(onClick = { finishMenu = true }, modifier = Modifier.semantics {
+                                    contentDescription = "Finition de la carte : $previewVariant"
+                                }) { Text("$previewVariant ▾") }
+                                DropdownMenu(finishMenu, onDismissRequest = { finishMenu = false }) {
+                                    ScanVariants.detect(card).choices.forEach { option ->
+                                        DropdownMenuItem(text = { Text(option) }, onClick = { previewVariant = option; finishMenu = false })
+                                    }
+                                }
+                            }
+                            if (privateLayout) Box {
+                                IconButton(onClick = { cardToolsOpen = true }) { Icon(Icons.Default.MoreVert, "Autres actions de la carte") }
+                                DropdownMenu(cardToolsOpen, onDismissRequest = { cardToolsOpen = false }) {
+                                    DropdownMenuItem(text = { Text("Comparer") }, onClick = { cardToolsOpen = false; compareCards = true })
+                                    DropdownMenuItem(text = { Text("Partager à des amis") }, onClick = {
+                                        cardToolsOpen = false; sharingPlayerCard = SharedPlayerCard(card.setCode, card.number, previewLanguage, previewVariant)
+                                    })
+                                }
                             }
                         }
-                        if(!privateLayout) CardmarketPricePanel(card, previewVariant)
                         val ownedVariant = cards.firstOrNull {
                             it.setCode.equals(card.setCode, true) &&
                             it.number == card.number && it.variant == previewVariant && it.language == previewLanguage
                         }
+                        val collectionActions: @Composable () -> Unit = {
+                        if(!privateLayout) CardmarketPricePanel(card, previewVariant)
                         Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             OutlinedButton(onClick = {
                                 ownedVariant?.let { database.changeQuantity(it.id, -1); refresh() }
                             }, enabled = (ownedVariant?.quantity ?: 0) > 0) { Text("−") }
-                            Text("${ownedVariant?.quantity ?: 0} exemplaire(s)",
+                            val quantity = ownedVariant?.quantity ?: 0
+                            Text("$quantity " + if (quantity > 1) "possédées" else "possédée",
                                 modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
                             Button(onClick = {
                                 pendingCollectionAdd = CollectionAddRequest(card, previewVariant, previewLanguage)
@@ -696,7 +724,8 @@ private fun CollectionScreen(
                         }
                         val secondaryTools: @Composable () -> Unit = {
                         val familyStock = remember(card, cards, allCatalog, cardDetails) { DeckCompanion.stock(card, cards, allCatalog, cardDetails) }
-                        Text("$familyStock exemplaire(s) possédé(s), versions reconnues comprises", color = ListPalette.Gold)
+                        if (familyStock > (ownedVariant?.quantity ?: 0)) Text("$familyStock au total, autres versions comprises", color = ListPalette.Gold,
+                            style = MaterialTheme.typography.bodySmall)
                         CardDeckUsagePanel(card, savedDecks, allCatalog, cardDetails, enabled = !deckWorkspace,
                             onAdd = { quickCard = card }, onOpen = ::openSavedDeck)
                         if(!privateLayout) RelatedPrintsPanel(card, allCatalog, cards, cardDetails, previewVariant, previewLanguage) { related, finish, language ->
@@ -708,13 +737,12 @@ private fun CollectionScreen(
                         val inLists = personalLists.count { list -> list.entries.any {
                             it.card.setCode == card.setCode && it.card.number == card.number
                         } }
-                        Text("Dans $inLists liste(s)", style = MaterialTheme.typography.bodySmall)
+                        if (inLists > 0) Text("Dans $inLists liste(s)", style = MaterialTheme.typography.bodySmall)
                         CardLegalityBadge(premierLegality.status(card))
                         Text("${card.setCode} • ${card.number} • ${card.rarity}")
                         if (previewLanguage == CardLanguages.UNKNOWN) Text("Visuel du catalogue : précise la langue pour afficher ta version.",style=MaterialTheme.typography.bodySmall)
                         if (card.imageUrl.isBlank() && previewLanguage in CardLanguages.supported) Text("Le visuel ${CardLanguages.label(previewLanguage).lowercase(java.util.Locale.FRANCE)} n’est pas publié pour cette référence. Un visuel disponible est affiché avec sa langue.", color = ListPalette.Secondary)
                         }
-                        CardLanguageChoices(previewLanguage, { previewLanguage = it; showReverse = false })
                         if (privateLayout) {
                             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 listOf("Collection", "Variantes", "Cotes").forEach { title -> FilterChip(detailTab == title, { detailTab = title }, label = { Text(title) }) }
@@ -724,17 +752,16 @@ private fun CollectionScreen(
                                 "Variantes" -> VariantFan(card, allCatalog, cards, cardDetails, previewVariant, previewLanguage) { related, finish, language -> previewPrint = related; previewVariant = finish; previewLanguage = language; showReverse = false }
                                 "Cotes" -> CardmarketPricePanel(card, previewVariant)
                             }
-                            TextButton(onClick = { compareCards = true }) { Text("Comparer avec une autre carte") }
                         }
                         else { secondaryTools(); collectionActions() }
-                        if(privateLayout) OutlinedButton(onClick={sharingPlayerCard=SharedPlayerCard(card.setCode,card.number,previewLanguage,previewVariant)}){Text("Partager à des amis")}
-                        OutlinedButton(onClick = { previewSession = null }) { Text("Fermer") }
                         }
                 }
             }
     }
     }
     val pageScroll = rememberScrollState()
+    var bottomBarHeight by remember { mutableIntStateOf(0) }
+    val bottomClearance = with(LocalDensity.current) { bottomBarHeight.toDp() } + 8.dp
     val immersiveHome=privateLayout && selectedSection=="Accueil"
     val messengerKeyboardOpen=selectedSection=="Messagerie" && WindowInsets.ime.getBottom(LocalDensity.current)>0
     val updateBanner: @Composable () -> Unit = {
@@ -764,7 +791,7 @@ private fun CollectionScreen(
                     "Collection", "Extensions", "Mes decks", "Mes proxies", "Mes listes", "Hauts faits" -> 1000.dp
                     else -> 760.dp
                 }) else Modifier)
-                .fillMaxSize().padding(bottom = if (deckWorkspace || selectedSection == "Messagerie") 0.dp else 82.dp).then(
+                .fillMaxSize().padding(bottom = if (deckWorkspace || selectedSection == "Messagerie") 0.dp else bottomClearance).then(
                 if (selectedSection in listOf("Collection", "Extensions", "Mes decks", "Mes proxies", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta", "Prêts", "Messagerie"))
                     Modifier else Modifier.verticalScroll(pageScroll)
             ).then(if(immersiveHome) Modifier else if(selectedSection=="Messagerie")Modifier.padding(messengerContentPadding()) else Modifier.padding(horizontal = 16.dp, vertical = 10.dp)),
@@ -800,23 +827,6 @@ private fun CollectionScreen(
                     IconButton(onClick = {
                         if (backDispatcher != null) backDispatcher.onBackPressed() else navigation.back()
                     }) { Icon(Icons.Default.ArrowBack, "Retour à l’écran précédent") }
-                    if (selectedSection !in primaryDestinations) OutlinedButton(
-                        onClick = { navigation.navigateTo("Accueil") },
-                        modifier = Modifier.heightIn(min = 48.dp).padding(end = 10.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        border = BorderStroke(1.dp, Color(0xFFFFD47D).copy(alpha = 0.55f)),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = Color(0xFFFFD47D).copy(alpha = 0.09f),
-                            contentColor = Color(0xFFFFD47D)
-                        ),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
-                    ) {
-                        Icon(Icons.Default.Home, contentDescription = if (compactHeader) "Retour à l’accueil" else null, modifier = Modifier.size(18.dp))
-                        if (!compactHeader) {
-                            Spacer(Modifier.width(6.dp))
-                            Text("Accueil", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                        }
-                    }
                     Text(when (selectedSection) {
                         "Collection" -> "Ma collection"
                         "Recherche" -> "Rechercher"
@@ -991,7 +1001,7 @@ private fun CollectionScreen(
                 }
             }
             if (selectedSection == "Mes proxies") {
-                ProxyBuilderPanel(allCatalog, cards, cardDetails, onBack = { navigation.back() })
+                ProxyBuilderPanel(allCatalog, cards, cardDetails, onBack = { navigation.back() }, showBackButton = false)
             }
             if (selectedSection == "Mes listes") {
                 CardListsPanel(personalLists, selectedSet, Modifier.weight(1f),
@@ -1041,7 +1051,6 @@ private fun CollectionScreen(
                 CollectionHistoryPanel(database, { refresh() }, Modifier.weight(1f))
             }
             if (selectedSection == "Statistiques") {
-                Text("Statistiques de collection", fontSize = 22.sp, fontWeight = FontWeight.Bold)
                 CollectionValuePanel(cards, collectionQuotes, sets)
                 val uniqueOwned = cards.filter { it.quantity > 0 }
                     .map { it.setCode.uppercase() to it.number }.distinct().size
@@ -1234,13 +1243,12 @@ private fun CollectionScreen(
                         DropdownMenu(moreCollection, { moreCollection = false }) {
                             DropdownMenuItem(text = { Text("Ajout manuel") }, onClick = { moreCollection = false; navigation.navigateTo("Ajouter") })
                             DropdownMenuItem(text = { Text("Gérer ma collection") }, onClick = { moreCollection = false; collectionWorkbench = true })
-                            DropdownMenuItem(text = { Text(if(dimMissing) "Afficher les manquantes en couleur" else "Griser les non possédées") }, onClick = { dimMissingValue = (!dimMissing).toString(); moreCollection = false })
                         }
                     }
                 }
-                val collectionScopeControls: @Composable () -> Unit = {
+                val collectionExtensionControl: @Composable () -> Unit = {
                 var extensionMenu by remember { mutableStateOf(false) }
-                val extensionControl: @Composable () -> Unit = { Box {
+                Box {
                     OutlinedButton(onClick = { extensionMenu = true }) {
                         Text(if (collectionSetFilter == "Toutes") "Toutes les extensions" else sets.firstOrNull { it.code == collectionSetFilter }?.let { "${it.code} · ${it.name}" } ?: collectionSetFilter)
                     }
@@ -1249,20 +1257,17 @@ private fun CollectionScreen(
                         sets.forEach { extension -> DropdownMenuItem(text = { Text("${extension.code} · ${extension.name}") },
                             onClick = { collectionSetFilter = extension.code; extensionMenu = false }) }
                     }
-                } }
-                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf("Possédées", "Toutes les cartes", "Manquantes").forEach { scope ->
-                        FilterChip(selected = if (scope == "Possédées") collectionScope in listOf("Possédées", "Doublons") else collectionScope == scope,
-                            onClick = { collectionScope = scope }, label = { Text(scope) })
-                    }
                 }
-                extensionControl()
                 if (collectionSetFilter != "Toutes") {
                     TextButton(onClick = { navigation.navigateTo("Compléter mon set", collectionSetFilter) }) { Text("Progression et objectif de cette extension") }
-                    val rarityStock = remember(cards, collectionLanguage) { cards.filter { collectionLanguage == "Toutes" || it.language == collectionLanguage }.groupBy { MarketPricing.key(it.setCode,it.number) }.mapValues { it.value.sumOf { row -> row.quantity } } }
-                    ExtensionProgressPanel(collectionSetFilter, allCatalog, rarityStock)
                 }
-
+                }
+                val collectionScopeControls: @Composable () -> Unit = {
+                    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp), itemVerticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        CollectionScopeMenu(collectionScope) { collectionScope = it }
+                        FilterChip(collectionFavoritesOnly, onClick = { favoriteFilterValue = (!collectionFavoritesOnly).toString() }, label = { Text("★ Favoris") })
+                    }
                 }
                 val collectionControls: @Composable () -> Unit = {
                 OutlinedTextField(value = search, onValueChange = { search = it },
@@ -1295,7 +1300,7 @@ private fun CollectionScreen(
                     OutlinedButton(onClick = { collectionFiltersOpen = true }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text("Filtres") }
                     collectionActionsMenu()
                 } else if (!scrollingMiniatureControls) Column(Modifier.fillMaxWidth()
-                    .heightIn(max = 160.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) { collectionControls() }
+                    .heightIn(max = 180.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) { collectionControls() }
                 if (collectionFiltersOpen) {
                     AlertDialog(onDismissRequest = { collectionFiltersOpen = false },
                         title = { Text("Filtres et affichage") },
@@ -1303,10 +1308,12 @@ private fun CollectionScreen(
                             Column(Modifier.fillMaxWidth().heightIn(max = 440.dp).verticalScroll(rememberScrollState()),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (compactCollectionLayout) collectionScopeControls()
+                collectionExtensionControl()
                 TextButton(onClick = {
                     search = ""; collectionSetFilter = "Toutes"; collectionLanguage = "Toutes"; collectionView = "Visuel"
                     savedCollectionSort = CollectionPriceSort.CATALOG.name; collectionScope = "Possédées"
-                    ownershipFilter = "Toutes"
+                    ownershipFilter = "Toutes"; favoriteFilterValue = "false"
+                    collectionScaleValue = "1.0"; collectionSilhouettesValue = "false"; dimMissingValue = "true"
                 }) { Text("Tout réinitialiser") }
                 Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                     Text("Uniquement mes doublons", Modifier.weight(1f))
@@ -1317,21 +1324,22 @@ private fun CollectionScreen(
                     Text("Regrouper les versions", modifier = Modifier.weight(1f))
                     Switch(groupVersions, { groupVersionsValue = it.toString() })
                 }
-                if (privateLayout || !groupVersions) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (privateLayout || !groupVersions) FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     (if (privateLayout) listOf("Visuel", "Liste", "Miniatures") else listOf("Visuel", "Liste")).forEach { option ->
                         FilterChip(selected = collectionView == option,
                             onClick = { collectionView = option },
                             label = { Text(option, fontSize = 12.sp) })
                     }
                 }
+                MissingCardDimmingToggle(dimMissing) { dimMissingValue = it.toString() }
+                if (collectionScope in listOf("Possédées", "Doublons")) Text(
+                    "Le gris s’applique dans Toutes les cartes et Manquantes. Les cartes possédées restent en couleur.",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (privateLayout) {
-                    FilterChip(collectionFavoritesOnly, onClick = { favoriteFilterValue = (!collectionFavoritesOnly).toString() }, label = { Text("★ Mes favoris") })
-                    Text("Taille des cartes", style = MaterialTheme.typography.labelLarge)
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        listOf("Grandes cartes" to 1.5f, "Équilibré" to 1f, "Compact" to .8f).forEach { (label, scale) ->
-                            FilterChip(kotlin.math.abs(collectionCardScale - scale) < .05f, onClick = { collectionScaleValue = scale.toString() }, label = { Text(label) })
-                        }
-                    }
+                    Text("Affichage", style = MaterialTheme.typography.titleSmall)
+                    CollectionCardDisplayOptions(collectionCardScale, { collectionScaleValue = it.toString() },
+                        collectionSilhouettes, { collectionSilhouettesValue = it.toString() }, showSize = collectionView != "Liste",
+                        showSilhouettes = dimMissing && collectionScope !in listOf("Possédées", "Doublons"))
                 }
                 var priceSortMenuOpen by remember { mutableStateOf(false) }
                 Box {
@@ -1392,7 +1400,9 @@ private fun CollectionScreen(
                         onActions = { quickCard = it }, dimMissing = dimMissing,
                         header = if (scrollingMiniatureControls) collectionControls else null, sets = sets,
                         favoritesOnlyOverride = collectionFavoritesOnly, onFavoritesOnlyChange = { favoriteFilterValue = it.toString() },
-                        cardScaleOverride = collectionCardScale, onCardScaleChange = { collectionScaleValue = it.toString() })
+                        cardScaleOverride = collectionCardScale, onCardScaleChange = { collectionScaleValue = it.toString() },
+                        silhouettesOverride = collectionSilhouettes, onSilhouettesChange = { collectionSilhouettesValue = it.toString() },
+                        showDisplayOptions = false, showFavoritesControl = false)
                 } else {
                 if (!scrollingMiniatureControls && selectedOwned.isNotEmpty()) Text(if (compactCollectionLayout) "${selectedOwned.sumOf { it.quantity }} exemplaires affichés"
                     else "${selectedOwned.map { MarketPricing.key(it.setCode,it.number) + ":" + it.variant }.distinct().size} références et variantes possédées · ${selectedOwned.sumOf { it.quantity }} exemplaires", fontSize = 12.sp)
@@ -1414,7 +1424,8 @@ private fun CollectionScreen(
                         val miniatures = collectionView == "Miniatures"
                         // Three on a phone; more columns as the actual window widens (Fold or landscape).
                         val miniatureColumns = ((maxWidth.value + 6f) / (110f * collectionCardScale)).toInt().coerceAtLeast(2)
-                        LazyVerticalGrid(columns = if (miniatures) GridCells.Fixed(miniatureColumns) else GridCells.Adaptive((145f * collectionCardScale).dp),
+                        LazyVerticalGrid(columns = if (miniatures) GridCells.Fixed(miniatureColumns)
+                            else if (maxWidth < 600.dp && collectionCardScale in .95f..1.05f) GridCells.Fixed(2) else GridCells.Adaptive((145f * collectionCardScale).dp),
                             modifier = Modifier.fillMaxSize().testTag(if (miniatures) "swu_miniature_grid" else "swu_visual_grid"),
                             horizontalArrangement = Arrangement.spacedBy(if (miniatures) 6.dp else 10.dp),
                             verticalArrangement = Arrangement.spacedBy(if (miniatures) 6.dp else 10.dp),
@@ -1501,7 +1512,7 @@ private fun CollectionScreen(
         }
             additionMessage?.let { message ->
                 Surface(Modifier.align(androidx.compose.ui.Alignment.BottomCenter)
-                    .padding(start = 16.dp, end = 16.dp, bottom = 92.dp).widthIn(max = 640.dp).fillMaxWidth(),
+                    .padding(start = 16.dp, end = 16.dp, bottom = if (deckWorkspace || selectedSection == "Messagerie") 12.dp else bottomClearance + 4.dp).widthIn(max = 640.dp).fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp), tonalElevation = 6.dp,
                     color = ListPalette.Raised, contentColor = ListPalette.Gold) {
                     Row(Modifier.padding(8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
@@ -1533,7 +1544,7 @@ private fun CollectionScreen(
             }
         }
         if (!deckWorkspace && selectedSection != "Messagerie") Box(Modifier.align(androidx.compose.ui.Alignment.BottomCenter)
-            .then(if (privateLayout) Modifier.widthIn(max = 640.dp) else Modifier).fillMaxWidth()) {
+            .then(if (privateLayout) Modifier.widthIn(max = 640.dp) else Modifier).fillMaxWidth().onSizeChanged { bottomBarHeight = it.height }) {
             CollectionBottomBar(navigation.current.section) { section -> if (section == "Scanner") openScanner() else navigation.navigateTo(section) }
         }
     }
@@ -1823,8 +1834,6 @@ private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) 
             Surface(Modifier.fillMaxHeight().then(if (privateLayout) Modifier.width(menuWidth) else Modifier.fillMaxWidth(0.88f)),
                 color = Color(0xFF030B12), shape = RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp)) {
                 Box(Modifier.fillMaxSize()) {
-                    ReferenceArtwork(1152, 754, 350, 180, null,
-                        Modifier.align(androidx.compose.ui.Alignment.BottomCenter).fillMaxWidth().height(175.dp))
                     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(22.dp)) {
                         Row(Modifier.fillMaxWidth(),
                             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
@@ -1837,11 +1846,11 @@ private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) 
                                 Icon(Icons.Default.Close, "Fermer le menu", tint = Color(0xFFFFD47D))
                             }
                         }
-                        Spacer(Modifier.height(24.dp))
+                        Spacer(Modifier.height(8.dp))
                         val communityEntries = if (AppChannel.supportsExperience(LocalContext.current.packageName))
                             listOf(Triple(Icons.Default.Person, "Mon compte", "Communauté"),
                                 Triple(Icons.Default.Handshake, "Mes prêts de cartes", "Prêts")) else emptyList()
-                        val entries = communityEntries + listOf(
+                        val entries = listOf(Triple(Icons.Default.Home, "Accueil", "Accueil")) + communityEntries + listOf(
                             Triple(Icons.Default.PhotoCamera, "Scanner", "Scanner"),
                             Triple(Icons.Default.CollectionsBookmark, "Compléter mon set", "Compléter mon set"),
                             Triple(Icons.Default.EmojiEvents, "Tournois & Méta", "Tournois & Méta"),
@@ -1854,7 +1863,7 @@ private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) 
                         )
                         entries.forEachIndexed { index, (icon, label, section) ->
                             val group = when {
-                                index == 0 && communityEntries.isNotEmpty() -> "Compte et partage"
+                                section == "Communauté" && communityEntries.isNotEmpty() -> "Compte et partage"
                                 section == "Scanner" -> "Collection et jeu"
                                 section == "Historique" -> "Outils et réglages"
                                 else -> null
@@ -1869,7 +1878,7 @@ private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) 
                             }
                             HorizontalDivider(color = Color(0xFF66583D).copy(alpha = 0.4f))
                         }
-                        Spacer(Modifier.height(150.dp))
+                        Spacer(Modifier.height(24.dp))
                     }
                 }
             }
@@ -1942,7 +1951,7 @@ internal fun CardArtwork(card: CatalogCard?, modifier: Modifier = Modifier, lang
     if (card == null) { CardArtwork("",modifier,grayscale); return }
     val context = LocalContext.current
     val face = remember(card,language,variant,reverse) { CardLanguageArtwork.displayFace(context,card,language,variant,reverse) }
-    Box(modifier.then(rememberVariantArtworkSheen(variant))) {
+    Box(modifier.then(rememberVariantArtworkSheen(variant.takeUnless { grayscale }))) {
         CardArtwork(face.first, Modifier.fillMaxSize(), grayscale)
         if (showLanguageLabel && !variant.isNullOrBlank() && variant != "Standard") {
             Surface(color = Color(0xE6071322), shape = RoundedCornerShape(6.dp),

@@ -6,6 +6,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -36,7 +38,7 @@ internal fun rememberProxyBuilderState(initial: List<PrintCard>? = null): ProxyB
 
 @Composable
 internal fun ProxyBuilderPanel(catalog: List<CatalogCard>, owned: List<CollectionCard>, details: CardDetails,
-    initial: List<PrintCard>? = null, state: ProxyBuilderState = rememberProxyBuilderState(initial), onBack: () -> Unit) {
+    initial: List<PrintCard>? = null, state: ProxyBuilderState = rememberProxyBuilderState(initial), onBack: () -> Unit, showBackButton: Boolean = true) {
     val context = LocalContext.current
     val largeText = LocalDensity.current.fontScale > 1.3f
     val prefs = remember { context.getSharedPreferences("proxy_print_selection", 0) }
@@ -63,6 +65,9 @@ internal fun ProxyBuilderPanel(catalog: List<CatalogCard>, owned: List<Collectio
     var filtering by remember { mutableStateOf(false) }
     var printing by remember { mutableStateOf(false) }
     var clearing by remember { mutableStateOf(false) }
+    var more by remember { mutableStateOf(false) }
+    val copies = selected.values.sum()
+    val pages = (copies + 8) / 9
     val filtered = remember(catalog, selected, selectionOnly, query, filters, stock, details) {
         catalog.filter { card -> (!selectionOnly || DeckConstruction.reference(card) in selected) && DeckBrowser.search(card, query) &&
             filters.matches(card, details.get(card), stock[details.family(card)] ?: 0, false) }
@@ -71,18 +76,24 @@ internal fun ProxyBuilderPanel(catalog: List<CatalogCard>, owned: List<Collectio
     }
     BackHandler(onBack = onBack)
     Column(Modifier.fillMaxSize().padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            TextButton(onClick = onBack) { Text("Retour") }
-            Text("Proxies", Modifier.weight(1f).padding(top = 12.dp), color = ListPalette.Gold)
-            TextButton(onClick = { clearing = true }, enabled = selected.isNotEmpty()) { Text("Tout retirer") }
+        if (showBackButton) TextButton(onClick = onBack) { Text("Retour au deck") }
+        Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+            OutlinedTextField(query, { query = it }, singleLine = true, modifier = Modifier.weight(1f), label = { Text("Rechercher une carte") })
+            Box {
+                IconButton(onClick = { more = true }) { Icon(Icons.Default.MoreVert, "Options de la sélection de proxies") }
+                DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
+                    DropdownMenuItem(text = { Text("Tout retirer", color = ListPalette.Danger) }, enabled = selected.isNotEmpty(),
+                        onClick = { more = false; clearing = true })
+                }
+            }
         }
-        OutlinedTextField(query, { query = it }, singleLine = true, modifier = Modifier.fillMaxWidth(), label = { Text("Rechercher une carte") })
         FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             FilterChip(!selectionOnly, onClick = { selectionOnly = false }, label = { Text("Choisir des cartes") })
-            FilterChip(selectionOnly, onClick = { selectionOnly = true; query = ""; filters = DeckBrowserFilters() }, label = { Text("À imprimer (${selected.size})") })
-            TextButton(onClick = { filtering = true }) { Text("Filtres") }
+            FilterChip(selectionOnly, onClick = { selectionOnly = true; query = ""; filters = DeckBrowserFilters() }, label = { Text("Sélection (${selected.size})") })
+            TextButton(onClick = { filtering = true }) { Text(if (filters.activeCount == 0) "Filtres" else "Filtres (${filters.activeCount})") }
         }
-        LazyVerticalGrid(GridCells.Adaptive(if (largeText) 168.dp else 128.dp), modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        BoxWithConstraints(Modifier.weight(1f)) {
+        LazyVerticalGrid(if (!largeText && maxWidth < 600.dp) GridCells.Fixed(2) else GridCells.Adaptive(if (largeText) 168.dp else 160.dp), modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (filtered.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
                 Column { Text("Aucune carte dans cette vue.")
                     TextButton(onClick = { query = ""; filters = DeckBrowserFilters(); selectionOnly = false }) { Text("Afficher tout le catalogue") } }
@@ -91,12 +102,14 @@ internal fun ProxyBuilderPanel(catalog: List<CatalogCard>, owned: List<Collectio
                 val id = DeckConstruction.reference(card)
                 DeckCardTile(card, true, selected[id] ?: 0, stock[details.family(card)] ?: 0, 0, false, false,
                     canAdd = (selected[id] ?: 0) < 99 && selected.values.sum() < CardPdfPlan.MAX_CARDS,
-                    onPreview = { preview = card }, onChoose = {}, onQuantity = { update(id, it) })
+                    onPreview = { preview = card }, onChoose = {}, onQuantity = { update(id, it) }, showOwned = false)
             }
+        }
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = { printing = true }, enabled = selected.isNotEmpty()) { Text("Créer le PDF") }
-            Text("${selected.values.sum()} exemplaire(s)", Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall)
+            Text("$copies exemplaire${if (copies == 1) "" else "s"} · $pages page${if (pages == 1) "" else "s"}",
+                Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall)
         }
     }
     preview?.let { card -> DeckCardGallery(filtered, DeckConstruction.reference(card), { preview = null }) }
