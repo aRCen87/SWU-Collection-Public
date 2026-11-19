@@ -5,6 +5,7 @@ import subprocess
 import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from ui_probe_common import reader_page
 
 PACKAGE = os.environ.get("SWU_SMOKE_PACKAGE", "fr.swucollection.app.test")
 OUT = Path("smoke-private")
@@ -52,9 +53,7 @@ def capture(name):
     adb("pull", "/sdcard/fold-check.png", OUT / ("home-test-fold-" + name + ".png"))
 
 def page(root):
-    pages = [n.attrib.get("text", "") for n in root.iter("node") if re.fullmatch(r"\d+ / \d+", n.attrib.get("text", ""))]
-    assert len(pages) == 1, (pages, [n.attrib.get("text", "") for n in root.iter("node") if n.attrib.get("text")][:60])
-    return pages[0]
+    return reader_page(root)
 
 original_keyboard = adb("shell", "settings", "get", "secure", "show_ime_with_hard_keyboard").strip()
 try:
