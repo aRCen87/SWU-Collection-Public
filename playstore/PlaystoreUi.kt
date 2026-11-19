@@ -33,3 +33,15 @@ internal fun PlaystoreUpdatePanel() {
         }
     }
 }
+
+@Composable
+internal fun LocalLoanPreviewRow(card: CatalogCard?, fallback: String, quantity: Int, language: String, finish: String) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+        CardArtwork(card, Modifier.size(48.dp, 68.dp), language = language,
+            variant = if (finish == "Classique") "Normale" else finish)
+        Column(Modifier.weight(1f)) {
+            Text("$quantity × ${card?.name ?: fallback}", style = MaterialTheme.typography.titleSmall)
+            Text("${CardLanguages.label(language)} · $finish", style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}

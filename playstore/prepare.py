@@ -14,7 +14,7 @@ REMOVED = set('''AccountBackups AutomaticAccountBackup CharacterPortrait Communi
 CommunityLiveConnection CommunityNotifications CommunityService CommunitySocial CommunitySocialUi
 CommunityTradeUi CommunityUi ConfirmedTradeUi ConfirmedTrades FriendTradeSuggestions MemberDirectory
 MessengerChatUi MessengerPresenceUi MessengerService MessengerUi PlayerShowcase PlayerShowcaseUi
-RealtimeMessagingService SearchCardAlerts ShareCardUi AppUpdates UpdateNotifications PreviewUpdates'''.split())
+RealtimeMessagingService SearchCardAlerts ShareCardUi AppUpdates UpdateNotifications PreviewUpdates PrivateUpdateBrowser SimpleTradeStock'''.split())
 
 
 def once(text, old, new=''):
@@ -126,6 +126,7 @@ internal fun validateTradeReceipts(j: JSONObject) {
     s = re.sub(r'^.*AccountBackupPanel\(.*\n', '', s, flags=re.M)
     s = between(s, '                AppUpdatePanel(appUpdates,', '                Card(Modifier.fillMaxWidth())', '''                PlaystoreUpdatePanel()
 ''')
+    s = once(s, '                    HomeBackupStatus(database) { navigation.navigateTo("Sauvegardes") }\n')
     s = once(s, '    sharingPlayerCard?.let { shared -> CardShareDialog(shared,allCatalog) { sharingPlayerCard=null } }\n')
     s = between(s, '                        val communityEntries =', '                        val entries =', '''                        val communityEntries = listOf(Triple(Icons.Default.Handshake, "Mes prêts de cartes", "Prêts"))
 ''')
@@ -144,7 +145,11 @@ internal fun validateTradeReceipts(j: JSONObject) {
     shortcuts = src / 'BottomShortcutUi.kt'
     shortcuts.write_text('\n'.join(line for line in shortcuts.read_text().splitlines() if not any('"' + key + '" to' in line for key in ('Messagerie', 'Communauté'))) + '\n')
     navigation = src / 'AppNavigation.kt'
-    navigation.write_text(re.sub(r'^internal fun communityDestination.*\n', '', navigation.read_text(), flags=re.M))
+    text = re.sub(r'^internal fun communityDestination.*\n', '', navigation.read_text(), flags=re.M)
+    text = once(text, '        if (section == "Accueil") {', '        if (section in setOf("Communauté", "Messagerie", "Mon compte", "Amis", "Membres")) return\n        if (section == "Accueil") {')
+    navigation.write_text(text)
+    loans = src / 'CardLoansUi.kt'
+    loans.write_text(loans.read_text().replace('TradePreviewRow(', 'LocalLoanPreviewRow('))
     legal = src / 'LegalInformation.kt'
     text = '\n'.join(line for line in legal.read_text().splitlines() if 'Échanges entre amis dans l’application Test' not in line)
     text = text.replace('GitHub fournit les vérifications de versions, les APK et les mises à jour du catalogue', 'Google Play fournit les mises à jour de l’application ; GitHub fournit les mises à jour du catalogue')
