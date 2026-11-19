@@ -71,6 +71,45 @@ class CollectionPhonePreviewTest {
         }
     }
 
+    @Test fun proxiesKeepSeparateCardAndCopyCountsAndConfirmClearingWithoutChangingStock() {
+        val context = ui.activity.applicationContext
+        val cards = CollectionDatabase(context).use { it.catalogCardsForSet("IC27").take(2) }
+        val first = cards[0]; val second = cards[1]
+        val prefs = context.getSharedPreferences("proxy_print_selection", 0)
+        prefs.edit().putString("cards", org.json.JSONObject(mapOf(DeckConstruction.reference(first) to 5,
+            DeckConstruction.reference(second) to 4)).toString()).commit()
+        val before = CollectionDatabase(context).use { it.exportJson() }
+        ui.onAllNodesWithText("Mes proxies").onFirst().performClick()
+        ui.onNodeWithText("Retour au deck").assertDoesNotExist()
+        ui.onNodeWithText("Sélection (2)").assertIsDisplayed()
+        ui.onNodeWithText("9 exemplaires · 1 page").assertIsDisplayed()
+        ui.onNodeWithText("Tout retirer", substring = false).assertDoesNotExist()
+        ui.onAllNodesWithText("Possédées :", substring = true).assertCountEquals(0)
+        ui.waitForIdle(); waitForFirstArtwork(); capture("proxies-phone-catalogue")
+        ui.onNodeWithText("Sélection (2)").performClick()
+        ui.onNodeWithContentDescription("Ajouter ${first.name}").performClick()
+        ui.onNodeWithText("10 exemplaires · 2 pages").assertIsDisplayed()
+        ui.onNodeWithText("✓ ×6").assertIsDisplayed()
+        ui.onNodeWithText("Sélection (2)").assertIsDisplayed()
+        ui.waitForIdle(); waitForFirstArtwork(); capture("proxies-phone-selection")
+        ui.onNodeWithText("Créer le PDF").performClick()
+        ui.onNodeWithText("Proxies à imprimer", substring = false).assertIsDisplayed()
+        ui.onNodeWithText("10 face(s) · 2 page(s) A4").assertIsDisplayed()
+        ui.onNodeWithText("Fermer", substring = false).performClick()
+        ui.onNodeWithContentDescription("Options de la sélection de proxies").performClick()
+        ui.onNodeWithText("Tout retirer", substring = false).performClick()
+        ui.onNodeWithText("Vider la sélection de proxies ?").assertIsDisplayed()
+        ui.onNodeWithText("Annuler", substring = false).performClick()
+        ui.onNodeWithText("10 exemplaires · 2 pages").assertIsDisplayed()
+        ui.onNodeWithContentDescription("Options de la sélection de proxies").performClick()
+        ui.onNodeWithText("Tout retirer", substring = false).performClick()
+        ui.onNodeWithText("Tout retirer", substring = false).performClick()
+        ui.onNodeWithText("Sélection (0)").assertIsDisplayed()
+        ui.onNodeWithText("Créer le PDF").assertIsNotEnabled()
+        ui.runOnIdle { assertEquals(0, org.json.JSONObject(prefs.getString("cards", "{}")!!).length()) }
+        CollectionDatabase(context).use { assertEquals(before, it.exportJson()) }
+    }
+
     @Test fun compactDeckLibraryAndBuilderKeepThreeColumnsAndIdentityNavigation() {
         val context = ui.activity.applicationContext
         val catalog = CollectionDatabase(context).use { it.catalogCardsForSet("SOR") }
