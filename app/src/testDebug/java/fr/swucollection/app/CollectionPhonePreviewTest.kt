@@ -50,6 +50,11 @@ class CollectionPhonePreviewTest {
     private fun capture(name: String) {
         ui.runOnIdle {
             val view = ui.activity.window.decorView
+            fun invalidateTree(node: android.view.View) {
+                node.invalidate()
+                if (node is android.view.ViewGroup) for (index in 0 until node.childCount) invalidateTree(node.getChildAt(index))
+            }
+            invalidateTree(view)
             val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
             view.draw(android.graphics.Canvas(bitmap))
             File("build/visual-review", "$name.png").also { it.parentFile.mkdirs() }.outputStream().use {
@@ -57,6 +62,61 @@ class CollectionPhonePreviewTest {
             }
             bitmap.recycle()
         }
+    }
+
+    private fun waitForFirstArtwork() {
+        ui.waitUntil(15_000) {
+            ui.onAllNodes(SemanticsMatcher.keyIsDefined(androidx.compose.ui.semantics.SemanticsProperties.ProgressBarRangeInfo))
+                .fetchSemanticsNodes().isEmpty()
+        }
+    }
+
+    @Test fun compactDeckLibraryAndBuilderKeepThreeColumnsAndIdentityNavigation() {
+        val context = ui.activity.applicationContext
+        val catalog = CollectionDatabase(context).use { it.catalogCardsForSet("SOR") }
+        val units = catalog.filter { DeckConstruction.type(it) !in listOf("leader", "chef", "base") }.take(8)
+        val entries = units.mapIndexed { index, card -> DeckEntry(DeckConstruction.reference(card), if (index == 7) 1 else 3) }
+        val deck = PortableDeck("SOR-001", "SOR-024", entries)
+        val baseline = DeckInterchange.exportJson(PortableDeck("SOR-001", "SOR-024", emptyList()), "Mon deck")
+        DeckDraftStore(context).write("new:visual-deck", baseline, DeckDraft("Escadron de démonstration", deck, true, false))
+        (units + catalog.filter { DeckConstruction.type(it) in listOf("leader", "chef", "base") }).forEach { card ->
+            val sample = if (DeckConstruction.type(card) in listOf("leader", "chef", "base")) "leader-0" else "portrait"
+            javaClass.getResourceAsStream("/scan/$sample.jpg")!!.use { stream ->
+                val bytes = stream.readBytes()
+                (listOf(card.imageUrl, CardLanguageArtwork.displayFace(context, card, card.language).first) + CardLanguageArtwork.allFaces(context, card).map { it.imageUrl })
+                    .filter { it.startsWith("https://") }.distinct().forEach { OfflineImages.saveBytes(context, it, bytes) }
+            }
+        }
+        val leader = catalog.first { DeckConstruction.reference(it) == "SOR-001" }
+        check(OfflineImages.contains(context, CardLanguageArtwork.displayFace(context, leader, leader.language).first))
+        ui.onAllNodesWithText("Mes decks").onFirst().performClick()
+        ui.onNodeWithText("Brouillon").assertIsDisplayed()
+        ui.onNodeWithText("Reprendre").assertIsDisplayed()
+        ui.onNodeWithText("Supprimer", substring = false).assertDoesNotExist()
+        ui.waitForIdle()
+        try { waitForFirstArtwork() } finally { capture("decks-phone-library") }
+
+        ui.onNodeWithText("Reprendre").performClick()
+        ui.onNodeWithText("Reprendre le brouillon ?").assertIsDisplayed()
+        ui.onNodeWithText("Reprendre", substring = false).performClick()
+        ui.onNodeWithText("Choisir la base").assertIsDisplayed()
+        ui.waitForIdle(); waitForFirstArtwork(); capture("decks-phone-choose-base")
+        ui.onNodeWithText("← Revenir au deck · 22 cartes").performClick()
+        ui.onNodeWithText("Ajouter des cartes", substring = false).assertIsDisplayed()
+        ui.onNodeWithText("Affichage : Grille ▾").assertIsDisplayed()
+        val cards = ui.onAllNodesWithTag("swu_deck_full_card", useUnmergedTree = true).fetchSemanticsNodes()
+        assertTrue(cards.size >= 3)
+        val firstRow = cards.take(3).map { it.boundsInRoot }
+        assertEquals(firstRow[0].top, firstRow[2].top, 1f)
+        assertTrue(firstRow[0].right < firstRow[1].right && firstRow[1].right < firstRow[2].right)
+        ui.waitForIdle(); waitForFirstArtwork(); capture("decks-phone-overview")
+        ui.onNodeWithText("Affichage : Grille ▾").performClick()
+        ui.onNodeWithText("Table · Coût", substring = false).performClick()
+        ui.onNodeWithText("Affichage : Table · Coût ▾").assertIsDisplayed()
+        ui.onNodeWithContentDescription("Choisir Base").performClick()
+        ui.onNodeWithText("Choisir la base").assertIsDisplayed()
+        assertEquals(22, DeckDraftStore(context).newDrafts().first { it.first == "new:visual-deck" }.second.deck.deck.sumOf { it.count })
+        CollectionDatabase(context).use { assertEquals(0, it.allCards().size) }
     }
 
     @Test fun captureStandardPhoneCollectionAndScopeMenu() {

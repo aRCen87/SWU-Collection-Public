@@ -37,6 +37,6 @@ class VisualDeckOverviewUiTest {
         ui.onNodeWithText("+1 exemplaire").performClick()
         ui.onNodeWithText("×3").assertExists()
         ui.runOnIdle { assertEquals(3, result) }
-        ui.onNodeWithText("＋ Cartes").assertExists()
+        ui.onNodeWithText("Ajouter des cartes").assertExists()
     }
 }

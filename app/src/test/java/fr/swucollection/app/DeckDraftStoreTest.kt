@@ -17,6 +17,26 @@ class DeckDraftStoreTest {
     private val deck = PortableDeck("SOR-001", "SOR-024", listOf(DeckEntry("SOR-095", 3)))
     @Before fun setup() { context = RuntimeEnvironment.getApplication(); context.filesDir.resolve("deck-drafts").deleteRecursively(); context.deleteDatabase("swu_collection.db") }
     @After fun cleanup() { context.filesDir.resolve("deck-drafts").deleteRecursively(); context.deleteDatabase("swu_collection.db") }
+    @Test fun duplicateKeepsCompositionButNeverRepeatsPendingInventoryAdditions() {
+        val store = DeckDraftStore(context)
+        val card = CatalogCard("SOR", "095", "Carte test", "Unité", "Rare")
+        val original = DeckDraft("À reprendre", deck, true, false,
+            listOf(ScanBatchEntry(card, "Foil", 2)), "pending-batch")
+        store.write("new:original", "baseline", original)
+        val db = CollectionDatabase(context)
+        try {
+            db.addOrIncrement("Déjà possédée", "SOR", "095", "Normale")
+            val before = db.exportJson()
+            val key = store.duplicate("new:original", original)
+            assertNotEquals("new:original", key)
+            assertEquals(original.copy(name = "À reprendre (copie)", collectionEntries = emptyList(), collectionBatchId = ""),
+                DeckDraftStore(context).read(key, "baseline"))
+            assertEquals(original, store.read("new:original", "baseline"))
+            assertEquals(before, db.exportJson())
+            assertTrue(runCatching { store.duplicate("new:original", original.copy(name = "Périmé")) }.isFailure)
+            assertEquals(2, store.newDrafts().size)
+        } finally { db.close() }
+    }
     @Test fun draftSurvivesStoreReopeningAndKeepsPartialIdentityChoices() {
         val value = DeckDraft("Équipe d’été", deck, true, false)
         DeckDraftStore(context).write("new", "baseline", value)

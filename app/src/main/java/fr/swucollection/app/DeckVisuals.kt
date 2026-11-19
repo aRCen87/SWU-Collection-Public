@@ -26,10 +26,11 @@ internal fun DeckIdentityCard(label: String, card: CatalogCard?, reference: Stri
         border = BorderStroke(1.dp, ListPalette.Gold.copy(alpha = .5f))) {
         Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(label, color = ListPalette.Gold, style = MaterialTheme.typography.labelLarge)
-            CardArtwork(card, Modifier.fillMaxWidth().height(74.dp)
-                .clip(RoundedCornerShape(6.dp)).clickable(enabled = card != null, onClick = onPreview)
-                .semantics { contentDescription = "Agrandir $label" })
-            Text(card?.name ?: reference, maxLines = 2, overflow = TextOverflow.Ellipsis,
+            CardArtwork(card, Modifier.fillMaxWidth().height(50.dp)
+                .clip(RoundedCornerShape(6.dp)).combinedClickable(onClick = onChange, onLongClickLabel = "Agrandir $label",
+                    onLongClick = if (card != null) onPreview else null)
+                .semantics { contentDescription = "Choisir $label" })
+            Text(card?.name ?: reference, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 color = ListPalette.Text, style = MaterialTheme.typography.labelMedium)
             TextButton(onClick = onChange, contentPadding = PaddingValues(horizontal = 4.dp)) {
                 Text("Changer $label", maxLines = 1, style = MaterialTheme.typography.labelMedium)
@@ -69,22 +70,23 @@ internal fun DeckCardTile(card: CatalogCard, visual: Boolean, quantity: Int, own
         }
         @Composable fun controls() {
             if (slot) {
-                TextButton(onClick = onChoose, modifier = Modifier.fillMaxWidth()) {
+                TextButton(onClick = onChoose, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp)) {
                     Text(if (selected) "✓ Sélectionné" else "Choisir", color = ListPalette.Gold)
                 }
-            } else Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+            } else Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 IconButton(onClick = { onQuantity(quantity - 1) }, enabled = quantity > 0, modifier = Modifier.size(48.dp)) {
                     Icon(Icons.Default.Remove, contentDescription = "Retirer ${card.name}")
                 }
                 Button(onClick = { onQuantity(quantity + 1) }, enabled = canAdd,
-                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                    modifier = Modifier.weight(1f).height(36.dp)
                         .semantics { contentDescription = "Ajouter ${card.name}" },
                     contentPadding = PaddingValues(horizontal = 4.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = ListPalette.Gold,
                         contentColor = ListPalette.Background, disabledContainerColor = ListPalette.Gold.copy(alpha = .18f),
                         disabledContentColor = ListPalette.Secondary)) {
-                    Text("Ajouter", maxLines = 1, style = MaterialTheme.typography.labelMedium)
+                    Text("+ Ajouter", maxLines = 1, style = MaterialTheme.typography.labelSmall)
                 }
             }
         }

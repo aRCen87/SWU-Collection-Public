@@ -53,6 +53,16 @@ internal class DeckDraftStore(context: Context) {
         check(read(key, baseline) == expected) { "Ce brouillon a changé. Rouvre-le avant de le modifier." }
         write(key, baseline, value)
     }
+    /** Copy the composition, never the pending additions to inventory. */
+    fun duplicate(key: String, expected: DeckDraft): String {
+        val root = file(key).openRead().bufferedReader(Charsets.UTF_8).use { JSONObject(it.readText()) }
+        val baseline = root.getString("baseline")
+        check(read(key, baseline) == expected) { "Ce brouillon a changé. Rouvre-le avant de le dupliquer." }
+        val newKey = "new:${java.util.UUID.randomUUID()}"
+        write(newKey, baseline, expected.copy(name = (expected.name.take(112) + " (copie)"),
+            collectionEntries = emptyList(), collectionBatchId = ""))
+        return newKey
+    }
     fun write(key: String, baseline: String, value: DeckDraft) {
         require(value.name.length <= 120)
         val bytes = JSONObject().put("key", key).put("baseline", baseline).put("name", value.name)
