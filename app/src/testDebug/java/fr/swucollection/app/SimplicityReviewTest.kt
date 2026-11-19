@@ -184,6 +184,19 @@ class SimplicityReviewTest {
         ui.setContent { Theme { key(screen) {
             Column(Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 when (screen) {
+                    "home" -> Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+                        val progress = remember { mutableStateOf(1f) }
+                        Box(Modifier.fillMaxWidth()) {
+                            PremiumHomeBanner(false, progress, progress)
+                            CommunityHomeControls({}, {}, {})
+                        }
+                        PremiumHomeShortcuts(UnifiedCollection.visibleHome(HomeLayoutStore.defaults),
+                            remember { mutableStateOf<BorderTilt?>(null) }, progress, false, onOpen = {})
+                    }
+                    "appearance" -> Column(Modifier.verticalScroll(rememberScrollState())) { ReducedMotionSettings(); BorderReflectionSettings(true) {} }
+                    "members" -> MemberDirectory("me", emptyList(), false,
+                        loadPage = { MemberPage(listOf(PlayerProfile("one", "Un joueur"), PlayerProfile("two", "Un autre joueur")), null, false) },
+                        onRequest = {}, onProfile = {}, fillHeight = true)
                     "settings" -> Column(Modifier.verticalScroll(rememberScrollState())) { SettingsOverview({}, null) }
                     "collection" -> UnifiedCollectionCatalog(cards, rows, "Toutes les cartes", "SOR", "Toutes", "", "Visuel", details, Modifier.weight(1f), { _, _ -> }, {})
                     "decks" -> DeckLibraryPanel(listOf(saved), Modifier.weight(1f), cards, onCreate = {}, onResumeDraft = {}, onImport = {}, onOpen = {}, onDuplicate = {}, onDelete = {}, owned = rows, details = details)
@@ -206,7 +219,7 @@ class SimplicityReviewTest {
                 }
             }
         } } }
-        listOf("settings", "collection", "decks", "builder", "lists", "proxies", "badges", "counter", "statistics", "backups", "history", "offline", "about", "scan", "profile", "chat", "trade", "complete", "search").forEach { destination ->
+        listOf("home", "settings", "appearance", "collection", "decks", "builder", "lists", "proxies", "badges", "counter", "statistics", "backups", "history", "offline", "about", "scan", "profile", "members", "chat", "trade", "complete", "search").forEach { destination ->
             ui.runOnIdle { screen = destination }
             ui.waitForIdle()
             capture("tour-$format-$destination")

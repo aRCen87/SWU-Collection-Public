@@ -1811,8 +1811,6 @@ private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) 
             Surface(Modifier.fillMaxHeight().then(if (privateLayout) Modifier.width(menuWidth) else Modifier.fillMaxWidth(0.88f)),
                 color = Color(0xFF030B12), shape = RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp)) {
                 Box(Modifier.fillMaxSize()) {
-                    ReferenceArtwork(1152, 754, 350, 180, null,
-                        Modifier.align(androidx.compose.ui.Alignment.BottomCenter).fillMaxWidth().height(175.dp))
                     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(22.dp)) {
                         Row(Modifier.fillMaxWidth(),
                             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
