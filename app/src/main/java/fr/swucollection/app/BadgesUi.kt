@@ -54,7 +54,7 @@ internal fun ColumnScope.BadgesPanel(progress: List<BadgeProgress>, catalog: Lis
                     Icon(Icons.Default.WorkspacePremium,null,tint=badgeGold,modifier=Modifier.size(36.dp))
                     Column(Modifier.weight(1f)) {
                         Text("Ta légende se construit",fontWeight=FontWeight.Bold,color=badgeGold)
-                        Text("$earned / $active hauts faits obtenus",style=MaterialTheme.typography.bodyMedium,color=Color(0xFFE4EAF2))
+                        Text("$earned / $active badges obtenus",style=MaterialTheme.typography.bodyMedium,color=Color(0xFFE4EAF2))
                         Text("Histoires, sagas et exploits de collection",style=MaterialTheme.typography.bodySmall,color=badgeSilver)
                     }
                 }
@@ -62,7 +62,7 @@ internal fun ColumnScope.BadgesPanel(progress: List<BadgeProgress>, catalog: Lis
         }
         item(key="search",span={GridItemSpan(maxLineSpan)}) {
             OutlinedTextField(query,{ query=it },singleLine=true,modifier=Modifier.fillMaxWidth(),
-                label={Text("Rechercher un haut fait")},leadingIcon={Icon(Icons.Default.Search,null)},
+                label={Text("Rechercher un badge")},leadingIcon={Icon(Icons.Default.Search,null)},
                 trailingIcon={if(query.isNotEmpty()) IconButton(onClick={query=""}){Icon(Icons.Default.Close,"Effacer la recherche")}})
         }
         item(key="categories",span={GridItemSpan(maxLineSpan)}) {
@@ -80,7 +80,7 @@ internal fun ColumnScope.BadgesPanel(progress: List<BadgeProgress>, catalog: Lis
         if(progress.isEmpty()) item(span={GridItemSpan(maxLineSpan)}) {
             Box(Modifier.fillMaxWidth().padding(24.dp),contentAlignment=Alignment.Center) { CircularProgressIndicator() }
         } else if(visible.isEmpty()) item(span={GridItemSpan(maxLineSpan)}) {
-            Text(if(status=="Obtenus") "Tes badges gagnés apparaîtront ici." else "Aucun haut fait dans cette sélection.",color=badgeSilver)
+            Text(if(status=="Obtenus") "Tes badges gagnés apparaîtront ici." else "Aucun badge dans cette sélection.",color=badgeSilver)
         }
         items(visible,key={it.badge.id}) { p ->
             Surface(onClick={selected=p.badge.id},color=badgeNavy,shape=RoundedCornerShape(18.dp),border=BorderStroke(1.dp,if(p.earned)badgeGold else Color(0xFF24394E))) {
@@ -109,8 +109,8 @@ internal fun BadgeDetailsDialog(p: BadgeProgress, all: List<BadgeProgress>, cata
         Surface(Modifier.fillMaxSize().safeDrawingPadding(),color=Color(0xFF040B14)) {
             Column(Modifier.fillMaxSize().padding(20.dp)) {
                 Row(verticalAlignment=Alignment.CenterVertically) {
-                    Text("Haut fait",modifier=Modifier.weight(1f),color=badgeGold,fontWeight=FontWeight.Bold)
-                    IconButton(onClick=onDismiss){Icon(Icons.Default.Close,"Fermer le haut fait",tint=badgeGold)}
+                    Text("Badge",modifier=Modifier.weight(1f),color=badgeGold,fontWeight=FontWeight.Bold)
+                    IconButton(onClick=onDismiss){Icon(Icons.Default.Close,"Fermer le badge",tint=badgeGold)}
                 }
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(14.dp)) {
                     BadgePin(p.badge,catalog,Modifier.width(230.dp),locked=!p.earned)
