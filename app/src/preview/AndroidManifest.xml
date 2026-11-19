@@ -8,6 +8,13 @@
         tools:replace="android:label,android:allowBackup,android:icon,android:roundIcon">
         <activity android:name=".MainActivity" android:resizeableActivity="true" android:windowSoftInputMode="adjustResize"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|fontScale|density"
-            tools:replace="android:configChanges" />
+            tools:replace="android:configChanges">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="swucollection" android:host="account" />
+            </intent-filter>
+        </activity>
     </application>
 </manifest>

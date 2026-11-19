@@ -36,7 +36,7 @@ internal fun FirstStepsDialog(onClose: () -> Unit, onScan: () -> Unit) {
     val descriptions = listOf(
         "Pose une carte à plat, dans une lumière diffuse. Place-la dans le cadre : le scan se lance automatiquement. En cas d’hésitation, choisis parmi les images proposées.",
         "Normale : illustration et bordure classiques. Foil : surface brillante. Hyperspace : illustration étendue. Hyperspace Foil combine les deux. Un même numéro peut avoir plusieurs finitions : confirme celle que tu as en main. Vérifie aussi la langue.",
-        "En mode Une par une, confirme la carte pour l’ajouter. En Rafale, touche Terminer puis vérifie et valide le lot : il n’est ajouté qu’à cette étape. Retrouve ensuite ta carte dans Ma collection. Avec un compte connecté, la sauvegarde privée indique sa date et les changements en attente."
+        "En mode Une par une, confirme la carte pour l’ajouter. En Rafale, touche Terminer puis vérifie et valide le lot : il n’est ajouté qu’à cette étape. Retrouve ensuite ta carte dans Ma collection. ${if (BuildConfig.SOCIAL_FEATURES) "Avec un compte connecté, la sauvegarde privée indique sa date et les changements en attente." else "Pense à exporter une sauvegarde complète pour conserver une copie de tes données."}"
     )
     StableCollectorDialog(onDismissRequest = onClose, title = { Text("${step + 1}/3 · ${titles[step]}") },
         text = { Column(Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {

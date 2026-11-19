@@ -37,6 +37,15 @@ import kotlinx.coroutines.withContext
 
 @Composable
 internal fun CommunityHomeControls(onOpen: (String) -> Unit, onMenu: () -> Unit, onCounter: () -> Unit, modifier: Modifier = Modifier) {
+    if (!BuildConfig.SOCIAL_FEATURES) {
+        Box(modifier.fillMaxWidth().padding(8.dp)) {
+            Column(Modifier.align(Alignment.TopEnd), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                HomeShortcutButton(onClick = onMenu) { Icon(Icons.Default.Settings, "Paramètres", tint = PremiumGold) }
+                HomeShortcutButton(onClick = onCounter) { Icon(Icons.Default.MonitorHeart, "Compteur de points de vie", tint = PremiumGold) }
+            }
+        }
+        return
+    }
     val context = LocalContext.current
     val service = remember(context) { CommunityService.create(context) }
     if (service == null) {

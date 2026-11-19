@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.dp
 
 internal object UnifiedCollection {
     fun section(section: String) = if (section == "Extensions") "Collection" else section
-    fun visibleHome(order: List<String>) = order.filter { it != "EXTENSIONS" }
+    fun visibleHome(order: List<String>) = order.filter { it != "EXTENSIONS" && (BuildConfig.SOCIAL_FEATURES || it != "ÉCHANGES") }
     fun catalogCards(catalog: List<CatalogCard>, owned: List<CollectionCard>, scope: String,
         set: String, language: String, query: String, details: CardDetails): List<CatalogCard> {
         val keys = owned.filter { it.quantity > 0 && (language == "Toutes" || it.language == language) }

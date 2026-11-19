@@ -75,7 +75,8 @@ private val premiumShortcuts = listOf(
 @Composable
 internal fun PremiumHomeShortcuts(order: List<String>, reflection: State<BorderTilt?>, shine: State<Float>, effectsEnabled: Boolean, afterPrimary: @Composable () -> Unit = {}, onOpen: (String) -> Unit) {
     // Keep explicitly saved arrangements; promote the two core actions for the original default layout.
-    val arranged = if (order == HomeLayoutStore.defaults) premiumShortcuts else order.mapNotNull { key -> premiumShortcuts.find { it.key == key } }
+    val arranged = (if (order == HomeLayoutStore.defaults) premiumShortcuts else order.mapNotNull { key -> premiumShortcuts.find { it.key == key } })
+        .filter { BuildConfig.SOCIAL_FEATURES || it.key != "ÉCHANGES" }
     arranged.take(2).forEach { shortcut -> PremiumHomeTile(shortcut, true, Modifier.fillMaxWidth(), reflection, shine, effectsEnabled, arranged.indexOf(shortcut)) { onOpen(shortcut.key) } }
     afterPrimary()
     arranged.drop(2).chunked(2).forEach { pair ->

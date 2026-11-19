@@ -147,7 +147,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if(AppChannel.supportsExperience(packageName)) enableEdgeToEdge(statusBarStyle=SystemBarStyle.dark(android.graphics.Color.TRANSPARENT))
-        if (AppChannel.supportsExperience(packageName)) {
+        if (AppChannel.supportsCommunity(packageName)) {
             CommunityBackground.install(applicationContext)
             lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (true) { CommunityBackground.refresh(applicationContext); delay(30_000) }
@@ -246,7 +246,7 @@ private fun CollectionScreen(
     var cards by remember { mutableStateOf(database.allCards()) }
     var collectionRevision by remember { mutableIntStateOf(0) }
     var personalLists by remember { mutableStateOf(database.cardLists()) }
-    CommunityPresenceHost()
+    if (BuildConfig.SOCIAL_FEATURES) CommunityPresenceHost()
     val deckContext = LocalContext.current
     val privateLayout = AppChannel.supportsExperience(deckContext.packageName)
     val homeStore = remember(deckContext) { HomeLayoutStore(deckContext) }
@@ -361,7 +361,7 @@ private fun CollectionScreen(
     var leaderMode by remember { mutableStateOf(displayPrefs.getString("mode", "flip") ?: "flip") }
     var showReverse by remember { mutableStateOf(false) }
     LaunchedEffect(communityNavigationRequest) {
-        if (privateLayout && communityNavigationRequest != null) {
+        if (AppChannel.supportsCommunity(deckContext.packageName) && communityNavigationRequest != null) {
             previewSession = null; favoriteCard = null; scanCandidate = null
             scannerOpen = false; menuOpen = false
             val tab = communityNavigationRequest.second.substringBefore('|')
@@ -697,7 +697,7 @@ private fun CollectionScreen(
                                 IconButton(onClick = { cardToolsOpen = true }) { Icon(Icons.Default.MoreVert, "Autres actions de la carte") }
                                 DropdownMenu(cardToolsOpen, onDismissRequest = { cardToolsOpen = false }) {
                                     DropdownMenuItem(text = { Text("Comparer") }, onClick = { cardToolsOpen = false; compareCards = true })
-                                    DropdownMenuItem(text = { Text("Partager à des amis") }, onClick = {
+                                    if (BuildConfig.SOCIAL_FEATURES) DropdownMenuItem(text = { Text("Partager à des amis") }, onClick = {
                                         cardToolsOpen = false; sharingPlayerCard = SharedPlayerCard(card.setCode, card.number, previewLanguage, previewVariant)
                                     })
                                 }
@@ -1033,7 +1033,7 @@ private fun CollectionScreen(
                     onPreview = { card, visible -> openPreview(card, visible.map { CardPreviewEntry(it) }) },
                     initialSetCode = selectedSet, database = database, onGoalChanged = { refresh() }, details = cardDetails)
             }
-            if (selectedSection == "Échanges") {
+            if (BuildConfig.SOCIAL_FEATURES && selectedSection == "Échanges") {
                 if (privateLayout) {
                     CommunityPanel(savedDecks, badgeProgress.filter { it.earned }, badgeBook?.definitions.orEmpty(), allCatalog, database, cardDetails, initialTab = "Échanges",
                         onOpenMessenger = { thread, name -> messengerInitialTab = "Messages"; messengerConversation = thread to name; navigation.navigateTo("Messagerie") },
@@ -1093,7 +1093,7 @@ private fun CollectionScreen(
                     onCard = { card, visible -> openPreview(card, visible.map { CardPreviewEntry(it) }) },
                     onDeck = ::openSavedDeck, onSet = { navigation.navigateTo("Extensions", it) })
             }
-            if (selectedSection in listOf("Communauté", "Messagerie") && AppChannel.supportsExperience(deckContext.packageName)) {
+            if (selectedSection in listOf("Communauté", "Messagerie") && AppChannel.supportsCommunity(deckContext.packageName)) {
                 key(communityNavigationRequest?.first, selectedSection) {
                 CommunityPanel(savedDecks, badgeProgress.filter { it.earned }, badgeBook?.definitions.orEmpty(), allCatalog, database, cardDetails,
                     initialTab = if (selectedSection == "Messagerie") messengerInitialTab else communityInitialTab,
@@ -1129,7 +1129,7 @@ private fun CollectionScreen(
                 }
             }
             if (selectedSection == "Sauvegardes") {
-                if (privateLayout) AccountBackupPanel(database, onAccount = { navigation.navigateTo("Communauté") }, onRestored = { refresh(); homeLayout = homeStore.read(); pinnedDecks = deckPins.all() })
+                if (BuildConfig.SOCIAL_FEATURES && privateLayout) AccountBackupPanel(database, onAccount = { navigation.navigateTo("Communauté") }, onRestored = { refresh(); homeLayout = homeStore.read(); pinnedDecks = deckPins.all() })
                 PortableBackupPanel(database, onRestored = { refresh() })
                 var advancedBackups by remember { mutableStateOf(false) }
                 TextButton(onClick = { advancedBackups = !advancedBackups }) {
@@ -1847,7 +1847,7 @@ private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) 
                             }
                         }
                         Spacer(Modifier.height(8.dp))
-                        val communityEntries = if (AppChannel.supportsExperience(LocalContext.current.packageName))
+                        val communityEntries = if (AppChannel.supportsCommunity(LocalContext.current.packageName))
                             listOf(Triple(Icons.Default.Person, "Mon compte", "Communauté"),
                                 Triple(Icons.Default.Handshake, "Mes prêts de cartes", "Prêts")) else emptyList()
                         val entries = listOf(Triple(Icons.Default.Home, "Accueil", "Accueil")) + communityEntries + listOf(
@@ -2025,6 +2025,10 @@ private fun CollectionLogo(modifier: Modifier = Modifier) {
 
 @Composable
 private fun AppUpdatePanel(updates: AppUpdates, onCheck: () -> Unit, onInstall: () -> Unit) {
+    if (LocalContext.current.packageName == AppChannel.PLAYSTORE_PACKAGE) {
+        Text("Les mises à jour de cette édition sont distribuées par Google Play.")
+        return
+    }
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("Mise à jour de l’application", fontWeight = FontWeight.Bold, fontSize = 18.sp)

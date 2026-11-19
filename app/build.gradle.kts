@@ -28,11 +28,19 @@ android {
         }
     }
     buildTypes {
+        // Distribution policies are compile-time constants, so R8 removes disabled paths.
+        all { buildConfigField("boolean", "SOCIAL_FEATURES", "true") }
         getByName("release") {
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        create("playstore") {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".playstore"
+            buildConfigField("boolean", "SOCIAL_FEATURES", "false")
+            matchingFallbacks += listOf("release")
         }
         create("preview") {
             initWith(getByName("release"))
@@ -43,7 +51,7 @@ android {
             matchingFallbacks += listOf("release")
         }
     }
-    buildFeatures { compose = true }
+    buildFeatures { compose = true; buildConfig = true }
     testOptions {
         unitTests.isIncludeAndroidResources = true
         unitTests.all {
@@ -59,6 +67,12 @@ android {
 }
 // Test keeps its independent Android update sequence.
 androidComponents {
+    onVariants(selector().withBuildType("playstore")) { variant ->
+        variant.outputs.forEach {
+            it.versionCode.set(1)
+            it.versionName.set("1.0.0")
+        }
+    }
     onVariants(selector().withBuildType("preview")) { variant ->
         variant.outputs.forEach {
             it.versionCode.set(100)

@@ -14,8 +14,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun SettingsOverview(onNavigate: (String) -> Unit, updateAvailable: String?) {
     listOf(
-        "Personnalisation" to listOf(
-            Triple("Mon compte", "Profil et confidentialité", "Communauté"),
+        "Personnalisation" to listOfNotNull(
+            if (BuildConfig.SOCIAL_FEATURES) Triple("Mon compte", "Profil et confidentialité", "Communauté") else null,
             Triple("Apparence", "Accueil et effets visuels", "Apparence")),
         "Mes données" to listOf(
             Triple("Sauvegarder et restaurer", "Collection, decks et listes", "Sauvegardes"),

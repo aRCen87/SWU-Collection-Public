@@ -53,7 +53,7 @@ internal val bottomShortcutIcons: Map<String, ImageVector> = linkedMapOf(
     "Sauvegardes" to Icons.Default.CloudUpload,
     "Mises à jour" to Icons.Default.SystemUpdate,
     "À propos" to Icons.Default.Info
-)
+).filterKeys { BuildConfig.SOCIAL_FEATURES || it !in setOf("Échanges", "Messagerie", "Communauté") }
 
 internal fun validBottomShortcuts(items: List<String>) = items.size in 1..5 &&
     items.distinct().size == items.size && items.all { it in bottomShortcutIcons }

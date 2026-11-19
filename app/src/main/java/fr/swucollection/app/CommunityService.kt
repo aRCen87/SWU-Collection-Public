@@ -227,7 +227,7 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
         @Synchronized
         fun create(context: Context): CommunityService? {
             val official = context.packageName == AppChannel.OFFICIAL_PACKAGE
-            if (!AppChannel.supportsExperience(context.packageName)) return null
+            if (!AppChannel.supportsCommunity(context.packageName)) return null
             val project = context.getString(if (official) R.string.swu_official_project_id else R.string.swu_test_project_id)
             val apiKey = context.getString(if (official) R.string.swu_official_api_key else R.string.swu_test_api_key)
             val appId = context.getString(if (official) R.string.swu_official_app_id else R.string.swu_test_app_id)
