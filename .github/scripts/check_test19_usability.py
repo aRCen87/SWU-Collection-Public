@@ -96,10 +96,16 @@ try:
         if name == 'landscape':
             tap(root, 'Filtres')
             scope_dialog = snapshot('landscape-scopes')
-            for label in ('Possédées', 'Toutes les cartes', 'Manquantes', 'Toutes les extensions'):
-                node = find(scope_dialog, label)
+            tap(scope_dialog, 'Afficher : Possédées ▾')
+            scope_menu = snapshot('landscape-scope-menu')
+            for label in ('Possédées', 'Toutes les cartes', 'Manquantes'):
+                node = find(scope_menu, label)
                 x1, y1, x2, y2 = rect(node)
                 assert x2 > x1 and y2 > y1, ('Landscape scope is not reachable', label)
+            tap(scope_menu, 'Possédées')
+            scope_dialog = snapshot('landscape-scopes-restored')
+            x1, y1, x2, y2 = rect(find(scope_dialog, 'Toutes les extensions'))
+            assert x2 > x1 and y2 > y1, 'Extension filter is not reachable'
             tap(scope_dialog, 'Voir les cartes')
             root = snapshot('landscape-scopes-closed')
         # Secondary actions are deliberately grouped in the collection menu.

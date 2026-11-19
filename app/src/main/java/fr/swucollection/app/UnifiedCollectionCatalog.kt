@@ -62,7 +62,9 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
     modifier: Modifier = Modifier, onPreview: (CatalogCard, List<CatalogCard>) -> Unit,
     onActions: (CatalogCard) -> Unit, dimMissing: Boolean = true, header: (@Composable () -> Unit)? = null, sets: List<CatalogSet> = emptyList(),
     favoritesOnlyOverride: Boolean? = null, onFavoritesOnlyChange: ((Boolean) -> Unit)? = null,
-    cardScaleOverride: Float? = null, onCardScaleChange: ((Float) -> Unit)? = null) {
+    cardScaleOverride: Float? = null, onCardScaleChange: ((Float) -> Unit)? = null,
+    silhouettesOverride: Boolean? = null, onSilhouettesChange: ((Boolean) -> Unit)? = null,
+    showDisplayOptions: Boolean = true, showFavoritesControl: Boolean = true) {
     val favoriteContext = LocalContext.current.applicationContext
     val favoriteDatabase = remember(favoriteContext) { CollectionDatabase(favoriteContext) }
     DisposableEffect(favoriteDatabase) { onDispose { favoriteDatabase.close() } }
@@ -93,7 +95,9 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
     val collectedBySet = remember(catalog, quantities) {
         catalog.filter { (quantities[MarketPricing.key(it.setCode, it.number)] ?: 0) > 0 }.groupingBy { it.setCode }.eachCount()
     }
-    var silhouettes by rememberSaveable { mutableStateOf(false) }
+    var localSilhouettes by rememberSaveable { mutableStateOf(false) }
+    val silhouettes = silhouettesOverride ?: localSilhouettes
+    fun changeSilhouettes(value: Boolean) { onSilhouettesChange?.invoke(value) ?: run { localSilhouettes = value } }
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
     val gridState = rememberLazyGridState()
     val coroutine = rememberCoroutineScope()
@@ -103,17 +107,16 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
         val total = totalsBySet[code] ?: 0
         val collected = collectedBySet[code] ?: 0
         Surface(color = ListPalette.Raised, border = androidx.compose.foundation.BorderStroke(1.dp, ListPalette.Gold.copy(alpha = .25f)), shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp)) {
-            Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(Modifier.fillMaxWidth().padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    SetLogo(code, Modifier.weight(1f).height(if (compactSetHeader) 48.dp else 76.dp))
+                    SetLogo(code, Modifier.weight(1f).height(44.dp))
                     Column(horizontalAlignment = Alignment.End) {
-                        Text("${if (total > 0) collected * 100 / total else 0} %", color = ListPalette.Gold, style = MaterialTheme.typography.headlineSmall)
+                        Text("${if (total > 0) collected * 100 / total else 0} %", color = ListPalette.Gold, style = MaterialTheme.typography.titleLarge)
                         Text("$collected / $total", style = MaterialTheme.typography.labelMedium)
-                        Text("références possédées", style = MaterialTheme.typography.labelSmall)
                     }
                 }
-                Text(sets.firstOrNull { it.code == code }?.name ?: code, style = MaterialTheme.typography.titleSmall)
-                LinearProgressIndicator(progress = { if (total > 0) collected.toFloat() / total else 0f }, modifier = Modifier.fillMaxWidth())
+                Text(sets.firstOrNull { it.code == code }?.name ?: code, style = MaterialTheme.typography.labelSmall,
+                    maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                 ExtensionProgressPanel(code, catalog, quantities)
             }
         }
@@ -123,21 +126,19 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
             .verticalScroll(rememberScrollState())) { header() }
         favoriteError?.let { Text(it, color = ListPalette.Danger) }
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically) {
-            FilterChip(favoritesOnly, onClick = { changeFavoritesOnly(!favoritesOnly) }, label = { Text("★ Favoris") })
+            if (showFavoritesControl) FilterChip(favoritesOnly, onClick = { changeFavoritesOnly(!favoritesOnly) }, label = { Text("★ Favoris") })
             Text("${visible.size} cartes", Modifier.padding(horizontal = 8.dp), style = MaterialTheme.typography.labelMedium)
-            if (view != "Liste") {
-                var densityMenu by remember { mutableStateOf(false) }
+            if (showDisplayOptions) {
+                var displayOpen by remember { mutableStateOf(false) }
                 Box {
-                    TextButton(onClick = { densityMenu = true }, modifier = Modifier.semantics { contentDescription = "Taille des cartes" }) { Text("Taille") }
-                    DropdownMenu(densityMenu, onDismissRequest = { densityMenu = false }) {
-                        listOf("Grandes cartes" to 1.5f, "Équilibré" to 1f, "Compact" to .8f).forEach { (label, scale) ->
-                            DropdownMenuItem(text = { Text((if (kotlin.math.abs(cardScale - scale) < .05f) "✓ " else "") + label) },
-                                onClick = { changeCardScale(scale); densityMenu = false })
-                        }
+                    TextButton(onClick = { displayOpen = true }) { Text("Affichage") }
+                    if (displayOpen) AlertDialog(onDismissRequest = { displayOpen = false }, title = { Text("Affichage") },
+                        text = { Column(Modifier.verticalScroll(rememberScrollState())) {
+                            CollectionCardDisplayOptions(cardScale, ::changeCardScale, silhouettes, ::changeSilhouettes,
+                                showSize = view != "Liste", showSilhouettes = dimMissing && scope !in listOf("Possédées", "Doublons"))
+                        } }, confirmButton = { TextButton(onClick = { displayOpen = false }) { Text("Voir les cartes") } })
                     }
-                }
             }
-            if(dimMissing && scope != "Possédées") TextButton(onClick = { silhouettes = !silhouettes }) { Text(if(silhouettes) "Visuels" else "Silhouettes") }
             if (compactSetHeader && groups.size > 1) groups.keys.forEach { code ->
                 TextButton(onClick = {
                     val index = groups.entries.takeWhile { it.key != code }.sumOf { 1 + it.value.size }
@@ -178,7 +179,8 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
         } else BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
             val miniatures = view == "Miniatures"
             val columns = ((maxWidth.value + 6f) / (110f * cardScale)).toInt().coerceAtLeast(2)
-            LazyVerticalGrid(state = gridState, columns = if (miniatures) GridCells.Fixed(columns) else GridCells.Adaptive((135f * cardScale).dp),
+            LazyVerticalGrid(state = gridState, columns = if (miniatures) GridCells.Fixed(columns)
+                else if (maxWidth < 600.dp && cardScale in .95f..1.05f) GridCells.Fixed(2) else GridCells.Adaptive((135f * cardScale).dp),
                 modifier = Modifier.fillMaxSize().pointerInput(Unit) {
                     awaitEachGesture {
                         awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
@@ -205,17 +207,18 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                         if(dimMissing && silhouettes && quantity == 0) MissingSilhouette(card, Modifier.fillMaxWidth().aspectRatio(if (DeckConstruction.type(card) in listOf("leader", "chef", "base")) 1.4f else 5f / 7f)) else CardArtwork(card, Modifier.fillMaxWidth().aspectRatio(if (DeckConstruction.type(card) in listOf("leader", "chef", "base")) 1.4f else 5f / 7f).testTag("catalog_artwork_${MarketPricing.key(card.setCode, card.number)}"), language = language.takeIf { it in CardLanguages.supported } ?: card.language,
                             showLanguageLabel = !miniatures, grayscale = dimMissing && quantity == 0)
                         if (miniatures) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Text("×$quantity", Modifier.weight(1f), color = ListPalette.Gold, style = MaterialTheme.typography.labelSmall)
+                            Text(if (quantity > 0) "×$quantity" else "Manquante", Modifier.weight(1f), color = ListPalette.Gold, style = MaterialTheme.typography.labelSmall)
                             favoriteButton(card)
                         }
                         if (!miniatures) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(card.name, Modifier.weight(1f), maxLines = 2, style = MaterialTheme.typography.labelMedium)
-                                favoriteButton(card)
-                            }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(if (quantity > 0) "×$quantity possédée(s)" else "Manquante", Modifier.weight(1f), color = ListPalette.Gold, style = MaterialTheme.typography.labelSmall)
-                                IconButton(onClick = { onActions(card) }) { Icon(Icons.Default.Add, "Ajouter ou gérer ${card.name}") }
+                            Text(card.name, Modifier.fillMaxWidth().heightIn(min = 32.dp), maxLines = 2, style = MaterialTheme.typography.labelMedium)
+                            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                                itemVerticalAlignment = Alignment.CenterVertically) {
+                                Text(if (quantity > 0) "×$quantity" else "Manquante", color = ListPalette.Gold, style = MaterialTheme.typography.labelSmall)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    favoriteButton(card)
+                                    IconButton(onClick = { onActions(card) }) { Icon(Icons.Default.Add, "Ajouter ou gérer ${card.name}", modifier = Modifier.size(20.dp)) }
+                                }
                             }
                         }
                     }
@@ -223,6 +226,36 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
             }
         }
     }
+    }
+}
+
+@Composable
+internal fun CollectionScopeMenu(selected: String, onChange: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        OutlinedButton(onClick = { expanded = true }) { Text("Afficher : ${if (selected == "Toutes les cartes") "Toutes" else selected} ▾") }
+        DropdownMenu(expanded, onDismissRequest = { expanded = false }) {
+            listOf("Toutes les cartes", "Possédées", "Manquantes").forEach { scope ->
+                DropdownMenuItem(text = { Text(scope) }, onClick = { onChange(scope); expanded = false })
+            }
+        }
+    }
+}
+
+@Composable
+internal fun CollectionCardDisplayOptions(scale: Float, onScale: (Float) -> Unit, silhouettes: Boolean,
+    onSilhouettes: (Boolean) -> Unit, showSize: Boolean = true, showSilhouettes: Boolean = true) {
+    if (showSize) {
+        Text("Taille des cartes", style = MaterialTheme.typography.labelLarge)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf("Grandes cartes" to 1.5f, "Équilibré" to 1f, "Compact" to .8f).forEach { (label, value) ->
+                FilterChip(kotlin.math.abs(scale - value) < .05f, onClick = { onScale(value) }, label = { Text(label) })
+            }
+        }
+    }
+    if (showSilhouettes) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text("Silhouettes des manquantes", Modifier.weight(1f))
+        Switch(silhouettes, onCheckedChange = onSilhouettes)
     }
 }
 

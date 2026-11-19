@@ -59,6 +59,20 @@ Le 19 novembre 2026, Romain demande de ne pas rendre la mise à jour disponible 
 
 ## État des contrôles
 
+### Collection — validation étape par étape sur téléphone standard
+
+Romain autorise l'allègement de la collection après examen de ses deux captures :
+
+- Possédées, Toutes les cartes et Manquantes sont accessibles par le seul menu Afficher. Favoris reste directement visible à côté en portrait.
+- Le choix d'extension et son objectif sont accessibles dans Filtres et affichage ; les raccourcis d'extensions du catalogue sont conservés.
+- Taille et Silhouettes sont regroupés dans Affichage, dans le dialogue des filtres. Leurs préférences restent appliquées lors du retour aux cartes.
+- Le panneau d'extension conserve un logo de 44 dp, le pourcentage et le nombre possédé/total. Le détail par rareté reste dépliable ; le nom occupe une seule ligne et la barre de progression répétée est retirée.
+- Les cartes manquantes n'affichent plus ×0, y compris en miniatures. Le nom précède une ligne compacte avec quantité ou état, étoile et petit + ; les cibles tactiles restent confortables, et la ligne peut se replier sur écran étroit.
+- Deux colonnes en vue Visuel équilibrée sur téléphone. Les choix explicites Grandes cartes/Compact et le pincement gardent leur effet ; les miniatures gardent leur propre densité.
+- Aucun stock, format de sauvegarde ou schéma de données n'est modifié. L'accueil validé reste inchangé, et aucune publication n'est autorisée.
+
+Contrôles de cette passe : 12 tests d'interface réussis, puis les 5 tests UnifiedCollectionUiTest relancés avec succès après le dernier ajustement de densité. lintDebug et assembleDebug réussissent. Les 67 tests Python passent et les trois scripts de navigation mis à jour sont vérifiés syntaxiquement ; leurs parcours sur émulateur ne sont pas revendiqués comme exécutés ici. Les illustrations du catalogue en fixtures restent des images de démonstration.
+
 ### Validation de l'accueil, téléphone standard prioritaire
 
 Romain souhaite conserver l'accueil de sa capture du 19 novembre tel quel. Seuls les trois boutons à droite sont légèrement réduits : fond de 42 dp au lieu de 48 dp, icônes de 22 dp au lieu de 24 dp, avec des cibles tactiles inchangées de 48 dp. Le bandeau, l'avatar, la recherche, les raccourcis et la navigation ne changent pas. Les prochains ajustements se valident écran par écran, d'abord en portrait sur téléphone standard ; le Fold reste une adaptation secondaire. La publication demeure suspendue.
