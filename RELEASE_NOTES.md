@@ -1,3 +1,11 @@
+## Version 0.9.8
+
+- Ma collection reprend la présentation bleu nuit et or validée : miniature, nom et total possédé, puis toutes les langues et finitions visibles sous chaque carte.
+- Boutons − / + directement accessibles sur chaque ligne de stock ; la miniature ouvre la lecture de la carte et le libellé de langue permet sa correction.
+- « Ajouter une variante » ouvre un panneau unique avec langue, finition et quantité, ainsi que l’édition exacte lorsqu’il existe plusieurs références. Aucune écriture avant confirmation.
+- Ajouts de plusieurs exemplaires atomiques et annulables en une seule fois ; les autres langues, variantes et quantités sont conservées. Retrait du dernier exemplaire annulable.
+- Mode Gestion pour les commandes directes et mode Miniatures conservé pour parcourir les images. Cotes et filtres conservés. Identité, signature et base de collection inchangées.
+
 ## Version 0.9.7
 
 - Accueil conservé tel que validé ; boutons de droite légèrement réduits, avec zones tactiles et pastille de messages conservées.

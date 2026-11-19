@@ -1326,8 +1326,8 @@ private fun CollectionScreen(
                     Switch(groupVersions, { groupVersionsValue = it.toString() })
                 }
                 if (privateLayout || !groupVersions) FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    (if (privateLayout) listOf("Visuel", "Liste", "Miniatures") else listOf("Visuel", "Liste")).forEach { option ->
-                        FilterChip(selected = collectionView == option,
+                    (if (privateLayout) listOf("Gestion", "Miniatures") else listOf("Visuel", "Liste")).forEach { option ->
+                        FilterChip(selected = if (privateLayout && option == "Gestion") collectionView != "Miniatures" else collectionView == option,
                             onClick = { collectionView = option },
                             label = { Text(option, fontSize = 12.sp) })
                     }
@@ -1339,7 +1339,7 @@ private fun CollectionScreen(
                 if (privateLayout) {
                     Text("Affichage", style = MaterialTheme.typography.titleSmall)
                     CollectionCardDisplayOptions(collectionCardScale, { collectionScaleValue = it.toString() },
-                        collectionSilhouettes, { collectionSilhouettesValue = it.toString() }, showSize = collectionView != "Liste",
+                        collectionSilhouettes, { collectionSilhouettesValue = it.toString() }, showSize = collectionView == "Miniatures",
                         showSilhouettes = dimMissing && collectionScope !in listOf("Possédées", "Doublons"))
                 }
                 var priceSortMenuOpen by remember { mutableStateOf(false) }
@@ -1435,7 +1435,7 @@ private fun CollectionScreen(
                                     }.onFailure { additionMessage = "Modification non enregistrée. Réessaie." }
                                 },
                                 onLanguage = { editingOwnedLanguage = it; languageError = null },
-                                onAdd = { inventoryAddCard = it })
+                                onAdd = { inventoryAddCard = it }, quotes = collectionQuotes)
                         }
                     }
                 } else if (privateLayout && collectionView in listOf("Visuel", "Miniatures")) {
@@ -1546,7 +1546,7 @@ private fun CollectionScreen(
                         if (additionUndoId != null) TextButton(onClick = {
                             val expected = additionUndoId
                             if (database.history().firstOrNull { !it.undone }?.id == expected) {
-                                runCatching { database.undoLastChange() }.onSuccess { refresh(); additionMessage = "Ajout annulé" }
+                                runCatching { database.undoLastChange() }.onSuccess { refresh(); additionMessage = "Modification annulée" }
                                     .onFailure { additionMessage = "Annulation impossible. Consulte l’historique." }
                             } else additionMessage = "Une autre modification a eu lieu. Consulte l’historique pour annuler."
                             additionUndoId = null; additionThumbnail = null

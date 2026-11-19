@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun CollectionInventoryCard(rows: List<CollectionCard>, catalog: Map<String, CatalogCard>,
     onPreview: (CollectionCard, CatalogCard) -> Unit, onQuantity: (CollectionCard, Int) -> Unit,
-    onLanguage: (CollectionCard) -> Unit, onAdd: (CatalogCard) -> Unit) {
+    onLanguage: (CollectionCard) -> Unit, onAdd: (CatalogCard) -> Unit, quotes: Map<String, MarketQuote> = emptyMap()) {
     val first = rows.first()
     val card = catalog[MarketPricing.key(first.setCode, first.number)]
     Surface(shape = RoundedCornerShape(18.dp), color = PremiumNavy,
@@ -40,6 +40,7 @@ internal fun CollectionInventoryCard(rows: List<CollectionCard>, catalog: Map<St
                         Text("${rows.sumOf { it.quantity }} possédées", Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                             color = PremiumNavy, fontWeight = FontWeight.Bold)
                     }
+                    CollectionPriceLabel(quotes[collectionPriceKey(first.setCode, first.number, first.variant)], quotes.isNotEmpty())
                 }
             }
             rows.forEach { row ->
