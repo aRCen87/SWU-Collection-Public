@@ -69,6 +69,11 @@ def reveal_quick_stock(name):
         scroll_collection(root, False)
     raise AssertionError('Quick stock controls are not reachable')
 
+def dismiss_add_feedback():
+    root = snapshot('feedback')
+    close = [n for n in root.iter('node') if n.attrib.get('content-desc') == 'Fermer le message d’ajout']
+    if close: tap(close[-1])
+
 def collection_grid(root):
     return next(n for n in root.iter('node') if n.attrib.get('resource-id') in
                 ('swu_inventory_list', 'swu_visual_grid', 'swu_miniature_grid', 'swu_unified_catalog') and bounds(n)[3] > bounds(n)[1])
@@ -246,9 +251,13 @@ try:
     find(root, '1')
     assert any('Cote' in n.attrib.get('content-desc', '') for n in root.iter('node')), 'Quick grid lost price information'
     capture('quick-grid-cover')
+    dismiss_add_feedback()
+    root = reveal_quick_stock('quick-ready')
     tap(find(root, 'Ajouter un exemplaire'))
+    dismiss_add_feedback()
     root = snapshot('quick-plus'); find(root, '2')
     tap(find(root, 'Retirer un exemplaire'))
+    dismiss_add_feedback()
     root = snapshot('quick-minus'); find(root, '1')
     tap(find(root, 'Langue de la carte : Français'))
     tap(find(snapshot('quick-languages'), 'Anglais'))
