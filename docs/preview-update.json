@@ -1,11 +1,11 @@
 {
-  "versionCode": 104,
-  "versionName": "0.9.8-test.39",
-  "sha256": "311ce909a66118d4c9d80f5d1eec90b96d07744fd7d94f0c770770c390feeb38",
-  "size": 65193566,
-  "sourceSha": "f0d461546b0ac0f209ed3c2bba451089876b104d",
+  "versionCode": 105,
+  "versionName": "0.9.8-test.40",
+  "sha256": "017141c6c54cb4845b67db8ba899e9acc0621aeeea799d939c479887eb50bbba",
+  "size": 65471126,
+  "sourceSha": "1b8127caa61c6ff3dc8912ac8e399448fa293901",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "notes": "Test 39 — Ma collection bleu nuit et or : miniature, nom et total possédé ; quantités par langue et finition visibles directement, avec boutons − / + sur chaque ligne. Ajouter une variante ouvre un panneau unique : Français / Anglais, autres langues, finitions lisibles, quantité et confirmation dorée. La quantité choisie est conservée pendant les changements ; aucune écriture avant confirmation. Le mode Gestion et les cartes possédées sont activés une fois pour retrouver immédiatement cette présentation. Miniatures, cotes, références exactes et annulation restent disponibles. Tests Android, conservation des langues et sauvegardes, lint Debug/Preview et compilation signée réussis ; intégrité, identité Test et certificat permanent vérifiés. Application officielle inchangée.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_fde3_f-438d61b46ba88191a20614bddd79973d_751b3117796081919833ed570b104c30&account_id=personal"
+  "notes": "Test 40 — Reprise de la référence visuelle : bandeau planète compact, recherche et filtre sur une seule ligne, grandes illustrations carrées et total possédé compact. Les commandes secondaires et filtres actifs sont regroupés dans les filtres. Les quantités restent directement modifiables, dans l’ordre FR normale, FR foil puis EN ; les cotes restent accessibles dans la fiche. Panneau Ajouter une variante resserré, choix de langue et finition lisibles, compteur et confirmation dorée. Barre Collection / Scanner / Mes decks / Mes listes, toujours personnalisable par appui long. Page réelle contrôlée avec images officielles en cache et données d’essai ; tests Android, conservation des données, lint Debug/Preview et compilation signée réussis. Intégrité, paquet Test et certificat permanent vérifiés.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_fde3_f-c71e9abe43d08191a63a93cc501eab5c_751b3117796081919833ed570b104c30&account_id=personal"
 }
