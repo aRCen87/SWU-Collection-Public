@@ -64,11 +64,12 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
     favoritesOnlyOverride: Boolean? = null, onFavoritesOnlyChange: ((Boolean) -> Unit)? = null,
     cardScaleOverride: Float? = null, onCardScaleChange: ((Float) -> Unit)? = null,
     silhouettesOverride: Boolean? = null, onSilhouettesChange: ((Boolean) -> Unit)? = null,
-    showDisplayOptions: Boolean = true, showFavoritesControl: Boolean = true) {
+    showDisplayOptions: Boolean = true, showFavoritesControl: Boolean = true,
+    onQuickChange: ((CatalogCard, String, String, Int) -> Unit)? = null, favoriteRevision: Int = 0) {
     val favoriteContext = LocalContext.current.applicationContext
     val favoriteDatabase = remember(favoriteContext) { CollectionDatabase(favoriteContext) }
     DisposableEffect(favoriteDatabase) { onDispose { favoriteDatabase.close() } }
-    var favorites by remember { mutableStateOf(favoriteDatabase.favoriteCardKeys()) }
+    var favorites by remember(favoriteRevision) { mutableStateOf(favoriteDatabase.favoriteCardKeys()) }
     var localFavoritesOnly by rememberSaveable { mutableStateOf(false) }
     val favoritesOnly = favoritesOnlyOverride ?: localFavoritesOnly
     fun changeFavoritesOnly(value: Boolean) { onFavoritesOnlyChange?.invoke(value) ?: run { localFavoritesOnly = value } }
@@ -204,23 +205,48 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                 item(key = "set-$code", span = { GridItemSpan(maxLineSpan) }) { sectionTitle(code) }
                 gridItems(group, key = { MarketPricing.key(it.setCode, it.number) }) { card ->
                     val quantity = quantities[MarketPricing.key(card.setCode, card.number)] ?: 0
+                                val prefs = remember { favoriteContext.getSharedPreferences("quick_collection_choices", 0) }
+                                var quickLanguage by rememberSaveable(card.setCode, card.number, language) {
+                                    mutableStateOf(language.takeIf { it in CardLanguages.supported }
+                                        ?: prefs.getString("language", "FR")!!.takeIf { it in CardLanguages.supported } ?: "FR")
+                                }
+                                val finishes = ScanVariants.detect(card).choices
+                                var quickFinish by rememberSaveable(card.setCode, card.number) {
+                                    mutableStateOf(prefs.getString("finish", "Normale")!!.takeIf { it in finishes }
+                                        ?: ScanVariants.detect(card).variant ?: finishes.firstOrNull().orEmpty())
+                                }
                     Column(Modifier.fillMaxWidth().combinedClickable(onClick = { onPreview(card, visible) },
                         onLongClickLabel = "Gérer cette carte", onLongClick = { onActions(card) })
                         .semantics { contentDescription = "${card.name}, $quantity exemplaire(s)" }) {
-                        if(dimMissing && silhouettes && quantity == 0) MissingSilhouette(card, Modifier.fillMaxWidth().aspectRatio(if (DeckConstruction.type(card) in listOf("leader", "chef", "base")) 1.4f else 5f / 7f)) else CardArtwork(card, Modifier.fillMaxWidth().aspectRatio(if (DeckConstruction.type(card) in listOf("leader", "chef", "base")) 1.4f else 5f / 7f).testTag("catalog_artwork_${MarketPricing.key(card.setCode, card.number)}"), language = language.takeIf { it in CardLanguages.supported } ?: card.language,
-                            showLanguageLabel = !miniatures, grayscale = dimMissing && quantity == 0)
+                        if(dimMissing && silhouettes && quantity == 0) MissingSilhouette(card, Modifier.fillMaxWidth().aspectRatio(if (DeckConstruction.type(card) in listOf("leader", "chef", "base")) 1.4f else 5f / 7f)) else CardArtwork(card, Modifier.fillMaxWidth().aspectRatio(if (DeckConstruction.type(card) in listOf("leader", "chef", "base")) 1.4f else 5f / 7f).testTag("catalog_artwork_${MarketPricing.key(card.setCode, card.number)}"), language = if (!miniatures && onQuickChange != null) quickLanguage else language.takeIf { it in CardLanguages.supported } ?: card.language,
+                            variant = if (!miniatures && onQuickChange != null) quickFinish else "Normale", showLanguageLabel = !miniatures, grayscale = dimMissing && quantity == 0)
                         if (miniatures) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Text(if (quantity > 0) "×$quantity" else "Manquante", Modifier.weight(1f), color = ListPalette.Gold, style = MaterialTheme.typography.labelSmall)
                             favoriteButton(card)
                         }
                         if (!miniatures) {
                             Text(card.name, Modifier.fillMaxWidth().heightIn(min = 32.dp), maxLines = 2, style = MaterialTheme.typography.labelMedium)
-                            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
-                                itemVerticalAlignment = Alignment.CenterVertically) {
-                                Text(if (quantity > 0) "×$quantity" else "Manquante", color = ListPalette.Gold, style = MaterialTheme.typography.labelSmall)
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (onQuickChange != null) {
+                                // Wrap only on narrow windows or large text; touch areas remain 48 dp.
+                                FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                                    itemVerticalAlignment = Alignment.CenterVertically) {
+                                    QuickVariantSelectors(card, quickLanguage, quickFinish,
+                                        { quickLanguage = it; prefs.edit().putString("language", it).apply() },
+                                        { quickFinish = it; prefs.edit().putString("finish", it).apply() })
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        CompactCardQuote(card, quickFinish)
+                                        favoriteButton(card)
+                                    }
+                                }
+                                val exactQuantity = owned.filter { it.setCode.equals(card.setCode, true) && it.number == card.number &&
+                                    it.language == quickLanguage && it.variant == quickFinish }.sumOf { it.quantity }
+                                QuickStockBar(exactQuantity, quickLanguage in CardLanguages.supported && quickFinish in finishes,
+                                    { delta -> onQuickChange(card, quickLanguage, quickFinish, delta) })
+                            } else {
+                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                    Text(if (quantity > 0) "×$quantity" else "Manquante", Modifier.weight(1f), color = ListPalette.Gold)
                                     favoriteButton(card)
-                                    IconButton(onClick = { onActions(card) }) { Icon(Icons.Default.Add, "Ajouter ou gérer ${card.name}", modifier = Modifier.size(20.dp)) }
+                                    IconButton(onClick = { onActions(card) }) { Icon(Icons.Default.Add, "Ajouter ou gérer ${card.name}") }
                                 }
                             }
                         }
