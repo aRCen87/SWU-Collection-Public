@@ -163,27 +163,27 @@ class CollectionDatabase(context: Context) :
         return result
     }
 
-    fun addOrIncrement(name: String, set: String, number: String, variant: String, language: String = "FR"): Unit = withHistory("Ajout d’une carte") {
+    fun addOrIncrement(name: String, set: String, number: String, variant: String, language: String = "FR", quantity: Int = 1): Unit = withHistory("Ajout d’une carte") {
         val db = writableDatabase
         require(CardLanguages.valid(language))
         val previous = db.rawQuery("SELECT quantity FROM collection_cards WHERE set_code=? AND card_number=? AND variant=? AND language=?",
             arrayOf(set.trim().uppercase(),number.trim(),variant,language)).use { if(it.moveToFirst()) it.getLong(0) else 0L }
-        require(previous < 9999) { "Maximum 9 999 exemplaires pour cette langue et cette finition." }
+        require(quantity in 1..9999 && previous + quantity <= 9999) { "Maximum 9 999 exemplaires pour cette langue et cette finition." }
         val values = ContentValues().apply {
             put("language", language)
             put("name", name.trim())
             put("set_code", set.trim().uppercase())
             put("card_number", number.trim())
             put("variant", variant)
-            put("quantity", 1)
+            put("quantity", quantity)
         }
         val inserted = db.insertWithOnConflict(
             "collection_cards", null, values, SQLiteDatabase.CONFLICT_IGNORE
         )
         if (inserted == -1L) {
             db.execSQL(
-                "UPDATE collection_cards SET quantity = quantity + 1, name = ? WHERE set_code = ? AND card_number = ? AND variant = ? AND language = ?",
-                arrayOf(name.trim(), set.trim().uppercase(), number.trim(), variant, language)
+                "UPDATE collection_cards SET quantity = quantity + ?, name = ? WHERE set_code = ? AND card_number = ? AND variant = ? AND language = ?",
+                arrayOf(quantity, name.trim(), set.trim().uppercase(), number.trim(), variant, language)
             )
         }
     }

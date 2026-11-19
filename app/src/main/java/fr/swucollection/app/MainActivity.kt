@@ -283,6 +283,7 @@ private fun CollectionScreen(
     }
     var quickCard by remember { mutableStateOf<CatalogCard?>(null) }
     var collectionQuickCard by remember { mutableStateOf<CatalogCard?>(null) }
+    var inventoryAddCard by remember { mutableStateOf<CatalogCard?>(null) }
     var favoriteCard by remember { mutableStateOf<CatalogCard?>(null) }
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("text/csv"),
@@ -1415,6 +1416,28 @@ private fun CollectionScreen(
                     Text(if (cards.isEmpty()) "Ta collection est vide. Scanne ta première carte pour commencer." else "Aucune carte possédée ne correspond aux filtres.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (cards.isNotEmpty()) TextButton(onClick = { search = ""; collectionSetFilter = "Toutes"; collectionScope = "Possédées"; collectionLanguage = "Toutes"; favoriteFilterValue = "false"; savedCollectionSort = CollectionPriceSort.CATALOG.name }) { Text("Afficher toute ma collection") }
                     }
+                } else if (privateLayout && collectionView != "Miniatures") {
+                    val groups = remember(selectedOwned, allCatalog, cardDetails) {
+                        groupOwnedVersions(selectedOwned, allCatalog, cardDetails, acrossSets = true)
+                    }
+                    LazyColumn(Modifier.fillMaxWidth().weight(1f).testTag("swu_inventory_list"),
+                        verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(bottom = 12.dp)) {
+                        items(groups, key = { it.first().id }) { rows ->
+                            CollectionInventoryCard(rows, catalogByKey,
+                                onPreview = { owned, card -> openPreview(card,
+                                    familyPreviewEntries(groups, owned, catalogByKey), owned.variant, owned.language) },
+                                onQuantity = { row, delta ->
+                                    runCatching { database.changeQuantity(row.id, delta) }.onSuccess {
+                                        refresh()
+                                        additionUndoId = database.history().firstOrNull()?.id
+                                        additionThumbnail = catalogByKey[MarketPricing.key(row.setCode, row.number)]
+                                        additionMessage = "Quantité modifiée · ${row.language} · ${row.variant}"
+                                    }.onFailure { additionMessage = "Modification non enregistrée. Réessaie." }
+                                },
+                                onLanguage = { editingOwnedLanguage = it; languageError = null },
+                                onAdd = { inventoryAddCard = it })
+                        }
+                    }
                 } else if (privateLayout && collectionView in listOf("Visuel", "Miniatures")) {
                     val groups = remember(selectedOwned, allCatalog, cardDetails, groupVersions) {
                         if (groupVersions) groupOwnedVersions(selectedOwned, allCatalog, cardDetails, acrossSets = true)
@@ -1775,6 +1798,15 @@ private fun CollectionScreen(
             additionThumbnail = request.card
             additionMessage = "${request.card.name} ajouté · ${CardLanguages.label(language)} · $finish"
             android.widget.Toast.makeText(deckContext, "Carte ajoutée ✓", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+    inventoryAddCard?.let { card ->
+        CollectionVariantSheet(card, allCatalog, cards, cardDetails, onDismiss = { inventoryAddCard = null }) { print, language, finish, quantity ->
+            database.addOrIncrement(print.name, print.setCode, print.number, finish, language, quantity)
+            refresh()
+            additionUndoId = database.history().firstOrNull()?.id
+            additionThumbnail = print
+            additionMessage = "$quantity exemplaire(s) ajouté(s) · $language · $finish"
         }
     }
     quickCard?.let { card ->
