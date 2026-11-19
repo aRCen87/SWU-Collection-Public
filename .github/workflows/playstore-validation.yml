@@ -42,3 +42,9 @@ jobs:
           assert not any(e.get(ns+'host')=='account' for e in root.iter('data'))
           print('Standalone manifest verified')
           PYCODE
+      - name: Keep unsigned Playstore candidate for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: appli-playstore-unsigned-aab
+          path: app/build/outputs/bundle/playstore/*.aab
+          if-no-files-found: error

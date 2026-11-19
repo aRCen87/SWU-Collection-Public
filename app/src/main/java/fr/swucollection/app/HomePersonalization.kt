@@ -41,7 +41,7 @@ internal fun HomeLayoutEditor(initial: HomeLayout, sets: List<CatalogSet>, onDis
             val shown = UnifiedCollection.visibleHome(layout.order)
             shown.forEachIndexed { index, title -> Row(Modifier.fillMaxWidth()) {
                 Text(title, Modifier.weight(1f).padding(top = 12.dp), style = MaterialTheme.typography.labelMedium)
-                fun move(target: Int) { val order = shown.toMutableList(); order.add(target, order.removeAt(index)); layout = layout.copy(order = order + "EXTENSIONS") }
+                fun move(target: Int) { val order = shown.toMutableList(); order.add(target, order.removeAt(index)); layout = layout.copy(order = order + layout.order.filter { it !in shown }) }
                 TextButton(onClick = { move(index - 1) }, enabled = index > 0, contentPadding = PaddingValues(4.dp)) { Text("↑") }
                 TextButton(onClick = { move(index + 1) }, enabled = index < shown.lastIndex, contentPadding = PaddingValues(4.dp)) { Text("↓") }
             } }

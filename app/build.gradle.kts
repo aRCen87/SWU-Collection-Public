@@ -39,6 +39,8 @@ android {
         create("playstore") {
             initWith(getByName("release"))
             applicationIdSuffix = ".playstore"
+            // Local/PR validation may build an unsigned AAB; distribution supplies the permanent key.
+            if (System.getenv("ANDROID_KEYSTORE_PATH").isNullOrBlank()) signingConfig = null
             buildConfigField("boolean", "SOCIAL_FEATURES", "false")
             matchingFallbacks += listOf("release")
         }
