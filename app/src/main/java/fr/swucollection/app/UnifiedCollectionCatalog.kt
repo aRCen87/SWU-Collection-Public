@@ -65,7 +65,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
     cardScaleOverride: Float? = null, onCardScaleChange: ((Float) -> Unit)? = null,
     silhouettesOverride: Boolean? = null, onSilhouettesChange: ((Boolean) -> Unit)? = null,
     showDisplayOptions: Boolean = true, showFavoritesControl: Boolean = true,
-    onQuickChange: ((CatalogCard, String, String, Int) -> Unit)? = null, favoriteRevision: Int = 0) {
+    onQuickChange: ((CatalogCard, String, String, Int) -> Unit)? = null, favoriteRevision: Int = 0, priceRefreshKey: Any? = null) {
     val favoriteContext = LocalContext.current.applicationContext
     val favoriteDatabase = remember(favoriteContext) { CollectionDatabase(favoriteContext) }
     DisposableEffect(favoriteDatabase) { onDispose { favoriteDatabase.close() } }
@@ -219,7 +219,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                         onLongClickLabel = "Gérer cette carte", onLongClick = { onActions(card) })
                         .semantics { contentDescription = "${card.name}, $quantity exemplaire(s)" }) {
                         if(dimMissing && silhouettes && quantity == 0) MissingSilhouette(card, Modifier.fillMaxWidth().aspectRatio(if (DeckConstruction.type(card) in listOf("leader", "chef", "base")) 1.4f else 5f / 7f)) else CardArtwork(card, Modifier.fillMaxWidth().aspectRatio(if (DeckConstruction.type(card) in listOf("leader", "chef", "base")) 1.4f else 5f / 7f).testTag("catalog_artwork_${MarketPricing.key(card.setCode, card.number)}"), language = if (!miniatures && onQuickChange != null) quickLanguage else language.takeIf { it in CardLanguages.supported } ?: card.language,
-                            variant = if (!miniatures && onQuickChange != null) quickFinish else "Normale", showLanguageLabel = !miniatures, grayscale = dimMissing && quantity == 0)
+                            variant = if (!miniatures && onQuickChange != null) quickFinish else "Normale", showLanguageLabel = false, grayscale = dimMissing && quantity == 0)
                         if (miniatures) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Text(if (quantity > 0) "×$quantity" else "Manquante", Modifier.weight(1f), color = ListPalette.Gold, style = MaterialTheme.typography.labelSmall)
                             favoriteButton(card)
@@ -234,7 +234,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                                         { quickLanguage = it; prefs.edit().putString("language", it).apply() },
                                         { quickFinish = it; prefs.edit().putString("finish", it).apply() })
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        CompactCardQuote(card, quickFinish)
+                                        CompactCardQuote(card, quickFinish, refreshKey = priceRefreshKey)
                                         favoriteButton(card)
                                     }
                                 }

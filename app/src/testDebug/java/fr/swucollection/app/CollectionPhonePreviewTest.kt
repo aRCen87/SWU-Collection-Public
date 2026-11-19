@@ -194,7 +194,7 @@ class CollectionPhonePreviewTest {
         }
     }
 
-    @Test fun compactCardReaderKeepsNavigationAndConfirmedInventoryChanges() {
+    @Test fun compactCardReaderKeepsNavigationAndImmediateUndoableInventoryChanges() {
         ui.onAllNodesWithText("Collection").onFirst().performClick()
         ui.onNodeWithText("Filtres", substring = false).performClick()
         ui.onNodeWithText("Toutes les extensions").performClick()
@@ -241,13 +241,14 @@ class CollectionPhonePreviewTest {
         ui.onNodeWithText("Fermer", substring = false).performClick()
         ui.onNodeWithText("Normale ▾").performScrollTo().performClick()
         ui.onAllNodesWithText("Normale", substring = false).onLast().performClick()
+        ui.onNodeWithContentDescription("Autres actions de la carte").performScrollTo().performClick()
+        ui.onNodeWithText("Détails et utilisations").performClick()
         ui.onNodeWithText("Utilisée dans mes decks · 0 ▾").performScrollTo().performClick()
         ui.onNodeWithText("Aucun deck pour le moment.").assertExists()
         ui.onNodeWithText("Utilisée dans mes decks · 0 ▴").performClick()
-        ui.onNodeWithText("+", substring = false).performScrollTo().performClick()
-        ui.onNodeWithText("Confirmer l’ajout").assertIsDisplayed()
-        CollectionDatabase(ui.activity).use { assertTrue("Opening confirmation must not change stock", it.allCards().isEmpty()) }
-        ui.onNodeWithText("Confirmer l’ajout").performClick()
+        CollectionDatabase(ui.activity).use { assertTrue("Reading and choosing finish must not change stock", it.allCards().isEmpty()) }
+        ui.onNode(hasContentDescription("Ajouter un exemplaire") and inSheet).performScrollTo().performClick()
+        ui.onNodeWithText("Confirmer l’ajout").assertDoesNotExist()
         ui.onNodeWithText("1 possédée").assertIsDisplayed()
         CollectionDatabase(ui.activity).use { assertEquals(1, it.allCards().sumOf { row -> row.quantity }) }
         ui.onNodeWithContentDescription("Langue de la carte : Français").performScrollTo().performClick()
@@ -257,9 +258,11 @@ class CollectionPhonePreviewTest {
         ui.onNodeWithContentDescription("Langue de la carte : Anglais").performClick()
         ui.onNodeWithText("Français", substring = false).performClick()
         ui.onNodeWithText("1 possédée").assertIsDisplayed()
-        ui.onNodeWithText("−", substring = false).performClick()
+        ui.onNode(hasContentDescription("Retirer un exemplaire") and inSheet).performScrollTo().performClick()
         ui.onNodeWithText("0 possédée").assertIsDisplayed()
         CollectionDatabase(ui.activity).use { assertTrue(it.allCards().isEmpty()) }
+        ui.onNode(hasText("Annuler") and inSheet).performScrollTo().performClick()
+        CollectionDatabase(ui.activity).use { assertEquals(1, it.allCards().sumOf { row -> row.quantity }) }
         ui.onNodeWithContentDescription("Carte suivante").performClick()
         ui.onNodeWithContentDescription("Carte précédente").assertIsEnabled().performClick()
         ui.onNodeWithContentDescription("Fermer la carte").performClick()

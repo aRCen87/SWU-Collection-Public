@@ -704,7 +704,7 @@ private fun CollectionScreen(
                                 QuickVariantSelectors(card, previewLanguage, previewVariant,
                                     { previewLanguage = it; showReverse = false }, { previewVariant = it })
                                 Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                                    CompactCardQuote(card, previewVariant)
+                                    CompactCardQuote(card, previewVariant, refreshKey = collectionQuotes)
                                     var isFavorite by remember(card.setCode, card.number) {
                                         mutableStateOf(MarketPricing.key(card.setCode, card.number) in database.favoriteCardKeys())
                                     }
@@ -1418,7 +1418,7 @@ private fun CollectionScreen(
                         favoritesOnlyOverride = collectionFavoritesOnly, onFavoritesOnlyChange = { favoriteFilterValue = it.toString() },
                         cardScaleOverride = collectionCardScale, onCardScaleChange = { collectionScaleValue = it.toString() },
                         silhouettesOverride = collectionSilhouettes, onSilhouettesChange = { collectionSilhouettesValue = it.toString() },
-                        showDisplayOptions = false, showFavoritesControl = false, onQuickChange = ::quickStockChange, favoriteRevision = favoriteRevision)
+                        showDisplayOptions = false, showFavoritesControl = false, onQuickChange = ::quickStockChange, favoriteRevision = favoriteRevision, priceRefreshKey = collectionQuotes)
                 } else {
                 if (!scrollingMiniatureControls && selectedOwned.isNotEmpty()) Text(if (compactCollectionLayout) "${selectedOwned.sumOf { it.quantity }} exemplaires affichés"
                     else "${selectedOwned.map { MarketPricing.key(it.setCode,it.number) + ":" + it.variant }.distinct().size} références et variantes possédées · ${selectedOwned.sumOf { it.quantity }} exemplaires", fontSize = 12.sp)

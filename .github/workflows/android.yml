@@ -44,6 +44,15 @@ jobs:
         run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
       - name: Test and check Android code
         run: gradle --no-daemon testDebugUnitTest lintDebug assembleDebug
+      - name: Preserve UI renders and Android test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: swu-ui-validation
+          path: |
+            app/build/visual-review/
+            app/build/test-results/
+          if-no-files-found: ignore
       - name: Verify packaged debug card details
         run: python3 .github/scripts/verify_packaged_card_details.py app/build/outputs/apk/debug/app-debug.apk
       - name: Check optimized release without the permanent signing key

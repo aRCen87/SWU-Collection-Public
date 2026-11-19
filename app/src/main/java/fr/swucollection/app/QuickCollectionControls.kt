@@ -48,9 +48,9 @@ internal fun QuickVariantSelectors(card: CatalogCard, language: String, finish: 
 }
 
 @Composable
-internal fun CompactCardQuote(card: CatalogCard, finish: String, modifier: Modifier = Modifier) {
+internal fun CompactCardQuote(card: CatalogCard, finish: String, modifier: Modifier = Modifier, refreshKey: Any? = null) {
     val context = LocalContext.current.applicationContext
-    val quote by produceState<MarketQuote?>(null, card.setCode, card.number, finish) {
+    val quote by produceState<MarketQuote?>(null, card.setCode, card.number, finish, refreshKey) {
         value = withContext(Dispatchers.IO) {
             runCatching { CardmarketPrices.quote(context, card, finish, false, allowNetwork = false) }.getOrNull()
         }
