@@ -238,8 +238,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                                         favoriteButton(card)
                                     }
                                 }
-                                val exactQuantity = owned.filter { it.setCode.equals(card.setCode, true) && it.number == card.number &&
-                                    it.language == quickLanguage && it.variant == quickFinish }.sumOf { it.quantity }
+                                val exactQuantity = quickStockQuantity(owned, card, quickLanguage, quickFinish)
                                 QuickStockBar(exactQuantity, quickLanguage in CardLanguages.supported && quickFinish in finishes,
                                     { delta -> onQuickChange(card, quickLanguage, quickFinish, delta) })
                             } else {

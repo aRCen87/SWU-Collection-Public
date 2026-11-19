@@ -721,12 +721,9 @@ private fun CollectionScreen(
                                 }
                             }
                         }
-                        val ownedVariant = cards.firstOrNull {
-                            it.setCode.equals(card.setCode, true) &&
-                            it.number == card.number && it.variant == previewVariant && it.language == previewLanguage
-                        }
+                        val ownedQuantity = quickStockQuantity(cards, card, previewLanguage, previewVariant)
                         val collectionActions: @Composable () -> Unit = {
-                            QuickStockBar(ownedVariant?.quantity ?: 0,
+                            QuickStockBar(ownedQuantity,
                                 previewLanguage in CardLanguages.supported && previewVariant in ScanVariants.detect(card).choices,
                                 { delta -> quickStockChange(card, previewLanguage, previewVariant, delta) }, detailed = true)
                             additionMessage?.let { message ->
@@ -738,7 +735,7 @@ private fun CollectionScreen(
                         }
                         val secondaryTools: @Composable () -> Unit = {
                         val familyStock = remember(card, cards, allCatalog, cardDetails) { DeckCompanion.stock(card, cards, allCatalog, cardDetails) }
-                        if (familyStock > (ownedVariant?.quantity ?: 0)) Text("$familyStock au total, autres versions comprises", color = ListPalette.Gold,
+                        if (familyStock > (ownedQuantity)) Text("$familyStock au total, autres versions comprises", color = ListPalette.Gold,
                             style = MaterialTheme.typography.bodySmall)
                         CardDeckUsagePanel(card, savedDecks, allCatalog, cardDetails, enabled = !deckWorkspace,
                             onAdd = { quickCard = card }, onOpen = ::openSavedDeck)

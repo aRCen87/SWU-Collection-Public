@@ -58,4 +58,24 @@ class QuickCollectionControlsTest {
             assertEquals(2, db.allCards().single { it.language == "FR" && it.variant == "Foil" }.quantity)
         }
     }
+    @Test fun legacyUnpaddedReferenceKeepsItsRowAndIsNeverAddedAsADuplicate() {
+        val context = RuntimeEnvironment.getApplication()
+        context.deleteDatabase("swu_collection.db")
+        CollectionDatabase(context).use { db ->
+            db.addOrIncrement(card.name, "SOR", "95", "Normale", "FR", 3)
+            val originalId = db.allCards().single().id
+            assertEquals(3, quickStockQuantity(db.allCards(), card, "FR", "Normale"))
+            changeQuickStock(db, card, "FR", "Normale", 1)
+            val row = db.allCards().single()
+            assertEquals(originalId, row.id)
+            assertEquals("95", row.number)
+            assertEquals(4, row.quantity)
+            changeQuickStock(db, card, "FR", "Normale", -1)
+            assertEquals(3, quickStockQuantity(db.allCards(), card, "FR", "Normale"))
+            db.undoLastChange()
+            assertEquals(4, db.allCards().single().quantity)
+            assertEquals(originalId, db.allCards().single().id)
+        }
+    }
+
 }

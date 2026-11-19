@@ -79,13 +79,17 @@ internal fun QuickStockBar(quantity: Int, valid: Boolean, onChange: (Int) -> Uni
     }
 }
 
+internal fun quickStockQuantity(owned: List<CollectionCard>, card: CatalogCard, language: String, finish: String): Int =
+    owned.filter { MarketPricing.key(it.setCode, it.number) == MarketPricing.key(card.setCode, card.number) &&
+        it.language == language && it.variant == finish }.sumOf { it.quantity }
+
 /** Read latest SQLite rows for each tap, including taps before recomposition. */
 internal fun changeQuickStock(db: CollectionDatabase, card: CatalogCard, language: String, finish: String, delta: Int): Long? {
     require(language in CardLanguages.supported && finish in ScanVariants.detect(card).choices)
     require(delta == 1 || delta == -1)
-    val row = db.allCards().firstOrNull { it.setCode.equals(card.setCode, true) && it.number == card.number && it.language == language && it.variant == finish }
+    val row = db.allCards().firstOrNull { MarketPricing.key(it.setCode, it.number) == MarketPricing.key(card.setCode, card.number) && it.language == language && it.variant == finish }
     if (delta < 0 && (row?.quantity ?: 0) == 0) return null
-    if (delta > 0) db.addOrIncrement(card.name, card.setCode, card.number, finish, language)
+    if (delta > 0) db.addOrIncrement(card.name, row?.setCode ?: card.setCode, row?.number ?: card.number, finish, language)
     else db.changeQuantity(row!!.id, -1)
     return db.history().firstOrNull { !it.undone }?.id
 }
