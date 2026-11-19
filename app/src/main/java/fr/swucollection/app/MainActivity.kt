@@ -6,6 +6,7 @@ import androidx.activity.SystemBarStyle
 import android.os.Bundle
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import android.content.Intent
 import android.graphics.Bitmap
@@ -598,9 +599,10 @@ private fun CollectionScreen(
         }
         var detailTab by rememberSaveable { mutableStateOf("Collection") }
         var compareCards by remember { mutableStateOf(false) }
+        var cardToolsOpen by remember(session.current.card) { mutableStateOf(false) }
         val entryScale = rememberCardEntryScale(session.current.card)
         if(compareCards) CompareCardsDialog(card, allCatalog, cardDetails) { compareCards = false }
-        val artworkHeight = (LocalConfiguration.current.screenHeightDp.dp * (if (privateLayout) .48f else .42f)).coerceIn(180.dp, if (privateLayout) 440.dp else 350.dp)
+        val maxArtworkHeight = (LocalConfiguration.current.screenHeightDp.dp * .58f).coerceIn(160.dp, 560.dp)
             Card(modifier = Modifier.safeDrawingPadding().padding(12.dp).widthIn(max = 720.dp).fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
                 Column(Modifier.fillMaxWidth().testTag("swu_card_sheet").fillMaxHeight(0.92f).padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -617,8 +619,13 @@ private fun CollectionScreen(
                         IconButton(onClick = { previewFullscreen = true }) {
                             Icon(Icons.Default.Fullscreen, "Afficher la carte en plein écran")
                         }
-                        FilledIconButton(onClick = { quickCard = card }, modifier = Modifier.size(48.dp)) {
-                            Icon(Icons.Default.Add, "Ajouter ou gérer cette carte")
+                        IconButton(onClick = { quickCard = card }, modifier = Modifier.size(48.dp)) {
+                            Surface(Modifier.size(36.dp), shape = RoundedCornerShape(18.dp), color = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary) {
+                                Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
+                                    Icon(Icons.Default.Add, "Ajouter ou gérer cette carte", modifier = Modifier.size(20.dp))
+                                }
+                            }
                         }
                         IconButton(onClick = { previewSession = null }) {
                             Icon(Icons.Default.Close, "Fermer la carte")
@@ -627,69 +634,88 @@ private fun CollectionScreen(
                     Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 6.dp),
                         horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        val hasReverse = card.type.equals("Leader", ignoreCase = true) &&
+                        val hasReverse = DeckConstruction.type(card) in listOf("leader", "chef") &&
                             CardLanguageArtwork.displayFace(deckContext,card,previewLanguage,previewVariant,true).first.isNotBlank()
                         if (hasReverse) {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                FilterChip(selected = leaderMode == "flip", onClick = {
-                                    leaderMode = "flip"
-                                    displayPrefs.edit().putString("mode", "flip").apply()
-                                }, label = { Text("Retourner") })
                                 FilterChip(selected = leaderMode == "stack", onClick = {
-                                    leaderMode = "stack"
-                                    displayPrefs.edit().putString("mode", "stack").apply()
+                                    leaderMode = if (leaderMode == "stack") "flip" else "stack"
+                                    displayPrefs.edit().putString("mode", leaderMode).apply()
                                 }, label = { Text("Deux faces") })
                             }
                         }
+                        BoxWithConstraints(Modifier.fillMaxWidth()) {
+                        val imageWidth = maxWidth
+                        val landscapeFace = DeckConstruction.type(card) == "base" ||
+                            (DeckConstruction.type(card) in listOf("leader", "chef") && !showReverse)
+                        val artworkHeight = (imageWidth / if (landscapeFace) 1.4f else (5f / 7f)).coerceAtMost(maxArtworkHeight)
                         if (hasReverse && leaderMode == "stack") {
-                            Column(Modifier.heightIn(max = 430.dp).verticalScroll(rememberScrollState()),
+                            Column(
                                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text("Recto")
                                 TransitioningCardArtwork(card, previewVariant, index = session.index,
                                     enabled = AppChannel.supportsExperience(deckContext.packageName),
-                                    modifier = Modifier.fillMaxWidth().height(280.dp).then(swipeCardModifier))
+                                    modifier = Modifier.fillMaxWidth().height((imageWidth / 1.4f).coerceAtMost(maxArtworkHeight)).then(swipeCardModifier))
                                 Text("Verso")
                                 TransitioningCardArtwork(card, previewVariant, reverse = true, index = session.index,
                                     enabled = AppChannel.supportsExperience(deckContext.packageName),
-                                    modifier = Modifier.fillMaxWidth().height(280.dp).then(swipeCardModifier))
+                                    modifier = Modifier.fillMaxWidth().height((imageWidth * 1.4f).coerceAtMost(maxArtworkHeight)).then(swipeCardModifier))
                             }
                         } else if (hasReverse) {
                             if (AppChannel.supportsExperience(deckContext.packageName)) {
                                 TransitioningCardArtwork(card, previewVariant, reverse = showReverse, index = session.index,
                                     enabled = true, modifier = Modifier.fillMaxWidth().height(artworkHeight).graphicsLayer { scaleX = entryScale; scaleY = entryScale }
-                                        .then(swipeCardModifier).clickable { showReverse = !showReverse })
+                                        .then(swipeCardModifier).clickable(onClickLabel = "Retourner la carte") { showReverse = !showReverse })
                             } else Crossfade(targetState = showReverse, label = "Retourner le leader") { reverse ->
-                                CardArtwork(card, Modifier.fillMaxWidth().height(artworkHeight).graphicsLayer { scaleX = entryScale; scaleY = entryScale }.then(swipeCardModifier).clickable { showReverse = !showReverse }, variant = previewVariant, reverse = reverse)
+                                CardArtwork(card, Modifier.fillMaxWidth().height(artworkHeight).graphicsLayer { scaleX = entryScale; scaleY = entryScale }.then(swipeCardModifier).clickable(onClickLabel = "Retourner la carte") { showReverse = !showReverse }, variant = previewVariant, reverse = reverse)
                             }
-                            Text("Toucher la carte pour la retourner", fontSize = 12.sp)
                         } else {
                             TransitioningCardArtwork(card, previewVariant, index = session.index,
                                 enabled = AppChannel.supportsExperience(deckContext.packageName),
                                 modifier = Modifier.fillMaxWidth().height(artworkHeight).graphicsLayer { scaleX = entryScale; scaleY = entryScale }.then(swipeCardModifier))
                         }
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                            Text(card.name, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         }
-                        val collectionActions: @Composable () -> Unit = {
-                        Text("Ma collection — choisir une variante", fontWeight = FontWeight.SemiBold)
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            ScanVariants.detect(card).choices.forEach { option ->
-                                FilterChip(selected = previewVariant == option,
-                                    onClick = { previewVariant = option },
-                                    label = { Text(option, fontSize = 11.sp) })
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            Text(card.name, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold, fontSize = 18.sp,
+                                maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        }
+                        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            itemVerticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            CardLanguageChoices(previewLanguage, { previewLanguage = it; showReverse = false }, showLabel = false)
+                            var finishMenu by remember(card) { mutableStateOf(false) }
+                            Box {
+                                OutlinedButton(onClick = { finishMenu = true }, modifier = Modifier.semantics {
+                                    contentDescription = "Finition de la carte : $previewVariant"
+                                }) { Text("$previewVariant ▾") }
+                                DropdownMenu(finishMenu, onDismissRequest = { finishMenu = false }) {
+                                    ScanVariants.detect(card).choices.forEach { option ->
+                                        DropdownMenuItem(text = { Text(option) }, onClick = { previewVariant = option; finishMenu = false })
+                                    }
+                                }
+                            }
+                            if (privateLayout) Box {
+                                IconButton(onClick = { cardToolsOpen = true }) { Icon(Icons.Default.MoreVert, "Autres actions de la carte") }
+                                DropdownMenu(cardToolsOpen, onDismissRequest = { cardToolsOpen = false }) {
+                                    DropdownMenuItem(text = { Text("Comparer") }, onClick = { cardToolsOpen = false; compareCards = true })
+                                    DropdownMenuItem(text = { Text("Partager à des amis") }, onClick = {
+                                        cardToolsOpen = false; sharingPlayerCard = SharedPlayerCard(card.setCode, card.number, previewLanguage, previewVariant)
+                                    })
+                                }
                             }
                         }
-                        if(!privateLayout) CardmarketPricePanel(card, previewVariant)
                         val ownedVariant = cards.firstOrNull {
                             it.setCode.equals(card.setCode, true) &&
                             it.number == card.number && it.variant == previewVariant && it.language == previewLanguage
                         }
+                        val collectionActions: @Composable () -> Unit = {
+                        if(!privateLayout) CardmarketPricePanel(card, previewVariant)
                         Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             OutlinedButton(onClick = {
                                 ownedVariant?.let { database.changeQuantity(it.id, -1); refresh() }
                             }, enabled = (ownedVariant?.quantity ?: 0) > 0) { Text("−") }
-                            Text("${ownedVariant?.quantity ?: 0} exemplaire(s)",
+                            val quantity = ownedVariant?.quantity ?: 0
+                            Text("$quantity " + if (quantity > 1) "possédées" else "possédée",
                                 modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
                             Button(onClick = {
                                 pendingCollectionAdd = CollectionAddRequest(card, previewVariant, previewLanguage)
@@ -698,7 +724,8 @@ private fun CollectionScreen(
                         }
                         val secondaryTools: @Composable () -> Unit = {
                         val familyStock = remember(card, cards, allCatalog, cardDetails) { DeckCompanion.stock(card, cards, allCatalog, cardDetails) }
-                        Text("$familyStock exemplaire(s) possédé(s), versions reconnues comprises", color = ListPalette.Gold)
+                        if (familyStock > (ownedVariant?.quantity ?: 0)) Text("$familyStock au total, autres versions comprises", color = ListPalette.Gold,
+                            style = MaterialTheme.typography.bodySmall)
                         CardDeckUsagePanel(card, savedDecks, allCatalog, cardDetails, enabled = !deckWorkspace,
                             onAdd = { quickCard = card }, onOpen = ::openSavedDeck)
                         if(!privateLayout) RelatedPrintsPanel(card, allCatalog, cards, cardDetails, previewVariant, previewLanguage) { related, finish, language ->
@@ -710,13 +737,12 @@ private fun CollectionScreen(
                         val inLists = personalLists.count { list -> list.entries.any {
                             it.card.setCode == card.setCode && it.card.number == card.number
                         } }
-                        Text("Dans $inLists liste(s)", style = MaterialTheme.typography.bodySmall)
+                        if (inLists > 0) Text("Dans $inLists liste(s)", style = MaterialTheme.typography.bodySmall)
                         CardLegalityBadge(premierLegality.status(card))
                         Text("${card.setCode} • ${card.number} • ${card.rarity}")
                         if (previewLanguage == CardLanguages.UNKNOWN) Text("Visuel du catalogue : précise la langue pour afficher ta version.",style=MaterialTheme.typography.bodySmall)
                         if (card.imageUrl.isBlank() && previewLanguage in CardLanguages.supported) Text("Le visuel ${CardLanguages.label(previewLanguage).lowercase(java.util.Locale.FRANCE)} n’est pas publié pour cette référence. Un visuel disponible est affiché avec sa langue.", color = ListPalette.Secondary)
                         }
-                        CardLanguageChoices(previewLanguage, { previewLanguage = it; showReverse = false })
                         if (privateLayout) {
                             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 listOf("Collection", "Variantes", "Cotes").forEach { title -> FilterChip(detailTab == title, { detailTab = title }, label = { Text(title) }) }
@@ -726,11 +752,8 @@ private fun CollectionScreen(
                                 "Variantes" -> VariantFan(card, allCatalog, cards, cardDetails, previewVariant, previewLanguage) { related, finish, language -> previewPrint = related; previewVariant = finish; previewLanguage = language; showReverse = false }
                                 "Cotes" -> CardmarketPricePanel(card, previewVariant)
                             }
-                            TextButton(onClick = { compareCards = true }) { Text("Comparer avec une autre carte") }
                         }
                         else { secondaryTools(); collectionActions() }
-                        if(privateLayout) OutlinedButton(onClick={sharingPlayerCard=SharedPlayerCard(card.setCode,card.number,previewLanguage,previewVariant)}){Text("Partager à des amis")}
-                        OutlinedButton(onClick = { previewSession = null }) { Text("Fermer") }
                         }
                 }
             }

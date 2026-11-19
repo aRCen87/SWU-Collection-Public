@@ -59,6 +59,18 @@ Le 19 novembre 2026, Romain demande de ne pas rendre la mise à jour disponible 
 
 ## État des contrôles
 
+### Fiche carte — simplification autorisée après les captures
+
+- La hauteur de l'image suit le format de la face affichée et la largeur disponible, avec un plafond adapté à l'écran. Les leaders et bases horizontaux ne réservent plus un grand cadre vertical vide. Plein écran, navigation et balayage sont conservés.
+- Le toucher retourne toujours le leader ; un seul bouton Deux faces active ou quitte la présentation recto/verso. L'instruction répétée et le bouton Retourner sont retirés.
+- La langue et la finition sont regroupées sous le titre, avec leurs choix et des libellés d'accessibilité explicites. Les trois onglets Collection, Variantes et Cotes restent disponibles.
+- Un seul compteur affiche le stock de la langue/finition choisie. L'ajout garde sa confirmation explicite ; le total des autres versions n'apparaît que s'il apporte une information supplémentaire.
+- L'ajout rapide en haut conserve une cible de 48 dp avec un fond de 36 dp et un symbole de 20 dp.
+- L'usage dans les decks est replié par défaut, les listes vides ne sont pas mentionnées. Comparer et Partager sont regroupés dans le menu secondaire. La croix du haut reste le moyen de fermer la fiche ; le second bouton Fermer est retiré.
+- Préparation uniquement, sans publication ni modification du schéma de collection.
+
+Contrôles : 17 tests ciblés réussis (langues, session de lecture et vrais écrans), puis le parcours de la fiche relancé après ajout du contrôle FR/EN. Il couvre le choix d'extension, retournement, deux faces, plein écran, comparaison, finition, usages de decks, ajout confirmé, compteur par langue, retrait et navigation précédente/suivante. lintDebug et assembleDebug passent, ainsi que les 67 tests Python et la vérification du catalogue dans le paquet. Le rendu téléphone a été inspecté sur données isolées ; aucun compte réel n'est utilisé et aucune publication n'est effectuée.
+
 ### Collection — validation étape par étape sur téléphone standard
 
 Romain autorise l'allègement de la collection après examen de ses deux captures :

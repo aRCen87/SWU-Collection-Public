@@ -3,6 +3,8 @@ package fr.swucollection.app
 import android.content.Context
 import org.json.JSONObject
 import androidx.compose.runtime.*
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import java.util.zip.GZIPInputStream
 import java.io.InputStream
 import java.io.FileNotFoundException
@@ -109,12 +111,15 @@ internal object CardLanguageArtwork {
 }
 
 @androidx.compose.runtime.Composable
-internal fun CardLanguageChoices(language: String, onChange: (String) -> Unit) {
+internal fun CardLanguageChoices(language: String, onChange: (String) -> Unit, showLabel: Boolean = true) {
     var expanded by remember { mutableStateOf(false) }
     androidx.compose.foundation.layout.Column {
-        androidx.compose.material3.Text("Langue de la carte")
+        if (showLabel) androidx.compose.material3.Text("Langue de la carte")
         androidx.compose.foundation.layout.Box {
-            androidx.compose.material3.OutlinedButton(onClick = { expanded = true }) {
+            androidx.compose.material3.OutlinedButton(onClick = { expanded = true },
+                modifier = if (showLabel) androidx.compose.ui.Modifier else androidx.compose.ui.Modifier.semantics {
+                    contentDescription = "Langue de la carte : ${CardLanguages.label(language)}"
+                }) {
                 androidx.compose.material3.Text(if (language == CardLanguages.UNKNOWN) "Choisir une langue" else CardLanguages.label(language))
                 androidx.compose.material3.Text(" ▾")
             }
