@@ -222,6 +222,13 @@ class SimplicityReviewTest {
         listOf("home", "settings", "appearance", "collection", "decks", "builder", "lists", "proxies", "badges", "counter", "statistics", "backups", "history", "offline", "about", "scan", "profile", "members", "chat", "trade", "complete", "search").forEach { destination ->
             ui.runOnIdle { screen = destination }
             ui.waitForIdle()
+            if (destination == "builder" && format == "fold") {
+                ui.onAllNodesWithText("Deck : 5/50 min. · Réserve : 0/10 max.").assertCountEquals(0)
+                ui.onAllNodesWithText("Deck · 5/50").assertCountEquals(1)
+                ui.onAllNodesWithText("Réserve · 0/10").assertCountEquals(1)
+                ui.onAllNodesWithText("Changer Leader").assertCountEquals(1)
+                ui.onAllNodesWithText("Changer Base").assertCountEquals(1)
+            }
             capture("tour-$format-$destination")
         }
     }

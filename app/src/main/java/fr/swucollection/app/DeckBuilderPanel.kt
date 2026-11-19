@@ -230,7 +230,7 @@ internal fun DeckBuilderPanel(
                 ) { Text(label, maxLines = 1, style = MaterialTheme.typography.labelMedium) }
             }
         }
-        Text(if (tab == "Leader") "Choisis le leader de ton deck." else if (tab == "Base") "Choisis la base de ton deck." else
+        if (!dualPane || tab in listOf("Leader", "Base")) Text(if (tab == "Leader") "Choisis le leader de ton deck." else if (tab == "Base") "Choisis la base de ton deck." else
             "Deck : ${deck.deck.sumOf { it.count }}/50 min. · Réserve : ${deck.sideboard.sumOf { it.count }}/10 max.",
             color = ListPalette.Secondary, style = MaterialTheme.typography.bodyMedium)
         OutlinedTextField(query, { query = it }, label = { Text("Rechercher une carte") },

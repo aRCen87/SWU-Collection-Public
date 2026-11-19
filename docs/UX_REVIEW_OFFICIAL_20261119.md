@@ -2,6 +2,10 @@
 
 Travail demandé le 19 novembre 2026, à partir de l'officielle 0.9.6 (sources `3d592af9094e13aa02442484d48fd1fed23a9844`). Branche de préparation : `simplify/official-visual-review-20261119`. Ce document distingue l'inspection du code, les rendus de composants et l'utilisation de l'application publiée.
 
+## Publication suspendue à la demande de Romain
+
+Le 19 novembre 2026, Romain demande de ne pas rendre la mise à jour disponible tout de suite. Continuer les corrections et les vérifications dans une branche de préparation ; conserver la demande d'intégration en brouillon. Ne publier ni APK ni annonce de mise à jour, et ne pas intégrer à main sans un nouvel accord explicite.
+
 ## Principes retenus
 
 - Conserver l'accueil restauré, ses illustrations, le bleu et l'or et les logos d'extensions mis en valeur.
