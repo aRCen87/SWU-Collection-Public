@@ -58,8 +58,9 @@ class CollectionReferencePhoneTest {
             val canvas = android.graphics.Canvas(bitmap)
             if (dialog) {
                 ui.activity.window.decorView.draw(canvas)
-                val amount = org.robolectric.shadows.ShadowDialog.getLatestDialog()!!.window!!.attributes.dimAmount
-                canvas.drawColor(android.graphics.Color.argb((amount * 255).toInt(), 0, 0, 0))
+                val attributes = org.robolectric.shadows.ShadowDialog.getLatestDialog()!!.window!!.attributes
+                if (attributes.flags and android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND != 0)
+                    canvas.drawColor(android.graphics.Color.argb((attributes.dimAmount * 255).toInt(), 0, 0, 0))
             }
             view.draw(canvas)
             File("build/visual-review/$name.png").also { it.parentFile.mkdirs() }.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
