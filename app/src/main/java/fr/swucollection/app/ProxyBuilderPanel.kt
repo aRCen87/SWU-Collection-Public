@@ -36,7 +36,7 @@ internal fun rememberProxyBuilderState(initial: List<PrintCard>? = null): ProxyB
 
 @Composable
 internal fun ProxyBuilderPanel(catalog: List<CatalogCard>, owned: List<CollectionCard>, details: CardDetails,
-    initial: List<PrintCard>? = null, state: ProxyBuilderState = rememberProxyBuilderState(initial), onBack: () -> Unit) {
+    initial: List<PrintCard>? = null, state: ProxyBuilderState = rememberProxyBuilderState(initial), onBack: () -> Unit, showBackButton: Boolean = true) {
     val context = LocalContext.current
     val largeText = LocalDensity.current.fontScale > 1.3f
     val prefs = remember { context.getSharedPreferences("proxy_print_selection", 0) }
@@ -71,16 +71,12 @@ internal fun ProxyBuilderPanel(catalog: List<CatalogCard>, owned: List<Collectio
     }
     BackHandler(onBack = onBack)
     Column(Modifier.fillMaxSize().padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            TextButton(onClick = onBack) { Text("Retour") }
-            Text("Proxies", Modifier.weight(1f).padding(top = 12.dp), color = ListPalette.Gold)
-            TextButton(onClick = { clearing = true }, enabled = selected.isNotEmpty()) { Text("Tout retirer") }
-        }
+        if (showBackButton) TextButton(onClick = onBack) { Text("Retour au deck") }
         OutlinedTextField(query, { query = it }, singleLine = true, modifier = Modifier.fillMaxWidth(), label = { Text("Rechercher une carte") })
         FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             FilterChip(!selectionOnly, onClick = { selectionOnly = false }, label = { Text("Choisir des cartes") })
             FilterChip(selectionOnly, onClick = { selectionOnly = true; query = ""; filters = DeckBrowserFilters() }, label = { Text("À imprimer (${selected.size})") })
-            TextButton(onClick = { filtering = true }) { Text("Filtres") }
+            TextButton(onClick = { filtering = true }) { Text(if (filters.activeCount == 0) "Filtres" else "Filtres (${filters.activeCount})") }
         }
         LazyVerticalGrid(GridCells.Adaptive(if (largeText) 168.dp else 128.dp), modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (filtered.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
@@ -97,6 +93,7 @@ internal fun ProxyBuilderPanel(catalog: List<CatalogCard>, owned: List<Collectio
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = { printing = true }, enabled = selected.isNotEmpty()) { Text("Créer le PDF") }
             Text("${selected.values.sum()} exemplaire(s)", Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall)
+            if (selected.isNotEmpty()) TextButton(onClick = { clearing = true }) { Text("Tout retirer") }
         }
     }
     preview?.let { card -> DeckCardGallery(filtered, DeckConstruction.reference(card), { preview = null }) }

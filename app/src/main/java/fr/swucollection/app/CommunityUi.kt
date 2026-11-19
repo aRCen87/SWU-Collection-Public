@@ -19,6 +19,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -162,6 +163,7 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
         friendsProfiles = friendships.mapNotNull { f -> runCatching { service.profile(f.peer(user.uid)) }.getOrNull()?.let { it.id to it } }.toMap()
     }
     var editing by remember { mutableStateOf(false) }
+    var privacyOptions by rememberSaveable { mutableStateOf(false) }
     var selectedProfile by remember { mutableStateOf<PlayerProfile?>(null) }
     var conversation by remember { mutableStateOf(initialConversation?.first) }
     var peerName by remember { mutableStateOf(initialConversation?.second.orEmpty()) }
@@ -230,9 +232,16 @@ private fun ColumnScope.CommunitySession(service: CommunityService, user: Fireba
             Text(if (profile!!.discoverable) "Profil visible aux autres joueurs" else "Profil non listé parmi les joueurs")
             OutlinedButton(onClick = { editing = true }) { Text("Modifier mon profil et mon avatar") }
             if (onOpenBackups != null) OutlinedButton(onClick = onOpenBackups) { Text("Mes sauvegardes") }
-            CommunityNotificationControls(user.uid)
-            Row(verticalAlignment=Alignment.CenterVertically){Text("Afficher mon statut en ligne",Modifier.weight(1f));Switch(preferences.sharePresence,{v->action{service.saveMessengerPreferences(preferences.copy(sharePresence=v))}})}
-            Row(verticalAlignment=Alignment.CenterVertically){Text("Partager les confirmations de lecture",Modifier.weight(1f));Switch(preferences.shareRead,{v->action{service.saveMessengerPreferences(preferences.copy(shareRead=v))}})}
+            OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+                TextButton(onClick = { privacyOptions = !privacyOptions }, modifier = Modifier.fillMaxWidth()) {
+                    Text(if (privacyOptions) "Notifications et confidentialité −" else "Notifications et confidentialité +")
+                }
+                if (privacyOptions) Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    CommunityNotificationControls(user.uid)
+                    Row(verticalAlignment=Alignment.CenterVertically){Text("Afficher mon statut en ligne",Modifier.weight(1f));Switch(preferences.sharePresence,{v->action{service.saveMessengerPreferences(preferences.copy(sharePresence=v))}})}
+                    Row(verticalAlignment=Alignment.CenterVertically){Text("Partager les confirmations de lecture",Modifier.weight(1f));Switch(preferences.shareRead,{v->action{service.saveMessengerPreferences(preferences.copy(shareRead=v))}})}
+                }
+            }
             ProfileBadges(profile!!, definitions, catalog)
             SharedProfileDecks(service, profile!!, true, decks, catalog, onImportDeck)
             if (profile!!.shareBadges) OutlinedButton(onClick = { action { service.saveProfile(profile!!, earned.map { it.badge.id }); status = "Badges du profil actualisés." } }, enabled = !busy) { Text("Actualiser mes badges") }

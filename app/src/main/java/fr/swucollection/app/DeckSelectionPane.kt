@@ -32,13 +32,14 @@ internal fun DeckSelectionPane(name: String, deck: PortableDeck, catalog: List<C
     var managing by remember(zone) { mutableStateOf<String?>(null) }
     Card(modifier.testTag("swu_deck_selection_pane"), colors = CardDefaults.cardColors(containerColor = ListPalette.Background)) {
         Column(Modifier.fillMaxSize().padding(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(name.ifBlank { "Mon deck" }, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+            if (name.isNotBlank()) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(name, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
                 onAdd?.let { TextButton(onClick = it) { Text("＋ Cartes") } }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 FilterChip(zone == DeckEditor.Zone.MAIN, { onZone(DeckEditor.Zone.MAIN) }, label = { Text("Deck · ${deck.deck.sumOf { it.count }}/50") })
                 FilterChip(zone == DeckEditor.Zone.SIDEBOARD, { onZone(DeckEditor.Zone.SIDEBOARD) }, label = { Text("Réserve · ${deck.sideboard.sumOf { it.count }}/10") })
+                if (name.isBlank()) onAdd?.let { TextButton(onClick = it) { Text("＋ Cartes") } }
             }
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 listOf("Cartes", "Coût", "Type").forEach { mode -> FilterChip(grouping == mode, { grouping = mode }, label = { Text(if(mode == "Cartes") "Grille" else "Table · $mode") }) }

@@ -172,10 +172,11 @@ internal fun CardListsPanel(lists: List<CardList>, selectedId: String?, modifier
                 }
                 ListHero(selected.name, "${selected.entries.size} références", "${selected.entries.sumOf { it.quantity }} cartes")
                 Text("Toucher pour voir · Appui long pour gérer une carte", color = ListPalette.Secondary, fontSize = 12.sp)
-                OutlinedButton(onClick = { editing = !editing }) { Text(if (editing) "Terminer les modifications" else "Modifier la liste") }
-                TextButton(onClick = { adding = true }) { Text("+ Ajouter des cartes") }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = { adding = true }) { Text("Ajouter des cartes") }
+                    OutlinedButton(onClick = { editing = !editing }) { Text(if (editing) "Terminer les modifications" else "Modifier la liste") }
+                }
                 if (editing) FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(onClick = { adding = true }, colors = ButtonDefaults.textButtonColors(contentColor = ListPalette.Gold)) { Text("Ajouter des cartes") }
                     TextButton(onClick = { naming = true }, colors = ButtonDefaults.textButtonColors(contentColor = ListPalette.Gold)) { Text("Renommer") }
                     TextButton(onClick = { deleting = true }, colors = ButtonDefaults.textButtonColors(contentColor = ListPalette.Danger)) { Text("Supprimer la liste") }
                 }

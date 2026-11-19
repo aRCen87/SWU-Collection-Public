@@ -35,9 +35,9 @@ class UnifiedCollectionUiTest {
             var selected by remember { mutableStateOf(true) }
             MissingCardDimmingToggle(selected) { selected = it; dimmed = it }
         } }
-        ui.onNodeWithText("Griser les non possédées").performClick().assertIsNotSelected()
+        ui.onNodeWithText("Griser les manquantes").performClick().assertIsOff()
         ui.runOnIdle { assertFalse(dimmed); assertEquals(2, owned.single().quantity) }
-        ui.onNodeWithText("Griser les non possédées").performClick().assertIsSelected()
+        ui.onNodeWithText("Griser les manquantes").performClick().assertIsOn()
         ui.runOnIdle { assertTrue(dimmed) }
     }
 
