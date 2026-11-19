@@ -230,34 +230,39 @@ internal fun DeckBuilderPanel(
                 ) { Text(label, maxLines = 1, style = MaterialTheme.typography.labelMedium) }
             }
         }
-        if (!dualPane || tab in listOf("Leader", "Base")) Text(if (tab == "Leader") "Choisis le leader de ton deck." else if (tab == "Base") "Choisis la base de ton deck." else
-            "Deck : ${deck.deck.sumOf { it.count }}/50 min. · Réserve : ${deck.sideboard.sumOf { it.count }}/10 max.",
-            color = ListPalette.Secondary, style = MaterialTheme.typography.bodyMedium)
+        Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(when (tab) {
+                "Leader" -> "Choisir le leader"
+                "Base" -> "Choisir la base"
+                "Réserve" -> "Ajouter à la réserve"
+                else -> "Ajouter au deck"
+            }, Modifier.weight(1f), style = MaterialTheme.typography.titleSmall, color = gold)
+            TextButton(onClick = {
+                scanReserve = tab == "Réserve"; scanMessage = null; scanLast = null
+                scanUndo = emptyList(); scanning = true
+            }) { Text("Scanner") }
+        }
         OutlinedTextField(query, { query = it }, label = { Text("Rechercher une carte") },
             modifier = Modifier.fillMaxWidth(), singleLine = true)
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically) {
             OutlinedButton(onClick = { filtersOpen = true }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text(if (filters.activeCount == 0) "Filtres" else "Filtres (${filters.activeCount})") }
             Box {
-                OutlinedButton(onClick = { sortOpen = true }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text("Trier") }
+                OutlinedButton(onClick = { sortOpen = true }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text("Affichage et tri") }
                 DropdownMenu(sortOpen, onDismissRequest = { sortOpen = false }) {
-                    DeckBrowser.sorts.forEach { order -> DropdownMenuItem(text = { Text(order) }, onClick = { sort = order; sortOpen = false }) }
+                    DropdownMenuItem(text = { Text(if (visual) "✓ Cartes" else "Cartes") }, onClick = { visual = true; sortOpen = false })
+                    DropdownMenuItem(text = { Text(if (!visual) "✓ Liste" else "Liste") }, onClick = { visual = false; sortOpen = false })
+                    HorizontalDivider()
+                    DeckBrowser.sorts.forEach { order -> DropdownMenuItem(text = { Text(if (sort == order) "✓ $order" else order) }, onClick = { sort = order; sortOpen = false }) }
                 }
             }
-            FilterChip(visual, onClick = { visual = true }, label = { Text("Cartes") })
-            FilterChip(!visual, onClick = { visual = false }, label = { Text("Liste") })
         }
         DeckActiveFilterChips(filters) { filters = it }
-        Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         LazyVerticalGrid(state = gridState, columns = if (visual) GridCells.Adaptive(if (largeText) 168.dp else 128.dp) else GridCells.Fixed(1),
             modifier = Modifier.weight(1f).fillMaxHeight(), horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 12.dp)) {
-            item(key = "deck-scanner", span = { GridItemSpan(maxLineSpan) }) {
-            OutlinedButton(onClick = {
-                scanReserve = tab == "Réserve"; scanMessage = null; scanLast = null
-                scanUndo = emptyList(); scanning = true
-            }, modifier = Modifier.fillMaxWidth()) { Text("Scanner dans ce deck") }
-            }
             item(key = "deck-heading", span = { GridItemSpan(maxLineSpan) }) {
                 Column {
         draftMessage?.let { Text(it, color = ListPalette.Secondary, style = MaterialTheme.typography.labelSmall) }
@@ -335,10 +340,14 @@ internal fun DeckBuilderPanel(
                 }
             }
         }
-        if (dualPane) DeckSelectionPane("", deck, catalog, details, zone, leaderChosen, baseChosen,
-            Modifier.weight(.8f).fillMaxHeight(), onZone = { tab = if (it == DeckEditor.Zone.MAIN) "Deck" else "Réserve"; query = "" },
+        }
+        if (dualPane) Column(Modifier.weight(.8f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text("Composition", style = MaterialTheme.typography.titleSmall, color = gold)
+        DeckSelectionPane("", deck, catalog, details, zone, leaderChosen, baseChosen,
+            Modifier.weight(1f).fillMaxWidth(), onZone = { tab = if (it == DeckEditor.Zone.MAIN) "Deck" else "Réserve"; query = "" },
             onQuantity = { id, count, target -> runCatching { checkpoint(); deck = DeckEditor.setQuantity(deck, id, count, target) }.onFailure { error = it.message } },
             onPreview = onPreview, onIdentity = { tab = it; query = "" }, ownedByFamily = ownedByFamily)
+        }
         }
         }
         error?.let { Text(it, color = ListPalette.Danger) }

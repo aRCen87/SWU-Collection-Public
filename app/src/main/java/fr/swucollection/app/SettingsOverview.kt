@@ -13,17 +13,21 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 internal fun SettingsOverview(onNavigate: (String) -> Unit, updateAvailable: String?) {
-    Text("Retrouve ici les réglages et l’entretien de ton application.",
-        color = MaterialTheme.colorScheme.onSurfaceVariant)
-    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
     listOf(
-        Triple("Mon compte", "Profil, connexion et préférences personnelles", "Communauté"),
-        Triple("Hors connexion", "Images des decks et extensions sur ce téléphone", "Hors connexion"),
-        Triple("Apparence", "Accueil et reflets des bordures dorées", "Apparence"),
-        Triple("Mises à jour", updateAvailable?.let { "Version $it disponible" }
-            ?: "Application, catalogue et rotation des cartes", "Mises à jour"),
-        Triple("Sauvegarder et restaurer", "Collection, listes et changement de téléphone", "Sauvegardes")
-    ).forEachIndexed { index, (title, detail, destination) ->
+        "Personnalisation" to listOf(
+            Triple("Mon compte", "Profil et confidentialité", "Communauté"),
+            Triple("Apparence", "Accueil et effets visuels", "Apparence")),
+        "Mes données" to listOf(
+            Triple("Sauvegarder et restaurer", "Collection, decks et listes", "Sauvegardes"),
+            Triple("Hors connexion", "Images sur ce téléphone", "Hors connexion")),
+        "Application" to listOf(
+            Triple("Mises à jour", updateAvailable?.let { "Version $it disponible" }
+                ?: "Application et catalogue", "Mises à jour"))
+    ).forEach { (section, entries) ->
+    Text(section, modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+        style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+    entries.forEachIndexed { index, (title, detail, destination) ->
         if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = .4f))
         Row(Modifier.fillMaxWidth().clickable(onClick = { onNavigate(destination) }).padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -40,6 +44,7 @@ internal fun SettingsOverview(onNavigate: (String) -> Unit, updateAvailable: Str
                     }
                     Icon(Icons.Default.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+    }
     }
     }
 }

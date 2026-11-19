@@ -228,6 +228,19 @@ class SimplicityReviewTest {
                 ui.onAllNodesWithText("Réserve · 0/10").assertCountEquals(1)
                 ui.onAllNodesWithText("Changer Leader").assertCountEquals(1)
                 ui.onAllNodesWithText("Changer Base").assertCountEquals(1)
+                val search = ui.onNodeWithText("Rechercher une carte").fetchSemanticsNode().boundsInRoot
+                val composition = ui.onNodeWithTag("swu_deck_selection_pane").fetchSemanticsNode().boundsInRoot
+                assertTrue("Search stays inside the catalogue panel", search.right <= composition.left)
+                ui.onNodeWithText("Affichage et tri").performClick()
+                ui.onNodeWithText("Liste").performClick()
+                ui.onNodeWithText("Affichage et tri").performClick()
+                ui.onNodeWithText("Cartes", substring = false).performClick()
+                ui.onNodeWithText("Changer Leader").performClick()
+                ui.onNodeWithText("Choisir le leader").assertIsDisplayed()
+                ui.onNodeWithText("Changer Base").performClick()
+                ui.onNodeWithText("Choisir la base").assertIsDisplayed()
+                ui.onNodeWithText("Deck · 5/50").performClick()
+                ui.onNodeWithText("Ajouter au deck").assertIsDisplayed()
             }
             capture("tour-$format-$destination")
         }

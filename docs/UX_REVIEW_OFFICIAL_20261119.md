@@ -48,12 +48,22 @@ Le 19 novembre 2026, Romain demande de ne pas rendre la mise à jour disponible 
 | Historique et annulation | Garder la confirmation et la distinction entre historique et stock actuel. |
 | Mises à jour et À propos | Ne pas confondre ce chantier visuel avec l'adaptation du canal Google Play ou une certification de confidentialité. |
 
-## Contrôles
+## Deuxième passe — organisation demandée après les captures
+
+- Sur Fold, les commandes de recherche, filtres et affichage restent dans le panneau du catalogue. Le panneau Composition commence en haut, indépendamment de la recherche.
+- Le titre du catalogue indique la destination : Ajouter au deck, Ajouter à la réserve, Choisir le leader ou Choisir la base.
+- Scanner devient une action secondaire dans l'en-tête du catalogue. Le menu Affichage et tri regroupe les modes Cartes/Liste et les critères de classement, avec le choix courant indiqué.
+- Les paramètres sont classés en Personnalisation, Mes données et Application ; les cinq destinations sont conservées.
+- Dans une liste ouverte, un titre compact et une ligne de compteurs remplacent le grand bandeau, pour laisser plus de place aux cartes. Ajouter et Modifier restent directement accessibles.
+- La publication demeure suspendue. Les contrôles de disposition sur Fold couvrent la position de la recherche et l'accès au choix Leader/Base ainsi qu'au changement Cartes/Liste.
+
+## État des contrôles
 
 Les modifications ne changent ni identifiant, ni signature, ni schéma SQLite, ni format de sauvegarde, ni règles Firebase.
 
 - 67 tests Python réussis lors de cette passe.
-- Tests Android, lint et compilation : résultats finaux à consigner après exécution.
+- Deuxième passe : les 7 tests de SimplicityReviewTest passent (paramètres, grandes polices, liste, gris des manquantes, rendus téléphone/Fold/paysage). lintDebug et assembleDebug passent ; les rendus Fold et paramètres ont été inspectés.
+- Sur le commit précédent `604d705525c9b22d046bc2db7f0ad4990afe9c02`, la suite complète Debug et la vérification du catalogue ont passé en CI. Le contrôle Release n'est pas validé : lintAnalyzeRelease a échoué par manque de mémoire Java pendant l'analyse de MainActivity.kt. Aucune publication n'est autorisée sur cette base.
 - Rendus : fixtures jetables, hors connexion, des composants de production. Les noms, cartes et quantités de démonstration ne sont pas des données d'utilisateur. Les illustrations de fixture servent à contrôler les cadres et les proportions, pas à certifier chaque correspondance du catalogue.
 - Aucun essai physique sur le Z Fold de Romain, aucune connexion à un vrai compte et aucun échange réel ne sont revendiqués.
 - Aucun changement de l'officielle distribuée n'est annoncé sans publication vérifiée.
