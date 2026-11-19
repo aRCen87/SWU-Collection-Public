@@ -38,7 +38,10 @@ class CollectionPhonePreviewTest {
                     javaClass.getResourceAsStream("/scan/$sample.jpg")?.use { stream ->
                         val bytes = stream.readBytes()
                         (listOf(card.imageUrl, CardLanguageArtwork.displayFace(context, card, card.language).first) +
-                            CardLanguageArtwork.allFaces(context, card).flatMap { listOf(it.imageUrl, it.backImageUrl) })
+                            ScanVariants.detect(card).choices.flatMap { finish -> CardLanguages.supported.flatMap { language ->
+                                listOf(CardLanguageArtwork.displayFace(context, card, language, finish).first,
+                                    CardLanguageArtwork.displayFace(context, card, language, finish, true).first)
+                            } } + CardLanguageArtwork.allFaces(context, card).flatMap { listOf(it.imageUrl, it.backImageUrl) })
                             .distinct().filter { it.startsWith("https://") }.forEach { OfflineImages.saveBytes(context, it, bytes) }
                     }
                 }
@@ -162,19 +165,8 @@ class CollectionPhonePreviewTest {
         ui.onAllNodesWithText("Collection").onFirst().performClick()
         ui.onNodeWithText("Afficher : Manquantes ▾").assertIsDisplayed()
         ui.waitForIdle()
-        ui.waitUntil(15_000) {
-            val bounds = ui.onAllNodesWithContentDescription("Visuel de la carte").onFirst().fetchSemanticsNode().boundsInRoot
-            var loaded = false
-            ui.runOnIdle {
-                val view = ui.activity.window.decorView
-                val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
-                view.draw(android.graphics.Canvas(bitmap))
-                val pixel = bitmap.getPixel(bounds.center.x.toInt(), bounds.center.y.toInt())
-                loaded = android.graphics.Color.red(pixel) > 90
-                bitmap.recycle()
-            }
-            loaded
-        }
+        waitForFirstArtwork()
+        ui.onAllNodesWithText("Visuel indisponible", substring = true).assertCountEquals(0)
         capture("collection-phone-current")
         ui.onNodeWithText("Afficher : Manquantes ▾").performClick()
         ui.onNodeWithText("Possédées").assertIsDisplayed()
@@ -239,7 +231,7 @@ class CollectionPhonePreviewTest {
         ui.onNodeWithText("Comparer", substring = false).performClick()
         ui.onNodeWithText("Comparer deux cartes").assertIsDisplayed()
         ui.onNodeWithText("Fermer", substring = false).performClick()
-        ui.onNodeWithText("Normale ▾").performScrollTo().performClick()
+        ui.onNode(hasContentDescription("Finition de la carte : Normale") and inSheet).performScrollTo().performClick()
         ui.onAllNodesWithText("Normale", substring = false).onLast().performClick()
         ui.onNodeWithContentDescription("Autres actions de la carte").performScrollTo().performClick()
         ui.onNodeWithText("Détails et utilisations").performClick()
@@ -251,11 +243,11 @@ class CollectionPhonePreviewTest {
         ui.onNodeWithText("Confirmer l’ajout").assertDoesNotExist()
         ui.onNodeWithText("1 possédée").assertIsDisplayed()
         CollectionDatabase(ui.activity).use { assertEquals(1, it.allCards().sumOf { row -> row.quantity }) }
-        ui.onNodeWithContentDescription("Langue de la carte : Français").performScrollTo().performClick()
+        ui.onNode(hasContentDescription("Langue de la carte : Français") and inSheet).performScrollTo().performClick()
         ui.onNodeWithText("Anglais", substring = false).performClick()
         ui.onNodeWithText("0 possédée").assertIsDisplayed()
         ui.onNodeWithText("1 au total, autres versions comprises").assertExists()
-        ui.onNodeWithContentDescription("Langue de la carte : Anglais").performClick()
+        ui.onNode(hasContentDescription("Langue de la carte : Anglais") and inSheet).performScrollTo().performClick()
         ui.onNodeWithText("Français", substring = false).performClick()
         ui.onNodeWithText("1 possédée").assertIsDisplayed()
         ui.onNode(hasContentDescription("Retirer un exemplaire") and inSheet).performScrollTo().performClick()
