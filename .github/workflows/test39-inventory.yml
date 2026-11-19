@@ -40,7 +40,7 @@ jobs:
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
-          gradle --no-daemon --no-parallel --max-workers=1 -Dorg.gradle.jvmargs="-Xmx4g -Dfile.encoding=UTF-8" testDebugUnitTest lintDebug assembleDebug testPreviewUnitTest lintPreview assemblePreview
+          gradle --no-daemon --no-parallel --max-workers=1 -Dorg.gradle.jvmargs="-Xmx4g -Dfile.encoding=UTF-8" testDebugUnitTest --tests "*CollectionInventoryUiTest" --tests "*CardLanguageStorageTest" --tests "*BackupReliabilityTest" lintDebug assembleDebug testPreviewUnitTest lintPreview assemblePreview
           python3 .github/scripts/verify_packaged_card_details.py app/build/outputs/apk/preview/app-preview.apk
       - name: Verify permanent certificate and Test identity
         run: |

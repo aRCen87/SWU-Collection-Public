@@ -19,9 +19,12 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 /** Every stored print/language has its own visible controls; the image alone opens the viewer. */
 @Composable
@@ -150,13 +153,17 @@ private fun InventoryChoices(options: List<String>, selected: String?, enabled: 
     FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp), maxItemsInEachRow = if (largeText) 2 else 4) {
         options.forEach { option ->
-            FilterChip(selected == option, { onSelect(option) }, enabled = enabled,
-                modifier = Modifier.weight(1f).heightIn(min = 48.dp), shape = RoundedCornerShape(8.dp),
+            Surface(onClick = { onSelect(option) }, enabled = enabled,
+                modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics { this.selected = selected == option }, shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(1.dp, if (selected == option) PremiumGold else Color(0xFF78869A)),
-                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = PremiumGold, selectedLabelColor = PremiumNavy),
-                label = { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text(label(option), fontWeight = if (selected == option) FontWeight.Bold else FontWeight.Normal)
-                } })
+                color = if (selected == option) PremiumGold else PremiumNavy,
+                contentColor = if (selected == option) PremiumNavy else Color.White) {
+                Box(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp), contentAlignment = Alignment.Center) {
+                    Text(label(option), fontSize = if (options.size > 2) 12.sp else 14.sp, textAlign = TextAlign.Center,
+                        lineHeight = if (options.size > 2) 16.sp else 20.sp,
+                        fontWeight = if (selected == option) FontWeight.Bold else FontWeight.Normal)
+                }
+            }
         }
     }
 }
