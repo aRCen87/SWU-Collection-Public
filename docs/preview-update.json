@@ -1,11 +1,11 @@
 {
-  "versionCode": 91,
-  "versionName": "0.9.3-test.30",
-  "sha256": "1cc35c9618925714c104f4a54cb61182dd35292b6bb1dd3df0a8b53865ffe837",
-  "size": 64002515,
-  "sourceSha": "83de332c366901462d71c9f494dbd16c99a749c7",
+  "versionCode": 105,
+  "versionName": "0.9.8-test.40",
+  "sha256": "017141c6c54cb4845b67db8ba899e9acc0621aeeea799d939c479887eb50bbba",
+  "size": 65471126,
+  "sourceSha": "1b8127caa61c6ff3dc8912ac8e399448fa293901",
   "channel": "private-test",
   "applicationId": "fr.swucollection.app.test",
-  "notes": "Deck plus graphique : trois cartes par ligne même sur écran étroit, quantités visibles sur les images, leader/base encadrés et progression. Toucher une carte ouvre une lecture plein écran avec zoom par pincement, double toucher ou boutons, recentrage et précédente/suivante dans le deck. Catalogue d’ajout plein écran avec grandes cartes, recherche et filtres ; lecture et bouton Ajouter séparés, réussite et refus visibles. Accès à la fiche complète conservé. Revue de simplicité : actions secondaires des decks regroupées, boutons Consulter redondants retirés, choix d’extension unique, doublons explicites, vitrines favorites et modification par lot clarifiées, sauvegardes du compte regroupées, menu organisé et proxies plus explicites. Tests de conservation, tests Android, sécurité, lint, compilation, signature et essais sur téléphone simulé étroit, déplié et paysage validés.",
-  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_be3d1bdf014481918224d3892916924c&account_id=personal"
+  "notes": "Collection compacte bleu nuit et or fidèle à la référence : bandeau planète, recherche et filtre sur une ligne, miniatures centrées, total possédé et quantités par langue/finition directement accessibles. Panneau Ajouter une variante simplifié avec langue, finition et quantité, sans écriture avant confirmation. Tests Android de présentation et de conservation des données, lint, compilation et signature permanente validés.",
+  "privateDownloadUrl": "https://chatgpt.com/library?file_id=libfile_fde3_f-27e50303169c819190414d36ddd3ee42_751b3117796081919833ed570b104c30&account_id=personal"
 }
