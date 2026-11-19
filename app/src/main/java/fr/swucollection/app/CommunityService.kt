@@ -125,7 +125,7 @@ internal class CommunityService private constructor(val auth: FirebaseAuth, priv
         batch.set(db.collection("profiles").document(uid), mapOf(
             "name" to CommunityValidation.name(profile.name), "nameKey" to CommunityValidation.name(profile.name).lowercase(java.util.Locale.ROOT), "bio" to profile.bio.trim(),
             "avatar" to CommunityValidation.avatar(profile.avatar), "discoverable" to profile.discoverable,
-            "shareBadges" to profile.shareBadges, "badgeIds" to if (profile.shareBadges) earnedIds.distinct().take(500) else emptyList<String>(),
+            "shareBadges" to profile.shareBadges, "badgeIds" to if (profile.shareBadges) (profile.badgeIds.filter { it in earnedIds } + earnedIds).distinct().take(500) else emptyList<String>(),
             "messagePolicy" to profile.messagePolicy.also { require(it in listOf("testers", "friends", "nobody")) },
             "shareDecks" to profile.shareDecks, "city" to profile.city.trim(), "cityKey" to PlayerDiscovery.cityKey(profile.city),
             "formats" to profile.formats, "leaders" to profile.leaders, "shareShowcase" to profile.shareShowcase, "updatedAt" to FieldValue.serverTimestamp()

@@ -8,6 +8,7 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.Image
@@ -23,6 +24,9 @@ import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -54,13 +58,35 @@ internal object UnifiedCollection {
 internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<CollectionCard>,
     scope: String, set: String, language: String, query: String, view: String, details: CardDetails,
     modifier: Modifier = Modifier, onPreview: (CatalogCard, List<CatalogCard>) -> Unit,
-    onActions: (CatalogCard) -> Unit, dimMissing: Boolean = true, header: (@Composable () -> Unit)? = null, sets: List<CatalogSet> = emptyList()) {
-    val visible = remember(catalog, owned, scope, set, language, query, details) {
-        UnifiedCollection.catalogCards(catalog, owned, scope, set, language, query, details)
+    onActions: (CatalogCard) -> Unit, dimMissing: Boolean = true, header: (@Composable () -> Unit)? = null, sets: List<CatalogSet> = emptyList(),
+    favoritesOnlyOverride: Boolean? = null, onFavoritesOnlyChange: ((Boolean) -> Unit)? = null,
+    cardScaleOverride: Float? = null, onCardScaleChange: ((Float) -> Unit)? = null) {
+    val favoriteContext = LocalContext.current.applicationContext
+    val favoriteDatabase = remember(favoriteContext) { CollectionDatabase(favoriteContext) }
+    DisposableEffect(favoriteDatabase) { onDispose { favoriteDatabase.close() } }
+    var favorites by remember { mutableStateOf(favoriteDatabase.favoriteCardKeys()) }
+    var localFavoritesOnly by rememberSaveable { mutableStateOf(false) }
+    val favoritesOnly = favoritesOnlyOverride ?: localFavoritesOnly
+    fun changeFavoritesOnly(value: Boolean) { onFavoritesOnlyChange?.invoke(value) ?: run { localFavoritesOnly = value } }
+    var favoriteError by remember { mutableStateOf<String?>(null) }
+    @Composable fun favoriteButton(card: CatalogCard) {
+        val key = MarketPricing.key(card.setCode, card.number)
+        IconToggleButton(checked = key in favorites, onCheckedChange = { selected ->
+            runCatching { favoriteDatabase.setFavoriteCard(card, selected) }
+                .onSuccess { favorites = favoriteDatabase.favoriteCardKeys(); favoriteError = null }
+                .onFailure { favoriteError = "Impossible de modifier les favoris. Réessaie." }
+        }) { Icon(if (key in favorites) Icons.Default.Star else Icons.Default.StarBorder,
+            if (key in favorites) "Retirer ${card.name} des favoris" else "Ajouter ${card.name} aux favoris", tint = ListPalette.Gold) }
+    }
+    val visible = remember(catalog, owned, scope, set, language, query, details, favoritesOnly, favorites) {
+        UnifiedCollection.catalogCards(catalog, owned, scope, set, language, query, details).filter { !favoritesOnly || MarketPricing.key(it.setCode, it.number) in favorites }
     }
     val quantities = remember(owned, language) { owned.filter { it.quantity > 0 && (language == "Toutes" || it.language == language) }
         .groupBy { MarketPricing.key(it.setCode, it.number) }.mapValues { (_, rows) -> rows.sumOf { it.quantity } } }
-    var cardScale by rememberSaveable { mutableFloatStateOf(1f) }
+    var localCardScale by rememberSaveable { mutableFloatStateOf(1f) }
+    val cardScale = cardScaleOverride ?: localCardScale
+    val currentScale by rememberUpdatedState(cardScale)
+    fun changeCardScale(value: Float) { onCardScaleChange?.invoke(value) ?: run { localCardScale = value } }
     val totalsBySet = remember(catalog) { catalog.groupingBy { it.setCode }.eachCount() }
     val collectedBySet = remember(catalog, quantities) {
         catalog.filter { (quantities[MarketPricing.key(it.setCode, it.number)] ?: 0) > 0 }.groupingBy { it.setCode }.eachCount()
@@ -74,40 +100,57 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
     @Composable fun sectionTitle(code: String) {
         val total = totalsBySet[code] ?: 0
         val collected = collectedBySet[code] ?: 0
-        Surface(color = ListPalette.Raised, shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)) {
+        Surface(color = ListPalette.Raised, border = androidx.compose.foundation.BorderStroke(1.dp, ListPalette.Gold.copy(alpha = .25f)), shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp)) {
             Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                if(!compactSetHeader) Box(Modifier.fillMaxWidth().height(72.dp).clipToBounds()) {
-                    DeckCoverArtwork(catalog.firstOrNull { it.setCode == code && DeckConstruction.type(it) in listOf("leader", "chef") } ?: catalog.firstOrNull { it.setCode == code }, .35f, Modifier.fillMaxSize())
-                }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    SetLogo(code, if(compactSetHeader) Modifier.size(72.dp,40.dp) else Modifier)
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Surface(color = ListPalette.Background, shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)) {
-                        Text(code, Modifier.padding(8.dp), color = ListPalette.Gold, style = MaterialTheme.typography.titleSmall)
-                    }
-                    Text(sets.firstOrNull { it.code == code }?.name ?: code, style = MaterialTheme.typography.titleSmall)
-                    Text("$collected / $total références possédées", style = MaterialTheme.typography.bodySmall)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    SetLogo(code, Modifier.weight(1f).height(if (compactSetHeader) 48.dp else 76.dp))
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text("${if (total > 0) collected * 100 / total else 0} %", color = ListPalette.Gold, style = MaterialTheme.typography.headlineSmall)
+                        Text("$collected / $total", style = MaterialTheme.typography.labelMedium)
+                        Text("références possédées", style = MaterialTheme.typography.labelSmall)
                     }
                 }
+                Text(sets.firstOrNull { it.code == code }?.name ?: code, style = MaterialTheme.typography.titleSmall)
                 LinearProgressIndicator(progress = { if (total > 0) collected.toFloat() / total else 0f }, modifier = Modifier.fillMaxWidth())
                 ExtensionProgressPanel(code, catalog, quantities)
             }
         }
     }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("${visible.size} référence(s) · $scope", Modifier.weight(1f), style = MaterialTheme.typography.labelMedium)
+        if (header != null) Column(Modifier.fillMaxWidth().heightIn(max = if (compactSetHeader) 64.dp else 160.dp)
+            .verticalScroll(rememberScrollState())) { header() }
+        favoriteError?.let { Text(it, color = ListPalette.Danger) }
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically) {
+            FilterChip(favoritesOnly, onClick = { changeFavoritesOnly(!favoritesOnly) }, label = { Text("★ Favoris") })
+            Text("${visible.size} cartes", Modifier.padding(horizontal = 8.dp), style = MaterialTheme.typography.labelMedium)
+            if (view != "Liste") {
+                var densityMenu by remember { mutableStateOf(false) }
+                Box {
+                    TextButton(onClick = { densityMenu = true }, modifier = Modifier.semantics { contentDescription = "Taille des cartes" }) { Text("Taille") }
+                    DropdownMenu(densityMenu, onDismissRequest = { densityMenu = false }) {
+                        listOf("Grandes cartes" to 1.5f, "Équilibré" to 1f, "Compact" to .8f).forEach { (label, scale) ->
+                            DropdownMenuItem(text = { Text((if (kotlin.math.abs(cardScale - scale) < .05f) "✓ " else "") + label) },
+                                onClick = { changeCardScale(scale); densityMenu = false })
+                        }
+                    }
+                }
+            }
             if(scope != "Possédées") TextButton(onClick = { silhouettes = !silhouettes }) { Text(if(silhouettes) "Visuels" else "Silhouettes") }
+            if (compactSetHeader && groups.size > 1) groups.keys.forEach { code ->
+                TextButton(onClick = {
+                    val index = groups.entries.takeWhile { it.key != code }.sumOf { 1 + it.value.size }
+                    coroutine.launch { if (view == "Liste") listState.animateScrollToItem(index) else gridState.animateScrollToItem(index) }
+                }) { Text(code) }
+            }
         }
-        if(groups.size > 1) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        if(groups.size > 1 && !compactSetHeader) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             groups.keys.forEach { code -> TextButton(onClick = {
                 val prior = groups.entries.takeWhile { it.key != code }
-                val index = (if(header != null) 1 else 0) + prior.sumOf { 1 + it.value.size }
+                val index = prior.sumOf { 1 + it.value.size }
                 coroutine.launch { if(view == "Liste") listState.animateScrollToItem(index) else gridState.animateScrollToItem(index) }
             }) { Text(code) } }
         }
         if (view == "Liste") LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (header != null) item(key = "catalogue-controls") { header() }
             if (visible.isEmpty()) item(key = "empty-catalogue") {
                 CollectorEmptyState("Aucune carte trouvée", "Essaie un autre mot ou retire un filtre pour élargir ta recherche.")
             }
@@ -124,6 +167,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                             Text("${card.setCode} · ${card.number}", style = MaterialTheme.typography.labelSmall)
                             Text(if (quantity > 0) "$quantity exemplaire(s)" else "Manquante", color = ListPalette.Gold)
                         }
+                        favoriteButton(card)
                         IconButton(onClick = { onActions(card) }) { Icon(Icons.Default.Add, "Ajouter ou gérer ${card.name}") }
                     }
                 }
@@ -139,16 +183,13 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                         do {
                             val event = awaitPointerEvent(PointerEventPass.Initial)
                             if (event.changes.count { it.pressed } >= 2) {
-                                cardScale = (cardScale * event.calculateZoom()).coerceIn(.8f, 1.7f)
+                                changeCardScale((currentScale * event.calculateZoom()).coerceIn(.8f, 1.5f))
                                 event.changes.forEach { it.consume() }
                             }
                         } while (event.changes.any { it.pressed })
                     }
                 }.testTag("swu_unified_catalog"), horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 12.dp)) {
-                if (header != null) item(key = "catalogue-controls", span = { GridItemSpan(maxLineSpan) }) {
-                    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) { header() }
-                }
                 if (visible.isEmpty()) item(key = "empty-catalogue", span = { GridItemSpan(maxLineSpan) }) {
                     CollectorEmptyState("Aucune carte trouvée", "Essaie un autre mot ou retire un filtre pour élargir ta recherche.")
                 }
@@ -159,8 +200,12 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                     Column(Modifier.fillMaxWidth().combinedClickable(onClick = { onPreview(card, visible) },
                         onLongClickLabel = "Gérer cette carte", onLongClick = { onActions(card) })
                         .semantics { contentDescription = "${card.name}, $quantity exemplaire(s)" }) {
-                        if(silhouettes && quantity == 0) MissingSilhouette(card, Modifier.fillMaxWidth().aspectRatio(5f / 7f)) else CardArtwork(card, Modifier.fillMaxWidth().aspectRatio(5f / 7f), language = language.takeIf { it in CardLanguages.supported } ?: card.language,
+                        if(silhouettes && quantity == 0) MissingSilhouette(card, Modifier.fillMaxWidth().aspectRatio(if (DeckConstruction.type(card) in listOf("leader", "chef", "base")) 1.4f else 5f / 7f)) else CardArtwork(card, Modifier.fillMaxWidth().aspectRatio(if (DeckConstruction.type(card) in listOf("leader", "chef", "base")) 1.4f else 5f / 7f), language = language.takeIf { it in CardLanguages.supported } ?: card.language,
                             showLanguageLabel = !miniatures, grayscale = dimMissing && quantity == 0)
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Text("×$quantity", Modifier.weight(1f), color = ListPalette.Gold, style = MaterialTheme.typography.labelSmall)
+                            favoriteButton(card)
+                        }
                         if (!miniatures) {
                             Text(card.name, maxLines = 2, style = MaterialTheme.typography.labelMedium)
                             Row(verticalAlignment = Alignment.CenterVertically) {

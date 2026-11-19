@@ -61,7 +61,7 @@ internal object DesignDeckPlan {
         }
     },confirmButton={TextButton(onClick=close){Text("Fermer")}})
 }
-@Composable internal fun DeckBuildDock(deck:PortableDeck,catalog:List<CatalogCard>,leaderChosen:Boolean,baseChosen:Boolean,onIdentity:(String)->Unit) {
+@Composable internal fun DeckBuildDock(deck:PortableDeck,catalog:List<CatalogCard>,leaderChosen:Boolean,baseChosen:Boolean,valid:Boolean=false,onIdentity:(String)->Unit) {
     val byId=remember(catalog){catalog.associateBy(DeckConstruction::reference)}
     Surface(color=ListPalette.Raised,shape=RoundedCornerShape(14.dp),modifier=Modifier.fillMaxWidth().testTag("design_deck_dock")) {
         Row(Modifier.padding(6.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
@@ -73,7 +73,7 @@ internal object DesignDeckPlan {
                     Text(card?.name?.let(::deckCardLabel)?.substringBefore(" — ")?:"À choisir",maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis,style=MaterialTheme.typography.labelSmall)
                 }
             }
-            Column(Modifier.padding(4.dp)){Text("${deck.deck.sumOf{it.count}} / 50",color=ListPalette.Gold);Text("${deck.sideboard.sumOf{it.count}} / 10 réserve",style=MaterialTheme.typography.labelSmall)}
+            Column(Modifier.padding(4.dp)){Text("${deck.deck.sumOf{it.count}} / 50",color=if(valid) Color(0xFF9DE3B3) else ListPalette.Gold);Text("${deck.sideboard.sumOf{it.count}} / 10 réserve",style=MaterialTheme.typography.labelSmall)}
         }
     }
 }
@@ -87,8 +87,7 @@ internal class DeckCoverStore(context:android.content.Context) {
     val context=LocalContext.current
     val url=card?.let { CardLanguageArtwork.displayFace(context,it,it.language,null,false).first }.orEmpty()
     Box(modifier.clipToBounds().background(ListPalette.Raised),contentAlignment=Alignment.Center){
-        if(url.isNotBlank()) AsyncImage(OfflineImages.source(context,url),null,Modifier.fillMaxSize(),contentScale=ContentScale.Crop,alignment=BiasAlignment(0f,focus*2f-1f))
-        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent,ListPalette.Background.copy(alpha=.5f)))))
+        if(url.isNotBlank()) AsyncImage(OfflineImages.source(context,url),null,Modifier.fillMaxSize(),contentScale=ContentScale.Fit,alignment=Alignment.Center)
     }
 }
 @Composable internal fun DeckCoverDialog(id:String,deck:PortableDeck,catalog:List<CatalogCard>,close:()->Unit,saved:()->Unit) {
@@ -98,8 +97,7 @@ internal class DeckCoverStore(context:android.content.Context) {
     var cover by remember(id){mutableStateOf(store.read(id))};var error by remember{mutableStateOf<String?>(null)}
     AlertDialog(onDismissRequest=close,title={Text("Couverture du deck")},text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
         DeckCoverArtwork(byId[cover.reference]?:byId[deck.leader],cover.focus,Modifier.fillMaxWidth().height(112.dp))
-        Text("Cadrage vertical",style=MaterialTheme.typography.labelMedium)
-        Slider(cover.focus,{cover=cover.copy(focus=it)})
+        Text("Carte entière · proportions conservées",style=MaterialTheme.typography.labelMedium)
         LazyColumn(Modifier.heightIn(max=220.dp)){
             item{TextButton(onClick={cover=DeckCover("",.5f)}){Text("Couverture automatique")}}
             items(choices){card->TextButton(onClick={cover=cover.copy(reference=DeckConstruction.reference(card))}){Text(deckCardLabel(card.name))}}

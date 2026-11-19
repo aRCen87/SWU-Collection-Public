@@ -12,8 +12,8 @@ android {
         minSdk = 26
         targetSdk = 36
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 97
-        versionName = "0.9.5"
+        versionCode = 101
+        versionName = "0.9.6"
     }
     signingConfigs {
         create("release") {
@@ -37,7 +37,7 @@ android {
         create("preview") {
             initWith(getByName("release"))
             applicationIdSuffix = ".test"
-            versionNameSuffix = "-test.35"
+            versionNameSuffix = "-test.38"
             // Test keeps its own identity and version sequence.
             signingConfig = signingConfigs.getByName("release")
             matchingFallbacks += listOf("release")
@@ -61,8 +61,8 @@ android {
 androidComponents {
     onVariants(selector().withBuildType("preview")) { variant ->
         variant.outputs.forEach {
-            it.versionCode.set(96)
-            it.versionName.set("0.9.4-test.35")
+            it.versionCode.set(100)
+            it.versionName.set("0.9.5-test.38")
         }
     }
 }

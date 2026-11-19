@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -66,11 +67,12 @@ internal fun CollectionBottomBar(section: String, onNavigate: (String) -> Unit) 
     var editing by remember { mutableStateOf(false) }
     var draft by remember { mutableStateOf(shortcuts) }
     var error by remember { mutableStateOf<String?>(null) }
+    val compactBar = LocalConfiguration.current.screenHeightDp < 480
     val roomyTabs = LocalDensity.current.fontScale >= 1.5f
     val barScroll = rememberScrollState()
     Surface(color = Color(0xFF0B1B2D), border = BorderStroke(1.dp, Color(0xFF9C7941)),
         shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)) {
-        Row(Modifier.fillMaxWidth().heightIn(min = 72.dp).then(if (roomyTabs) Modifier.horizontalScroll(barScroll) else Modifier)) {
+        Row(Modifier.fillMaxWidth().heightIn(min = if (compactBar) 56.dp else 72.dp).then(if (roomyTabs) Modifier.horizontalScroll(barScroll) else Modifier)) {
             shortcuts.forEach { destination ->
                 val selected = section == destination || (destination == "Collection" && (section == "Compléter mon set" || section in listOf("Extensions", "Ajouter") && section !in shortcuts))
                 val tint = if (selected) PremiumGold else Color(0xFFB4C0D4)
@@ -83,9 +85,12 @@ internal fun CollectionBottomBar(section: String, onNavigate: (String) -> Unit) 
                 Column(tabWidth.bringIntoViewRequester(bringIntoView).onGloballyPositioned { placed = true }
                     .testTag("bottom_shortcut_$destination").semantics { this.selected = selected }.combinedClickable(role = Role.Tab,
                     onClick = { onNavigate(destination) }, onLongClickLabel = "Personnaliser la barre",
-                    onLongClick = { draft = shortcuts; error = null; editing = true }).padding(vertical = 12.dp),
+                    onLongClick = { draft = shortcuts; error = null; editing = true }).padding(vertical = if (compactBar) 6.dp else 12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Icon(bottomShortcutIcons.getValue(destination), destination, tint = tint)
+                    Surface(color = if (selected) PremiumGold.copy(alpha = .14f) else Color.Transparent,
+                        shape = RoundedCornerShape(12.dp)) {
+                        Icon(bottomShortcutIcons.getValue(destination), destination, tint = tint, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+                    }
                     Text(if (destination == "Hauts faits") "Badges" else destination,
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp),
                         color = tint, fontSize = 10.sp, lineHeight = 12.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)

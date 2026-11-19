@@ -77,16 +77,17 @@ internal fun DeckLibraryPanel(
                 OutlinedCard(onClick = { consultation(saved) }, modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.outlinedCardColors(containerColor = ListPalette.Background, contentColor = ListPalette.Text)) {
                     val cover = remember(saved.id, coverRevision) { covers.read(saved.id) }
-                    DeckCoverArtwork(byId[cover.reference] ?: byId[saved.deck.leader], cover.focus, Modifier.fillMaxWidth().height(110.dp))
+                    Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        DeckCoverArtwork(byId[cover.reference] ?: byId[saved.deck.leader], cover.focus, Modifier.weight(1f).aspectRatio(1.4f))
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(saved.name, color = ListPalette.Gold, style = MaterialTheme.typography.titleLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            CardArtwork(byId[saved.deck.base], Modifier.width(96.dp).aspectRatio(1.4f))
+                        }
+                    }
+                    HorizontalDivider(color = ListPalette.Gold.copy(alpha = .3f))
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Column(Modifier.width(72.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                CardArtwork(byId[saved.deck.leader], Modifier.fillMaxWidth().height(48.dp))
-                                CardArtwork(byId[saved.deck.base], Modifier.fillMaxWidth().height(48.dp))
-                            }
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text(saved.name, maxLines = 2, overflow = TextOverflow.Ellipsis,
-                                    style = MaterialTheme.typography.titleMedium, color = ListPalette.Gold)
                                 Text(byId[saved.deck.leader]?.name ?: saved.deck.leader, maxLines = 2,
                                     overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
                                 Text("${saved.deck.deck.sumOf { it.count }} cartes · ${saved.deck.sideboard.sumOf { it.count }} en réserve",
@@ -108,7 +109,7 @@ internal fun DeckLibraryPanel(
                                 style = MaterialTheme.typography.bodySmall, color = ListPalette.Gold)
                         }
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(onClick = { onOpen(saved) }) { Text("Modifier") }
+                            FilledTonalButton(onClick = { onOpen(saved) }) { Text("Modifier") }
                             TextButton(onClick = { onPrepare(saved) }) { Text("Préparer") }
                             Box {
                                 IconButton(onClick = { more = true }) {

@@ -41,7 +41,7 @@ internal fun DeckIdentityCard(label: String, card: CatalogCard?, reference: Stri
 @Composable
 internal fun DeckCardTile(card: CatalogCard, visual: Boolean, quantity: Int, owned: Int, missing: Int,
     slot: Boolean, selected: Boolean, canAdd: Boolean, onPreview: () -> Unit,
-    onChoose: () -> Unit, onQuantity: (Int) -> Unit, moveLabel: String = "", canMove: Boolean = false, onMove: () -> Unit = {}, guidance: String? = null) {
+    onChoose: () -> Unit, onQuantity: (Int) -> Unit, moveLabel: String = "", canMove: Boolean = false, onMove: () -> Unit = {}, guidance: String? = null, status: PremierStatus? = null, overLimit: Boolean = false) {
     var managing by remember(card.setCode, card.number) { mutableStateOf(false) }
     Surface(shape = RoundedCornerShape(12.dp), color = ListPalette.Raised,
         border = BorderStroke(1.dp, ListPalette.Gold.copy(alpha = if (selected || quantity > 0) .8f else .28f))) {
@@ -60,6 +60,8 @@ internal fun DeckCardTile(card: CatalogCard, visual: Boolean, quantity: Int, own
                 Text(card.name, maxLines = 2, overflow = TextOverflow.Ellipsis,
                     color = ListPalette.Text, style = MaterialTheme.typography.labelLarge)
                 Text("${card.setCode} ${card.number}", color = ListPalette.Secondary, style = MaterialTheme.typography.labelSmall)
+                CardLegalityBadge(status)
+                if (overLimit) Text("⚠ Limite dépassée", color = ListPalette.Danger, style = MaterialTheme.typography.labelSmall)
                 guidance?.let { Text(it, color = ListPalette.Gold, style = MaterialTheme.typography.labelSmall) }
                 Text("Possédées : $owned", color = ListPalette.Secondary, style = MaterialTheme.typography.labelSmall)
                 if (missing > 0) Text("Manquantes : $missing", color = ListPalette.Gold, style = MaterialTheme.typography.labelSmall)

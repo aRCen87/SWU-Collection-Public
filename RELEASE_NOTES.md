@@ -1,3 +1,35 @@
+## Version 0.9.6
+
+- Leaders et bases : miniatures horizontales à leur format, suppression des grands espaces verticaux entre les rangées.
+- Extensions : logo mis en valeur dans un panneau compact, pourcentage et compteur de progression regroupés, contour doré discret.
+- Mes decks : leader et base regroupés avec le nom du deck, suppression du leader en double et action Modifier mieux visible.
+- Accueil conservé dans sa présentation précédente, sans salutation personnalisée ; cartes des couvertures affichées entières.
+- Reprise des finitions Test 36 à 38 : favoris persistants, densités, confirmation de sortie compacte, résumé de deck, derniers scans et cotes datées.
+- Confirmation d’ajout compacte et superposée : les noms longs ne déplacent plus la page ; Annuler reste accessible.
+- Paysage : Scanner et menu de collection accessibles dans la barre compacte ; choix de collection et extensions disponibles dans les filtres.
+- Recherche : effacement accessible dans les fenêtres compactes, y compris avec le clavier ouvert.
+- Identité officielle et données existantes conservées ; aucun transfert de compte Test.
+
+## Version 0.9.5-test.38
+
+- Suppression de la salutation personnalisée en haut de l’accueil.
+
+## Version 0.9.5-test.37
+
+- Accueil restauré à sa présentation avant la refonte Test 35/36.
+- Couverture des decks : carte entière, sans recadrage ni dégradé sur son texte.
+- Extensions : logo agrandi, suppression de la carte décorative tronquée.
+
+## Version 0.9.5-test.36
+
+- Accueil illustré en colonne, actions principales mises en valeur, reprise du dernier deck, salutation et état réel de sauvegarde.
+- Collection : commandes fixes, trois densités, étoiles et filtre des favoris conservés dans les sauvegardes.
+- Decks : sortie compacte et défilable, résumé avant enregistrement, avertissements sur les cartes et compteur vert si les contrôles de construction réussissent.
+- Échanges : panneaux Je donne / Je reçois et miniatures des disponibles ; profil encadré et trois badges mis en avant au choix.
+- Scanner : six dernières miniatures de la session. Cotes datées lorsqu’une date est disponible. Fiche illustrée des nouveautés et repère doré du raccourci actif.
+- Conservation du thème bleu nuit et or, des animations réduites, des données et de l’identité séparée de l’application Test.
+
+
 ## Version 0.9.5
 
 - Collection plus visuelle : commandes compactes, logos et accès rapide aux extensions, progression par rareté et silhouettes optionnelles des cartes manquantes.

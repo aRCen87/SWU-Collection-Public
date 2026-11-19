@@ -45,7 +45,13 @@ def reveal_quantity(name):
         visible = [n for n in root.iter('node') if n.attrib.get('text') == '× 1' and bounds(n)[3] > bounds(n)[1]]
         prices = [n for n in root.iter('node') if 'Cote' in n.attrib.get('text', '') and bounds(n)[3] > bounds(n)[1]]
         if visible and prices: return root
-        grid = next(n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_visual_grid')
+        grids = [n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_visual_grid']
+        if not grids:
+            # Wait for the scope switch to expose its gallery before scrolling it.
+            # A missing gallery must still fail with the actual screen labels below.
+            time.sleep(1)
+            continue
+        grid = grids[0]
         left,top,right,bottom = bounds(grid)
         assert bottom > top, ('Collapsed visual grid', bounds(grid))
         # Swipe inside the real gallery. A full-window gesture overshoots the
@@ -53,7 +59,7 @@ def reveal_quantity(name):
         x = (left + right)//2
         distance = max(48, min(240, (bottom-top)*3//4))
         adb('shell','input','swipe',x,bottom-8,x,max(top+8,bottom-8-distance),450); time.sleep(1)
-    raise AssertionError('Owned quantity and price are not reachable in the visual grid')
+    raise AssertionError(('Owned quantity and price are not reachable in the visual grid', [n.attrib.get('text') for n in root.iter('node') if n.attrib.get('text')]))
 
 def collection_grid(root):
     return next(n for n in root.iter('node') if n.attrib.get('resource-id') in
@@ -129,9 +135,21 @@ def verify_miniatures():
     find(reveal_quantity('miniatures-stock'), '× 1')
     print('Image-only miniatures passed: column counts', columns, 'open/detail, remembered view, list/visual and unchanged stock.', flush=True)
 
+def wait_for_home():
+    # A cold signed install can still be importing its bundled catalogue after
+    # the activity launch returns. Wait for the actual UI, not a fixed delay.
+    for attempt in range(12):
+        root = snapshot('home-ready-' + str(attempt))
+        if any(n.attrib.get('resource-id') == 'swu_premium_banner' for n in root.iter('node')):
+            return root
+        crashes = adb('logcat', '-d', '-s', 'AndroidRuntime:E')
+        assert 'FATAL EXCEPTION' not in crashes, ('Home startup crashed', crashes)
+        time.sleep(2)
+    raise AssertionError(('Home banner did not appear', [n.attrib for n in root.iter('node') if n.attrib.get('text') or n.attrib.get('content-desc')]))
+
 def verify_motion():
     # UIAutomator waits for an idle window; collect geometry before continuous motion.
-    root=snapshot('motion-bounds')
+    root=wait_for_home()
     banner=next(n for n in root.iter('node') if n.attrib.get('resource-id')=='swu_premium_banner')
     x1,y1,x2,y2=bounds(banner); w=x2-x1; h=y2-y1
     assert not any('«' in n.attrib.get('text','') for n in root.iter('node')), 'Quote card still on Test home'
@@ -222,7 +240,11 @@ try:
     assert 'FATAL EXCEPTION' not in adb('logcat','-d','-s','AndroidRuntime:E')
     print('Premium collection passed: add/open/remove, cover/unfolded, price visibility, live drift and reduced motion.')
 except Exception:
-    try: capture('failure')
+    try:
+        capture('failure')
+        failure = snapshot('failure-state')
+        print('Failure screen:', [n.attrib for n in failure.iter('node') if n.attrib.get('text') or n.attrib.get('content-desc')], flush=True)
+        print('Runtime diagnostics:', adb('logcat', '-d', '-s', 'AndroidRuntime:E'), flush=True)
     except Exception as capture_error: print('Failure capture unavailable:', capture_error, flush=True)
     raise
 finally:
