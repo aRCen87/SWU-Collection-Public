@@ -17,6 +17,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items as gridItems
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -205,7 +207,7 @@ internal fun DeckBuilderPanel(
         }
         val browsing = (!concentration && dualPane) || catalogueOpen || tab in listOf("Leader", "Base")
         if (!browsing) {
-            DeckSelectionPane(name, deck, catalog, details, zone, leaderChosen, baseChosen,
+            DeckSelectionPane("", deck, catalog, details, zone, leaderChosen, baseChosen,
                 Modifier.weight(1f).fillMaxWidth(),
                 onZone = { tab = if (it == DeckEditor.Zone.MAIN) "Deck" else "Réserve" },
                 onQuantity = { id, count, target -> runCatching { checkpoint(); deck = DeckEditor.setQuantity(deck, id, count, target) }.onFailure { error = it.message } },
@@ -340,10 +342,10 @@ internal fun DeckBuilderPanel(
         }
         }
         error?.let { Text(it, color = ListPalette.Danger) }
-        DeckBuildDock(deck, catalog, leaderChosen, baseChosen, valid = leaderChosen && baseChosen && report.issues.isEmpty()) { tab = it; query = "" }
+        if (browsing) DeckBuildDock(deck, catalog, leaderChosen, baseChosen, valid = leaderChosen && baseChosen && report.issues.isEmpty()) { tab = it; query = "" }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Box {
-                OutlinedButton(onClick = { actionsOpen = true }) { Text("Actions") }
+                IconButton(onClick = { actionsOpen = true }) { Icon(Icons.Default.MoreVert, "Actions du deck") }
                 DropdownMenu(actionsOpen, onDismissRequest = { actionsOpen = false }) {
                     DropdownMenuItem(text = { Text(if(concentration) "Quitter le mode concentration" else "Mode concentration") }, onClick = { actionsOpen = false; concentration = !concentration; catalogueOpen = false; tab = "Deck" })
                     DropdownMenuItem(text = { Text("Comparer avant / après") }, onClick = { actionsOpen = false; comparingChanges = true })

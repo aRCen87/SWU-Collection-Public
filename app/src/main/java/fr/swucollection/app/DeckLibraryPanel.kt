@@ -71,7 +71,7 @@ internal fun DeckLibraryPanel(
                     }
                 }
             }
-            if (decks.isEmpty() && drafts.isEmpty()) item { CollectorEmptyState("Ton premier deck", "Choisis un leader, une base et les cartes que tu veux jouer.", "Créer mon premier deck", onCreate) }
+            if (decks.isEmpty() && drafts.isEmpty()) item { CollectorEmptyState("Ton premier deck", "Choisis un leader, une base et les cartes que tu veux jouer.") }
             items(decks, key = { it.id }) { saved ->
                 var more by remember(saved.id) { mutableStateOf(false) }
                 OutlinedCard(onClick = { consultation(saved) }, modifier = Modifier.fillMaxWidth(),
@@ -110,12 +110,12 @@ internal fun DeckLibraryPanel(
                         }
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             FilledTonalButton(onClick = { onOpen(saved) }) { Text("Modifier") }
-                            TextButton(onClick = { onPrepare(saved) }) { Text("Préparer") }
                             Box {
                                 IconButton(onClick = { more = true }) {
                                     Icon(Icons.Default.MoreVert, "Autres actions pour ${saved.name}")
                                 }
                                 DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
+                                    DropdownMenuItem(text = { Text("Préparer les cartes") }, onClick = { more = false; onPrepare(saved) })
                                     DropdownMenuItem(text = { Text("Personnaliser la couverture") }, onClick = { more = false; coverTarget = saved })
                                     DropdownMenuItem(text = { Text(if (saved.id in pinned) "Retirer de l’accueil" else "Épingler à l’accueil") }, onClick = { more = false; onPin(saved) })
                                     DropdownMenuItem(text = { Text("Exporter le deck") }, onClick = { more = false; onExport(saved) })

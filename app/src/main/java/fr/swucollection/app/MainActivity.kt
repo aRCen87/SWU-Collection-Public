@@ -49,6 +49,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.animation.Crossfade
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import androidx.compose.ui.window.Dialog
@@ -241,7 +242,6 @@ private fun CollectionScreen(
     foregroundRequest: Int = 0,
     communityNavigationRequest: Pair<Int, String>? = null
 ) {
-    val compactHeader = LocalConfiguration.current.screenWidthDp < 400
     var cards by remember { mutableStateOf(database.allCards()) }
     var collectionRevision by remember { mutableIntStateOf(0) }
     var personalLists by remember { mutableStateOf(database.cardLists()) }
@@ -735,6 +735,8 @@ private fun CollectionScreen(
     }
     }
     val pageScroll = rememberScrollState()
+    var bottomBarHeight by remember { mutableIntStateOf(0) }
+    val bottomClearance = with(LocalDensity.current) { bottomBarHeight.toDp() } + 8.dp
     val immersiveHome=privateLayout && selectedSection=="Accueil"
     val messengerKeyboardOpen=selectedSection=="Messagerie" && WindowInsets.ime.getBottom(LocalDensity.current)>0
     val updateBanner: @Composable () -> Unit = {
@@ -764,7 +766,7 @@ private fun CollectionScreen(
                     "Collection", "Extensions", "Mes decks", "Mes proxies", "Mes listes", "Hauts faits" -> 1000.dp
                     else -> 760.dp
                 }) else Modifier)
-                .fillMaxSize().padding(bottom = if (deckWorkspace || selectedSection == "Messagerie") 0.dp else 82.dp).then(
+                .fillMaxSize().padding(bottom = if (deckWorkspace || selectedSection == "Messagerie") 0.dp else bottomClearance).then(
                 if (selectedSection in listOf("Collection", "Extensions", "Mes decks", "Mes proxies", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta", "Prêts", "Messagerie"))
                     Modifier else Modifier.verticalScroll(pageScroll)
             ).then(if(immersiveHome) Modifier else if(selectedSection=="Messagerie")Modifier.padding(messengerContentPadding()) else Modifier.padding(horizontal = 16.dp, vertical = 10.dp)),
@@ -800,23 +802,6 @@ private fun CollectionScreen(
                     IconButton(onClick = {
                         if (backDispatcher != null) backDispatcher.onBackPressed() else navigation.back()
                     }) { Icon(Icons.Default.ArrowBack, "Retour à l’écran précédent") }
-                    if (selectedSection !in primaryDestinations) OutlinedButton(
-                        onClick = { navigation.navigateTo("Accueil") },
-                        modifier = Modifier.heightIn(min = 48.dp).padding(end = 10.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        border = BorderStroke(1.dp, Color(0xFFFFD47D).copy(alpha = 0.55f)),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = Color(0xFFFFD47D).copy(alpha = 0.09f),
-                            contentColor = Color(0xFFFFD47D)
-                        ),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
-                    ) {
-                        Icon(Icons.Default.Home, contentDescription = if (compactHeader) "Retour à l’accueil" else null, modifier = Modifier.size(18.dp))
-                        if (!compactHeader) {
-                            Spacer(Modifier.width(6.dp))
-                            Text("Accueil", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                        }
-                    }
                     Text(when (selectedSection) {
                         "Collection" -> "Ma collection"
                         "Recherche" -> "Rechercher"
@@ -991,7 +976,7 @@ private fun CollectionScreen(
                 }
             }
             if (selectedSection == "Mes proxies") {
-                ProxyBuilderPanel(allCatalog, cards, cardDetails, onBack = { navigation.back() })
+                ProxyBuilderPanel(allCatalog, cards, cardDetails, onBack = { navigation.back() }, showBackButton = false)
             }
             if (selectedSection == "Mes listes") {
                 CardListsPanel(personalLists, selectedSet, Modifier.weight(1f),
@@ -1041,7 +1026,6 @@ private fun CollectionScreen(
                 CollectionHistoryPanel(database, { refresh() }, Modifier.weight(1f))
             }
             if (selectedSection == "Statistiques") {
-                Text("Statistiques de collection", fontSize = 22.sp, fontWeight = FontWeight.Bold)
                 CollectionValuePanel(cards, collectionQuotes, sets)
                 val uniqueOwned = cards.filter { it.quantity > 0 }
                     .map { it.setCode.uppercase() to it.number }.distinct().size
@@ -1234,7 +1218,6 @@ private fun CollectionScreen(
                         DropdownMenu(moreCollection, { moreCollection = false }) {
                             DropdownMenuItem(text = { Text("Ajout manuel") }, onClick = { moreCollection = false; navigation.navigateTo("Ajouter") })
                             DropdownMenuItem(text = { Text("Gérer ma collection") }, onClick = { moreCollection = false; collectionWorkbench = true })
-                            DropdownMenuItem(text = { Text(if(dimMissing) "Afficher les manquantes en couleur" else "Griser les non possédées") }, onClick = { dimMissingValue = (!dimMissing).toString(); moreCollection = false })
                         }
                     }
                 }
@@ -1260,7 +1243,8 @@ private fun CollectionScreen(
                 if (collectionSetFilter != "Toutes") {
                     TextButton(onClick = { navigation.navigateTo("Compléter mon set", collectionSetFilter) }) { Text("Progression et objectif de cette extension") }
                     val rarityStock = remember(cards, collectionLanguage) { cards.filter { collectionLanguage == "Toutes" || it.language == collectionLanguage }.groupBy { MarketPricing.key(it.setCode,it.number) }.mapValues { it.value.sumOf { row -> row.quantity } } }
-                    ExtensionProgressPanel(collectionSetFilter, allCatalog, rarityStock)
+                    if (collectionScope in listOf("Possédées", "Doublons"))
+                        ExtensionProgressPanel(collectionSetFilter, allCatalog, rarityStock)
                 }
 
                 }
@@ -1317,13 +1301,17 @@ private fun CollectionScreen(
                     Text("Regrouper les versions", modifier = Modifier.weight(1f))
                     Switch(groupVersions, { groupVersionsValue = it.toString() })
                 }
-                if (privateLayout || !groupVersions) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (privateLayout || !groupVersions) FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     (if (privateLayout) listOf("Visuel", "Liste", "Miniatures") else listOf("Visuel", "Liste")).forEach { option ->
                         FilterChip(selected = collectionView == option,
                             onClick = { collectionView = option },
                             label = { Text(option, fontSize = 12.sp) })
                     }
                 }
+                MissingCardDimmingToggle(dimMissing) { dimMissingValue = it.toString() }
+                if (collectionScope in listOf("Possédées", "Doublons")) Text(
+                    "Le gris s’applique dans Toutes les cartes et Manquantes. Les cartes possédées restent en couleur.",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (privateLayout) {
                     FilterChip(collectionFavoritesOnly, onClick = { favoriteFilterValue = (!collectionFavoritesOnly).toString() }, label = { Text("★ Mes favoris") })
                     Text("Taille des cartes", style = MaterialTheme.typography.labelLarge)
@@ -1501,7 +1489,7 @@ private fun CollectionScreen(
         }
             additionMessage?.let { message ->
                 Surface(Modifier.align(androidx.compose.ui.Alignment.BottomCenter)
-                    .padding(start = 16.dp, end = 16.dp, bottom = 92.dp).widthIn(max = 640.dp).fillMaxWidth(),
+                    .padding(start = 16.dp, end = 16.dp, bottom = if (deckWorkspace || selectedSection == "Messagerie") 12.dp else bottomClearance + 4.dp).widthIn(max = 640.dp).fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp), tonalElevation = 6.dp,
                     color = ListPalette.Raised, contentColor = ListPalette.Gold) {
                     Row(Modifier.padding(8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
@@ -1533,7 +1521,7 @@ private fun CollectionScreen(
             }
         }
         if (!deckWorkspace && selectedSection != "Messagerie") Box(Modifier.align(androidx.compose.ui.Alignment.BottomCenter)
-            .then(if (privateLayout) Modifier.widthIn(max = 640.dp) else Modifier).fillMaxWidth()) {
+            .then(if (privateLayout) Modifier.widthIn(max = 640.dp) else Modifier).fillMaxWidth().onSizeChanged { bottomBarHeight = it.height }) {
             CollectionBottomBar(navigation.current.section) { section -> if (section == "Scanner") openScanner() else navigation.navigateTo(section) }
         }
     }
@@ -1837,11 +1825,11 @@ private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) 
                                 Icon(Icons.Default.Close, "Fermer le menu", tint = Color(0xFFFFD47D))
                             }
                         }
-                        Spacer(Modifier.height(24.dp))
+                        Spacer(Modifier.height(8.dp))
                         val communityEntries = if (AppChannel.supportsExperience(LocalContext.current.packageName))
                             listOf(Triple(Icons.Default.Person, "Mon compte", "Communauté"),
                                 Triple(Icons.Default.Handshake, "Mes prêts de cartes", "Prêts")) else emptyList()
-                        val entries = communityEntries + listOf(
+                        val entries = listOf(Triple(Icons.Default.Home, "Accueil", "Accueil")) + communityEntries + listOf(
                             Triple(Icons.Default.PhotoCamera, "Scanner", "Scanner"),
                             Triple(Icons.Default.CollectionsBookmark, "Compléter mon set", "Compléter mon set"),
                             Triple(Icons.Default.EmojiEvents, "Tournois & Méta", "Tournois & Méta"),
@@ -1854,7 +1842,7 @@ private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) 
                         )
                         entries.forEachIndexed { index, (icon, label, section) ->
                             val group = when {
-                                index == 0 && communityEntries.isNotEmpty() -> "Compte et partage"
+                                section == "Communauté" && communityEntries.isNotEmpty() -> "Compte et partage"
                                 section == "Scanner" -> "Collection et jeu"
                                 section == "Historique" -> "Outils et réglages"
                                 else -> null
@@ -1869,7 +1857,7 @@ private fun CollectionMenu(onDismiss: () -> Unit, onNavigate: (String) -> Unit) 
                             }
                             HorizontalDivider(color = Color(0xFF66583D).copy(alpha = 0.4f))
                         }
-                        Spacer(Modifier.height(150.dp))
+                        Spacer(Modifier.height(24.dp))
                     }
                 }
             }
@@ -1942,7 +1930,7 @@ internal fun CardArtwork(card: CatalogCard?, modifier: Modifier = Modifier, lang
     if (card == null) { CardArtwork("",modifier,grayscale); return }
     val context = LocalContext.current
     val face = remember(card,language,variant,reverse) { CardLanguageArtwork.displayFace(context,card,language,variant,reverse) }
-    Box(modifier.then(rememberVariantArtworkSheen(variant))) {
+    Box(modifier.then(rememberVariantArtworkSheen(variant.takeUnless { grayscale }))) {
         CardArtwork(face.first, Modifier.fillMaxSize(), grayscale)
         if (showLanguageLabel && !variant.isNullOrBlank() && variant != "Standard") {
             Surface(color = Color(0xE6071322), shape = RoundedCornerShape(6.dp),

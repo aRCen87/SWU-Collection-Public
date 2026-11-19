@@ -2,6 +2,8 @@
 
 package fr.swucollection.app
 
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -135,7 +137,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                     }
                 }
             }
-            if(scope != "Possédées") TextButton(onClick = { silhouettes = !silhouettes }) { Text(if(silhouettes) "Visuels" else "Silhouettes") }
+            if(dimMissing && scope != "Possédées") TextButton(onClick = { silhouettes = !silhouettes }) { Text(if(silhouettes) "Visuels" else "Silhouettes") }
             if (compactSetHeader && groups.size > 1) groups.keys.forEach { code ->
                 TextButton(onClick = {
                     val index = groups.entries.takeWhile { it.key != code }.sumOf { 1 + it.value.size }
@@ -161,7 +163,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                 Surface(color = ListPalette.Background, modifier = Modifier.fillMaxWidth().combinedClickable(
                     onClick = { onPreview(card, visible) }, onLongClickLabel = "Gérer cette carte", onLongClick = { onActions(card) })) {
                     Row(Modifier.padding(10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        if(silhouettes && quantity == 0) MissingSilhouette(card, Modifier.size(52.dp, 74.dp)) else CardArtwork(card, Modifier.size(52.dp, 74.dp), language = language.takeIf { it in CardLanguages.supported } ?: card.language, grayscale = dimMissing && quantity == 0)
+                        if(dimMissing && silhouettes && quantity == 0) MissingSilhouette(card, Modifier.size(52.dp, 74.dp)) else CardArtwork(card, Modifier.size(52.dp, 74.dp), language = language.takeIf { it in CardLanguages.supported } ?: card.language, grayscale = dimMissing && quantity == 0)
                         Column(Modifier.weight(1f)) {
                             Text(card.name)
                             Text("${card.setCode} · ${card.number}", style = MaterialTheme.typography.labelSmall)
@@ -200,14 +202,17 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                     Column(Modifier.fillMaxWidth().combinedClickable(onClick = { onPreview(card, visible) },
                         onLongClickLabel = "Gérer cette carte", onLongClick = { onActions(card) })
                         .semantics { contentDescription = "${card.name}, $quantity exemplaire(s)" }) {
-                        if(silhouettes && quantity == 0) MissingSilhouette(card, Modifier.fillMaxWidth().aspectRatio(if (DeckConstruction.type(card) in listOf("leader", "chef", "base")) 1.4f else 5f / 7f)) else CardArtwork(card, Modifier.fillMaxWidth().aspectRatio(if (DeckConstruction.type(card) in listOf("leader", "chef", "base")) 1.4f else 5f / 7f), language = language.takeIf { it in CardLanguages.supported } ?: card.language,
+                        if(dimMissing && silhouettes && quantity == 0) MissingSilhouette(card, Modifier.fillMaxWidth().aspectRatio(if (DeckConstruction.type(card) in listOf("leader", "chef", "base")) 1.4f else 5f / 7f)) else CardArtwork(card, Modifier.fillMaxWidth().aspectRatio(if (DeckConstruction.type(card) in listOf("leader", "chef", "base")) 1.4f else 5f / 7f).testTag("catalog_artwork_${MarketPricing.key(card.setCode, card.number)}"), language = language.takeIf { it in CardLanguages.supported } ?: card.language,
                             showLanguageLabel = !miniatures, grayscale = dimMissing && quantity == 0)
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        if (miniatures) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Text("×$quantity", Modifier.weight(1f), color = ListPalette.Gold, style = MaterialTheme.typography.labelSmall)
                             favoriteButton(card)
                         }
                         if (!miniatures) {
-                            Text(card.name, maxLines = 2, style = MaterialTheme.typography.labelMedium)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(card.name, Modifier.weight(1f), maxLines = 2, style = MaterialTheme.typography.labelMedium)
+                                favoriteButton(card)
+                            }
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(if (quantity > 0) "×$quantity possédée(s)" else "Manquante", Modifier.weight(1f), color = ListPalette.Gold, style = MaterialTheme.typography.labelSmall)
                                 IconButton(onClick = { onActions(card) }) { Icon(Icons.Default.Add, "Ajouter ou gérer ${card.name}") }
@@ -223,5 +228,10 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
 
 @Composable
 internal fun MissingCardDimmingToggle(selected: Boolean, onChange: (Boolean) -> Unit) {
-    FilterChip(selected = selected, onClick = { onChange(!selected) }, label = { Text("Griser les non possédées") })
+    Row(Modifier.fillMaxWidth().toggleable(value = selected, role = Role.Switch, onValueChange = onChange)
+        .padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text("Griser les manquantes", Modifier.weight(1f))
+        Switch(checked = selected, onCheckedChange = null)
+    }
 }
