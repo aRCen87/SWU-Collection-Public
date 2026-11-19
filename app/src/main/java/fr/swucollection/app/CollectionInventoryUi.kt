@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 /** Every stored print/language has its own visible controls; the image alone opens the viewer. */
@@ -32,10 +33,10 @@ internal fun CollectionInventoryCard(rows: List<CollectionCard>, catalog: Map<St
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(Modifier.width(90.dp).clickable(enabled = card != null) { card?.let { onPreview(first, it) } }
                     .semantics { contentDescription = "Agrandir ${first.name}" }) {
-                    CardArtwork(card, Modifier.fillMaxWidth().height(126.dp), language = first.language, variant = first.variant)
+                    CardArtwork(card, Modifier.fillMaxWidth().height(126.dp), language = first.language, variant = first.variant, showLanguageLabel = false)
                 }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(first.name, color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                    Text(first.name, color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Surface(color = PremiumGold, shape = RoundedCornerShape(9.dp)) {
                         Text("${rows.sumOf { it.quantity }} possédées", Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                             color = PremiumNavy, fontWeight = FontWeight.Bold)
@@ -93,18 +94,18 @@ internal fun CollectionVariantSheet(card: CatalogCard, catalog: List<CatalogCard
             .imePadding().padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("Ajouter une variante", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                CardArtwork(selected?.card ?: card, Modifier.size(64.dp, 90.dp), language = language, variant = selected?.variant ?: "Normale")
-                Text(card.name, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                CardArtwork(selected?.card ?: card, Modifier.size(64.dp, 90.dp), language = language, variant = selected?.variant ?: "Normale", showLanguageLabel = false)
+                Text(card.name, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 TextButton(onClick = onDismiss, enabled = !busy) { Text("Fermer") }
             }
             Text("Langue", fontWeight = FontWeight.Bold)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                CardLanguages.supported.forEach { code -> FilterChip(language == code, { language = code }, enabled = !busy, label = { Text(CardLanguages.label(code)) }) }
+                CardLanguages.supported.forEach { code -> FilterChip(language == code, { language = code }, enabled = !busy, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = PremiumGold, selectedLabelColor = PremiumNavy), label = { Text(CardLanguages.label(code)) }) }
             }
             Text("Finition", fontWeight = FontWeight.Bold)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 prints.map { it.variant }.distinct().forEach { finish -> FilterChip(selected?.variant == finish,
-                    { selected = prints.first { it.variant == finish } }, enabled = !busy, label = { Text(finish) }) }
+                    { selected = prints.first { it.variant == finish } }, enabled = !busy, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = PremiumGold, selectedLabelColor = PremiumNavy), label = { Text(finish) }) }
             }
             val references = prints.filter { it.variant == selected?.variant }
             if (references.size > 1) {
