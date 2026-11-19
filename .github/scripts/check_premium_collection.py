@@ -42,10 +42,10 @@ def reveal(label):
 def reveal_quantity(name):
     for attempt in range(14):
         root = snapshot(name + '-' + str(attempt))
-        visible = [n for n in root.iter('node') if n.attrib.get('text') == '× 1' and bounds(n)[3] > bounds(n)[1]]
+        visible = [n for n in root.iter('node') if n.attrib.get('text') == '1 possédées' and bounds(n)[3] > bounds(n)[1]]
         prices = [n for n in root.iter('node') if 'Cote' in n.attrib.get('text', '') and bounds(n)[3] > bounds(n)[1]]
         if visible and prices: return root
-        grids = [n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_visual_grid']
+        grids = [n for n in root.iter('node') if n.attrib.get('resource-id') == 'swu_inventory_list']
         if not grids:
             # Wait for the scope switch to expose its gallery before scrolling it.
             # A missing gallery must still fail with the actual screen labels below.
@@ -63,7 +63,7 @@ def reveal_quantity(name):
 
 def collection_grid(root):
     return next(n for n in root.iter('node') if n.attrib.get('resource-id') in
-                ('swu_visual_grid', 'swu_miniature_grid', 'swu_unified_catalog') and bounds(n)[3] > bounds(n)[1])
+                ('swu_inventory_list', 'swu_visual_grid', 'swu_miniature_grid', 'swu_unified_catalog') and bounds(n)[3] > bounds(n)[1])
 
 def scroll_collection(root, towards_start):
     left,top,right,bottom = bounds(collection_grid(root))
@@ -135,10 +135,10 @@ def verify_miniatures():
     find(snapshot('miniatures-detail'), 'Fermer la carte')
     tap(find(snapshot('miniatures-detail-close'), 'Fermer la carte'))
     adb('shell', 'wm', 'size', '720x1560'); adb('shell', 'wm', 'density', 320); time.sleep(4)
-    choose_view('Liste')
+    choose_view('Gestion')
     assert not any(n.attrib.get('resource-id') == 'swu_miniature_grid' for n in snapshot('list-mode').iter('node'))
-    choose_view('Visuel')
-    find(reveal_quantity('miniatures-stock'), '× 1')
+    choose_view('Gestion')
+    find(reveal_quantity('miniatures-stock'), '1 possédées')
     print('Image-only miniatures passed: column counts', columns, 'open/detail, remembered view, list/visual and unchanged stock.', flush=True)
 
 def wait_for_home():
@@ -231,16 +231,28 @@ try:
     tap(find(snapshot('confirm-add'), 'Confirmer l’ajout'))
     tap(find(snapshot('added'),'Fermer la carte'))
     choose_collection_scope('Possédées')
-    root = reveal_quantity('grid'); find(root,'× 1')
+    root = reveal_quantity('grid'); find(root,'1 possédées')
     assert any('Cote' in n.attrib.get('text','') for n in root.iter('node')), 'Visual grid lost price information'
+    # Direct editing targets this exact stock row and immediately updates its total.
+    plus = next(n for n in root.iter('node') if n.attrib.get('content-desc', '').startswith('Ajouter un exemplaire :'))
+    tap(plus)
+    root = snapshot('inventory-plus'); find(root, '2 possédées')
+    minus = next(n for n in root.iter('node') if n.attrib.get('content-desc', '').startswith('Retirer un exemplaire :'))
+    tap(minus)
+    root = reveal_quantity('inventory-restored')
+    tap(find(root, '＋ Ajouter une variante'))
+    sheet = snapshot('inventory-variant'); find(sheet, 'Ajouter une variante'); find(sheet, 'Langue'); find(sheet, 'Finition'); find(sheet, 'Quantité')
+    capture('inventory-variant-sheet')
+    tap(find(sheet, 'Fermer'))
+    root = reveal_quantity('inventory-cancelled'); find(root, '1 possédées')
     capture('collection-cover')
     adb('shell','wm','size','1766x1472'); adb('shell','wm','density',336); time.sleep(4)
-    root = reveal_quantity('grid-unfolded'); find(root,'× 1'); capture('collection-unfolded')
+    root = reveal_quantity('grid-unfolded'); find(root,'1 possédées'); capture('collection-unfolded')
     verify_miniatures()
     adb('shell','wm','size','720x1560'); adb('shell','wm','density',320); time.sleep(4)
-    tap(find(reveal_quantity('grid-return'),'× 1'))
-    tap(reveal('−'))
-    tap(find(snapshot('removed'),'Fermer la carte'))
+    root = reveal_quantity('grid-return')
+    remove = next(n for n in root.iter('node') if n.attrib.get('content-desc', '').startswith('Retirer un exemplaire :'))
+    tap(remove)
     find(snapshot('empty'),'Ta collection est vide. Scanne ta première carte pour commencer.')
     tap(find(snapshot('empty-return'),'Accueil'))
     assert 'FATAL EXCEPTION' not in adb('logcat','-d','-s','AndroidRuntime:E')
