@@ -75,9 +75,12 @@ try:
     assert any("FoldProbe" in n.attrib.get("text", "") for n in root.iter("node")), "Search lost while unfolding with keyboard"
     capture("keyboard")
     # The known probe is the only text entered; leave collection filters clean.
-    # On the unfolded screen the active query remains visible as a removable chip,
-    # even when the keyboard makes the scrollable search field leave the viewport.
-    tap(find(root, "FoldProbe ×"))
+    # A compact window exposes the clear action on the search field; a roomy
+    # layout may instead expose the active-filter chip. Both must clear the query.
+    clear_actions = [n for n in root.iter("node") if
+        "Effacer la recherche" in n.attrib.get("content-desc", "").split("\n")
+        and bounds(n)[2] > bounds(n)[0] and bounds(n)[3] > bounds(n)[1]]
+    tap(clear_actions[-1] if clear_actions else find(root, "FoldProbe ×"))
     keyboard = adb("shell", "dumpsys", "input_method")
     if any(marker in keyboard for marker in ("mInputShown=true", "mIsInputViewShown=true", "isInputViewShown=true")):
         adb("shell", "input", "keyevent", "4")

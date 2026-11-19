@@ -7,6 +7,7 @@
 - Reprise des finitions Test 36 à 38 : favoris persistants, densités, confirmation de sortie compacte, résumé de deck, derniers scans et cotes datées.
 - Confirmation d’ajout compacte et superposée : les noms longs ne déplacent plus la page ; Annuler reste accessible.
 - Paysage : Scanner et menu de collection accessibles dans la barre compacte ; choix de collection et extensions disponibles dans les filtres.
+- Recherche : effacement accessible dans les fenêtres compactes, y compris avec le clavier ouvert.
 - Identité officielle et données existantes conservées ; aucun transfert de compte Test.
 
 ## Version 0.9.5-test.38

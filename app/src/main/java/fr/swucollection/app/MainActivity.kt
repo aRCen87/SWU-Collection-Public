@@ -1287,7 +1287,10 @@ private fun CollectionScreen(
                 collectionScopeControls()
                 }
                 if (compactCollectionLayout) Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    OutlinedTextField(search, { search = it }, label = { Text("Rechercher une carte") }, singleLine = true, modifier = Modifier.weight(1f))
+                    OutlinedTextField(search, { search = it }, label = { Text("Rechercher une carte") }, singleLine = true,
+                        trailingIcon = { if (search.isNotEmpty()) IconButton(onClick = { search = "" }) {
+                            Icon(Icons.Default.Close, "Effacer la recherche")
+                        } }, modifier = Modifier.weight(1f))
                     IconButton(onClick = { openScanner() }) { Icon(Icons.Default.PhotoCamera, "Scanner") }
                     OutlinedButton(onClick = { collectionFiltersOpen = true }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text("Filtres") }
                     collectionActionsMenu()
