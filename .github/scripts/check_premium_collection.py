@@ -61,6 +61,19 @@ def reveal_quantity(name):
         adb('shell','input','swipe',x,bottom-8,x,max(top+8,bottom-8-distance),450); time.sleep(1)
     raise AssertionError(('Owned quantity and price are not reachable in the visual grid', [n.attrib.get('text') for n in root.iter('node') if n.attrib.get('text')]))
 
+def reveal_quick_stock(name):
+    for attempt in range(12):
+        root = snapshot(name + '-' + str(attempt))
+        buttons = [n for n in root.iter('node') if n.attrib.get('content-desc') == 'Ajouter un exemplaire' and bounds(n)[3] > bounds(n)[1]]
+        if buttons: return root
+        scroll_collection(root, False)
+    raise AssertionError('Quick stock controls are not reachable')
+
+def dismiss_add_feedback():
+    root = snapshot('feedback')
+    close = [n for n in root.iter('node') if n.attrib.get('content-desc') == 'Fermer le message d’ajout']
+    if close: tap(close[-1])
+
 def collection_grid(root):
     return next(n for n in root.iter('node') if n.attrib.get('resource-id') in
                 ('swu_inventory_list', 'swu_visual_grid', 'swu_miniature_grid', 'swu_unified_catalog') and bounds(n)[3] > bounds(n)[1])
@@ -227,10 +240,33 @@ try:
     choose_collection_scope('Toutes les cartes')
     tap(reveal_artwork())
     tap(reveal('+'))
-    # The first tap must only open the explicit confirmation.
-    tap(find(snapshot('confirm-add'), 'Confirmer l’ajout'))
+    # Quick stock now writes immediately and exposes an undo action.
+    added = snapshot('direct-add')
+    find(added, '1 possédée')
+    find(added, 'Annuler')
+    assert not any(n.attrib.get('text') == 'Confirmer l’ajout' for n in added.iter('node'))
     tap(find(snapshot('added'),'Fermer la carte'))
     choose_collection_scope('Possédées')
+    root = reveal_quick_stock('quick-owned')
+    find(root, '1')
+    assert any('Cote' in n.attrib.get('content-desc', '') for n in root.iter('node')), 'Quick grid lost price information'
+    capture('quick-grid-cover')
+    dismiss_add_feedback()
+    root = reveal_quick_stock('quick-ready')
+    tap(find(root, 'Ajouter un exemplaire'))
+    dismiss_add_feedback()
+    root = snapshot('quick-plus'); find(root, '2')
+    tap(find(root, 'Retirer un exemplaire'))
+    dismiss_add_feedback()
+    root = snapshot('quick-minus'); find(root, '1')
+    tap(find(root, 'Langue de la carte : Français'))
+    tap(find(snapshot('quick-languages'), 'Anglais'))
+    root = snapshot('quick-english'); find(root, '0')
+    tap(find(root, 'Langue de la carte : Anglais'))
+    tap(find(snapshot('quick-languages-return'), 'Français'))
+    root = snapshot('quick-french'); find(root, '1')
+    # Keep regression coverage for the separate detailed inventory mode.
+    choose_view('Gestion')
     root = reveal_quantity('grid'); find(root,'1 possédées')
     assert any('Cote' in n.attrib.get('text','') for n in root.iter('node')), 'Visual grid lost price information'
     # Direct editing targets this exact stock row and immediately updates its total.

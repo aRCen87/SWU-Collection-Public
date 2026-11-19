@@ -1,3 +1,10 @@
+## Version 0.9.9
+
+- Collection en grille : choix compact de langue et finition, cote à gauche du favori, compteur − / + direct sans fenêtre de confirmation. Les choix d’ajout sont mémorisés ; changer un sélecteur ne modifie jamais les exemplaires existants.
+- Fiche carte bleu nuit et or : grande image, titre et référence, langue/finition/cote/favori regroupés, un seul compteur. Variantes et détail des cotes accessibles dessous ; ajout aux decks/listes, partage, comparaison et utilisations conservés dans le menu.
+- Statut Premier visible pour les cartes suspendues ou hors rotation. Annulation temporaire après ajout ou retrait, y compris après retrait du dernier exemplaire.
+- Quantités exactes par référence, langue et finition ; anciennes collections, sauvegardes, identifiants et signature permanente conservés. Aucun changement des comptes ni de la base.
+
 ## Version 0.9.8
 
 - Ma collection reprend la présentation bleu nuit et or validée : miniature, nom et total possédé, puis toutes les langues et finitions visibles sous chaque carte.
