@@ -49,7 +49,10 @@ Travail demandé le 19 novembre 2026, à partir de l'officielle 0.9.6 (sources `
 Les modifications ne changent ni identifiant, ni signature, ni schéma SQLite, ni format de sauvegarde, ni règles Firebase.
 
 - 67 tests Python réussis lors de cette passe.
-- Tests Android, lint et compilation : résultats finaux à consigner après exécution.
+- 465 tests Android Debug et 429 tests Preview réussis, sans échec, erreur ni test ignoré. Les tests existants de conservation/restauration et d'édition font partie de ces suites.
+- Lint Debug et Preview réussis, sans erreur bloquante. Compilations Debug et AndroidTest réussies. Les avertissements non bloquants ne sont pas assimilés à une absence de toute dette technique.
+- 66 rendus natifs Robolectric générés et inspectés par planches et vues détaillées : 22 compositions représentatives sur téléphone, Fold et paysage. Contrôle supplémentaire à 200 % de taille de texte. Le test de pixels vérifie le gris des manquantes, les couleurs conservées pour les possédées et le retour en couleur à la désactivation.
+- Validation de la version optimisée par le job build de GitHub Actions 44482308755 réussie pour les sources applicatives 247d060b923c5bc4de508fb17f343845030fb5de. Le job de démarrage sur émulateur est distinct ; ne pas confondre un build réussi avec l'achèvement de tous les jobs du workflow.
 - Rendus : fixtures jetables, hors connexion, des composants de production. Les noms, cartes et quantités de démonstration ne sont pas des données d'utilisateur. Les illustrations de fixture servent à contrôler les cadres et les proportions, pas à certifier chaque correspondance du catalogue.
 - Aucun essai physique sur le Z Fold de Romain, aucune connexion à un vrai compte et aucun échange réel ne sont revendiqués.
 - Aucun changement de l'officielle distribuée n'est annoncé sans publication vérifiée.
