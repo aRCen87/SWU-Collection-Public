@@ -2,6 +2,8 @@
 package fr.swucollection.app
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.foundation.background
@@ -31,26 +33,30 @@ import androidx.compose.ui.unit.sp
 internal fun CollectionInventoryCard(rows: List<CollectionCard>, catalog: Map<String, CatalogCard>,
     onPreview: (CollectionCard, CatalogCard) -> Unit, onQuantity: (CollectionCard, Int) -> Unit,
     onLanguage: (CollectionCard) -> Unit, onAdd: (CatalogCard) -> Unit, quotes: Map<String, MarketQuote> = emptyMap()) {
-    val first = rows.first()
+    val displayRows = remember(rows) { rows.sortedWith(compareBy<CollectionCard>(
+        { (listOf("FR", "EN", "DE", "ES", "IT") + CardLanguages.UNKNOWN).indexOf(it.language).let { rank -> if (rank < 0) Int.MAX_VALUE else rank } },
+        { ScanVariants.options.indexOf(it.variant).let { rank -> if (rank < 0) Int.MAX_VALUE else rank } },
+        { it.setCode }, { it.number })) }
+    val first = displayRows.first()
     val card = catalog[MarketPricing.key(first.setCode, first.number)]
-    Surface(shape = RoundedCornerShape(18.dp), color = PremiumNavy,
+    Surface(shape = RoundedCornerShape(12.dp), color = PremiumNavy,
         border = BorderStroke(1.dp, Color(0xFF59738E)), modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.background(PremiumPanel).padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.background(PremiumPanel).padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Box(Modifier.width(90.dp).clickable(enabled = card != null) { card?.let { onPreview(first, it) } }
+                Box(Modifier.size(if (displayRows.size > 1) 120.dp else 94.dp).clip(RoundedCornerShape(8.dp)).background(PremiumNavy)
+                    .border(1.5.dp, PremiumGold, RoundedCornerShape(8.dp)).clickable(enabled = card != null) { card?.let { onPreview(first, it) } }
                     .semantics { contentDescription = "Agrandir ${first.name}" }) {
-                    CardArtwork(card, Modifier.fillMaxWidth().height(126.dp), language = first.language, variant = first.variant, showLanguageLabel = false)
+                    card?.let { BadgeIllustration(it, false, Modifier.fillMaxSize()) }
                 }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(first.name, color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(first.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp, lineHeight = 22.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Surface(color = PremiumGold, shape = RoundedCornerShape(9.dp)) {
-                        Text("${rows.sumOf { it.quantity }} possédées", Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                            color = PremiumNavy, fontWeight = FontWeight.Bold)
+                        Text("${rows.sumOf { it.quantity }} possédées", Modifier.background(PremiumMetal).padding(horizontal = 10.dp, vertical = 3.dp),
+                            color = PremiumNavy, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     }
-                    CollectionPriceLabel(quotes[collectionPriceKey(first.setCode, first.number, first.variant)], quotes.isNotEmpty())
                 }
             }
-            rows.forEach { row ->
+            displayRows.forEach { row ->
                 Surface(color = Color(0xFF1A2A40), shape = RoundedCornerShape(10.dp), border = BorderStroke(1.dp, Color(0xFF334B64))) {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f).clickable { onLanguage(row) }.padding(6.dp)
@@ -64,9 +70,12 @@ internal fun CollectionInventoryCard(rows: List<CollectionCard>, catalog: Map<St
                     }
                 }
             }
+            CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 36.dp) {
             OutlinedButton(onClick = { card?.let(onAdd) }, enabled = card != null,
-                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), border = BorderStroke(1.dp, PremiumGold)) {
+                modifier = Modifier.fillMaxWidth().heightIn(min = 36.dp), contentPadding = PaddingValues(horizontal = 8.dp, vertical = 3.dp),
+                shape = RoundedCornerShape(8.dp), border = BorderStroke(1.dp, PremiumGold)) {
                 Text("＋ Ajouter une variante", color = PremiumGold)
+            }
             }
         }
     }
@@ -74,14 +83,22 @@ internal fun CollectionInventoryCard(rows: List<CollectionCard>, catalog: Map<St
 
 @Composable
 private fun InventoryQuantity(quantity: Int, minus: () -> Unit, plus: () -> Unit, label: String,
-    plusEnabled: Boolean = true, minusEnabled: Boolean = true) {
-    OutlinedButton(onClick = minus, enabled = minusEnabled, contentPadding = PaddingValues(0.dp),
-        modifier = Modifier.size(48.dp).semantics { contentDescription = "Retirer un exemplaire : $label" },
-        shape = RoundedCornerShape(10.dp), border = BorderStroke(1.dp, PremiumGold)) { Text("−", color = PremiumGold) }
-    Text(quantity.toString(), Modifier.padding(horizontal = 10.dp).testTag("inventory_quantity"), color = Color.White, fontWeight = FontWeight.Bold)
-    OutlinedButton(onClick = plus, enabled = plusEnabled, contentPadding = PaddingValues(0.dp),
-        modifier = Modifier.size(48.dp).semantics { contentDescription = "Ajouter un exemplaire : $label" },
-        shape = RoundedCornerShape(10.dp), border = BorderStroke(1.dp, PremiumGold)) { Text("+", color = PremiumGold) }
+    plusEnabled: Boolean = true, minusEnabled: Boolean = true, large: Boolean = false) {
+    InventoryQuantityButton("−", minusEnabled, "Retirer un exemplaire : $label", minus, large)
+    Text(quantity.toString(), Modifier.widthIn(min = if (large) 64.dp else 32.dp).testTag("inventory_quantity"), textAlign = TextAlign.Center,
+        color = Color.White, fontWeight = FontWeight.Bold, fontSize = if (large) 26.sp else 20.sp)
+    InventoryQuantityButton("+", plusEnabled, "Ajouter un exemplaire : $label", plus, large)
+}
+
+@Composable
+private fun InventoryQuantityButton(symbol: String, enabled: Boolean, description: String, onClick: () -> Unit, large: Boolean) {
+    Box(Modifier.size(if (large) 56.dp else 40.dp).clickable(enabled = enabled, onClick = onClick)
+        .semantics { contentDescription = description }, contentAlignment = Alignment.Center) {
+        Box(Modifier.size(if (large) 48.dp else 32.dp).clip(RoundedCornerShape(7.dp)).background(PremiumMetal)
+            .padding(1.dp).background(Color(0xFF152238), RoundedCornerShape(6.dp)), contentAlignment = Alignment.Center) {
+            Text(symbol, color = if (enabled) PremiumGold else Color(0xFF738098), fontSize = if (large) 30.sp else 22.sp)
+        }
+    }
 }
 
 /** Treatment choices resolve to the actual collector reference before any stock is written. */
@@ -95,25 +112,30 @@ internal fun CollectionVariantSheet(card: CatalogCard, catalog: List<CatalogCard
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = PremiumNavy, contentColor = Color.White) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).navigationBarsPadding()
-            .imePadding().padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        containerColor = Color(0xFF203145), contentColor = Color.White) {
+        Column(Modifier.fillMaxWidth().background(PremiumPanel).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).navigationBarsPadding()
+            .imePadding().padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text("Ajouter une variante", Modifier.weight(1f), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                IconButton(onClick = onDismiss, enabled = !busy) { Icon(Icons.Default.Close, "Fermer") }
+                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 32.dp) {
+                    IconButton(onClick = onDismiss, enabled = !busy, modifier = Modifier.size(32.dp)) { Icon(Icons.Default.Close, "Fermer") }
+                }
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                CardArtwork(selected?.card ?: card, Modifier.size(64.dp, 90.dp), language = language, variant = selected?.variant ?: "Normale", showLanguageLabel = false)
-                Text(card.name, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Box(Modifier.size(64.dp).clip(RoundedCornerShape(7.dp)).border(1.dp, PremiumGold, RoundedCornerShape(7.dp))) {
+                    BadgeIllustration(selected?.card ?: card, false, Modifier.fillMaxSize())
+                }
+                Text(card.name, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
-            Text("Langue", fontWeight = FontWeight.Bold)
-            InventoryChoices(listOf("FR", "EN"), language, !busy, CardLanguages::label) { language = it }
             var otherLanguages by remember { mutableStateOf(language !in listOf("FR", "EN")) }
-            TextButton(onClick = { otherLanguages = !otherLanguages }, enabled = !busy) {
-                Text(if (otherLanguages) "Masquer les autres langues" else "Autres langues", color = PremiumGold)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text("Langue", Modifier.weight(1f), fontWeight = FontWeight.Bold, fontSize = 14.sp, lineHeight = 20.sp)
+                Text(if (otherLanguages) "Masquer" else "Autres…", color = PremiumGold, fontSize = 12.sp,
+                    modifier = Modifier.clickable(enabled = !busy) { otherLanguages = !otherLanguages }.padding(4.dp))
             }
+            InventoryChoices(listOf("FR", "EN"), language, !busy, CardLanguages::label) { language = it }
             if (otherLanguages) InventoryChoices(CardLanguages.supported - setOf("FR", "EN"), language, !busy, CardLanguages::label) { language = it }
-            Text("Finition", fontWeight = FontWeight.Bold)
+            Text("Finition", fontWeight = FontWeight.Bold, fontSize = 14.sp, lineHeight = 20.sp)
             InventoryChoices(prints.map { it.variant }.distinct(), selected?.variant, !busy, { it }) { finish ->
                 selected = prints.first { it.variant == finish }
             }
@@ -125,10 +147,9 @@ internal fun CollectionVariantSheet(card: CatalogCard, catalog: List<CatalogCard
                         label = { Text("${print.card.setCode} · ${print.card.number}") }) }
                 }
             }
-            selected?.let { Text("${it.card.setCode} · ${it.card.number} · ${it.variant}", color = ListPalette.Secondary) }
-            Text("Quantité", fontWeight = FontWeight.Bold)
+            Text("Quantité", fontWeight = FontWeight.Bold, fontSize = 14.sp, lineHeight = 20.sp)
             Row(Modifier.align(Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
-                InventoryQuantity(quantity, { quantity-- }, { quantity++ }, card.name, !busy && quantity < 9999, !busy && quantity > 1)
+                InventoryQuantity(quantity, { quantity-- }, { quantity++ }, card.name, !busy && quantity < 9999, !busy && quantity > 1, large = true)
             }
             error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             Button(onClick = {
@@ -137,8 +158,8 @@ internal fun CollectionVariantSheet(card: CatalogCard, catalog: List<CatalogCard
                     runCatching { onConfirm(print.card, language, print.variant, quantity) }
                         .onSuccess { onDismiss() }.onFailure { busy = false; error = it.message ?: "Ajout non enregistré. Réessaie." }
                 }
-            }, enabled = selected != null && !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-                shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = PremiumGold, contentColor = PremiumNavy)) {
+            }, enabled = selected != null && !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).background(PremiumMetal, RoundedCornerShape(12.dp)),
+                shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = PremiumNavy)) {
                 Text("Ajouter à ma collection", fontWeight = FontWeight.Bold)
             }
         }
@@ -154,11 +175,11 @@ private fun InventoryChoices(options: List<String>, selected: String?, enabled: 
         verticalArrangement = Arrangement.spacedBy(4.dp), maxItemsInEachRow = if (largeText) 2 else 4) {
         options.forEach { option ->
             Surface(onClick = { onSelect(option) }, enabled = enabled,
-                modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics { this.selected = selected == option }, shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.weight(1f).heightIn(min = if (options.size > 2) 44.dp else 36.dp).semantics { this.selected = selected == option }, shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(1.dp, if (selected == option) PremiumGold else Color(0xFF78869A)),
                 color = if (selected == option) PremiumGold else PremiumNavy,
                 contentColor = if (selected == option) PremiumNavy else Color.White) {
-                Box(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp), contentAlignment = Alignment.Center) {
+                Box(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 6.dp), contentAlignment = Alignment.Center) {
                     Text(label(option), fontSize = if (options.size > 2) 12.sp else 14.sp, textAlign = TextAlign.Center,
                         lineHeight = if (options.size > 2) 16.sp else 20.sp,
                         fontWeight = if (selected == option) FontWeight.Bold else FontWeight.Normal)

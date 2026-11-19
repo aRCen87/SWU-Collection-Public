@@ -1,3 +1,11 @@
+## Test 40 — présentation fidèle à la référence
+
+- Bandeau planète compact et limité à sa zone, titre lisible et recherche/filtre sur une seule ligne.
+- Les options Afficher, Scanner, Favoris, les filtres actifs et les compteurs quittent le haut de la liste ; leurs fonctions restent accessibles dans les filtres ou les raccourcis.
+- Vignettes carrées centrées sur l’illustration, total compact, lignes de langue/finition rapprochées et commandes dorées discrètes. Les cotes restent dans la fiche de lecture.
+- Barre de référence Collection / Scanner / Mes decks / Mes listes, soulignement doré ; personnalisation par appui long conservée.
+- Contrôle de la page réelle avec les cartes Maz Kanata et Docteur Hemlock et leurs images officielles en cache, avant distribution. Collections et identité officielle conservées.
+
 ## Test 39 — collection et ajout simplifié
 
 - Active une fois le mode Gestion et les cartes possédées dans l’application Test pour afficher immédiatement les quantités par langue et finition.

@@ -97,6 +97,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
@@ -298,6 +300,7 @@ private fun CollectionScreen(
     val navigation = remember { AppNavigation() }
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     val selectedSection = UnifiedCollection.section(navigation.current.section)
+    val referenceCollection = collectionReferenceDesign(deckContext) && selectedSection == "Collection"
     val compactCollectionLayout = privateLayout && selectedSection == "Collection" &&
         LocalConfiguration.current.screenHeightDp < 480
     val selectedSet = navigation.current.setCode
@@ -792,7 +795,7 @@ private fun CollectionScreen(
         .then(if(immersiveHome) Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)) else Modifier.safeDrawingPadding()).imePadding()
         .then(if (privateLayout) Modifier.semantics { testTagsAsResourceId = true }
             .testTag("swu_content_window") else Modifier)) {
-        Box(Modifier.fillMaxSize().background(PremiumHomeBackground))
+        Box(Modifier.fillMaxSize().background(if (referenceCollection) PremiumNavy else PremiumHomeBackground))
         Column(
             Modifier.align(androidx.compose.ui.Alignment.TopCenter)
                 .then(if (privateLayout && !immersiveHome) Modifier.widthIn(max = when (selectedSection) {
@@ -803,7 +806,7 @@ private fun CollectionScreen(
                 .fillMaxSize().padding(bottom = if (deckWorkspace || selectedSection == "Messagerie") 0.dp else bottomClearance).then(
                 if (selectedSection in listOf("Collection", "Extensions", "Mes decks", "Mes proxies", "Mes listes", "Compléter mon set", "Échanges", "Recherche", "Historique", "Hauts faits", "Tournois & Méta", "Prêts", "Messagerie"))
                     Modifier else Modifier.verticalScroll(pageScroll)
-            ).then(if(immersiveHome) Modifier else if(selectedSection=="Messagerie")Modifier.padding(messengerContentPadding()) else Modifier.padding(horizontal = 16.dp, vertical = 10.dp)),
+            ).then(if(immersiveHome || referenceCollection) Modifier else if(selectedSection=="Messagerie")Modifier.padding(messengerContentPadding()) else Modifier.padding(horizontal = 16.dp, vertical = 10.dp)),
             horizontalAlignment=if(immersiveHome) androidx.compose.ui.Alignment.CenterHorizontally else androidx.compose.ui.Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(if(immersiveHome) 0.dp else if (compactCollectionLayout) 4.dp else 12.dp)
         ) {
@@ -832,15 +835,11 @@ private fun CollectionScreen(
             }
             }
             if (selectedSection != "Accueil" && !messengerKeyboardOpen) {
-                val inventoryHeader = deckContext.packageName == AppChannel.TEST_PACKAGE && selectedSection == "Collection" && !compactCollectionLayout
-                Box(Modifier.fillMaxWidth()) {
-                if (inventoryHeader) {
-                    PremiumSpaceArtwork(remember { mutableStateOf(0f) }, Modifier.fillMaxWidth().height(86.dp))
-                    Box(Modifier.fillMaxWidth().height(86.dp).background(androidx.compose.ui.graphics.Brush.verticalGradient(
-                        listOf(Color.Transparent, PremiumHomeBackground.copy(alpha = .85f)))))
-                }
-                Row(Modifier.fillMaxWidth().heightIn(min = if (inventoryHeader) 86.dp else 48.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    IconButton(onClick = {
+                val inventoryHeader = referenceCollection && !compactCollectionLayout
+                Box(Modifier.fillMaxWidth().clipToBounds()) {
+                if (inventoryHeader) CollectionReferenceHeader()
+                if (!inventoryHeader) Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    if (!inventoryHeader) IconButton(onClick = {
                         if (backDispatcher != null) backDispatcher.onBackPressed() else navigation.back()
                     }) { Icon(Icons.Default.ArrowBack, "Retour à l’écran précédent") }
                     Text(when (selectedSection) {
@@ -853,7 +852,8 @@ private fun CollectionScreen(
                         "Communauté" -> "Mon compte"
                         else -> selectedSection
                     },
-                        modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                        modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold,
+                        style = if (inventoryHeader) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.bodyLarge)
                     if (!deckWorkspace && selectedSection != "Messagerie") IconButton(onClick = { menuOpen = true }) {
                         Icon(Icons.Default.Menu, "Ouvrir le menu", tint = MaterialTheme.colorScheme.primary)
                     }
@@ -1308,7 +1308,9 @@ private fun CollectionScreen(
                 }
                 collectionScopeControls()
                 }
-                if (compactCollectionLayout) Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (referenceCollection) CollectionReferenceToolbar(search, { search = it },
+                    collectionFilterCount(collectionSetFilter, collectionLanguage, collectionScope, collectionSort), { collectionFiltersOpen = true })
+                else if (compactCollectionLayout) Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     OutlinedTextField(search, { search = it }, label = { Text("Rechercher une carte") }, singleLine = true,
                         trailingIcon = { if (search.isNotEmpty()) IconButton(onClick = { search = "" }) {
                             Icon(Icons.Default.Close, "Effacer la recherche")
@@ -1324,7 +1326,11 @@ private fun CollectionScreen(
                         text = {
                             Column(Modifier.fillMaxWidth().heightIn(max = 440.dp).verticalScroll(rememberScrollState()),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (compactCollectionLayout) collectionScopeControls()
+                if (compactCollectionLayout || referenceCollection) collectionScopeControls()
+                if (referenceCollection) {
+                    collectionActionsMenu()
+                    TextButton(onClick = { collectionFiltersOpen = false; menuOpen = true }) { Text("Menu de l’application") }
+                }
                 collectionExtensionControl()
                 TextButton(onClick = {
                     search = ""; collectionSetFilter = "Toutes"; collectionLanguage = "Toutes"; collectionView = "Visuel"
@@ -1392,7 +1398,7 @@ private fun CollectionScreen(
                         },
                         confirmButton = { TextButton(onClick = { collectionFiltersOpen = false }) { Text("Voir les cartes") } })
                 }
-                if (!compactCollectionLayout) {
+                if (!compactCollectionLayout && !referenceCollection) {
                 if (groupVersions) InputChip(true, { groupVersionsValue = "false" }, label = { Text("Versions regroupées ×") })
                 ActiveCollectionFilters(collectionSetFilter, collectionScope, collectionSort, search,
                     onSet = { collectionSetFilter = "Toutes" }, onScope = { collectionScope = "Possédées" },
@@ -1421,7 +1427,7 @@ private fun CollectionScreen(
                         silhouettesOverride = collectionSilhouettes, onSilhouettesChange = { collectionSilhouettesValue = it.toString() },
                         showDisplayOptions = false, showFavoritesControl = false)
                 } else {
-                if (!scrollingMiniatureControls && selectedOwned.isNotEmpty()) Text(if (compactCollectionLayout) "${selectedOwned.sumOf { it.quantity }} exemplaires affichés"
+                if (!referenceCollection && !scrollingMiniatureControls && selectedOwned.isNotEmpty()) Text(if (compactCollectionLayout) "${selectedOwned.sumOf { it.quantity }} exemplaires affichés"
                     else "${selectedOwned.map { MarketPricing.key(it.setCode,it.number) + ":" + it.variant }.distinct().size} références et variantes possédées · ${selectedOwned.sumOf { it.quantity }} exemplaires", fontSize = 12.sp)
                 if (collectionScope == "Doublons" && selectedOwned.isNotEmpty()) Text("Filtre Doublons actif", color = MaterialTheme.colorScheme.primary)
                 if (selectedOwned.isEmpty()) {
@@ -1437,7 +1443,8 @@ private fun CollectionScreen(
                         groupOwnedVersions(selectedOwned, allCatalog, cardDetails, acrossSets = true)
                     }
                     LazyColumn(Modifier.fillMaxWidth().weight(1f).testTag("swu_inventory_list"),
-                        verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(bottom = 12.dp)) {
+                        verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(start = if (referenceCollection) 12.dp else 0.dp,
+                            end = if (referenceCollection) 12.dp else 0.dp, bottom = 12.dp)) {
                         items(groups, key = { it.first().id }) { rows ->
                             CollectionInventoryCard(rows, catalogByKey,
                                 onPreview = { owned, card -> openPreview(card,

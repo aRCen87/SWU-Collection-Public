@@ -1,6 +1,7 @@
 package fr.swucollection.app
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.relocation.BringIntoViewRequester
@@ -11,6 +12,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Style
+import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -67,11 +70,18 @@ internal fun CollectionBottomBar(section: String, onNavigate: (String) -> Unit) 
     var editing by remember { mutableStateOf(false) }
     var draft by remember { mutableStateOf(shortcuts) }
     var error by remember { mutableStateOf<String?>(null) }
+    val reference = collectionReferenceDesign(context)
+    LaunchedEffect(Unit) {
+        if (reference && !prefs.getBoolean("reference_test40", false)) {
+            shortcuts = listOf("Collection", "Scanner", "Mes decks", "Mes listes")
+            prefs.edit().putString("order", shortcuts.joinToString("|")).putBoolean("reference_test40", true).apply()
+        }
+    }
     val compactBar = LocalConfiguration.current.screenHeightDp < 480
     val roomyTabs = LocalDensity.current.fontScale >= 1.5f
     val barScroll = rememberScrollState()
-    Surface(color = Color(0xFF0B1B2D), border = BorderStroke(1.dp, Color(0xFF9C7941)),
-        shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)) {
+    Surface(color = Color(0xFF0B1B2D), border = if (reference) null else BorderStroke(1.dp, Color(0xFF9C7941)),
+        shape = RoundedCornerShape(topStart = if (reference) 0.dp else 18.dp, topEnd = if (reference) 0.dp else 18.dp)) {
         Row(Modifier.fillMaxWidth().heightIn(min = if (compactBar) 56.dp else 72.dp).then(if (roomyTabs) Modifier.horizontalScroll(barScroll) else Modifier)) {
             shortcuts.forEach { destination ->
                 val selected = section == destination || (destination == "Collection" && (section == "Compléter mon set" || section in listOf("Extensions", "Ajouter") && section !in shortcuts))
@@ -87,13 +97,20 @@ internal fun CollectionBottomBar(section: String, onNavigate: (String) -> Unit) 
                     onClick = { onNavigate(destination) }, onLongClickLabel = "Personnaliser la barre",
                     onLongClick = { draft = shortcuts; error = null; editing = true }).padding(vertical = if (compactBar) 6.dp else 12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Surface(color = if (selected) PremiumGold.copy(alpha = .14f) else Color.Transparent,
+                    Surface(color = if (selected && !reference) PremiumGold.copy(alpha = .14f) else Color.Transparent,
                         shape = RoundedCornerShape(12.dp)) {
-                        Icon(bottomShortcutIcons.getValue(destination), destination, tint = tint, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+                        val icon = if (reference) when (destination) {
+                            "Collection" -> Icons.Outlined.Style
+                            "Scanner" -> Icons.Default.CropFree
+                            "Mes decks" -> Icons.Outlined.Layers
+                            else -> bottomShortcutIcons.getValue(destination)
+                        } else bottomShortcutIcons.getValue(destination)
+                        Icon(icon, destination, tint = tint, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
                     }
                     Text(if (destination == "Hauts faits") "Badges" else destination,
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp),
                         color = tint, fontSize = 10.sp, lineHeight = 12.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    if (reference) Box(Modifier.width(60.dp).height(2.dp).background(if (selected) PremiumGold else Color.Transparent))
                 }
             }
         }
