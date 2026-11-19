@@ -1563,12 +1563,17 @@ private fun CollectionScreen(
             }
         }
             additionMessage?.let { message ->
-                Surface(Modifier.align(androidx.compose.ui.Alignment.BottomCenter)
-                    .padding(start = 16.dp, end = 16.dp, bottom = if (deckWorkspace || selectedSection == "Messagerie") 12.dp else bottomClearance + 4.dp).widthIn(max = 640.dp).fillMaxWidth(),
+                // Keep quantity controls reachable during repeated taps: the receipt
+                // floats below the collection header instead of covering the grid footer.
+                val collectionReceipt = selectedSection == "Collection"
+                Surface(Modifier.align(if (collectionReceipt) androidx.compose.ui.Alignment.TopCenter else androidx.compose.ui.Alignment.BottomCenter)
+                    .padding(start = 16.dp, end = 16.dp, top = if (collectionReceipt) 64.dp else 0.dp,
+                        bottom = if (collectionReceipt) 0.dp else if (deckWorkspace || selectedSection == "Messagerie") 12.dp else bottomClearance + 4.dp)
+                    .widthIn(max = 640.dp).fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp), tonalElevation = 6.dp,
                     color = ListPalette.Raised, contentColor = ListPalette.Gold) {
                     Row(Modifier.padding(8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                        additionThumbnail?.let { AddedCardReceipt(it) }
+                        if (!collectionReceipt) additionThumbnail?.let { AddedCardReceipt(it) }
                         Text("✓ $message", Modifier.weight(1f).padding(horizontal = 8.dp),
                             maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.bodySmall)
