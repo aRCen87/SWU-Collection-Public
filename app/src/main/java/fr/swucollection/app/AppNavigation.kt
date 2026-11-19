@@ -20,6 +20,7 @@ class AppNavigation {
     val canGoBack: Boolean get() = current.section != "Accueil"
 
     fun navigateTo(section: String, setCode: String? = null, catalogSearch: String? = null) {
+        if (!BuildConfig.SOCIAL_FEATURES && section in setOf("Communauté", "Messagerie", "Échanges")) return
         if (section == "Accueil") {
             history.clear()
             current = AppDestination()

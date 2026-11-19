@@ -5,5 +5,8 @@
     <application android:label="Appli Playstore" android:allowBackup="false" tools:replace="android:label,android:allowBackup">
         <service android:name=".RealtimeMessagingService" tools:node="remove" />
         <provider android:name="com.google.firebase.provider.FirebaseInitProvider" tools:node="remove" />
+        <service android:name="com.google.firebase.components.ComponentDiscoveryService" tools:node="remove" />
+        <activity android:name="com.google.firebase.auth.internal.GenericIdpActivity" tools:node="remove" />
+        <activity android:name="com.google.firebase.auth.internal.RecaptchaActivity" tools:node="remove" />
     </application>
 </manifest>

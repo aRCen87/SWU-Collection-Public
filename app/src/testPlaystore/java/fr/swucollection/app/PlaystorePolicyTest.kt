@@ -5,6 +5,9 @@ import org.junit.Test
 
 class PlaystorePolicyTest {
     @Test fun standaloneEditionKeepsModernLayoutWithoutAccountOrSideloadUpdates() {
+        val navigation = AppNavigation()
+        listOf("Communauté", "Messagerie", "Échanges").forEach { navigation.navigateTo(it) }
+        assertEquals("Accueil", navigation.current.section)
         assertFalse(BuildConfig.SOCIAL_FEATURES)
         assertEquals(AppChannel.PLAYSTORE_PACKAGE, BuildConfig.APPLICATION_ID)
         assertTrue(AppChannel.supportsExperience(BuildConfig.APPLICATION_ID))
