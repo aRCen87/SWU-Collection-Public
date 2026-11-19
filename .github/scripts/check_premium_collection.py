@@ -227,8 +227,11 @@ try:
     choose_collection_scope('Toutes les cartes')
     tap(reveal_artwork())
     tap(reveal('+'))
-    # The first tap must only open the explicit confirmation.
-    tap(find(snapshot('confirm-add'), 'Confirmer l’ajout'))
+    # Quick stock now writes immediately and exposes an undo action.
+    added = snapshot('direct-add')
+    find(added, '1 possédée')
+    find(added, 'Annuler')
+    assert not any(n.attrib.get('text') == 'Confirmer l’ajout' for n in added.iter('node'))
     tap(find(snapshot('added'),'Fermer la carte'))
     choose_collection_scope('Possédées')
     root = reveal_quantity('grid'); find(root,'1 possédées')
