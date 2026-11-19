@@ -52,9 +52,12 @@ class UnifiedCollectionUiTest {
         assertEquals(left.top, right.top, 1f)
         assertTrue(right.left >= left.right)
         ui.onNodeWithText("×0").assertDoesNotExist()
-        ui.onNodeWithText("Progression par rareté").performClick()
+        val logo = ui.onNodeWithContentDescription("Logo de l’extension SOR").fetchSemanticsNode().boundsInRoot
+        val frame = ui.onNodeWithTag("extension_frame_SOR").fetchSemanticsNode().boundsInRoot
+        assertTrue("The larger logo extends above the frame", logo.top < frame.top)
+        ui.onNodeWithContentDescription("Afficher la progression par rareté").performClick()
         ui.onNodeWithText("Rare").assertIsDisplayed()
-        ui.onNodeWithText("Masquer la progression par rareté").performClick()
+        ui.onNodeWithContentDescription("Masquer la progression par rareté").performClick()
         ui.onNodeWithText("Rare").assertDoesNotExist()
     }
 

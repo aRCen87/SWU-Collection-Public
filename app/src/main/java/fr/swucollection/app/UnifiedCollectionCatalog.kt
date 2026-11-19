@@ -106,19 +106,22 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
     @Composable fun sectionTitle(code: String) {
         val total = totalsBySet[code] ?: 0
         val collected = collectedBySet[code] ?: 0
-        Surface(color = ListPalette.Raised, border = androidx.compose.foundation.BorderStroke(1.dp, ListPalette.Gold.copy(alpha = .25f)), shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp)) {
+        Box(Modifier.fillMaxWidth().padding(top = 20.dp)) {
+        Surface(modifier = Modifier.testTag("extension_frame_$code"), color = ListPalette.Raised,
+            border = androidx.compose.foundation.BorderStroke(1.dp, ListPalette.Gold.copy(alpha = .25f)), shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp)) {
             Column(Modifier.fillMaxWidth().padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    SetLogo(code, Modifier.weight(1f).height(44.dp))
+                    Spacer(Modifier.weight(1f).height(44.dp))
                     Column(horizontalAlignment = Alignment.End) {
                         Text("${if (total > 0) collected * 100 / total else 0} %", color = ListPalette.Gold, style = MaterialTheme.typography.titleLarge)
                         Text("$collected / $total", style = MaterialTheme.typography.labelMedium)
                     }
                 }
-                Text(sets.firstOrNull { it.code == code }?.name ?: code, style = MaterialTheme.typography.labelSmall,
-                    maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                ExtensionProgressPanel(code, catalog, quantities)
+                ExtensionProgressPanel(code, catalog, quantities, compactTitle = sets.firstOrNull { it.code == code }?.name ?: code)
             }
+        }
+        SetLogo(code, Modifier.align(Alignment.TopStart).padding(start = 10.dp).offset(y = (-20).dp)
+            .fillMaxWidth(.68f).height(76.dp))
         }
     }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {

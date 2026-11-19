@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -37,10 +38,17 @@ internal data class RarityProgress(val rarity:String,val owned:Int,val total:Int
 internal fun rarityProgress(catalog:List<CatalogCard>,quantities:Map<String,Int>)=catalog.groupBy{it.rarity}.map{(rarity,rows)->
     RarityProgress(rarity,rows.count{(quantities[MarketPricing.key(it.setCode,it.number)]?:0)>0},rows.size)
 }
-@Composable internal fun ExtensionProgressPanel(code:String,catalog:List<CatalogCard>,quantities:Map<String,Int>) {
+@Composable internal fun ExtensionProgressPanel(code:String,catalog:List<CatalogCard>,quantities:Map<String,Int>,compactTitle:String?=null) {
     var expanded by remember(code){mutableStateOf(false)}
     val rows=remember(catalog,code,quantities){rarityProgress(catalog.filter{it.setCode==code},quantities)}
-    TextButton(onClick={expanded=!expanded}){Text(if(expanded)"Masquer la progression par rareté" else "Progression par rareté")}
+    if(compactTitle==null) TextButton(onClick={expanded=!expanded}){Text(if(expanded)"Masquer la progression par rareté" else "Progression par rareté")}
+    else Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+        Text(compactTitle,Modifier.weight(1f),style=MaterialTheme.typography.labelSmall,maxLines=1,
+            overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+        TextButton(onClick={expanded=!expanded},modifier=Modifier.semantics {
+            contentDescription=if(expanded)"Masquer la progression par rareté" else "Afficher la progression par rareté"
+        }) { Text(if(expanded)"Raretés ▴" else "Raretés ▾") }
+    }
     if(expanded) rows.forEach{r->
         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically){
             Text(r.rarity.ifBlank{"Non renseignée"},Modifier.weight(1f),style=MaterialTheme.typography.labelSmall)
