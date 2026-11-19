@@ -59,6 +59,10 @@ Le 19 novembre 2026, Romain demande de ne pas rendre la mise à jour disponible 
 
 ## État des contrôles
 
+### Validation de l'accueil, téléphone standard prioritaire
+
+Romain souhaite conserver l'accueil de sa capture du 19 novembre tel quel. Seuls les trois boutons à droite sont légèrement réduits : fond de 42 dp au lieu de 48 dp, icônes de 22 dp au lieu de 24 dp, avec des cibles tactiles inchangées de 48 dp. Le bandeau, l'avatar, la recherche, les raccourcis et la navigation ne changent pas. Les prochains ajustements se valident écran par écran, d'abord en portrait sur téléphone standard ; le Fold reste une adaptation secondaire. La publication demeure suspendue.
+
 Les modifications ne changent ni identifiant, ni signature, ni schéma SQLite, ni format de sauvegarde, ni règles Firebase.
 
 - 67 tests Python réussis lors de cette passe.
