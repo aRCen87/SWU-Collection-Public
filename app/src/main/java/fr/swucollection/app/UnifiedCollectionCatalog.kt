@@ -76,7 +76,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
     var favoriteError by remember { mutableStateOf<String?>(null) }
     @Composable fun favoriteButton(card: CatalogCard) {
         val key = MarketPricing.key(card.setCode, card.number)
-        IconToggleButton(checked = key in favorites, onCheckedChange = { selected ->
+        IconToggleButton(modifier = Modifier.size(40.dp), checked = key in favorites, onCheckedChange = { selected ->
             runCatching { favoriteDatabase.setFavoriteCard(card, selected) }
                 .onSuccess { favorites = favoriteDatabase.favoriteCardKeys(); favoriteError = null }
                 .onFailure { favoriteError = "Impossible de modifier les favoris. Réessaie." }
@@ -219,7 +219,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                         onLongClickLabel = "Gérer cette carte", onLongClick = { onActions(card) })
                         .semantics { contentDescription = "${card.name}, $quantity exemplaire(s)" }) {
                         if(dimMissing && silhouettes && quantity == 0) MissingSilhouette(card, Modifier.fillMaxWidth().aspectRatio(if (DeckConstruction.type(card) in listOf("leader", "chef", "base")) 1.4f else 5f / 7f)) else CardArtwork(card, Modifier.fillMaxWidth().aspectRatio(if (DeckConstruction.type(card) in listOf("leader", "chef", "base")) 1.4f else 5f / 7f).testTag("catalog_artwork_${MarketPricing.key(card.setCode, card.number)}"), language = if (!miniatures && onQuickChange != null) quickLanguage else language.takeIf { it in CardLanguages.supported } ?: card.language,
-                            variant = if (!miniatures && onQuickChange != null) quickFinish else "Normale", showLanguageLabel = false, grayscale = dimMissing && quantity == 0)
+                            variant = if (!miniatures && onQuickChange != null) quickFinish else null, showLanguageLabel = false, grayscale = dimMissing && quantity == 0)
                         if (miniatures) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Text(if (quantity > 0) "×$quantity" else "Manquante", Modifier.weight(1f), color = ListPalette.Gold, style = MaterialTheme.typography.labelSmall)
                             favoriteButton(card)
@@ -232,7 +232,7 @@ internal fun UnifiedCollectionCatalog(catalog: List<CatalogCard>, owned: List<Co
                                     itemVerticalAlignment = Alignment.CenterVertically) {
                                     QuickVariantSelectors(card, quickLanguage, quickFinish,
                                         { quickLanguage = it; prefs.edit().putString("language", it).apply() },
-                                        { quickFinish = it; prefs.edit().putString("finish", it).apply() })
+                                        { quickFinish = it; prefs.edit().putString("finish", it).apply() }, compact = true)
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         CompactCardQuote(card, quickFinish, refreshKey = priceRefreshKey)
                                         favoriteButton(card)

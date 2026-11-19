@@ -19,14 +19,14 @@ import java.util.Locale
 /** Choices never move existing stock. Only the separate +/- controls write a copy. */
 @Composable
 internal fun QuickVariantSelectors(card: CatalogCard, language: String, finish: String,
-    onLanguage: (String) -> Unit, onFinish: (String) -> Unit, modifier: Modifier = Modifier) {
+    onLanguage: (String) -> Unit, onFinish: (String) -> Unit, modifier: Modifier = Modifier, compact: Boolean = false) {
     var languagesOpen by remember { mutableStateOf(false) }
     var finishesOpen by remember { mutableStateOf(false) }
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
         Box {
             TextButton(onClick = { languagesOpen = true }, contentPadding = PaddingValues(horizontal = 4.dp),
-                modifier = Modifier.semantics { contentDescription = "Langue de la carte : ${CardLanguages.label(language)}" }) {
-                Text("${if (language in CardLanguages.supported) language else "Langue"} ▾", maxLines = 1, style = MaterialTheme.typography.labelMedium)
+                modifier = (if (compact) Modifier.width(32.dp) else Modifier).semantics { contentDescription = "Langue de la carte : ${CardLanguages.label(language)}" }) {
+                Text("${if (language in CardLanguages.supported) language else "Langue"} ▾", maxLines = 1, style = MaterialTheme.typography.labelSmall)
             }
             DropdownMenu(languagesOpen, { languagesOpen = false }) {
                 CardLanguages.supported.forEach { code -> DropdownMenuItem(text = { Text(CardLanguages.label(code)) },
@@ -35,9 +35,9 @@ internal fun QuickVariantSelectors(card: CatalogCard, language: String, finish: 
         }
         Box {
             TextButton(onClick = { finishesOpen = true }, contentPadding = PaddingValues(horizontal = 4.dp),
-                modifier = Modifier.semantics { contentDescription = "Finition de la carte : $finish" }) {
+                modifier = (if (compact) Modifier.width(64.dp) else Modifier).semantics { contentDescription = "Finition de la carte : $finish" }) {
                 Text("$finish ▾", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.labelMedium)
+                    style = MaterialTheme.typography.labelSmall)
             }
             DropdownMenu(finishesOpen, { finishesOpen = false }) {
                 ScanVariants.detect(card).choices.forEach { value -> DropdownMenuItem(text = { Text(value) },
@@ -58,7 +58,7 @@ internal fun CompactCardQuote(card: CatalogCard, finish: String, modifier: Modif
     val format = remember { NumberFormat.getCurrencyInstance(Locale.FRANCE) }
     val text = quote?.amount?.let { format.format(it) + if (quote?.maxAmount != null && quote?.maxAmount != it) "+" else "" } ?: "— €"
     Text(text, modifier.semantics { contentDescription = if (quote?.amount == null) "Cote indisponible" else "Cote $text, toutes langues" },
-        color = ListPalette.Gold, maxLines = 1, style = MaterialTheme.typography.labelMedium)
+        color = ListPalette.Gold, maxLines = 1, style = MaterialTheme.typography.labelSmall)
 }
 
 @Composable
