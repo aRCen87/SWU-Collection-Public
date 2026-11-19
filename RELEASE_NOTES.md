@@ -1,3 +1,11 @@
+## Test 39 — collection et ajout simplifié
+
+- Active une fois le mode Gestion et les cartes possédées dans l’application Test pour afficher immédiatement les quantités par langue et finition.
+- Reprend la collection bleu nuit et or avec les commandes directes − / + et « Ajouter une variante ».
+- Panneau d’ajout : choix Français / Anglais côte à côte, autres langues accessibles, finitions sélectionnables et quantité conservée pendant les changements. Fermeture en haut à droite et confirmation dorée en bas.
+- Les choix se replient sur plusieurs lignes avec les grandes polices. Aucune quantité n’est écrite avant confirmation ; les références exactes et l’annulation restent conservées.
+- Version officielle et données existantes conservées.
+
 ## Version 0.9.8
 
 - Ma collection reprend la présentation bleu nuit et or validée : miniature, nom et total possédé, puis toutes les langues et finitions visibles sous chaque carte.

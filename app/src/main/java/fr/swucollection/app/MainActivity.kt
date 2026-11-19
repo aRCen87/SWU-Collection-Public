@@ -345,6 +345,14 @@ private fun CollectionScreen(
     var groupVersionsValue by rememberCollectionFilter("groupVersions", privateLayout.toString())
     val groupVersions = groupVersionsValue == "true"
     var collectionScope by rememberCollectionFilter("collectionScope", "Possédées")
+    var inventoryTest39 by rememberCollectionFilter("inventoryTest39", "false")
+    LaunchedEffect(Unit) {
+        if (deckContext.packageName == AppChannel.TEST_PACKAGE && inventoryTest39 != "true") {
+            collectionView = "Gestion"
+            collectionScope = "Possédées"
+            inventoryTest39 = "true"
+        }
+    }
     LaunchedEffect(navigation.current) {
         if (navigation.current.section == "Extensions") {
             collectionSetFilter = navigation.current.setCode ?: "Toutes"
@@ -824,7 +832,14 @@ private fun CollectionScreen(
             }
             }
             if (selectedSection != "Accueil" && !messengerKeyboardOpen) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                val inventoryHeader = deckContext.packageName == AppChannel.TEST_PACKAGE && selectedSection == "Collection" && !compactCollectionLayout
+                Box(Modifier.fillMaxWidth()) {
+                if (inventoryHeader) {
+                    PremiumSpaceArtwork(remember { mutableStateOf(0f) }, Modifier.fillMaxWidth().height(86.dp))
+                    Box(Modifier.fillMaxWidth().height(86.dp).background(androidx.compose.ui.graphics.Brush.verticalGradient(
+                        listOf(Color.Transparent, PremiumHomeBackground.copy(alpha = .85f)))))
+                }
+                Row(Modifier.fillMaxWidth().heightIn(min = if (inventoryHeader) 86.dp else 48.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                     IconButton(onClick = {
                         if (backDispatcher != null) backDispatcher.onBackPressed() else navigation.back()
                     }) { Icon(Icons.Default.ArrowBack, "Retour à l’écran précédent") }
@@ -842,6 +857,7 @@ private fun CollectionScreen(
                     if (!deckWorkspace && selectedSection != "Messagerie") IconButton(onClick = { menuOpen = true }) {
                         Icon(Icons.Default.Menu, "Ouvrir le menu", tint = MaterialTheme.colorScheme.primary)
                     }
+                }
                 }
             }
             if (menuOpen) {

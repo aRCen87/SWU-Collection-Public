@@ -2,6 +2,8 @@
 package fr.swucollection.app
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -92,20 +95,24 @@ internal fun CollectionVariantSheet(card: CatalogCard, catalog: List<CatalogCard
         containerColor = PremiumNavy, contentColor = Color.White) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).navigationBarsPadding()
             .imePadding().padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Ajouter une variante", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text("Ajouter une variante", Modifier.weight(1f), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                IconButton(onClick = onDismiss, enabled = !busy) { Icon(Icons.Default.Close, "Fermer") }
+            }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 CardArtwork(selected?.card ?: card, Modifier.size(64.dp, 90.dp), language = language, variant = selected?.variant ?: "Normale", showLanguageLabel = false)
                 Text(card.name, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                TextButton(onClick = onDismiss, enabled = !busy) { Text("Fermer") }
             }
             Text("Langue", fontWeight = FontWeight.Bold)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                CardLanguages.supported.forEach { code -> FilterChip(language == code, { language = code }, enabled = !busy, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = PremiumGold, selectedLabelColor = PremiumNavy), label = { Text(CardLanguages.label(code)) }) }
+            InventoryChoices(listOf("FR", "EN"), language, !busy, CardLanguages::label) { language = it }
+            var otherLanguages by remember { mutableStateOf(language !in listOf("FR", "EN")) }
+            TextButton(onClick = { otherLanguages = !otherLanguages }, enabled = !busy) {
+                Text(if (otherLanguages) "Masquer les autres langues" else "Autres langues", color = PremiumGold)
             }
+            if (otherLanguages) InventoryChoices(CardLanguages.supported - setOf("FR", "EN"), language, !busy, CardLanguages::label) { language = it }
             Text("Finition", fontWeight = FontWeight.Bold)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                prints.map { it.variant }.distinct().forEach { finish -> FilterChip(selected?.variant == finish,
-                    { selected = prints.first { it.variant == finish } }, enabled = !busy, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = PremiumGold, selectedLabelColor = PremiumNavy), label = { Text(finish) }) }
+            InventoryChoices(prints.map { it.variant }.distinct(), selected?.variant, !busy, { it }) { finish ->
+                selected = prints.first { it.variant == finish }
             }
             val references = prints.filter { it.variant == selected?.variant }
             if (references.size > 1) {
@@ -131,6 +138,25 @@ internal fun CollectionVariantSheet(card: CatalogCard, catalog: List<CatalogCard
                 shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = PremiumGold, contentColor = PremiumNavy)) {
                 Text("Ajouter à ma collection", fontWeight = FontWeight.Bold)
             }
+        }
+    }
+}
+
+/** Equal-width choices wrap on narrow screens and large fonts without clipping labels. */
+@Composable
+private fun InventoryChoices(options: List<String>, selected: String?, enabled: Boolean,
+    label: (String) -> String, onSelect: (String) -> Unit) {
+    val largeText = LocalDensity.current.fontScale > 1.3f
+    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp), maxItemsInEachRow = if (largeText) 2 else 4) {
+        options.forEach { option ->
+            FilterChip(selected == option, { onSelect(option) }, enabled = enabled,
+                modifier = Modifier.weight(1f).heightIn(min = 48.dp), shape = RoundedCornerShape(8.dp),
+                border = BorderStroke(1.dp, if (selected == option) PremiumGold else Color(0xFF78869A)),
+                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = PremiumGold, selectedLabelColor = PremiumNavy),
+                label = { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text(label(option), fontWeight = if (selected == option) FontWeight.Bold else FontWeight.Normal)
+                } })
         }
     }
 }

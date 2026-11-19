@@ -38,4 +38,15 @@ class CollectionInventoryUiTest {
         ui.onNodeWithText("Ajouter à ma collection").performScrollTo().performClick()
         ui.runOnIdle { assertEquals(1, writes); assertEquals(2, added) }
     }
+    @Test fun changingLanguageAndFinishKeepsQuantityUntilExplicitConfirmation() {
+        var result: Triple<String, String, Int>? = null
+        ui.setContent { MaterialTheme { CollectionVariantSheet(card, listOf(card), emptyList(), CardDetails.empty(), {},
+            { _, language, finish, quantity -> result = Triple(language, finish, quantity) }) } }
+        ui.onNodeWithContentDescription("Ajouter un exemplaire : Carte test").performScrollTo().performClick()
+        ui.onNodeWithText("Anglais").performScrollTo().performClick()
+        ui.onNodeWithText("Foil", substring = false).performScrollTo().performClick()
+        ui.runOnIdle { assertNull(result) }
+        ui.onNodeWithText("Ajouter à ma collection").performScrollTo().performClick()
+        ui.runOnIdle { assertEquals(Triple("EN", "Foil", 2), result) }
+    }
 }
