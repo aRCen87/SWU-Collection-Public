@@ -335,6 +335,13 @@ private fun CollectionScreen(
     var ownershipFilter by rememberCollectionFilter("ownershipFilter", "Toutes")
     var collectionSetFilter by rememberCollectionFilter("collectionSetFilter", "Toutes")
     var collectionView by rememberCollectionFilter("collectionView", "Visuel")
+    val quickGridPreferences = LocalContext.current.getSharedPreferences("quick_collection_choices", 0)
+    LaunchedEffect(Unit) {
+        if (!quickGridPreferences.getBoolean("grid099", false)) {
+            if (collectionView == "Gestion") collectionView = "Visuel"
+            quickGridPreferences.edit().putBoolean("grid099", true).apply()
+        }
+    }
     var collectionScaleValue by rememberCollectionFilter("collectionCardScale", "1.0")
     val collectionCardScale = collectionScaleValue.toFloatOrNull()?.coerceIn(.8f, 1.5f) ?: 1f
     var favoriteFilterValue by rememberCollectionFilter("collectionFavoritesOnly", "false")
@@ -1341,8 +1348,8 @@ private fun CollectionScreen(
                     Switch(groupVersions, { groupVersionsValue = it.toString() })
                 }
                 if (privateLayout || !groupVersions) FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    (if (privateLayout) listOf("Gestion", "Miniatures") else listOf("Visuel", "Liste")).forEach { option ->
-                        FilterChip(selected = if (privateLayout && option == "Gestion") collectionView != "Miniatures" else collectionView == option,
+                    (if (privateLayout) listOf("Visuel", "Gestion", "Miniatures") else listOf("Visuel", "Liste")).forEach { option ->
+                        FilterChip(selected = collectionView == option,
                             onClick = { collectionView = option },
                             label = { Text(option, fontSize = 12.sp) })
                     }
@@ -1409,8 +1416,15 @@ private fun CollectionScreen(
                         collectionQuotes[collectionPriceKey(it.setCode, it.number, it.variant)]?.amount
                     }
                 }
-                if (collectionScope in listOf("Toutes les cartes", "Manquantes")) {
-                    UnifiedCollectionCatalog(allCatalog, cards, collectionScope, collectionSetFilter, collectionLanguage, search,
+                val quickOwnedCatalog = remember(selectedOwned, catalogByKey) {
+                    selectedOwned.distinctBy { MarketPricing.key(it.setCode, it.number) }.map { row ->
+                        catalogByKey[MarketPricing.key(row.setCode, row.number)]
+                            ?: CatalogCard(row.setCode, row.number, row.name, "", "", language = row.language)
+                    }
+                }
+                if (collectionScope in listOf("Toutes les cartes", "Manquantes") ||
+                    (collectionView == "Visuel" && selectedOwned.isNotEmpty())) {
+                    UnifiedCollectionCatalog(if (collectionScope in listOf("Possédées", "Doublons")) quickOwnedCatalog else allCatalog, cards, collectionScope, collectionSetFilter, collectionLanguage, search,
                         collectionView, cardDetails, Modifier.weight(1f),
                         onPreview = { card, visible -> openPreview(card, visible.map { CardPreviewEntry(it) }) },
                         onActions = { quickCard = it }, dimMissing = dimMissing,
