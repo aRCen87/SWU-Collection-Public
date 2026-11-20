@@ -66,6 +66,8 @@ internal fun validateTradeReceipts(j: JSONObject) {
     gradle = re.sub(r'versionName = "[^"]+"', 'versionName = "0.1.0"', gradle, count=1)
     gradle = between(gradle, '        create("preview") {', '    buildFeatures', '    }\n')
     gradle = between(gradle, '// Test keeps its independent Android update sequence.', 'kotlin {')
+    gradle = between(gradle, '    signingConfigs {', '    buildTypes {')
+    gradle = once(gradle, 'signingConfig = signingConfigs.getByName("release")', 'signingConfig = null')
     gradle = '\n'.join(line for line in gradle.splitlines() if 'firebase' not in line and 'androidTestImplementation' not in line)
     (out / 'app/build.gradle.kts').write_text(gradle + '\n')
     # Keep only scanner/network permissions; no account links, notifications or messaging service.
