@@ -25,8 +25,17 @@ def launch(package):
     assert adb('shell','pidof',package).strip()
     adb('shell','am','force-stop',package)
 launch(OFFICIAL)
-adb('root');adb('wait-for-device')
-assert adb('shell','id','-u').strip()=='0'
+for attempt in range(3):
+    subprocess.run(['adb','root'],text=True,capture_output=True,timeout=90)
+    try:
+        adb('wait-for-device')
+        if adb('shell','id','-u').strip()=='0':
+            break
+    except subprocess.CalledProcessError:
+        pass
+    time.sleep(1)
+else:
+    raise AssertionError('Disposable emulator root unavailable')
 def uid(package):
     return adb('shell','stat','-c','%u','/data/data/'+package).strip()
 assert uid(OFFICIAL)!=uid(PLAY)
