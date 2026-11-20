@@ -81,29 +81,37 @@ class CollectionPhonePreviewTest {
         val prefs = context.getSharedPreferences("proxy_print_selection", 0)
         prefs.edit().putString("cards", org.json.JSONObject(mapOf(DeckConstruction.reference(first) to 5,
             DeckConstruction.reference(second) to 4)).toString()).commit()
+        fun faces(firstQuantity: Int) = firstQuantity * (if (CardPdfPlan.automaticLeaderBack(first)) 2 else 1) +
+            4 * (if (CardPdfPlan.automaticLeaderBack(second)) 2 else 1)
+        fun summary(firstQuantity: Int): String {
+            val copies = firstQuantity + 4
+            val count = faces(firstQuantity)
+            val pages = (count + 8) / 9
+            return "$copies exemplaires · $count face(s) · $pages page${if (pages == 1) "" else "s"}"
+        }
         val before = CollectionDatabase(context).use { it.exportJson() }
         ui.onAllNodesWithText("Mes proxies").onFirst().performClick()
         ui.onNodeWithText("Retour au deck").assertDoesNotExist()
         ui.onNodeWithText("Sélection (2)").assertIsDisplayed()
-        ui.onNodeWithText("9 exemplaires · 1 page").assertIsDisplayed()
+        ui.onNodeWithText(summary(5)).assertIsDisplayed()
         ui.onNodeWithText("Tout retirer", substring = false).assertDoesNotExist()
         ui.onAllNodesWithText("Possédées :", substring = true).assertCountEquals(0)
         ui.waitForIdle(); waitForFirstArtwork(); capture("proxies-phone-catalogue")
         ui.onNodeWithText("Sélection (2)").performClick()
         ui.onNodeWithContentDescription("Ajouter ${first.name}").performClick()
-        ui.onNodeWithText("10 exemplaires · 2 pages").assertIsDisplayed()
+        ui.onNodeWithText(summary(6)).assertIsDisplayed()
         ui.onNodeWithText("✓ ×6").assertIsDisplayed()
         ui.onNodeWithText("Sélection (2)").assertIsDisplayed()
         ui.waitForIdle(); waitForFirstArtwork(); capture("proxies-phone-selection")
         ui.onNodeWithText("Créer le PDF").performClick()
         ui.onNodeWithText("Proxies à imprimer", substring = false).assertIsDisplayed()
-        ui.onNodeWithText("10 face(s) · 2 page(s) A4").assertIsDisplayed()
+        ui.onNodeWithText("${faces(6)} face(s) · ${(faces(6) + 8) / 9} page(s) A4").assertIsDisplayed()
         ui.onNodeWithText("Fermer", substring = false).performClick()
         ui.onNodeWithContentDescription("Options de la sélection de proxies").performClick()
         ui.onNodeWithText("Tout retirer", substring = false).performClick()
         ui.onNodeWithText("Vider la sélection de proxies ?").assertIsDisplayed()
         ui.onNodeWithText("Annuler", substring = false).performClick()
-        ui.onNodeWithText("10 exemplaires · 2 pages").assertIsDisplayed()
+        ui.onNodeWithText(summary(6)).assertIsDisplayed()
         ui.onNodeWithContentDescription("Options de la sélection de proxies").performClick()
         ui.onNodeWithText("Tout retirer", substring = false).performClick()
         ui.onNodeWithText("Tout retirer", substring = false).performClick()
