@@ -175,7 +175,15 @@ internal fun validateTradeReceipts(j: JSONObject) {
     # Remove tests for deleted features, keeping collection, migrations and backups.
     # Match declarations rather than filenames so a retained test cannot use a deleted API.
     symbol_pattern = re.compile(r'\b(' + '|'.join(map(re.escape, sorted(removed_symbols))) + r')\b')
-    for test in (out / 'app/src/test').rglob('*.kt'):
+    review = out / 'app/src/testDebug/java/fr/swucollection/app/SimplicityReviewTest.kt'
+    text = review.read_text().replace('CommunityHomeControls({}, {}, {})', 'PlaystoreHomeControls({}, {})')
+    text = between(text, '                    "members" -> MemberDirectory(', '                    "settings" ->')
+    text = between(text, '                    "profile" -> PlayerHeading(', '                    "complete" ->')
+    text = text.replace(', "profile", "members", "chat", "trade"', '')
+    review.write_text(text)
+    for test in (out / 'app/src').rglob('*.kt'):
+        if not any(part.startswith('test') for part in test.relative_to(out / 'app/src').parts):
+            continue
         if symbol_pattern.search(test.read_text()) or 'communityDestination' in test.read_text():
             test.unlink()
     shutil.copy2(ROOT / 'playstore/PlaystoreIsolationTest.kt', out / 'app/src/test/java/fr/swucollection/app/PlaystoreIsolationTest.kt')
