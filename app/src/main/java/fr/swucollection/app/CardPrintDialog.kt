@@ -58,13 +58,14 @@ internal fun CardPrintDialog(title: String, items: List<PrintCard>, proxies: Boo
             plan.getOrNull()?.let { pages -> Text("${pages.sumOf { it.size }} ${if (proxies) "face(s)" else "carte(s) distincte(s)"} · ${pages.size} page(s) A4") }
             if (proxies) {
                 Text("9 cartes par page, avec repères de découpe. Imprime à 100 % ou « taille réelle ».")
+                if (items.any { CardPdfPlan.automaticLeaderBack(it.card) }) Text("Les deux faces des leaders sont ajoutées automatiquement, en même quantité, sur des cartes séparées.")
                 Text("Format : ${if (large) "63,5 × 88,9" else "63 × 88"} mm")
                 TextButton(onClick = { advanced = !advanced }, enabled = !busy) { Text("Options d’impression") }
                 if (advanced) Row { Checkbox(large, onCheckedChange = if (busy) null else { value -> large = value; prepared?.delete(); prepared = null })
                     Text("Utiliser 63,5 × 88,9 mm", Modifier.padding(top = 12.dp)) }
-                if (advanced && items.any { it.card.backImageUrl.isNotBlank() }) Row {
+                if (advanced && items.any { it.card.backImageUrl.isNotBlank() && !CardPdfPlan.automaticLeaderBack(it.card) }) Row {
                     Checkbox(backs, onCheckedChange = if (busy) null else { value -> backs = value; prepared?.delete(); prepared = null })
-                    Text("Ajouter les faces arrière sur des cartes séparées", Modifier.padding(top = 8.dp))
+                    Text("Ajouter aussi les faces arrière des autres cartes", Modifier.padding(top = 8.dp))
                 }
             } else Text("Leader, base, deck et réserve, avec visuels et quantités. Les cartes ne sont pas répétées pour chaque exemplaire.")
             if (prepared != null) TextButton(onClick = { preview = true }, enabled = !busy) { Text("Voir l’aperçu") }
