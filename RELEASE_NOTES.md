@@ -1,3 +1,8 @@
+## Version 0.9.11
+
+- Proxies : les deux faces des leaders sont automatiquement incluses dans le PDF, avec la même quantité pour chaque face.
+- Le nombre de faces et de pages tient compte des versos des leaders dès la sélection.
+
 ## Version 0.9.10
 
 - Fiche carte zoomée : variantes, détail des cotes et utilisations visibles à la suite en faisant défiler vers le bas.

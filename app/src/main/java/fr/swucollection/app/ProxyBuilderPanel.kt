@@ -67,7 +67,8 @@ internal fun ProxyBuilderPanel(catalog: List<CatalogCard>, owned: List<Collectio
     var clearing by remember { mutableStateOf(false) }
     var more by remember { mutableStateOf(false) }
     val copies = selected.values.sum()
-    val pages = (copies + 8) / 9
+    val faces = selected.entries.sumOf { (id, count) -> count * if (CardPdfPlan.automaticLeaderBack(byId.getValue(id))) 2 else 1 }
+    val pages = (faces + 8) / 9
     val filtered = remember(catalog, selected, selectionOnly, query, filters, stock, details) {
         catalog.filter { card -> (!selectionOnly || DeckConstruction.reference(card) in selected) && DeckBrowser.search(card, query) &&
             filters.matches(card, details.get(card), stock[details.family(card)] ?: 0, false) }
@@ -108,7 +109,7 @@ internal fun ProxyBuilderPanel(catalog: List<CatalogCard>, owned: List<Collectio
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = { printing = true }, enabled = selected.isNotEmpty()) { Text("Créer le PDF") }
-            Text("$copies exemplaire${if (copies == 1) "" else "s"} · $pages page${if (pages == 1) "" else "s"}",
+            Text("$copies exemplaire${if (copies == 1) "" else "s"} · $faces face(s) · $pages page${if (pages == 1) "" else "s"}",
                 Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall)
         }
     }

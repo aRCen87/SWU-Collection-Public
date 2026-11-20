@@ -14,14 +14,18 @@ internal object CardPdfPlan {
         return listOf(item(deck.leader, 1, "Leader"), item(deck.base, 1, "Base")) +
             deck.deck.map { item(it.cardId, it.count, "Deck") } + deck.sideboard.map { item(it.cardId, it.count, "Réserve") }
     }
+    fun automaticLeaderBack(card: CatalogCard) =
+        DeckConstruction.type(card) in setOf("leader", "chef") && card.backImageUrl.isNotBlank()
+    private fun includeBack(item: PrintCard, backs: Boolean) =
+        !item.back && item.card.backImageUrl.isNotBlank() && (backs || automaticLeaderBack(item.card))
     fun pages(items: List<PrintCard>, proxies: Boolean, backs: Boolean, large: Boolean = false): List<List<PdfPlacement>> {
         require(items.isNotEmpty()) { "Choisis au moins une carte." }
         require(items.all { it.quantity in 1..99 }) { "Quantité invalide." }
-        val requested = if (proxies) items.sumOf { it.quantity.toLong() * if (backs && it.card.backImageUrl.isNotBlank()) 2 else 1 } else items.size.toLong()
+        val requested = if (proxies) items.sumOf { it.quantity.toLong() * if (includeBack(it, backs)) 2 else 1 } else items.size.toLong()
         require(requested <= MAX_CARDS) { "Choisis au maximum $MAX_CARDS cartes ou faces par PDF." }
         val expanded = if (proxies) items.flatMap { item ->
             List(item.quantity) { item.copy(quantity = 1) } +
-                if (backs && item.card.backImageUrl.isNotBlank()) List(item.quantity) { item.copy(quantity = 1, back = true) } else emptyList()
+                if (includeBack(item, backs)) List(item.quantity) { item.copy(quantity = 1, back = true) } else emptyList()
         } else items
         require(expanded.size <= MAX_CARDS) { "Choisis au maximum $MAX_CARDS cartes ou faces par PDF." }
         val width = if (proxies) mm(if (large) 63.5f else 63f) else 155f
