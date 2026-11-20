@@ -180,7 +180,12 @@ internal fun validateTradeReceipts(j: JSONObject) {
     text = between(text, '                    "members" -> MemberDirectory(', '                    "settings" ->')
     text = between(text, '                    "profile" -> PlayerHeading(', '                    "complete" ->')
     text = text.replace(', "profile", "members", "chat", "trade"', '')
+    text = once(text, 'listOf("Mon compte" to "Communauté", "Hors connexion"', 'listOf("Hors connexion"')
     review.write_text(text)
+    reader = out / 'app/src/testDebug/java/fr/swucollection/app/CollectionPhonePreviewTest.kt'
+    reader.write_text(once(reader.read_text(), 'ui.onNodeWithText("Partager à des amis").performScrollTo().assertIsDisplayed()', 'ui.onNodeWithText("Partager à des amis").assertDoesNotExist()'))
+    identity = out / 'app/src/test/java/fr/swucollection/app/AppChannelTest.kt'
+    identity.write_text(once(identity.read_text(), 'assertTrue(AppChannel.allowsOfficialUpdates("fr.swucollection.app"))', 'assertFalse(AppChannel.allowsOfficialUpdates("fr.swucollection.app"))'))
     for test in (out / 'app/src').rglob('*.kt'):
         if not any(part.startswith('test') for part in test.relative_to(out / 'app/src').parts):
             continue
