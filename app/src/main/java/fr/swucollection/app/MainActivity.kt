@@ -755,7 +755,7 @@ private fun CollectionScreen(
                         HorizontalDivider(color = ListPalette.Gold.copy(alpha = .25f))
                         Text("Variantes", Modifier.fillMaxWidth(), fontWeight = FontWeight.SemiBold,
                             color = ListPalette.Gold)
-                        VariantFan(card, allCatalog, cards, cardDetails, previewVariant, previewLanguage) { related, finish, language ->
+                        VariantFan(card, allCatalog, cards, cardDetails, previewVariant, previewLanguage, alwaysExpanded = true) { related, finish, language ->
                             previewPrint = related
                             previewVariant = finish
                             previewLanguage = language
