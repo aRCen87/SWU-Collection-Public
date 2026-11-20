@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 PACKAGE = 'fr.swucollection.app.playstore'
 OUT = Path('smoke-playstore')
 OUT.mkdir(exist_ok=True)
+Path('smoke-private').mkdir(exist_ok=True)
 
 def adb(*args):
     return subprocess.check_output(['adb', *args], text=True)
