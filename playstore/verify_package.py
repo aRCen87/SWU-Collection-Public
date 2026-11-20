@@ -11,8 +11,13 @@ assert "package: name='fr.swucollection.app.playstore'" in badging
 assert "versionCode='1'" in badging
 assert "application-label:'SWU Collection Playstore'" in badging
 permissions = subprocess.check_output([aapt, 'dump', 'permissions', str(apk)], text=True)
-for forbidden in ('REQUEST_INSTALL_PACKAGES', 'FOREGROUND_SERVICE', 'POST_NOTIFICATIONS'):
+for forbidden in ('REQUEST_INSTALL_PACKAGES', 'FOREGROUND_SERVICE_SPECIAL_USE', 'POST_NOTIFICATIONS'):
     assert forbidden not in permissions, forbidden
+# WorkManager contributes its standard foreground-service declaration for generic
+# background jobs. It is not the removed long-running messenger special-use service.
+manifest = subprocess.check_output([aapt, 'dump', 'xmltree', str(apk), 'AndroidManifest.xml'], text=True)
+for forbidden in ('RealtimeMessagingService', 'FirebaseInitProvider', 'swucollection://account'):
+    assert forbidden not in manifest, forbidden
 with zipfile.ZipFile(apk) as archive:
     dex = b'\n'.join(archive.read(n) for n in archive.namelist() if n.endswith('.dex'))
     for forbidden in (b'Lcom/google/firebase/auth/', b'Lcom/google/firebase/firestore/',
