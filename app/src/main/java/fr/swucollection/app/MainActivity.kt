@@ -625,9 +625,7 @@ private fun CollectionScreen(
                 }
             )
         }
-        var detailTab by rememberSaveable { mutableStateOf("") }
         var compareCards by remember { mutableStateOf(false) }
-        var cardToolsOpen by remember(session.current.card) { mutableStateOf(false) }
         val entryScale = rememberCardEntryScale(session.current.card)
         if(compareCards) CompareCardsDialog(card, allCatalog, cardDetails) { compareCards = false }
         val maxArtworkHeight = (LocalConfiguration.current.screenHeightDp.dp * .58f).coerceIn(160.dp, 560.dp)
@@ -754,27 +752,28 @@ private fun CollectionScreen(
                         if (card.imageUrl.isBlank() && previewLanguage in CardLanguages.supported) Text("Le visuel ${CardLanguages.label(previewLanguage).lowercase(java.util.Locale.FRANCE)} n’est pas publié pour cette référence. Un visuel disponible est affiché avec sa langue.", color = ListPalette.Secondary)
                         }
                         collectionActions()
-                        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
-                            itemVerticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                            TextButton(onClick = { detailTab = if (detailTab == "Variantes") "" else "Variantes" }) { Text("Variantes ›") }
-                            TextButton(onClick = { detailTab = if (detailTab == "Cotes") "" else "Cotes" }) { Text("Détail des cotes ›") }
-                            Box {
-                                IconButton(onClick = { cardToolsOpen = true }) { Icon(Icons.Default.MoreVert, "Autres actions de la carte") }
-                                DropdownMenu(cardToolsOpen, onDismissRequest = { cardToolsOpen = false }) {
-                                    DropdownMenuItem(text = { Text("Ajouter à un deck ou une liste") }, onClick = { cardToolsOpen = false; quickCard = card })
-                                    DropdownMenuItem(text = { Text("Détails et utilisations") }, onClick = { cardToolsOpen = false; detailTab = if (detailTab == "Détails") "" else "Détails" })
-                                    DropdownMenuItem(text = { Text("Comparer") }, onClick = { cardToolsOpen = false; compareCards = true })
-                                    DropdownMenuItem(text = { Text("Partager à des amis") }, onClick = {
-                                        cardToolsOpen = false; sharingPlayerCard = SharedPlayerCard(card.setCode, card.number, previewLanguage, previewVariant)
-                                    })
-                                }
-                            }
+                        HorizontalDivider(color = ListPalette.Gold.copy(alpha = .25f))
+                        Text("Variantes", Modifier.fillMaxWidth(), fontWeight = FontWeight.SemiBold,
+                            color = ListPalette.Gold)
+                        VariantFan(card, allCatalog, cards, cardDetails, previewVariant, previewLanguage, alwaysExpanded = true) { related, finish, language ->
+                            previewPrint = related
+                            previewVariant = finish
+                            previewLanguage = language
+                            showReverse = false
                         }
-                        when(detailTab) {
-                            "Détails" -> secondaryTools()
-                            "Variantes" -> VariantFan(card, allCatalog, cards, cardDetails, previewVariant, previewLanguage) { related, finish, language -> previewPrint = related; previewVariant = finish; previewLanguage = language; showReverse = false }
-                            "Cotes" -> CardmarketPricePanel(card, previewVariant)
+                        CardmarketPricePanel(card, previewVariant)
+                        HorizontalDivider(color = ListPalette.Gold.copy(alpha = .25f))
+                        Text("Détails et utilisations", Modifier.fillMaxWidth(), fontWeight = FontWeight.SemiBold,
+                            color = ListPalette.Gold)
+                        secondaryTools()
+                        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(onClick = { quickCard = card }) { Text("Ajouter à un deck ou une liste") }
+                            OutlinedButton(onClick = { compareCards = true }) { Text("Comparer") }
+                            OutlinedButton(onClick = {
+                                sharingPlayerCard = SharedPlayerCard(card.setCode, card.number, previewLanguage, previewVariant)
+                            }) { Text("Partager à des amis") }
                         }
+
                         }
                 }
             }

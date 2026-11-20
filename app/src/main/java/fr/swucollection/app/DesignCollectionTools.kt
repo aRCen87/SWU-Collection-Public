@@ -83,11 +83,11 @@ internal fun rarityProgress(catalog:List<CatalogCard>,quantities:Map<String,Int>
         drawContent();drawRect(Brush.linearGradient(listOf(Color.Transparent,Color(0x33B5E4FF),Color(0x22FCE8AC),Color.Transparent)))
     } else modifier
 }
-@Composable internal fun VariantFan(card:CatalogCard,catalog:List<CatalogCard>,owned:List<CollectionCard>,details:CardDetails,variant:String,language:String,onOpen:(CatalogCard,String,String)->Unit) {
+@Composable internal fun VariantFan(card:CatalogCard,catalog:List<CatalogCard>,owned:List<CollectionCard>,details:CardDetails,variant:String,language:String,alwaysExpanded:Boolean=false,onOpen:(CatalogCard,String,String)->Unit) {
     val prints=remember(card,catalog,owned,details){familyPrints(card,catalog,owned,details)}
     var expanded by remember(details.family(card)){mutableStateOf(false)}
-    TextButton(onClick={expanded=!expanded}){Text(if(expanded)"Replier les variantes" else "Déployer les variantes · ${prints.size}")}
-    if(!expanded) Box(Modifier.fillMaxWidth().height(130.dp).clickable{expanded=true},contentAlignment=Alignment.Center){
+    if(!alwaysExpanded) TextButton(onClick={expanded=!expanded}){Text(if(expanded)"Replier les variantes" else "Déployer les variantes · ${prints.size}")}
+    if(!alwaysExpanded && !expanded) Box(Modifier.fillMaxWidth().height(130.dp).clickable{expanded=true},contentAlignment=Alignment.Center){
         prints.take(5).forEachIndexed{i,p->CardArtwork(p.card,Modifier.size(74.dp,104.dp).graphicsLayer{
             translationX=(i-(minOf(prints.size,5)-1)/2f)*22.dp.toPx();rotationZ=(i-(minOf(prints.size,5)-1)/2f)*7f
         },variant=p.variant,language=language,showLanguageLabel=false)}

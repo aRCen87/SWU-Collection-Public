@@ -1,3 +1,8 @@
+## Version 0.9.10
+
+- Fiche carte zoomée : variantes, détail des cotes et utilisations visibles à la suite en faisant défiler vers le bas.
+- Suppression des boutons d’ouverture Variantes et Détail des cotes et du menu ⋮. Ajout aux decks/listes, comparaison et partage accessibles directement dans la fiche.
+
 ## Version 0.9.9
 
 - Collection en grille : choix compact de langue et finition, cote à gauche du favori, compteur − / + direct sans fenêtre de confirmation. Les choix d’ajout sont mémorisés ; changer un sélecteur ne modifie jamais les exemplaires existants.
